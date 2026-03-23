@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HVAC Cost Estimator | Gold Eagle Services</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+:root{
+  --gl:#f0d64e;--gm:#d7b740;--gd:#ab8024;
+  --bk:#0d0d0d;--card:#131212;--surf:#1e1d1d;--hov:#252424;--acc:#1a1919;
+  --wh:#fff;--dim:rgba(255,255,255,.76);--mut:rgba(255,255,255,.42);
+  --gh:linear-gradient(90deg,#f0d64e 0%,#d7b740 55%,#ab8024 100%);
+  --gd2:linear-gradient(135deg,#f0d64e 0%,#d7b740 45%,#ab8024 100%);
+  --ft:'Lora',Georgia,serif;--fb:'Trebuchet MS',Tahoma,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+#ges-widget{font-family:var(--fb);color:var(--wh);background:var(--bk);line-height:1.6;-webkit-font-smoothing:antialiased;max-width:700px;margin:0 auto}
+.wc{background:var(--card);border:1px solid rgba(215,183,64,.18);padding:32px 36px;position:relative;overflow:hidden}
+.wc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gh)}
+@media(max-width:520px){.wc{padding:20px 16px}}
+.wp{margin-bottom:22px}
+.wp-m{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.wp-l{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gm)}
+.wp-c{font-size:11px;color:rgba(255,255,255,.3)}
+.wp-t{height:3px;background:rgba(255,255,255,.07)}
+.wp-f{height:100%;background:var(--gh);transition:width .45s cubic-bezier(.4,0,.2,1)}
+.ws{animation:wIn .3s ease both}
+@keyframes wIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.wq{font-family:var(--ft);font-size:clamp(16px,3vw,20px);font-weight:600;color:var(--wh);margin-bottom:5px;line-height:1.35}
+.wh{font-size:12.5px;color:var(--mut);margin-bottom:14px;line-height:1.55}
+.wtip{background:rgba(171,128,36,.08);border-left:2px solid rgba(171,128,36,.5);padding:9px 12px;margin-bottom:12px;font-size:12px;color:rgba(255,255,255,.5);line-height:1.55}
+.wtip strong{color:var(--gm)}
+.wlm-btn{background:none;border:none;color:var(--gm);font-family:var(--fb);font-size:12px;cursor:pointer;padding:0 0 10px;text-decoration:underline;outline:none;display:block}
+.wlm-body{padding:11px 13px;background:rgba(215,183,64,.06);border:1px solid rgba(215,183,64,.14);font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:12px;animation:wIn .2s ease both}
+.wlm-body strong{color:rgba(255,255,255,.75)}
+.wg1{display:grid;gap:8px;grid-template-columns:1fr}
+.wg2{display:grid;gap:8px;grid-template-columns:1fr 1fr}
+.wg3{display:grid;gap:8px;grid-template-columns:1fr 1fr 1fr}
+@media(max-width:480px){.wg2,.wg3{grid-template-columns:1fr 1fr}}
+@media(max-width:340px){.wg2,.wg3{grid-template-columns:1fr}}
+/* Sq ft + foundation combined step */
+.wsqft-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:4px}
+@media(max-width:480px){.wsqft-row{grid-template-columns:1fr}}
+.wsqft-section label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gm);margin-bottom:8px}
+.wo{background:var(--surf);border:1px solid rgba(215,183,64,.18);color:var(--wh);padding:12px 14px;cursor:pointer;text-align:left;font-family:var(--fb);font-size:13px;line-height:1.4;transition:border-color .18s,background .18s,transform .12s;position:relative;outline:none;-webkit-appearance:none;min-height:46px;width:100%}
+.wo:hover{border-color:var(--gm);background:var(--hov);transform:translateY(-1px)}
+.wo.sel{border-color:var(--gl);background:rgba(240,214,78,.08);color:var(--gl)}
+.wo.sel::after{content:'✓';position:absolute;top:9px;right:11px;font-size:10px;color:var(--gm)}
+.wo-label{display:block;font-weight:600;font-size:13px;padding-right:18px}
+.wo-desc{display:block;font-size:11.5px;color:rgba(255,255,255,.35);margin-top:2px}
+.wo.sel .wo-desc{color:rgba(240,214,78,.45)}
+.wo-price{display:block;font-size:11px;color:rgba(215,183,64,.55);margin-top:2px;font-weight:600}
+.wo.sel .wo-price{color:rgba(240,214,78,.7)}
+.wo-badge{display:inline-block;background:var(--gh);color:var(--bk);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;margin-left:6px;vertical-align:middle}
+.wo-badge-ge{display:inline-block;background:linear-gradient(90deg,#1a6cb5,#2389e0);color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 7px;margin-left:6px;vertical-align:middle}
+/* Tier cards */
+.wtier-grid{display:grid;gap:10px;grid-template-columns:1fr}
+.wtier{background:var(--surf);border:1px solid rgba(215,183,64,.18);padding:14px 16px;cursor:pointer;position:relative;transition:border-color .18s,background .18s;outline:none;-webkit-appearance:none;text-align:left;width:100%}
+.wtier:hover{border-color:var(--gm);background:var(--hov)}
+.wtier.sel{border-color:var(--gl);background:rgba(240,214,78,.07)}
+.wtier.sel::after{content:'✓';position:absolute;top:12px;right:14px;font-size:11px;color:var(--gm)}
+.wtier-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px}
+.wtier-name{font-family:var(--ft);font-size:15px;font-weight:600;color:var(--wh)}
+.wtier.sel .wtier-name{color:var(--gl)}
+.wtier-price{font-family:var(--ft);font-size:16px;font-weight:700;color:var(--gl);white-space:nowrap;text-align:right}
+.wtier-price-note{font-size:10px;color:rgba(255,255,255,.3);text-align:right;margin-top:1px}
+.wtier-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.wtier-pill{font-size:10px;padding:2px 8px;border:1px solid rgba(215,183,64,.25);color:rgba(215,183,64,.7);letter-spacing:.06em}
+.wtier-desc{font-size:12px;color:rgba(255,255,255,.42);line-height:1.5}
+.wtier.sel .wtier-desc{color:rgba(255,255,255,.55)}
+.wtier-rebate{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:#4ade80;font-weight:600;margin-top:5px}
+.wtier-ge{border-color:rgba(35,137,224,.35)}
+.wtier-ge.sel{border-color:#2389e0;background:rgba(35,137,224,.07)}
+.wtier-ge-badge{display:inline-block;background:linear-gradient(90deg,#1a6cb5,#2389e0);color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 8px;margin-bottom:6px}
+.winfo{background:rgba(215,183,64,.05);border:1px solid rgba(215,183,64,.18);padding:13px;margin-bottom:12px}
+.winfo-title{font-family:var(--ft);font-size:12.5px;font-weight:600;color:var(--gm);margin-bottom:8px}
+.winfo-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:5px}
+.winfo-dot{width:5px;height:5px;background:var(--gd);flex-shrink:0;margin-top:5px}
+.winfo-text{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5}
+.winfo-text strong{color:rgba(255,255,255,.72)}
+.wgrille{display:flex;align-items:center;gap:13px;margin-bottom:13px;padding:10px 12px;background:rgba(215,183,64,.05);border:1px solid rgba(215,183,64,.15)}
+.weff-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11.5px}
+.weff-table th{background:rgba(215,183,64,.1);color:var(--gm);font-weight:600;padding:6px 9px;text-align:left;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase}
+.weff-table td{padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.05);color:rgba(255,255,255,.55)}
+.weff-table tr.cur td{background:rgba(240,214,78,.05);color:var(--gl)}
+.weff-table tr:last-child td{border-bottom:none}
+.weff-rebate{color:#4ade80;font-weight:600}
+.wnav{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:10px}
+.wback{background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.38);padding:11px 20px;font-family:var(--fb);font-size:13px;cursor:pointer;transition:border-color .2s,color .2s;outline:none;-webkit-appearance:none}
+.wback:hover{border-color:rgba(255,255,255,.28);color:rgba(255,255,255,.65)}
+.wnext{background:var(--gh);border:none;color:var(--bk);padding:12px 28px;font-family:var(--ft);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.03em;transition:opacity .2s,transform .12s;outline:none;-webkit-appearance:none;margin-left:auto}
+.wnext:hover:not(:disabled){opacity:.86;transform:translateY(-1px)}
+.wnext:disabled{opacity:.28;cursor:not-allowed;transform:none}
+.wskip{background:transparent;border:none;color:rgba(255,255,255,.25);font-family:var(--fb);font-size:12px;cursor:pointer;text-decoration:underline;outline:none;padding:0;white-space:nowrap}
+.wskip:hover{color:rgba(255,255,255,.5)}
+/* Results */
+.wr{animation:wIn .35s ease both}
+.wr-eye{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gm);margin-bottom:5px}
+.wr-title{font-family:var(--ft);font-size:clamp(18px,3.5vw,24px);font-weight:700;color:var(--wh);line-height:1.25;margin-bottom:16px}
+.wr-sec{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gm);margin-bottom:9px;display:flex;align-items:center;gap:10px}
+.wr-sec::after{content:'';flex:1;height:1px;background:rgba(215,183,64,.18)}
+/* GExGE callout */
+.wge-callout{background:linear-gradient(135deg,rgba(26,108,181,.15) 0%,rgba(35,137,224,.08) 100%);border:1px solid rgba(35,137,224,.4);padding:16px;margin-bottom:16px;position:relative;overflow:hidden}
+.wge-callout::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#1a6cb5,#2389e0,#f0d64e)}
+.wge-title{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.wge-logo{font-family:var(--ft);font-size:15px;font-weight:700;color:#fff}
+.wge-logo span{color:#2389e0}
+.wge-x{color:var(--gm);font-size:13px;margin:0 2px}
+.wge-body{font-size:12px;color:rgba(255,255,255,.55);line-height:1.6}
+.wge-body strong{color:rgba(255,255,255,.8)}
+/* System selected card */
+.wsys-card{background:var(--surf);border:1px solid rgba(215,183,64,.2);padding:14px 16px;margin-bottom:16px}
+.wsys-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.wsys-card-name{font-family:var(--ft);font-size:16px;font-weight:600;color:var(--wh)}
+.wsys-card-price{font-family:var(--ft);font-size:22px;font-weight:700;background:var(--gd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:right}
+.wsys-card-ton{font-size:11px;color:rgba(255,255,255,.35);text-align:right}
+.wsys-card-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.wsys-card-pill{font-size:10px;padding:2px 8px;border:1px solid rgba(215,183,64,.2);color:rgba(215,183,64,.65);letter-spacing:.05em}
+.wsys-card-rebate{display:flex;align-items:center;gap:5px;margin-top:8px;font-size:12px;color:#4ade80;font-weight:600}
+/* Breakdown */
+.wbd-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:12px}
+.wbd-row:last-child{border-bottom:none}
+.wbd-name{font-size:13px;color:var(--dim);flex:1;line-height:1.4}
+.wbd-amt{font-size:13px;color:var(--gl);white-space:nowrap;font-weight:600;text-align:right}
+.wbd-note{font-size:11px;color:rgba(255,255,255,.28);text-align:right}
+/* Total */
+.wtotal{background:var(--acc);border:1px solid rgba(240,214,78,.28);border-top:3px solid var(--gm);padding:18px 20px;text-align:center;margin:14px 0}
+.wtotal-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gm);margin-bottom:5px}
+.wtotal-range{font-family:var(--ft);font-size:clamp(24px,5vw,38px);font-weight:700;background:var(--gd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
+.wtotal-note{font-size:11px;color:rgba(255,255,255,.28);margin-top:3px}
+/* Financing */
+.wfin{background:rgba(215,183,64,.05);border:1px solid rgba(215,183,64,.2);padding:13px 15px;margin-bottom:14px}
+.wfin-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.wfin-label strong{display:block;color:var(--gm);font-size:13px;margin-bottom:2px}
+.wfin-label{font-size:12px;color:rgba(255,255,255,.45);flex:1;min-width:160px}
+.wfin-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.wfin-sym{color:var(--gm);font-size:14px;font-weight:600}
+.wfin-input{background:var(--surf);border:1px solid rgba(215,183,64,.3);color:var(--wh);padding:8px 10px;font-family:var(--fb);font-size:14px;width:130px;outline:none;text-align:right;-webkit-appearance:none;border-radius:0}
+.wfin-input:focus{border-color:var(--gm)}
+.wfin-input::placeholder{color:rgba(255,255,255,.2);font-size:12px}
+.wfin-mo{font-size:11px;color:rgba(255,255,255,.35);margin-top:4px}
+/* Rebate */
+.wrebate{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.25);padding:12px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:11px}
+.wrebate-icon{font-size:18px;flex-shrink:0}
+.wrebate-text{font-size:12.5px;color:rgba(255,255,255,.6);line-height:1.55}
+.wrebate-text strong{color:#4ade80;display:block;font-size:14px;margin-bottom:2px}
+.wrebate-text a{color:#4ade80;font-size:11px}
+/* Upgrade table */
+.wupgrade-btn{background:none;border:1px solid rgba(215,183,64,.18);color:var(--gm);font-family:var(--fb);font-size:12px;cursor:pointer;padding:8px 14px;outline:none;width:100%;text-align:left;display:flex;justify-content:space-between;transition:background .18s;margin-bottom:14px}
+.wupgrade-btn:hover{background:rgba(215,183,64,.05)}
+/* Flags */
+.wflags{margin-bottom:14px}
+.wflag-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(240,214,78,.6);margin-bottom:6px}
+.wflag-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:rgba(255,255,255,.4);line-height:1.45;margin-bottom:4px}
+.wflag-dot{width:4px;height:4px;background:rgba(240,214,78,.5);flex-shrink:0;margin-top:5px}
+/* Checklist */
+.wcklist{border-left:2px solid rgba(171,128,36,.5);padding:11px 13px;margin-bottom:14px;background:rgba(171,128,36,.05)}
+.wcklist-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:7px}
+.wcklist-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:rgba(255,255,255,.4);line-height:1.45;margin-bottom:4px}
+.wcklist-item:last-child{margin-bottom:0}
+.wcklist-box{width:12px;height:12px;border:1px solid rgba(215,183,64,.28);flex-shrink:0;margin-top:2px}
+/* Summary */
+.wsum{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px}
+@media(max-width:440px){.wsum{grid-template-columns:1fr}}
+.wsum-item{background:var(--surf);border:1px solid rgba(215,183,64,.1);padding:9px 11px}
+.wsum-key{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gd);margin-bottom:2px}
+.wsum-val{font-size:12px;color:var(--dim);line-height:1.35}
+.wsum-flag{font-size:10px;color:rgba(240,214,78,.55);margin-top:2px}
+/* CTAs */
+.wcta-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+@media(max-width:440px){.wcta-row{grid-template-columns:1fr}}
+.wcta-p{background:var(--gh);border:none;color:var(--bk);padding:14px 18px;font-family:var(--ft);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s,transform .12s,box-shadow .2s;box-shadow:0 4px 18px rgba(215,183,64,.18);text-decoration:none;outline:none;-webkit-appearance:none}
+.wcta-p:hover{opacity:.86;transform:translateY(-1px);box-shadow:0 6px 24px rgba(215,183,64,.28)}
+.wcta-s{background:transparent;border:1px solid rgba(215,183,64,.32);color:var(--gm);padding:14px 18px;font-family:var(--ft);font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color .2s,background .2s,color .2s;text-decoration:none;outline:none;-webkit-appearance:none}
+.wcta-s:hover{background:rgba(215,183,64,.06);border-color:var(--gm);color:var(--gl)}
+.worcall{text-align:center;font-size:12px;color:rgba(255,255,255,.3);margin-bottom:12px}
+.worcall a{color:var(--gm);text-decoration:none}
+.worcall a:hover{text-decoration:underline}
+/* Email self */
+.wemail-wrap{margin-bottom:12px}
+.wemail-label{font-size:11px;color:rgba(255,255,255,.32);margin-bottom:5px}
+.wemail-row{display:flex;gap:8px}
+.wemail-row input{flex:1;background:var(--surf);border:1px solid rgba(215,183,64,.18);color:var(--wh);padding:9px 12px;font-family:var(--fb);font-size:13px;outline:none;border-radius:0;transition:border-color .2s}
+.wemail-row input:focus{border-color:var(--gm)}
+.wemail-row input::placeholder{color:rgba(255,255,255,.2)}
+.wemail-row button{background:var(--surf);border:1px solid rgba(215,183,64,.28);color:var(--gm);padding:9px 15px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;outline:none;transition:background .18s}
+.wemail-row button:hover:not(:disabled){background:rgba(215,183,64,.08)}
+.wemail-row button:disabled{opacity:.35;cursor:not-allowed}
+.wemail-sent{font-size:12px;color:#4ade80;margin-bottom:12px}
+.wline{height:1px;background:linear-gradient(90deg,transparent,rgba(215,183,64,.22),transparent);margin:14px 0}
+/* Form */
+.wftoggle{background:var(--surf);border:1px solid rgba(215,183,64,.2);width:100%;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-family:var(--fb);color:var(--wh);font-size:13.5px;outline:none;-webkit-appearance:none;transition:background .18s,border-color .18s;text-align:left;gap:10px}
+.wftoggle:hover{background:var(--hov);border-color:var(--gm)}
+.wftico{font-size:20px;color:var(--gm);flex-shrink:0;transition:transform .25s;line-height:1}
+.wftico.open{transform:rotate(45deg)}
+.wftitle{display:block;font-weight:600}
+.wfsub{display:block;font-size:11px;color:rgba(255,255,255,.32);margin-top:1px}
+.wfbody{border:1px solid rgba(215,183,64,.12);border-top:none;padding:20px 18px;background:rgba(0,0,0,.25);animation:wIn .25s ease both}
+@media(max-width:520px){.wfbody{padding:15px 12px}}
+.wfield{margin-bottom:12px}
+.wlbl{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gm);margin-bottom:5px}
+.wlbl-note{color:rgba(255,255,255,.25);font-weight:normal;text-transform:none;letter-spacing:0;font-size:10px}
+.winput,.wtarea{width:100%;background:var(--surf);border:1px solid rgba(215,183,64,.18);color:var(--wh);padding:10px 12px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .2s;-webkit-appearance:none;border-radius:0}
+.winput:focus,.wtarea:focus{border-color:var(--gm)}
+.winput::placeholder,.wtarea::placeholder{color:rgba(255,255,255,.2)}
+.wtarea{resize:vertical;min-height:70px}
+.wf2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:440px){.wf2{grid-template-columns:1fr}}
+.wtimes{display:flex;flex-wrap:wrap;gap:6px}
+.wtpill{background:var(--surf);border:1px solid rgba(215,183,64,.15);color:rgba(255,255,255,.48);padding:6px 12px;font-family:var(--fb);font-size:12px;cursor:pointer;outline:none;-webkit-appearance:none;transition:border-color .18s,color .18s,background .18s}
+.wtpill.on{border-color:var(--gl);color:var(--gl);background:rgba(240,214,78,.07)}
+.wupload{border:1.5px dashed rgba(215,183,64,.26);padding:15px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+.wupload:hover{border-color:var(--gm);background:rgba(215,183,64,.03)}
+.wupload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.wupload-hint{font-size:11px;color:rgba(255,255,255,.22);margin-top:3px;line-height:1.5}
+.wthumbs{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.wthumb{position:relative;width:66px;height:66px;background:var(--surf);border:1px solid rgba(215,183,64,.15);overflow:hidden}
+.wthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.wthumb-rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.8);border:none;color:rgba(255,255,255,.8);width:16px;height:16px;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;outline:none;padding:0}
+.wthumb-rm:hover{background:rgba(160,40,40,.9);color:#fff}
+.wsubmit{width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px 18px;font-family:var(--ft);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:opacity .2s,transform .12s;outline:none;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-appearance:none}
+.wsubmit:hover:not(:disabled){opacity:.88;transform:translateY(-1px)}
+.wsubmit:disabled{opacity:.32;cursor:not-allowed}
+.wconfirm{text-align:center;padding:28px 10px 16px;animation:wIn .35s ease both}
+.wconfirm-check{width:52px;height:52px;background:var(--gh);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 13px;font-size:20px;color:var(--bk);font-weight:700}
+.wconfirm-title{font-family:var(--ft);font-size:22px;font-weight:700;color:var(--wh);margin-bottom:8px}
+.wconfirm-body{font-size:13px;color:rgba(255,255,255,.45);max-width:360px;margin:0 auto 16px;line-height:1.65}
+.wconfirm-phone{font-family:var(--ft);font-size:22px;background:var(--gd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;display:block;margin-bottom:5px;text-decoration:none}
+.wconfirm-tag{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:.1em}
+.wrestart{background:transparent;border:none;color:rgba(255,255,255,.2);font-family:var(--fb);font-size:12px;cursor:pointer;text-decoration:underline;padding:4px;outline:none;display:block;margin:13px auto 0}
+.wrestart:hover{color:rgba(255,255,255,.46)}
+@media print{
+  #ges-widget{background:#fff;color:#000}
+  .wc{border:1px solid #ccc;padding:20px}
+  .wc::before,.wftoggle,.wrestart,.wcta-row,.wfbody,.wemail-wrap,.wupgrade-btn{display:none}
+  .wr-title,.wq{color:#000}
+  .wsum-item{background:#f5f5f5;border:1px solid #ddd}
+  .wsum-key{color:#666}.wsum-val{color:#333}
+  .wbd-amt{color:#7a5f00}
+  .wtotal{background:#f9f3d4;border:2px solid #d7b740}
+  .wtotal-range{-webkit-text-fill-color:#7a5f00}
+  .wrebate{background:#e8f5e9;border:1px solid #4caf50}
+}
+</style>
+</head>
+<body>
+<div id="ges-widget"></div>
+<script type="text/babel">
+const { useState, useMemo, useRef, useCallback } = React;
+
+// ═══════════════════════════════════════════════════════════════
+// REAL PRICING DATA
+// ═══════════════════════════════════════════════════════════════
+
+// Tonnage lookup: sqft + foundation → [minTon, maxTon]
+// ~500-600 sq ft per ton; pier & beam shifts up one size
+// Tons: 1.5, 2, 2.5, 3, 3.5, 4, 5
+const TON_MAP = {
+  // [slab_min, slab_max, pb_min, pb_max] — indices into TONS array
+  u1000: [0,1,1,2],   // 1.5-2 slab, 2-2.5 pb
+  s1_15: [1,2,2,3],   // 2-2.5 slab, 2.5-3 pb
+  s15_2: [2,3,3,4],   // 2.5-3 slab, 3-3.5 pb
+  s2_25: [3,4,4,5],   // 3-3.5 slab, 3.5-4 pb
+  s25_3: [4,5,5,6],   // 3.5-4 slab, 4-5 pb (no 4.5)
+  s3p:   [5,6,5,6],   // 4-5 slab, 4-5 pb (flag for tech)
+};
+const TONS = [1.5, 2, 2.5, 3, 3.5, 4, 5];
+
+// Price tables: indexed by ton position [0..6] = [1.5,2,2.5,3,3.5,4,5]
+// null = not available at that tonnage
+const PRICES = {
+  // GAS FURNACE + AC
+  gas_fedmin:  { brand:'Ameristar', seer:'13.8', stage:'1-stage',  prices:[10757,11024,11537,11885,12287,12700,13257], isGE:false },
+  gas_mid:     { brand:'GE Connect',seer:'16–16.5',stage:'1-stage',prices:[12207,12442,13206,13876,14706,15098,15319], isGE:true  },
+  gas_high:    { brand:'American Standard',seer:'17.1',stage:'2-stage', prices:[null,15737,null,19985,null,21334,25068], isGE:false },
+  gas_premium: { brand:'American Standard',seer:'17–21.6',stage:'Variable speed',prices:[null,24356,null,26051,null,27614,29626], isGE:false },
+
+  // HEAT PUMP
+  hp_fedmin:   { brand:'Ameristar', seer:'14.3',stage:'1-stage',   prices:[10407,10633,11016,11348,11748,12560,13510], isGE:false },
+  hp_mid:      { brand:'GE Connect',seer:'15',  stage:'Variable',  prices:[11198,11385,12248,12981,14609,15744,17114], isGE:true  },
+  hp_high_ge:  { brand:'GE Connect',seer:'18',  stage:'Variable',  prices:[null,13673,null,15414,null,17483,18258], isGE:true  },
+  hp_high_as:  { brand:'American Standard',seer:'17.1',stage:'2-stage',prices:[null,19292,null,21795,null,24640,26550], isGE:false },
+  hp_premium:  { brand:'American Standard',seer:'17–22.4',stage:'Variable speed',prices:[null,23225,null,25950,null,29353,31222], isGE:false },
+
+  // DUAL FUEL
+  df_fedmin:   { brand:'GE Connect', seer:'15–16.5',stage:'1-stage', prices:[12279,12441,13371,14005,15830,16470,17499], isGE:true  },
+  df_mid:      { brand:'GE Connect', seer:'16.3–17.2',stage:'Variable',prices:[null,16128,null,17301,null,21357,21357], isGE:true  },
+  df_high:     { brand:'American Standard',seer:'17.1',stage:'2-stage',prices:[null,22405,null,25344,null,28025,30861], isGE:false },
+  df_premium:  { brand:'American Standard',seer:'17–22.4',stage:'Variable speed',prices:[null,28832,null,30260,null,31175,35414], isGE:false },
+
+  // CENTRAL AC ONLY (straight cool + air handler)
+  ac_fedmin:   { brand:'Ameristar', seer:'14.3',stage:'1-stage',   prices:[10166,10453,10814,11203,11760,12640,13377], isGE:false },
+
+  // FUR-DOWN / ABOVE THE TUB — condos and specific installs, max 3 ton
+  fd_ac_fedmin:{ brand:'Ameristar', seer:'14.3',stage:'1-stage',   prices:[9305,9929,10556,10924,null,null,null], isGE:false, furDown:true },
+  fd_hp_mid:   { brand:'GE Connect',seer:'15',  stage:'Variable',  prices:[10442,10943,11924,12704,null,null,null], isGE:true,  furDown:true },
+
+  // CONDENSER-ONLY (GE exclusive — customer keeps existing AH/coil/furnace)
+  // 5-year parts warranty included automatically
+  cond_hp_15:  { brand:'GE Connect', seer:'15',   stage:'Variable', prices:[6706,6830,7407,8067,9434,9760,10854], isGE:true,  condenserOnly:true },
+  cond_hp_18:  { brand:'GE Connect', seer:'18',   stage:'Variable', prices:[null,8062,null,9045,null,11348,11348], isGE:true,  condenserOnly:true },
+  cond_sc_16:  { brand:'GE',         seer:'16',   stage:'1-stage',  prices:[5734,6019,6160,6680,7306,7711,8442],  isGE:true,  condenserOnly:true },
+};
+
+// Austin Energy rebates by system category + efficiency tier
+const AE_REBATES = {
+  gas:     { fedmin:0, mid:600, high:700, premium:700 },
+  hp:      { fedmin:0, mid:650, high:950, premium:950 },
+  df:      { fedmin:0, mid:650, high:950, premium:950 },
+  central: { fedmin:0 },
+};
+
+// Tier definitions per system type
+// desc = one line shown mid-flow only. Brand/price/SEER revealed on results screen.
+const TIERS = {
+  gas_ac: [
+    { key:'gas_fedmin', tier:'fedmin', label:'Federal Minimum', seer:'13.8 SEER2',   stage:'1-stage',      brand:'Ameristar',        desc:'Meets current code, lowest upfront cost',                    isGE:false },
+    { key:'gas_mid',    tier:'mid',    label:'Mid Efficiency',  seer:'16–16.5 SEER2', stage:'1-stage',      brand:'GE Connect',       desc:'Best overall value, noticeably lower energy bills',           isGE:true  },
+    { key:'gas_high',   tier:'high',   label:'High Efficiency', seer:'17.1 SEER2',    stage:'2-stage',      brand:'American Standard', desc:'2-stage comfort, qualifies for Austin Energy rebate',         isGE:false },
+    { key:'gas_premium',tier:'premium',label:'Premium',         seer:'17–21.6 SEER2', stage:'Variable speed',brand:'American Standard',desc:'Variable speed, quietest operation, lowest monthly bills',   isGE:false },
+  ],
+  heat_pump: [
+    { key:'hp_fedmin',  tier:'fedmin', label:'Federal Minimum', seer:'14.3 SEER2',   stage:'1-stage',      brand:'Ameristar',         desc:'Meets current code, heats and cools, lowest upfront cost',  isGE:false },
+    { key:'hp_mid',     tier:'mid',    label:'Mid Efficiency',  seer:'15 SEER2',      stage:'Variable',     brand:'GE Connect',        desc:'Best overall value, variable speed, inverter driven',        isGE:true  },
+    { key:'hp_high_ge', tier:'high',   label:'High Efficiency', seer:'18 SEER2',      stage:'Variable',     brand:'GE Connect',        desc:'Inverter driven, qualifies for $950 Austin Energy rebate',   isGE:true, recommended:true },
+    { key:'hp_high_as', tier:'high',   label:'High Efficiency', seer:'17.1 SEER2',    stage:'2-stage',      brand:'American Standard', desc:'2-stage alternative, qualifies for $950 Austin Energy rebate',isGE:false },
+    { key:'hp_premium', tier:'premium',label:'Premium',         seer:'17–22.4 SEER2', stage:'Variable speed',brand:'American Standard',desc:'Fully communicating, tightest efficiency, best diagnostics', isGE:false },
+  ],
+  dual_fuel: [
+    { key:'df_mid',     tier:'mid',    label:'Mid Efficiency',  seer:'16.3–17.2 SEER2',stage:'Variable',   brand:'GE Connect',        desc:'Inverter heat pump + gas furnace, best value combination',   isGE:true, recommended:true },
+    { key:'df_high',    tier:'high',   label:'High Efficiency', seer:'17.1 SEER2',    stage:'2-stage',      brand:'American Standard', desc:'2-stage heat pump + furnace, Austin Energy rebate eligible', isGE:false },
+    { key:'df_premium', tier:'premium',label:'Premium',         seer:'17–22.4 SEER2', stage:'Variable speed',brand:'American Standard',desc:'Fully communicating dual fuel, maximum comfort and efficiency',isGE:false },
+  ],
+  central_ac: [
+    { key:'ac_fedmin',  tier:'fedmin', label:'Federal Minimum', seer:'14.3 SEER2',   stage:'1-stage',      brand:'Ameristar',         desc:'Meets current code, cooling only, most affordable option',  isGE:false },
+  ],
+  // Fur-down path — shown when unit_location = 'furdown'
+  fur_down_ac: [
+    { key:'fd_ac_fedmin', tier:'fedmin', label:'Federal Minimum', seer:'14.3 SEER2', stage:'1-stage', brand:'Ameristar', desc:'Fur-down AC system, meets current code, most affordable', isGE:false },
+  ],
+  fur_down_hp: [
+    { key:'fd_hp_mid', tier:'mid', label:'Mid Efficiency', seer:'15 SEER2', stage:'Variable', brand:'GE Connect', desc:'Fur-down heat pump, heats and cools, inverter driven', isGE:true },
+  ],
+};
+
+// Helper: get price range for a tier key + sqft + foundation
+function getPriceRange(tierKey, sqftKey, foundation) {
+  const pd = PRICES[tierKey];
+  if (!pd) return null;
+  const tMap = TON_MAP[sqftKey];
+  if (!tMap) return null;
+  const isPB = foundation === 'pb';
+  const [loIdx, hiIdx] = isPB ? [tMap[2], tMap[3]] : [tMap[0], tMap[1]];
+
+  // Find nearest available price at or above loIdx
+  let lo = null, hi = null;
+  for (let i = loIdx; i < TONS.length; i++) {
+    if (pd.prices[i] !== null) { lo = pd.prices[i]; break; }
+  }
+  for (let i = hiIdx; i >= 0; i--) {
+    if (pd.prices[i] !== null) { hi = pd.prices[i]; break; }
+  }
+  // If hi < lo (happens when only one size available), set equal
+  if (lo !== null && hi !== null && hi < lo) hi = lo;
+
+  const loTon = lo !== null ? TONS[loIdx] : null;
+  const hiTon = hi !== null ? TONS[hiIdx] : null;
+
+  return { lo, hi, loTon, hiTon, brand:pd.brand, seer:pd.seer, stage:pd.stage, isGE:pd.isGE };
+}
+
+function getTierKey(system) {
+  if (system === 'gas_ac')     return 'gas';
+  if (system === 'heat_pump')  return 'hp';
+  if (system === 'dual_fuel')  return 'df';
+  if (system === 'central_ac') return 'central';
+  return 'gas';
+}
+
+// Add-on pricing
+const ADDON_PRICES = {
+  // Air purification
+  aprilaire: { label:'Aprilaire 5" Media Filter Rack', low:350,  high:650  },
+  uv:        { label:'UV Light System',                 low:400,  high:900  },
+  ionizer:   { label:'Ionizer / Plasma Purifier',       low:500,  high:1100 },
+  hepa:      { label:'HEPA Bypass System',              low:900,  high:2200 },
+  // Thermostats
+  aerie:     { label:'Aerie Thermostat',                low:280,  high:380  },
+  nest:      { label:'Nest (Google)',                   low:220,  high:380  },
+  ecobee:    { label:'Ecobee',                          low:220,  high:400  },
+  honeywell_t6: { label:'Honeywell T6 Pro',             low:140,  high:250  },
+  // Plenum
+  ductboard: { label:'Ductboard Supply Plenum',         low:180,  high:380  },
+  metal:     { label:'Sheet Metal Supply Plenum',       low:280,  high:550  },
+  return_ply:{ label:'Plywood Return Air Box',          low:150,  high:320  },
+  // Warranty
+  w5:        { label:'5-Year Labor Warranty',           low:400,  high:700  },
+  w10:       { label:'10-Year Labor Warranty',          low:700,  high:1100 },
+  w12:       { label:'12-Year Labor Warranty (GE only)',low:900,  high:1400 },
+  // Ductwork
+  older_duct:{ few:{runs:7}, average:{runs:12}, lot:{runs:20} },
+  run_price: { low:90, high:220 },
+};
+
+// Real dehumidifier pricing — installed
+// Structure: { sf: {model, pints, price}, hw: {model, pints, price} | null }
+const DEHU_TIERS = {
+  // Fur-down / condo — Santa Fe only, no Honeywell equivalent
+  furdown: {
+    sf: { model:'Ultra MD33', pints:33, price:6981 },
+    hw: null,
+  },
+  // 600–1,500 sq ft
+  small: {
+    sf: { model:'Ultra 70',   pints:70,  price:7037 },
+    hw: { model:'DHM065',     pints:65,  price:6093 },
+  },
+  // 1,501–2,500 sq ft
+  mid: {
+    sf: { model:'UltraV 100', pints:100, price:8965 },
+    hw: { model:'DHM090',     pints:90,  price:7247 },
+  },
+  // 2,501–3,000 sq ft
+  large: {
+    sf: { model:'UltraV 125', pints:125, price:9441 },
+    hw: { model:'DHM120',     pints:120, price:7753 },
+  },
+  // 3,000+ sq ft — Santa Fe only, two options
+  xlarge_150: {
+    sf: { model:'UltraV 150', pints:150, price:13150 },
+    hw: null,
+  },
+  xlarge_205: {
+    sf: { model:'UltraV 205', pints:205, price:15670 },
+    hw: null,
+  },
+};
+
+// Map new sqft bucket keys to dehu tier
+function getDehuTier(sqftKey, isFurDown) {
+  if (isFurDown) return 'furdown';
+  const map = {
+    s600_950:'small', s951_1250:'small', s1251_1500:'small',
+    s1501_1850:'mid',  s1851_2150:'mid',
+    s2151_2500:'large',s2501_3100:'xlarge_150',
+    not_sure:'mid',
+  };
+  return map[sqftKey] || 'mid';
+}
+
+// Get dehu options for a given tier
+function getDehuOpts(tierKey) {
+  if (tierKey === 'xlarge_150' || tierKey === 'xlarge_205') {
+    // For 3000+ show both 150 and 205 as options
+    return [
+      { value:'sf_150', label:'Santa Fe UltraV 150', sub:'150-pint · recommended for most 3,000+ sq ft homes', price:DEHU_TIERS.xlarge_150.sf.price, isSF:true },
+      { value:'sf_205', label:'Santa Fe UltraV 205', sub:'205-pint · very large homes or exceptionally humid', price:DEHU_TIERS.xlarge_205.sf.price, isSF:true },
+      { value:'none',   label:'No dehumidifier',     sub:'Skip this add-on', price:null },
+    ];
+  }
+  const tier = DEHU_TIERS[tierKey];
+  if (!tier) return [{value:'none',label:'No dehumidifier',sub:'Skip this add-on',price:null}];
+  const opts = [];
+  if (tier.sf) opts.push({
+    value:'sf', label:`Santa Fe ${tier.sf.model}`,
+    sub:`${tier.sf.pints}-pint · premium · quieter · longer warranty`,
+    price:tier.sf.price, isSF:true, recommended:true,
+  });
+  if (tier.hw) opts.push({
+    value:'hw', label:`Honeywell ${tier.hw.model}`,
+    sub:`${tier.hw.pints}-pint · reliable · more budget-friendly`,
+    price:tier.hw.price, isSF:false,
+  });
+  opts.push({value:'none', label:'No dehumidifier', sub:'Skip this add-on', price:null});
+  return opts;
+}
+
+const r50 = n => Math.round(n/50)*50;
+const fmt = n => '$'+Math.round(n).toLocaleString();
+const fmtR = (lo,hi) => lo===hi ? fmt(lo) : `${fmt(lo)} – ${fmt(hi)}`;
+
+const TECH_LIST = [
+  'Verify tonnage with Manual J heat load calculation',
+  'Inspect ductwork — leaks, kinks, insulation',
+  'Evaluate electrical panel capacity and wiring',
+  'Assess attic/crawlspace access and clearances',
+  'Confirm refrigerant line routing options',
+  'Check outdoor unit pad and placement',
+  'Review local permit and code requirements',
+  'Verify compatibility with existing components',
+];
+
+const LEARN_MORE = {
+  heatpump: { trigger:'What is a heat pump?', body:'A heat pump heats AND cools your home — it\'s like a reversible air conditioner. In summer it moves heat out. In winter it pulls heat from outside air (even cold air contains heat energy) and moves it inside. Very efficient for Austin\'s mild winters.' },
+  dualfuel:  { trigger:'What is dual fuel?', body:'Dual fuel combines a heat pump with a gas furnace. The heat pump runs most of the year very efficiently. When temps drop below ~35°F, the gas furnace automatically takes over. Best of both worlds — electric efficiency most of the year, gas power for rare cold snaps. Great if you have a gas line or propane tank.' },
+  seer2:     { trigger:'What does SEER2 mean?', body:'SEER2 is an efficiency rating — like MPG for your AC. Higher number = more cooling per dollar of electricity. Federal minimum in Texas is 13.8–14.3 SEER2. A 17 SEER2 system uses roughly 17% less electricity. In a hot Austin summer that\'s often $300–$600/year in savings.' },
+  zonedamp:  { trigger:'What is a zone damper system?', body:'A zone damper system uses one AC unit to serve multiple thermostats. Motorized dampers inside your ducts open and close to direct airflow to different areas. You can set upstairs and downstairs on different schedules. The zone board controls it all.' },
+  grilles:   { trigger:'Supply vs return grilles — what\'s the difference?', body:'Supply grilles blow conditioned air OUT into the room — usually smaller, you feel airflow from them. Return grilles pull air BACK to the unit — usually larger, often in hallways, no adjustable louvers. When counting for duct estimates, count only the supply grilles.' },
+  plenum:    { trigger:'What is a plenum?', body:'A plenum is the box that connects your air handler to your duct system. The supply plenum (attic horizontal units) distributes conditioned air into supply ducts. A plywood return air box (upflow closet units) is the base the air handler sits on, pulling return air from below.' },
+  piervsslab:{ trigger:'How does foundation type affect sizing?', body:'Pier and beam homes have more air infiltration under the floor — harder to condition and loses more energy. This typically means you need about one size larger AC system to properly cool the space versus a slab-on-grade home of the same square footage.' },
+};
+
+function LearnMore({ id }) {
+  const [open, setOpen] = useState(false);
+  const lm = LEARN_MORE[id];
+  if (!lm) return null;
+  return (
+    <div style={{marginBottom:10}}>
+      <button className="wlm-btn" onClick={()=>setOpen(o=>!o)}>
+        {open ? '▲ Hide' : '▼ '}{lm.trigger}
+      </button>
+      {open && <div className="wlm-body">{lm.body}</div>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEPS
+// ═══════════════════════════════════════════════════════════════
+// Step IDs and their conditional logic
+const STEP_IDS = [
+  'system',          // Q1 — with SVG illustrations
+  'zones',           // Q2 — how many systems/zones
+  'sqft',            // Q3 — sq ft this system serves, with tonnage tooltip
+  'unit_location',   // Q4 — attic/closet/fur-down/crawlspace
+  'tier',            // Q5 — efficiency tier (fur-down auto-routes to limited tiers)
+  'duct_cond',       // skip if fur-down
+  'vent_count',      // only if older ducts
+  'plenum',          // skip if crawlspace or fur-down
+  'air_purif',       // always
+  'thermostat',      // always
+  'dehu',            // always
+  'multi_therm',     // simple yes/no — shown after add-ons
+  'zone_board',      // only if multi_therm = yes
+  'warranty',        // always
+];
+
+function getActiveSteps(answers) {
+  const isFD = answers.unit_location === 'furdown';
+  return STEP_IDS.filter(id => {
+    const d = answers.duct_cond;
+    if (id === 'duct_cond')   return !isFD;
+    if (id === 'vent_count')  return !isFD && d === 'older';
+    if (id === 'plenum')      return !isFD && answers.unit_location !== 'crawl';
+    if (id === 'zone_board')  return answers.multi_therm === 'yes';
+    return true;
+  });
+}
+
+// Sq ft buckets — tighter ranges matching tonnage directly
+// Each bucket maps to a specific tonnage
+const SQFT_BUCKETS = [
+  { key:'s600_950',   label:'600 – 950 sq ft',   ton:'1.5', tonIdx:0 },
+  { key:'s951_1250',  label:'951 – 1,250 sq ft',  ton:'2',   tonIdx:1 },
+  { key:'s1251_1500', label:'1,251 – 1,500 sq ft',ton:'2.5', tonIdx:2 },
+  { key:'s1501_1850', label:'1,501 – 1,850 sq ft',ton:'3',   tonIdx:3 },
+  { key:'s1851_2150', label:'1,851 – 2,150 sq ft',ton:'3.5', tonIdx:4 },
+  { key:'s2151_2500', label:'2,151 – 2,500 sq ft',ton:'4',   tonIdx:5 },
+  { key:'s2501_3100', label:'2,501 – 3,100 sq ft',ton:'5',   tonIdx:6 },
+  { key:'not_sure',   label:'Not sure',            ton:null,  tonIdx:2  }, // default to 2.5 ton midpoint
+];
+
+// Map new sqft bucket keys to old TON_MAP equivalent for pricing
+// Each bucket now maps to a single tonnage index (not a range)
+function getSingleTonPrice(tierKey, sqftBucketKey, pb) {
+  const pd = PRICES[tierKey];
+  if (!pd) return null;
+  const bucket = SQFT_BUCKETS.find(b => b.key === sqftBucketKey);
+  if (!bucket) return null;
+
+  let idx = bucket.tonIdx;
+
+  // Pier & beam — shift up one size
+  if (pb && idx < TONS.length - 1) idx = idx + 1;
+
+  // Find nearest available price at or above idx
+  let price = null;
+  for (let i = idx; i < TONS.length; i++) {
+    if (pd.prices[i] !== null) { price = pd.prices[i]; break; }
+  }
+  // If nothing found above, search below
+  if (price === null) {
+    for (let i = idx - 1; i >= 0; i--) {
+      if (pd.prices[i] !== null) { price = pd.prices[i]; break; }
+    }
+  }
+
+  const ton = pd.prices[idx] !== null ? TONS[idx] : TONS.find((t,i) => pd.prices[i] !== null);
+  return price ? { price, ton } : null;
+}
+
+const TIME_OPTS = ['Morning (8am–12pm)','Afternoon (12–5pm)','Evening (5–7pm)','Weekdays','Weekends','ASAP / Flexible'];
+
+// ═══════════════════════════════════════════════════════════════
+// CALC
+// ═══════════════════════════════════════════════════════════════
+function calcEstimate(answers) {
+  const { sqft, foundation, system, tier: tierKey, unit_location,
+    duct_cond, vent_count, plenum, air_purif, thermostat, dehu,
+    multi_therm, zone_board, warranty } = answers;
+
+  if (!sqft || !system || !tierKey) return null;
+
+  const pr = getPriceRange(tierKey, sqft, foundation);
+  if (!pr || pr.lo === null) return null;
+  let equipLo = pr.lo, equipHi = pr.hi || pr.lo;
+
+  // Zone multiplier for multi-unit setups
+  const zM = { one:1, two_zone:1, two:1.85, three:2.65, fourplus:3.40 }[answers.zone_setup] || 1;
+  if (zM > 1) { equipLo = r50(equipLo * zM); equipHi = r50(equipHi * zM); }
+
+  // Ductwork — always assume full replacement context
+  let dLo = 0, dHi = 0, ductAssess = false;
+  if (duct_cond === 'older' && vent_count) {
+    const runs = ADDON_PRICES.older_duct[vent_count]?.runs || 12;
+    dLo = r50(runs * ADDON_PRICES.run_price.low  * Math.min(zM,1.5));
+    dHi = r50(runs * ADDON_PRICES.run_price.high * Math.min(zM,1.5));
+  } else if (duct_cond === 'older') {
+    ductAssess = true;
+  } else if (duct_cond === 'unknown') {
+    dLo = r50(400 * zM); dHi = r50(2000 * zM);
+  }
+
+  // Plenum
+  let pLo = 0, pHi = 0;
+  if (plenum && plenum !== 'none' && ADDON_PRICES[plenum]) {
+    pLo = ADDON_PRICES[plenum].low; pHi = ADDON_PRICES[plenum].high;
+  }
+
+  // Add-ons
+  let aLo = 0, aHi = 0;
+  const addons = [];
+  const purifs = Array.isArray(air_purif) ? air_purif : [];
+  purifs.forEach(k => {
+    const ap = ADDON_PRICES[k];
+    if (ap) { aLo += ap.low; aHi += ap.high; addons.push({label:ap.label, lo:ap.low, hi:ap.high}); }
+  });
+  if (thermostat && thermostat !== 'none' && ADDON_PRICES[thermostat]) {
+    const th = ADDON_PRICES[thermostat];
+    aLo += th.low; aHi += th.high;
+    addons.push({label:th.label, lo:th.low, hi:th.high});
+  }
+  if (dehu && dehu !== 'none') {
+    const dk = DEHU_BY_SQFT[sqft];
+    if (dk && ADDON_PRICES[dk]) {
+      const dh = ADDON_PRICES[dk];
+      const adj = dehu === 'santafe' ? [0,200] : [-200,0];
+      const deLo = dh.low+adj[0], deHi = dh.high+adj[1];
+      aLo += deLo; aHi += deHi;
+      addons.push({label:`Dehumidifier — ${dh.label.replace('Dehumidifier — ','')} (${dehu==='santafe'?'Santa Fe':'Honeywell'})`, lo:deLo, hi:deHi});
+    }
+  }
+  if (zone_board === 'replace') {
+    aLo += 1200; aHi += 2800;
+    addons.push({label:'Zone board & dampers', lo:1200, hi:2800});
+  }
+  if (warranty && warranty !== 'none' && ADDON_PRICES[warranty]) {
+    const w = ADDON_PRICES[warranty];
+    aLo += w.low; aHi += w.high;
+    addons.push({label:w.label, lo:w.low, hi:w.high});
+  }
+
+function calcEstimate(answers) {
+  const { sqft, system, tier: tierKey, unit_location,
+    duct_cond, vent_count, plenum, air_purif, thermostat, dehu,
+    multi_therm, zone_board, warranty } = answers;
+
+  if (!sqft || !system || !tierKey) return null;
+
+  const isFD = unit_location === 'furdown';
+  const pb = answers.foundation === 'pb';
+
+  const prResult = getSingleTonPrice(tierKey, sqft, pb);
+  if (!prResult || prResult.price === null) return null;
+
+  let equipLo = prResult.price, equipHi = prResult.price;
+
+  // Show a ±1 size range for non-fur-down, non-not_sure to reflect heat load uncertainty
+  if (!isFD && sqft !== 'not_sure') {
+    const bucket = SQFT_BUCKETS.find(b=>b.key===sqft);
+    const pd = PRICES[tierKey];
+    if (pd && bucket) {
+      const baseIdx = pb ? Math.min(bucket.tonIdx+1, 6) : bucket.tonIdx;
+      const loIdx = Math.max(0, baseIdx);
+      const hiIdx = Math.min(6, baseIdx+1);
+      let lo2=null, hi2=null;
+      for(let i=loIdx;i<7;i++) if(pd.prices[i]!==null){lo2=pd.prices[i];break;}
+      for(let i=hiIdx;i>=0;i--) if(pd.prices[i]!==null){hi2=pd.prices[i];break;}
+      if(lo2) equipLo=lo2;
+      if(hi2) equipHi=hi2;
+      if(equipHi<equipLo) equipHi=equipLo;
+    }
+  }
+
+  // Zone multiplier
+  const zoneMap={'1':1,'2':1.85,'3':2.65,'4':3.40,'5':4.10};
+  const zM = zoneMap[answers.zones]||1;
+  if(zM>1){equipLo=r50(equipLo*zM);equipHi=r50(equipHi*zM);}
+
+  // Ductwork
+  let dLo=0,dHi=0,ductAssess=false;
+  if(!isFD){
+    if(duct_cond==='older'&&vent_count){
+      const runs=ADDON_PRICES.older_duct[vent_count]?.runs||12;
+      dLo=r50(runs*ADDON_PRICES.run_price.low*Math.min(zM,1.5));
+      dHi=r50(runs*ADDON_PRICES.run_price.high*Math.min(zM,1.5));
+    } else if(duct_cond==='older'){ductAssess=true;}
+    else if(duct_cond==='unknown'){dLo=r50(400*zM);dHi=r50(2000*zM);}
+  }
+
+  // Plenum
+  let pLo=0,pHi=0;
+  if(!isFD&&plenum&&plenum!=='none'&&ADDON_PRICES[plenum]){
+    pLo=ADDON_PRICES[plenum].low;pHi=ADDON_PRICES[plenum].high;
+  }
+
+  // Add-ons
+  let aLo=0,aHi=0;
+  const addons=[];
+  const purifs=Array.isArray(air_purif)?air_purif:[];
+  purifs.forEach(k=>{
+    const ap=ADDON_PRICES[k];
+    if(ap){aLo+=ap.low;aHi+=ap.high;addons.push({label:ap.label,lo:ap.low,hi:ap.high});}
+  });
+  if(thermostat&&thermostat!=='none'&&ADDON_PRICES[thermostat]){
+    const th=ADDON_PRICES[thermostat];
+    aLo+=th.low;aHi+=th.high;addons.push({label:th.label,lo:th.low,hi:th.high});
+  }
+  if(dehu&&dehu!=='none'){
+    const isFD = unit_location === 'furdown';
+    const tierKey = getDehuTier(sqft, isFD);
+    let dehuPrice = null;
+    let dehuLabel = '';
+
+    if(dehu==='sf_150'){ dehuPrice=DEHU_TIERS.xlarge_150.sf.price; dehuLabel='Santa Fe UltraV 150 (150-pint)'; }
+    else if(dehu==='sf_205'){ dehuPrice=DEHU_TIERS.xlarge_205.sf.price; dehuLabel='Santa Fe UltraV 205 (205-pint)'; }
+    else {
+      const tier = DEHU_TIERS[tierKey];
+      if(tier){
+        const src = dehu==='sf'?tier.sf:tier.hw;
+        if(src){ dehuPrice=src.price; dehuLabel=`Santa Fe ${src.model} (${src.pints}-pint)`; }
+        // Fallback: if hw requested but not available (furdown/xlarge), use sf
+        if(!src&&tier.sf){ dehuPrice=tier.sf.price; dehuLabel=`Santa Fe ${tier.sf.model} (${tier.sf.pints}-pint)`; }
+      }
+    }
+    if(dehuPrice){
+      aLo+=dehuPrice; aHi+=dehuPrice;
+      addons.push({label:`Dehumidifier — ${dehuLabel}`, lo:dehuPrice, hi:dehuPrice});
+    }
+  }
+  if(zone_board==='replace'){aLo+=1200;aHi+=2800;addons.push({label:'Zone board & dampers',lo:1200,hi:2800});}
+  if(warranty&&warranty!=='none'&&ADDON_PRICES[warranty]){
+    const w=ADDON_PRICES[warranty];aLo+=w.low;aHi+=w.high;addons.push({label:w.label,lo:w.low,hi:w.high});
+  }
+
+  const sysKey=getTierKey(system);
+  const tierDef=Object.values(TIERS).flat().find(t=>t.key===tierKey);
+  const tierName=tierDef?.tier||'fedmin';
+  const rebate=AE_REBATES[sysKey]?.[tierName]||0;
+
+  const flags=[];
+  if(ductAssess) flags.push('Ductwork condition — needs tech assessment to price accurately');
+  if(!vent_count&&duct_cond==='older') flags.push('Supply grille count not provided — duct range is approximate');
+  if(duct_cond==='unknown') flags.push('Ductwork condition unknown — estimate includes inspection range');
+  if(unit_location==='crawl') flags.push('Plenum not priced — crawlspace installs vary, tech will assess');
+  if(sqft==='not_sure') flags.push('Square footage not confirmed — tonnage estimated, tech will verify with Manual J');
+  if(pb) flags.push('Pier & beam sizing — final tonnage confirmed on-site');
+  if(zone_board==='unsure') flags.push('Zone damper board — tech will assess on-site');
+  if(multi_therm==='yes'&&!zone_board) flags.push('Multiple thermostats noted — zone system flagged for tech');
+  if(isFD) flags.push('Fur-down / above-the-tub unit — tech will verify fit and clearances on-site');
+  if(parseInt(answers.zones)>1) flags.push(`${answers.zones} systems quoted — each priced at full replacement cost`);
+
+  return {
+    equip:{lo:equipLo,hi:equipHi},
+    duct:{lo:dLo,hi:dHi},
+    ductAssess, isFD,
+    plenum:{lo:pLo,hi:pHi},
+    addons,
+    total:{lo:equipLo+dLo+pLo+aLo,hi:equipHi+dHi+pHi+aHi},
+    rebate, flags, ton:prResult.ton,
+  };
+}
+
+function getSummary(answers) {
+  const tierDef = Object.values(TIERS).flat().find(t=>t.key===answers.tier);
+  const purifs = Array.isArray(answers.air_purif)?answers.air_purif.map(k=>ADDON_PRICES[k]?.label).filter(Boolean):[];
+  const thermLabel = answers.thermostat&&answers.thermostat!=='none'?ADDON_PRICES[answers.thermostat]?.label:'None';
+  const dehuLabel = answers.dehu&&answers.dehu!=='none'?(answers.dehu==='santafe'?'Santa Fe':'Honeywell'):'None';
+  const sqftLabel = SQFT_BUCKETS.find(b=>b.key===answers.sqft)?.label||'—';
+  const sysLabels = {gas_ac:'Gas furnace + AC',heat_pump:'Heat pump',dual_fuel:'Dual fuel',central_ac:'Central AC only'};
+  const locLabels = {attic:'Attic',closet:'Interior closet',crawl:'Crawlspace',furdown:'Fur-down / above the tub'};
+  const ductLabels = {good:'Good shape',older:'Older — needs work',unknown:'Unknown'};
+  return [
+    {key:'Home size',          val:sqftLabel},
+    {key:'Foundation',         val:answers.foundation==='pb'?'Pier & beam':'Slab on grade'},
+    {key:'Systems / zones',    val:answers.zones?`${answers.zones} system${answers.zones!=='1'?'s':''}`:undefined},
+    {key:'System type',        val:sysLabels[answers.system]||'—'},
+    {key:'Efficiency tier',    val:tierDef?`${tierDef.label} — ${tierDef.brand} (${tierDef.seer})`:'—'},
+    {key:'Indoor location',    val:locLabels[answers.unit_location]||'—'},
+    {key:'Ductwork',           val:answers.unit_location==='furdown'?'N/A — fur-down unit':(ductLabels[answers.duct_cond]||'—')},
+    {key:'Air purification',   val:purifs.length?purifs.join(', '):'None'},
+    {key:'Thermostat',         val:thermLabel||'None'},
+    {key:'Dehumidifier',       val:dehuLabel},
+    {key:'Multiple thermostats',val:answers.multi_therm==='yes'?'Yes — zone system flagged for tech':undefined},
+    {key:'Warranty',           val:answers.warranty&&answers.warranty!=='none'?ADDON_PRICES[answers.warranty]?.label||'—':'Standard only'},
+  ].filter(i=>i.val&&i.val!=='—'&&i.val!==undefined);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════════════════════════
+function App() {
+  const [path, setPath]       = useState(null);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [showRes, setShowRes] = useState(false);
+  const [formOpen, setFormOpen]     = useState(false);
+  const [submitted, setSubmitted]   = useState(false);
+  const [photos, setPhotos]   = useState([]);
+  const [times, setTimes]     = useState([]);
+  const [form, setForm]       = useState({name:'',phone:'',email:'',address:'',notes:''});
+  const [sending, setSending] = useState(false);
+  const [selfEmail, setSelfEmail]   = useState('');
+  const [selfSent, setSelfSent]     = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [moPayment, setMoPayment]   = useState('');
+  const topRef = useRef(null);
+
+  const scrollTop = useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
+
+  const activeSteps = useMemo(()=>getActiveSteps(answers),[answers]);
+  const curStepId   = activeSteps[stepIdx];
+  const totalSteps  = STEP_IDS.length;
+  const pct = Math.round(((stepIdx+1)/totalSteps)*100);
+
+  const sel  = id => answers[id];
+  const msel = id => Array.isArray(answers[id]) ? answers[id] : [];
+
+  // Can we proceed?
+  const canNext = useMemo(() => {
+    const s = curStepId;
+    if (s === 'sqft')       return !!answers.sqft && !!answers.foundation;
+    if (s === 'air_purif')  return true;
+    if (s === 'vent_count') return true;
+    if (s === 'plenum')     return true;
+    return !!answers[s];
+  }, [curStepId, answers]);
+
+  const goNext = () => {
+    if (stepIdx < activeSteps.length-1) { setStepIdx(s=>s+1); scrollTop(); }
+    else { setShowRes(true); scrollTop(); }
+  };
+  const goBack = () => {
+    if (stepIdx > 0) { setStepIdx(s=>s-1); scrollTop(); }
+    else if (path === 'mini') { setPath(null); }
+    else { setPath(null); setStepIdx(0); }
+  };
+  const skip = () => {
+    if (curStepId === 'air_purif') setAnswers(p=>({...p,air_purif:[]}));
+    else setAnswers(p=>({...p,[curStepId]:null}));
+    goNext();
+  };
+  const restart = () => {
+    setAnswers({}); setStepIdx(0); setPath(null); setShowRes(false);
+    setFormOpen(false); setSubmitted(false); setPhotos([]); setTimes([]);
+    setForm({name:'',phone:'',email:'',address:'',notes:''});
+    setSelfEmail(''); setSelfSent(false); setMoPayment('');
+    scrollTop();
+  };
+
+  const setA = (key, val) => setAnswers(p=>({...p,[key]:val}));
+  const toggleMulti = (key, val) => setAnswers(p=>{
+    const c = Array.isArray(p[key]) ? p[key] : [];
+    return {...p,[key]:c.includes(val)?c.filter(v=>v!==val):[...c,val]};
+  });
+
+  const handlePhoto = e => {
+    Array.from(e.target.files).forEach(f=>{
+      const r=new FileReader();
+      r.onload=ev=>setPhotos(p=>[...p,{name:f.name,url:ev.target.result}]);
+      r.readAsDataURL(f);
+    });
+    e.target.value='';
+  };
+
+  const handleSubmit = async () => {
+    if (!form.name||!form.phone) return;
+    setSending(true);
+    // ── WIRE TO GRAVITY FORM ENDPOINT HERE ──────────────────
+    // const payload = { contact:form, times, path, answers, estimate:calcEstimate(answers), monthly:moPayment, photos:photos.map(p=>({name:p.name,data:p.url})) };
+    // await fetch('YOUR_GF_ENDPOINT', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    // ────────────────────────────────────────────────────────
+    await new Promise(r=>setTimeout(r,900));
+    setSending(false); setSubmitted(true); scrollTop();
+  };
+
+  const est     = useMemo(()=>showRes&&path!=='mini'?calcEstimate(answers):null,[showRes,path,answers]);
+  const summary = useMemo(()=>showRes&&path!=='mini'?getSummary(answers):[],[showRes,path,answers]);
+  const currentTierDef = useMemo(()=>Object.values(TIERS).flat().find(t=>t.key===answers.tier),[answers.tier]);
+
+  // ── PATH SELECTOR ─────────────────────────────────────────
+  if (!path) return (
+    <div ref={topRef}><div className="wc">
+      <div style={{marginBottom:18}}>
+        <div className="wr-eye">Gold Eagle Services</div>
+        <h2 className="wq">What are you looking to do?</h2>
+        <p className="wh">This helps us ask the right questions and give you the most accurate estimate.</p>
+      </div>
+      <div className="wg1">
+        <button className="wo" style={{padding:'15px'}} onClick={()=>{setPath('main');setStepIdx(0)}}>
+          <span className="wo-label">Replace my whole HVAC system</span>
+          <span className="wo-desc">Full replacement — indoor unit, outdoor unit, or both</span>
+        </button>
+        <button className="wo" style={{padding:'15px'}} onClick={()=>{setPath('condenser');setStepIdx(0)}}>
+          <span className="wo-label">Replace the outdoor unit only (condenser)</span>
+          <span className="wo-desc">Keep existing air handler, furnace, or coil — just swap the outdoor unit</span>
+        </button>
+        <button className="wo" style={{padding:'15px'}} onClick={()=>{setPath('ah_only');setStepIdx(0)}}>
+          <span className="wo-label">Replace the indoor unit only</span>
+          <span className="wo-desc">Air handler, furnace, or coil — keeping existing outdoor unit</span>
+        </button>
+        <button className="wo" style={{padding:'15px'}} onClick={()=>{setPath('mini');setStepIdx(0)}}>
+          <span className="wo-label">Add AC to a specific room or addition</span>
+          <span className="wo-desc">Mini-split / ductless — garage, guest room, sunroom, addition</span>
+        </button>
+      </div>
+      <div className="worcall" style={{marginTop:14}}>Questions? <a href="tel:5124894653">512-489-4653</a> — we answer 24/7</div>
+    </div></div>
+  );
+
+  // ── AH / FURNACE ONLY PATH — lead capture ─────────────────
+  if (path === 'ah_only') {
+    return (
+      <div ref={topRef}><div className="wc">
+        <div className="wp">
+          <div className="wp-m"><span className="wp-l">Indoor Unit Replacement</span><span className="wp-c">Lead capture</span></div>
+          <div className="wp-t"><div className="wp-f" style={{width:'40%'}}/></div>
+        </div>
+        <h2 className="wq">Indoor unit replacement — let's get our team involved</h2>
+        <p className="wh">Air handler, furnace, and coil pricing varies significantly based on your existing system's brand, connections, and configuration. Our techs can give you an exact quote after a quick visit — it's free.</p>
+        <div className="wtip">
+          <strong>Why we can't estimate this online:</strong> Indoor unit compatibility with your existing condenser, refrigerant type, electrical connections, and duct configuration all affect pricing. Getting it wrong is expensive — we'd rather come out and get it right.
+        </div>
+        <div className="wcta-row" style={{marginTop:16}}>
+          <a href="tel:5124894653" className="wcta-p">📞 Call Us Now</a>
+          <button className="wcta-s" onClick={()=>setFormOpen(o=>!o)}>📋 Send Us Your Info</button>
+        </div>
+        {formOpen && (
+          <div className="wfbody" style={{marginTop:0}}>
+            <div className="wf2">
+              <div className="wfield"><label className="wlbl">Name <span style={{color:'rgba(215,183,64,.5)'}}>*</span></label><input className="winput" type="text" placeholder="First & Last" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}/></div>
+              <div className="wfield"><label className="wlbl">Phone <span style={{color:'rgba(215,183,64,.5)'}}>*</span></label><input className="winput" type="tel" placeholder="(512) 000-0000" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))}/></div>
+            </div>
+            <div className="wfield"><label className="wlbl">What unit needs replacing? <span className="wlbl-note">optional but helpful</span></label><textarea className="wtarea" placeholder="e.g. gas furnace, air handler, brand if known, age of system..." value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}/></div>
+            <button className="wsubmit" onClick={handleSubmit} disabled={!form.name||!form.phone||sending}>
+              {sending?'Sending…':<><span>📨</span> Send Request</>}
+            </button>
+          </div>
+        )}
+        <button className="wrestart" onClick={restart} style={{marginTop:14}}>← Back to options</button>
+      </div></div>
+    );
+  }
+
+  // ── CONDENSER-ONLY PATH ───────────────────────────────────
+  if (path === 'condenser' && !showRes) {
+    const condSteps = ['cond_system','cond_sqft'];
+    const condStep = condSteps[stepIdx] || 'cond_system';
+    const condPct = Math.round(((stepIdx+1)/condSteps.length)*100);
+    const condCanNext = condStep==='cond_system' ? !!answers.cond_system : (!!answers.sqft && !!answers.foundation);
+
+    // Get condenser price
+    const condTierMap = {
+      hp_15:'cond_hp_15', hp_18:'cond_hp_18', sc:'cond_sc_16',
+    };
+
+    return (
+      <div ref={topRef}><div className="wc">
+        <div key={condStep} className="ws">
+          <div className="wp">
+            <div className="wp-m"><span className="wp-l">Condenser Estimate</span><span className="wp-c">Step {stepIdx+1} of 2</span></div>
+            <div className="wp-t"><div className="wp-f" style={{width:`${condPct}%`}}/></div>
+          </div>
+
+          {condStep === 'cond_system' && (
+            <>
+              <h2 className="wq">What type of outdoor unit are you replacing?</h2>
+              <p className="wh">Match this to your existing system. If you have a heat pump it heats AND cools — if it only cools, it's straight cool or paired with a gas furnace.</p>
+              <div className="wg1">
+                {[
+                  {value:'hp_15', label:'Heat pump — GE Connect 15 SEER2',    desc:'Variable speed · replaces most existing heat pump systems'},
+                  {value:'hp_18', label:'Heat pump — GE Connect 18 SEER2',    desc:'Variable speed · higher efficiency upgrade · 2–5 ton'},
+                  {value:'sc',    label:'Straight cool / gas+AC — GE 16 SEER2',desc:'Cooling-only condenser · pairs with existing furnace or heat strips'},
+                ].map(opt=>(
+                  <button key={opt.value} className={`wo${answers.cond_system===opt.value?' sel':''}`}
+                    onClick={()=>setA('cond_system',opt.value)}>
+                    <span className="wo-label">{opt.label}</span>
+                    <span className="wo-desc">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {condStep === 'cond_sqft' && (
+            <>
+              <h2 className="wq">How many square feet does this system serve?</h2>
+              <p className="wh">This determines the tonnage of your replacement condenser.</p>
+              <div style={{marginBottom:10}}>
+                <div className="wg2" style={{marginBottom:12}}>
+                  {[{v:'slab',l:'Slab on grade',d:'Concrete — most common in Austin'},{v:'pb',l:'Pier and beam',d:'Raised foundation'}].map(f=>(
+                    <button key={f.v} className={`wo${answers.foundation===f.v?' sel':''}`} onClick={()=>setA('foundation',f.v)}>
+                      <span className="wo-label">{f.l}</span>
+                      <span className="wo-desc">{f.d}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="wg2">
+                {SQFT_BUCKETS.map(b=>{
+                  const tonLabel = b.ton ? `≈ ${b.ton}–${TONS[Math.min(b.tonIdx+1,6)]} ton` : null;
+                  return (
+                    <button key={b.key} className={`wo${answers.sqft===b.key?' sel':''}`}
+                      onClick={()=>setA('sqft',b.key)} style={{padding:'13px 12px'}}>
+                      <span className="wo-label">{b.label}</span>
+                      {tonLabel&&<span className="wo-desc" style={{fontSize:'11px',color:answers.sqft===b.key?'rgba(240,214,78,.55)':'rgba(255,255,255,.3)'}}>{tonLabel} system</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          <div className="wnav">
+            <button className="wback" onClick={()=>{if(stepIdx>0){setStepIdx(s=>s-1);scrollTop();}else{setPath(null);setStepIdx(0);}}}>← Back</button>
+            <button className="wnext" onClick={()=>{
+              if(stepIdx<condSteps.length-1){setStepIdx(s=>s+1);scrollTop();}
+              else{setShowRes(true);scrollTop();}
+            }} disabled={!condCanNext}>
+              {stepIdx===condSteps.length-1?'See My Estimate →':'Continue →'}
+            </button>
+          </div>
+        </div>
+      </div></div>
+    );
+  }
+
+  // ── CONDENSER RESULTS ────────────────────────────────────
+  if (path === 'condenser' && showRes) {
+    const condTierKey = {hp_15:'cond_hp_15', hp_18:'cond_hp_18', sc:'cond_sc_16'}[answers.cond_system];
+    const condPr = condTierKey ? getSingleTonPrice(condTierKey, answers.sqft, answers.foundation==='pb') : null;
+    const condPd = PRICES[condTierKey];
+    const bucket = SQFT_BUCKETS.find(b=>b.key===answers.sqft);
+    const condSystemLabels = {hp_15:'GE Connect Heat Pump 15 SEER2',hp_18:'GE Connect Heat Pump 18 SEER2',sc:'GE Straight Cool / Gas+AC 16 SEER2'};
+    const condAErebate = answers.cond_system?.startsWith('hp') ? 650 : (answers.cond_system==='hp_18'?950:0);
+
+    return (
+      <div ref={topRef}><div className="wc">
+        {submitted ? (
+          <div className="wconfirm">
+            <div className="wconfirm-check">✓</div>
+            <div className="wconfirm-title">We Got It — Thank You!</div>
+            <div className="wconfirm-body">Someone from our team will be in touch shortly to confirm your condenser replacement quote.</div>
+            <a href="tel:5124894653" className="wconfirm-phone">512-489-4653</a>
+            <div className="wconfirm-tag">SWIFT · TRUSTED · SUPER FRIENDLY</div>
+            <button className="wrestart" onClick={restart}>Start a new estimate</button>
+          </div>
+        ) : (
+          <div className="wr">
+            <div className="wr-eye">Condenser Replacement Estimate</div>
+            <h2 className="wr-title">Here's Your Condenser Price</h2>
+
+            <div className="wr-sec">System</div>
+            <div className="wsys-card">
+              <div className="wsys-card-top">
+                <div>
+                  <div className="wsys-card-name">{condSystemLabels[answers.cond_system]||'—'}</div>
+                  <div className="wsys-card-meta">
+                    {condPd && [condPd.seer+' SEER2', condPd.stage, 'Condenser only'].map((p,i)=>(
+                      <span key={i} className="wsys-card-pill">{p}</span>
+                    ))}
+                  </div>
+                </div>
+                {condPr && (
+                  <div>
+                    <div className="wsys-card-price">{fmt(condPr.price)}</div>
+                    <div className="wsys-card-ton">{condPr.ton} ton · installed</div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 5-year parts warranty — auto-included */}
+            <div className="wtip" style={{marginBottom:14}}>
+              <strong>5-year parts warranty included</strong> — condenser-only replacements include a 5-year manufacturer parts warranty at no additional charge.
+            </div>
+
+            {/* AE rebate for HP */}
+            {answers.cond_system?.startsWith('hp') && (
+              <div className="wrebate">
+                <div className="wrebate-icon">⚡</div>
+                <div className="wrebate-text">
+                  <strong>Austin Energy rebate: ${answers.cond_system==='hp_18'?'950':'650'}</strong>
+                  Your heat pump condenser may qualify for an Austin Energy rebate. Subject to eligibility.{' '}
+                  <a href="https://austinenergy.com/green-power/plug-in-austin/for-your-home/home-performance/hvac-rebates" target="_blank" rel="noopener noreferrer">Details →</a>
+                </div>
+              </div>
+            )}
+
+            <div className="wtotal">
+              <div className="wtotal-label">Estimated Condenser Replacement</div>
+              {condPr ? <div className="wtotal-range">{fmt(condPr.price)}</div> : <div className="wtotal-range" style={{fontSize:'18px'}}>Contact us for pricing</div>}
+              <div className="wtotal-note">Installed · Austin TX · Condenser only · 5-yr parts warranty included</div>
+            </div>
+
+            <div className="wcklist">
+              <div className="wcklist-title">A free visit locks in the exact number</div>
+              {['Verify tonnage match with existing indoor unit','Check refrigerant type compatibility (R-410A vs R-32/R-454B)','Inspect electrical disconnect and line set','Confirm pad/mounting clearances','Review permit requirements'].map((item,i)=>(
+                <div key={i} className="wcklist-item"><div className="wcklist-box"/>{item}</div>
+              ))}
+            </div>
+
+            <div className="wline"/>
+
+            <div className="wsum">
+              {[
+                {key:'System',    val:condSystemLabels[answers.cond_system]||'—'},
+                {key:'Home size', val:bucket?.label||'—'},
+                {key:'Foundation',val:answers.foundation==='pb'?'Pier & beam':'Slab on grade'},
+                {key:'Tonnage',   val:condPr?condPr.ton+' ton (estimated)':'—'},
+              ].map(item=>(
+                <div key={item.key} className="wsum-item">
+                  <div className="wsum-key">{item.key}</div>
+                  <div className="wsum-val">{item.val}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="wline"/>
+
+            <div className="wcta-row">
+              <a href="tel:5124894653" className="wcta-p">📞 Schedule Free Estimate</a>
+              <button className="wcta-s" onClick={()=>window.print()}>🖨 Print Estimate</button>
+            </div>
+            <div className="worcall">Or call: <a href="tel:5124894653">512-489-4653</a> — 24/7</div>
+            <div className="wline"/>
+
+            <div>
+              <button className="wftoggle" onClick={()=>setFormOpen(o=>!o)}>
+                <span style={{flex:1}}>
+                  <span className="wftitle">📋 Send This to Our Team</span>
+                  <span className="wfsub">Optional — share your info for a faster follow-up</span>
+                </span>
+                <span className={`wftico${formOpen?' open':''}`}>+</span>
+              </button>
+              {formOpen && (
+                <div className="wfbody">
+                  <div className="wf2">
+                    <div className="wfield"><label className="wlbl">Name <span style={{color:'rgba(215,183,64,.5)'}}>*</span></label><input className="winput" type="text" placeholder="First & Last" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}/></div>
+                    <div className="wfield"><label className="wlbl">Phone <span style={{color:'rgba(215,183,64,.5)'}}>*</span></label><input className="winput" type="tel" placeholder="(512) 000-0000" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))}/></div>
+                  </div>
+                  <div className="wfield"><label className="wlbl">Photos <span className="wlbl-note">optional — condenser, model tag, electrical disconnect</span></label>
+                    <div className="wupload"><input type="file" accept="image/*" multiple onChange={handlePhoto}/>
+                      <div style={{fontSize:'13px',color:'rgba(255,255,255,.42)'}}>📸 <strong style={{color:'var(--gm)'}}>Tap to add photos</strong></div>
+                      <div className="wupload-hint">Model tag on existing condenser helps us confirm compatibility</div>
+                    </div>
+                    {photos.length>0&&(<div className="wthumbs">{photos.map((p,i)=>(<div key={i} className="wthumb"><img src={p.url} alt={p.name}/><button className="wthumb-rm" onClick={()=>setPhotos(ps=>ps.filter((_,idx)=>idx!==i))}>✕</button></div>))}</div>)}
+                  </div>
+                  <div className="wfield"><label className="wlbl">Anything else? <span className="wlbl-note">optional</span></label><textarea className="wtarea" placeholder="Brand of existing indoor unit, age, specific concerns..." value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}/></div>
+                  <button className="wsubmit" onClick={handleSubmit} disabled={!form.name||!form.phone||sending}>
+                    {sending?'Sending…':<><span>📨</span> Send My Estimate Request</>}
+                  </button>
+                </div>
+              )}
+            </div>
+            <button className="wrestart" onClick={restart}>← Start over</button>
+          </div>
+        )}
+      </div></div>
+    );
+  }
+  if (path === 'mini') {
+    return (
+      <div ref={topRef}><div className="wc">
+        <div className="wp">
+          <div className="wp-m"><span className="wp-l">Mini-Split Estimate</span><span className="wp-c">Quick estimate</span></div>
+          <div className="wp-t"><div className="wp-f" style={{width:'60%'}}/></div>
+        </div>
+        <h2 className="wq">Mini-split pricing — let's get your info to our team</h2>
+        <p className="wh">Mini-split pricing varies significantly by room size, ceiling type, unit style, and installation complexity. Our team will give you an exact number after a quick free visit.</p>
+        <div className="winfo">
+          <div className="winfo-title">Mini-split types we install</div>
+          {[
+            {label:'Wall mount',       desc:'Most common · mounts high on wall · easiest to install'},
+            {label:'Ceiling cassette', desc:'Flush in ceiling · 4-way airflow · very discreet'},
+            {label:'Concealed ducted', desc:'Hidden above ceiling · small duct runs to multiple rooms'},
+            {label:'Multi-zone',       desc:'1 outdoor + 2–5 indoor heads · each zone independent'},
+          ].map((it,i)=>(
+            <div key={i} className="winfo-row"><div className="winfo-dot"/><div className="winfo-text"><strong>{it.label}</strong> — {it.desc}</div></div>
+          ))}
+        </div>
+        <div className="wtip"><strong>Rough single-zone wall mount range:</strong> $3,200–$7,500 installed depending on room size. Multi-zone systems vary widely — call us for a fast quote.</div>
+        <div className="wnav">
+          <button className="wback" onClick={()=>setPath(null)}>← Back</button>
+          <a href="tel:5124894653" className="wnext" style={{textDecoration:'none',display:'flex',alignItems:'center',gap:8}}>📞 Call for Quote</a>
+        </div>
+      </div></div>
+    );
+  }
+
+  // ── QUESTIONS ─────────────────────────────────────────────
+  if (!showRes) {
+    const systemTiers = answers.system ? TIERS[answers.system] : [];
+
+    return (
+      <div ref={topRef}><div className="wc">
+        <div key={`${curStepId}-${stepIdx}`} className="ws">
+          <div className="wp">
+            <div className="wp-m">
+              <span className="wp-l">System Estimate</span>
+              <span className="wp-c">Step {stepIdx+1}</span>
+            </div>
+            <div className="wp-t"><div className="wp-f" style={{width:`${pct}%`}}/></div>
+          </div>
+
+          {/* ── STEP: SYSTEM TYPE — with SVG equipment illustrations ── */}
+          {curStepId === 'system' && (
+            <>
+              <h2 className="wq">What type of system are you looking for?</h2>
+              <p className="wh">Not sure? Gas furnace + AC is the most popular in Austin. If your stove or water heater runs on gas, you likely already have a furnace.</p>
+              <LearnMore id="heatpump"/>
+              <LearnMore id="dualfuel"/>
+              <div className="wg2">
+                {[
+                  {value:'gas_ac', label:'Gas furnace + AC', desc:'Full heating & cooling — most popular in Austin',
+                   svg:<svg viewBox="0 0 120 90" fill="none" style={{width:'100%',height:80,display:'block',marginBottom:8}}>
+                     {/* Furnace */}
+                     <rect x="10" y="20" width="38" height="55" rx="3" fill="rgba(215,183,64,.12)" stroke="rgba(215,183,64,.5)" strokeWidth="1.5"/>
+                     <rect x="16" y="26" width="26" height="18" rx="2" fill="rgba(215,183,64,.2)" stroke="rgba(215,183,64,.4)" strokeWidth="1"/>
+                     <line x1="22" y1="32" x2="36" y2="32" stroke="rgba(215,183,64,.6)" strokeWidth="1"/>
+                     <line x1="22" y1="36" x2="36" y2="36" stroke="rgba(215,183,64,.6)" strokeWidth="1"/>
+                     <rect x="16" y="50" width="26" height="14" rx="1" fill="rgba(215,183,64,.08)" stroke="rgba(215,183,64,.3)" strokeWidth="1"/>
+                     <text x="29" y="60" textAnchor="middle" fill="rgba(215,183,64,.7)" fontSize="6" fontFamily="sans-serif">FURNACE</text>
+                     {/* Coil */}
+                     <rect x="41" y="45" width="14" height="25" rx="2" fill="rgba(215,183,64,.1)" stroke="rgba(215,183,64,.4)" strokeWidth="1"/>
+                     {[48,52,56,60,64].map(y=><line key={y} x1="43" y1={y} x2="53" y2={y} stroke="rgba(215,183,64,.4)" strokeWidth="0.8"/>)}
+                     {/* Condenser */}
+                     <rect x="68" y="15" width="44" height="65" rx="4" fill="rgba(215,183,64,.12)" stroke="rgba(215,183,64,.5)" strokeWidth="1.5"/>
+                     <circle cx="90" cy="42" r="18" fill="rgba(215,183,64,.08)" stroke="rgba(215,183,64,.35)" strokeWidth="1"/>
+                     {[0,60,120,180,240,300].map(a=>{const r=a*Math.PI/180;return <line key={a} x1={90+8*Math.cos(r)} y1={42+8*Math.sin(r)} x2={90+16*Math.cos(r)} y2={42+16*Math.sin(r)} stroke="rgba(215,183,64,.5)" strokeWidth="1.2"/>})}
+                     <text x="90" y="74" textAnchor="middle" fill="rgba(215,183,64,.7)" fontSize="6" fontFamily="sans-serif">CONDENSER</text>
+                   </svg>},
+                  {value:'heat_pump', label:'Heat pump', desc:'Heats AND cools — one efficient unit',
+                   svg:<svg viewBox="0 0 120 90" fill="none" style={{width:'100%',height:80,display:'block',marginBottom:8}}>
+                     {/* Air handler */}
+                     <rect x="8" y="25" width="40" height="50" rx="3" fill="rgba(215,183,64,.12)" stroke="rgba(215,183,64,.5)" strokeWidth="1.5"/>
+                     {[33,39,45,51,57,63].map(y=><line key={y} x1="14" y1={y} x2="42" y2={y} stroke="rgba(215,183,64,.35)" strokeWidth="0.8"/>)}
+                     <text x="28" y="83" textAnchor="middle" fill="rgba(215,183,64,.7)" fontSize="6" fontFamily="sans-serif">AIR HANDLER</text>
+                     {/* HP outdoor */}
+                     <rect x="64" y="12" width="48" height="68" rx="4" fill="rgba(215,183,64,.12)" stroke="rgba(215,183,64,.5)" strokeWidth="1.5"/>
+                     <circle cx="88" cy="44" r="20" fill="rgba(215,183,64,.08)" stroke="rgba(215,183,64,.35)" strokeWidth="1"/>
+                     {[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return <line key={a} x1={88+9*Math.cos(r)} y1={44+9*Math.sin(r)} x2={88+18*Math.cos(r)} y2={44+18*Math.sin(r)} stroke="rgba(215,183,64,.55)" strokeWidth="1.2"/>})}
+                     <text x="88" y="90" textAnchor="middle" fill="rgba(215,183,64,.7)" fontSize="6" fontFamily="sans-serif">HEAT PUMP</text>
+                     {/* Arrows indicating reversible */}
+                     <path d="M52 38 L60 38 M56 34 L60 38 L56 42" stroke="rgba(215,183,64,.6)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+                     <path d="M60 50 L52 50 M56 46 L52 50 L56 54" stroke="rgba(215,183,64,.6)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+                   </svg>},
+                  {value:'dual_fuel', label:'Dual fuel', desc:'Heat pump + gas backup for cold snaps',
+                   svg:<svg viewBox="0 0 140 90" fill="none" style={{width:'100%',height:80,display:'block',marginBottom:8}}>
+                     {/* Furnace */}
+                     <rect x="4" y="22" width="32" height="52" rx="3" fill="rgba(215,183,64,.12)" stroke="rgba(215,183,64,.5)" strokeWidth="1.5"/>
+                     <rect x="9" y="28" width="22" height="14" rx="1" fill="rgba(215,183,64,.15)" stroke="rgba(215,183,64,.4)" strokeWidth="1"/>
+                     <text x="20" y="72" textAnchor="middle" fill="rgba(215,183,64,.7)" fontSize="5.5" fontFamily="sans-serif">FURNACE</text>
+                     {/* Plus sign */}
+                     <text x="42" y="50" textAnchor="middle" fill="rgba(215,183,64,.8)" fontSize="14" fontFamily="sans-serif">+</text>
+                     {/* HP outdoor */}
+                     <rect x="56" y="12" width="42" height="65" rx="4" fill="rgba(215,183,64,.12)" stroke="rgba(215,183,64,.5)" strokeWidth="1.5"/>
+                     <circle cx="77" cy="42" r="17" fill="rgba(215,183,64,.08)" stroke="rgba(215,183,64,.35)" strokeWidth="1"/>
+                     {[0,60,120,180,240,300].map(a=>{const r=a*Math.PI/180;return <line key={a} x1={77+8*Math.cos(r)} y1={42+8*Math.sin(r)} x2={77+15*Math.cos(r)} y2={42+15*Math.sin(r)} stroke="rgba(215,183,64,.55)" strokeWidth="1.2"/>})}
+                     <text x="77" y="86" textAnchor="middle" fill="rgba(215,183,64,.7)" fontSize="5.5" fontFamily="sans-serif">HEAT PUMP</text>
+                     {/* Coil */}
+                     <rect x="100" y="35" width="12" height="28" rx="2" fill="rgba(215,183,64,.1)" stroke="rgba(215,183,64,.4)" strokeWidth="1"/>
+                     {[40,44,48,52,56].map(y=><line key={y} x1="102" y1={y} x2="110" y2={y} stroke="rgba(215,183,64,.4)" strokeWidth="0.8"/>)}
+                   </svg>},
+                  {value:'central_ac', label:'Central AC only', desc:'Cooling only — pairs with existing furnace or heat strips',
+                   svg:<svg viewBox="0 0 120 90" fill="none" style={{width:'100%',height:80,display:'block',marginBottom:8}}>
+                     {/* Air handler */}
+                     <rect x="8" y="25" width="38" height="48" rx="3" fill="rgba(215,183,64,.12)" stroke="rgba(215,183,64,.5)" strokeWidth="1.5"/>
+                     {[33,39,45,51,57].map(y=><line key={y} x1="14" y1={y} x2="40" y2={y} stroke="rgba(215,183,64,.35)" strokeWidth="0.8"/>)}
+                     <text x="27" y="80" textAnchor="middle" fill="rgba(215,183,64,.7)" fontSize="6" fontFamily="sans-serif">AIR HANDLER</text>
+                     {/* Condenser */}
+                     <rect x="62" y="15" width="50" height="65" rx="4" fill="rgba(215,183,64,.12)" stroke="rgba(215,183,64,.5)" strokeWidth="1.5"/>
+                     <circle cx="87" cy="44" r="20" fill="rgba(215,183,64,.08)" stroke="rgba(215,183,64,.35)" strokeWidth="1"/>
+                     {[0,60,120,180,240,300].map(a=>{const r=a*Math.PI/180;return <line key={a} x1={87+9*Math.cos(r)} y1={44+9*Math.sin(r)} x2={87+18*Math.cos(r)} y2={44+18*Math.sin(r)} stroke="rgba(215,183,64,.55)" strokeWidth="1.2"/>})}
+                     <text x="87" y="88" textAnchor="middle" fill="rgba(215,183,64,.7)" fontSize="6" fontFamily="sans-serif">CONDENSER</text>
+                     {/* snowflake */}
+                     <text x="27" y="18" textAnchor="middle" fill="rgba(215,183,64,.5)" fontSize="10">❄</text>
+                   </svg>},
+                ].map(opt=>(
+                  <button key={opt.value}
+                    className={`wo${answers.system===opt.value?' sel':''}`}
+                    style={{padding:'12px 12px 14px'}}
+                    onClick={()=>{setA('system',opt.value);setA('tier',null);}}>
+                    {opt.svg}
+                    <span className="wo-label">{opt.label}</span>
+                    <span className="wo-desc">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: ZONES ── */}
+          {curStepId === 'zones' && (
+            <>
+              <h2 className="wq">How many heating and cooling systems or zones do you have?</h2>
+              <p className="wh">This is typically the number of thermostats on your walls, or the number of outdoor units outside your home.</p>
+              <LearnMore id="zonedamp"/>
+              <div className="wg3">
+                {['1','2','3','4','5'].map(n=>(
+                  <button key={n} className={`wo${answers.zones===n?' sel':''}`} onClick={()=>setA('zones',n)}
+                    style={{textAlign:'center',padding:'18px 8px'}}>
+                    <span className="wo-label" style={{fontSize:'22px',display:'block',marginBottom:4}}>{n}</span>
+                    <span className="wo-desc">{n==='1'?'Most homes':n==='2'?'Two-story homes':n==='5'?'Large estates':'Multiple systems'}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: SQ FT — with tonnage tooltip ── */}
+          {curStepId === 'sqft' && (
+            <>
+              <h2 className="wq">How many square feet does this system serve?</h2>
+              <p className="wh">
+                {parseInt(answers.zones)>1
+                  ? 'Estimate the area covered by the one system you\'re replacing — not the whole home.'
+                  : 'Approximate is fine. This helps us recommend the right system size.'}
+              </p>
+              <LearnMore id="piervsslab"/>
+              <div style={{marginBottom:10}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                  <div style={{fontSize:'10px',letterSpacing:'.12em',textTransform:'uppercase',color:'var(--gm)'}}>Foundation type</div>
+                </div>
+                <div className="wg2" style={{marginBottom:14}}>
+                  {[{v:'slab',l:'Slab on grade',d:'Concrete — most common in Austin'},{v:'pb',l:'Pier and beam',d:'Raised foundation with crawlspace'}].map(f=>(
+                    <button key={f.v} className={`wo${answers.foundation===f.v?' sel':''}`} onClick={()=>setA('foundation',f.v)}>
+                      <span className="wo-label">{f.l}</span>
+                      <span className="wo-desc">{f.d}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="wg2">
+                {SQFT_BUCKETS.map(b=>{
+                  const tonLabel = b.ton ? (answers.foundation==='pb'
+                    ? TONS[Math.min(b.tonIdx+1,6)]+'–'+TONS[Math.min(b.tonIdx+2,6)]+' ton'
+                    : b.ton+'–'+TONS[Math.min(b.tonIdx+1,6)]+' ton') : null;
+                  return (
+                    <button key={b.key} className={`wo${answers.sqft===b.key?' sel':''}`} onClick={()=>setA('sqft',b.key)}
+                      style={{padding:'13px 12px'}}>
+                      <span className="wo-label">{b.label}</span>
+                      {tonLabel&&<span className="wo-desc" style={{color:answers.sqft===b.key?'rgba(240,214,78,.55)':'rgba(255,255,255,.3)',fontSize:'11px'}}>
+                        ≈ {tonLabel} system
+                      </span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: UNIT LOCATION — includes fur-down ── */}
+          {curStepId === 'unit_location' && (
+            <>
+              <h2 className="wq">Where is your indoor unit located?</h2>
+              <p className="wh">Attic installs are most common in Austin. Choose the option that best matches your setup.</p>
+              <LearnMore id="plenum"/>
+              <div className="wg2">
+                {[
+                  {value:'attic',   label:'Attic',                   desc:'Horizontal install — most common in Austin'},
+                  {value:'closet',  label:'Interior closet',         desc:'Upflow unit in hallway or utility closet'},
+                  {value:'furdown', label:'Fur-down / above the tub',desc:'Horizontal ceiling unit — common in condos and some townhouses'},
+                  {value:'crawl',   label:'Crawlspace / basement',   desc:'Below-floor installation'},
+                ].map(opt=>(
+                  <button key={opt.value}
+                    className={`wo${answers.unit_location===opt.value?' sel':''}`}
+                    onClick={()=>{
+                      setA('unit_location',opt.value);
+                      // Auto-route fur-down tier if system already selected
+                      if(opt.value==='furdown'&&answers.system){
+                        setA('tier',null); // clear tier so they repick for fur-down options
+                      }
+                    }}>
+                    <span className="wo-label">{opt.label}</span>
+                    <span className="wo-desc">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: TIER — fur-down gets limited options ── */}
+          {curStepId === 'tier' && (
+            ()=>{
+              const isFD = answers.unit_location === 'furdown';
+              // For fur-down, show AC vs HP choice
+              const fdTiers = answers.system === 'heat_pump'
+                ? [TIERS.fur_down_hp[0]]
+                : [TIERS.fur_down_ac[0]];
+              // If system is heat_pump for fur-down, show both options
+              const fdBothTiers = [
+                {...TIERS.fur_down_ac[0], _override: true},
+                {...TIERS.fur_down_hp[0], _override: true},
+              ];
+              const tiersToShow = isFD
+                ? fdBothTiers
+                : (answers.system ? TIERS[answers.system] || [] : []);
+              return (
+                <>
+                  <h2 className="wq">{isFD ? 'Which fur-down system type?' : 'What efficiency level are you looking for?'}</h2>
+                  <p className="wh">
+                    {isFD
+                      ? 'Fur-down units max out at 3 ton. Choose AC only or a heat pump that heats and cools.'
+                      : 'Higher efficiency costs more upfront but lowers your monthly energy bill. We\'ll show full pricing and brand details with your estimate.'}
+                  </p>
+                  {!isFD && <LearnMore id="seer2"/>}
+                  <div className="wtier-grid">
+                    {tiersToShow.map(t=>(
+                      <button key={t.key} className={`wtier${answers.tier===t.key?' sel':''}`}
+                        onClick={()=>{
+                          setA('tier',t.key);
+                          // sync system for fur-down
+                          if(isFD) setA('system', t.key==='fd_hp_mid'?'heat_pump':'central_ac');
+                        }}>
+                        <div className="wtier-top">
+                          <div><div className="wtier-name">{isFD?(t.key==='fd_hp_mid'?'Heat pump fur-down':'AC only fur-down'):t.label}</div></div>
+                          {t.recommended&&!isFD&&<span className="wo-badge" style={{flexShrink:0}}>★ Our Pick</span>}
+                        </div>
+                        <div className="wtier-desc">{t.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              );
+            }
+          )()}
+
+          {/* ── STEP: MULTI THERMOSTAT ── */}
+          {curStepId === 'multi_therm' && (
+            <>
+              <h2 className="wq">Does your home have more than one thermostat?</h2>
+              <p className="wh">This helps us check if you have a zone damper system. Most homes have just one — if you're not sure, go with no.</p>
+              <LearnMore id="zonedamp"/>
+              <div className="wg2">
+                <button className={`wo${answers.multi_therm==='no'?' sel':''}`} onClick={()=>setA('multi_therm','no')}>
+                  <span className="wo-label">No — just one</span>
+                  <span className="wo-desc">Standard single-zone system</span>
+                </button>
+                <button className={`wo${answers.multi_therm==='yes'?' sel':''}`} onClick={()=>setA('multi_therm','yes')}>
+                  <span className="wo-label">Yes — multiple</span>
+                  <span className="wo-desc">May have a zone damper system</span>
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: DUCT CONDITION ── */}
+          {curStepId === 'duct_cond' && (
+            <>
+              <h2 className="wq">What do you know about your ductwork?</h2>
+              <p className="wh">Ductwork is the network of airways that carries conditioned air to every room in your home.</p>
+              <div className="wg2">
+                {[
+                  {value:'good',    label:'Good shape — no issues',       desc:'Less than ~10 years old, no known problems'},
+                  {value:'older',   label:'Older — probably need work',   desc:'Leaky, dusty, or 15+ years old'},
+                  {value:'unknown', label:"Not sure — I'd like an expert",desc:''},
+                ].map(opt=>(
+                  <button key={opt.value} className={`wo${answers.duct_cond===opt.value?' sel':''}`} onClick={()=>setA('duct_cond',opt.value)}>
+                    <span className="wo-label">{opt.label}</span>
+                    {opt.desc&&<span className="wo-desc">{opt.desc}</span>}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: VENT COUNT ── */}
+          {curStepId === 'vent_count' && (
+            <>
+              <h2 className="wq">Roughly how many supply grilles does your home have?</h2>
+              <p className="wh">Supply grilles are the rectangular metal vents where cooled or heated air blows out — usually in the ceiling, floor, or wall of each room.</p>
+              <LearnMore id="grilles"/>
+              <div className="wgrille">
+                <svg width="60" height="45" viewBox="0 0 60 45" fill="none" style={{flexShrink:0}}>
+                  <rect x="1" y="1" width="58" height="43" rx="3" stroke="rgba(215,183,64,0.6)" strokeWidth="1.5" fill="rgba(215,183,64,0.06)"/>
+                  {[9,17,25,33,41,49].map(x=>(<line key={x} x1={x} y1="5" x2={x} y2="40" stroke="rgba(215,183,64,0.5)" strokeWidth="1.5" strokeLinecap="round"/>))}
+                </svg>
+                <div style={{fontSize:'11.5px',color:'rgba(255,255,255,.42)',lineHeight:'1.55'}}>
+                  <strong style={{color:'rgba(215,183,64,.7)',display:'block',marginBottom:2}}>What to look for</strong>
+                  Rectangular metal vent where air blows <em>out</em>. Don't count the larger return grilles where air goes <em>in</em>.
+                </div>
+              </div>
+              <div className="wg1">
+                {[
+                  {value:'few',    label:'A few — under 8',   desc:'Small home · fewer rooms served'},
+                  {value:'average',label:'Around 8–14',       desc:'Typical Austin home — most common'},
+                  {value:'lot',    label:'15 or more',        desc:'Larger home or two stories'},
+                ].map(opt=>(
+                  <button key={opt.value} className={`wo${answers.vent_count===opt.value?' sel':''}`} onClick={()=>setA('vent_count',opt.value)}>
+                    <span className="wo-label">{opt.label}</span>
+                    <span className="wo-desc">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: PLENUM ── */}
+          {curStepId === 'plenum' && (
+            <>
+              <h2 className="wq">
+                {answers.unit_location==='attic' ? 'Does your system need a new supply plenum?' :
+                 answers.unit_location==='closet' ? 'Does the plywood return air box need replacing?' :
+                 'Does your system need a new plenum or return box?'}
+              </h2>
+              <p className="wh">
+                {answers.unit_location==='attic' ? "The supply plenum sits on top of your air handler in the attic and distributes air into the duct system. If it's original to the house, it likely needs replacing." :
+                 answers.unit_location==='closet' ? "The plywood return air box is what the air handler sits on inside the closet. It pulls return air from the bottom. Older boxes often warp and deteriorate." :
+                 "The plenum connects your air handler to the duct system."}
+              </p>
+              <LearnMore id="plenum"/>
+              <div className="wg1">
+                {[
+                  ...(answers.unit_location!=='closet'?[
+                    {value:'ductboard', label:'Ductboard supply plenum',   desc:`Standard for attic horizontal units · ${fmtR(180,380)}`},
+                    {value:'metal',     label:'Sheet metal supply plenum', desc:`More durable, preferred for longevity · ${fmtR(280,550)}`},
+                  ]:[]),
+                  ...(answers.unit_location==='closet'||answers.unit_location==='unknown'?[
+                    {value:'return_ply',label:'Plywood return air box',    desc:`Upflow closet installs — base of unit · ${fmtR(150,320)}`},
+                  ]:[]),
+                  {value:'none', label:'No — not needed / not sure', desc:''},
+                ].map(opt=>(
+                  <button key={opt.value} className={`wo${answers.plenum===opt.value?' sel':''}`} onClick={()=>setA('plenum',opt.value)}>
+                    <span className="wo-label">{opt.label}</span>
+                    {opt.desc&&<span className="wo-desc">{opt.desc}</span>}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: AIR PURIFICATION ── */}
+          {curStepId === 'air_purif' && (
+            <>
+              <h2 className="wq">Would you like to add air purification?</h2>
+              <p className="wh">These all install inside your air handler and work together. Select any combination — or skip.</p>
+              <div className="wg2">
+                {[
+                  {key:'aprilaire',label:'Aprilaire 5" Media Filter',sub:'Upgraded filtration — dust, pollen, allergens',price:fmtR(350,650)},
+                  {key:'uv',       label:'UV Light System',          sub:'Kills mold & bacteria inside the air handler',price:fmtR(400,900)},
+                  {key:'ionizer',  label:'Ionizer / Plasma Purifier',sub:'Reduces particles, odors & VOCs',              price:fmtR(500,1100)},
+                  {key:'hepa',     label:'HEPA Bypass System',       sub:'Hospital-grade filtration',                    price:fmtR(900,2200)},
+                ].map(opt=>{
+                  const on = msel('air_purif').includes(opt.key);
+                  return (
+                    <button key={opt.key} className={`wo${on?' sel':''}`} onClick={()=>toggleMulti('air_purif',opt.key)}>
+                      <span className="wo-label">{opt.label}</span>
+                      <span className="wo-desc">{opt.sub}</span>
+                      <span className="wo-price">+{opt.price}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: THERMOSTAT ── */}
+          {curStepId === 'thermostat' && (
+            <>
+              <h2 className="wq">Which thermostat would you like?</h2>
+              <p className="wh">A smart thermostat can save 10–15% on energy costs and lets you control your system from your phone.</p>
+              <div className="wg1">
+                {[
+                  {value:'aerie',    label:'Aerie',            desc:'Gold Eagle preferred · local support · no subscription',price:fmtR(280,380),badge:true},
+                  {value:'nest',     label:'Nest (Google)',    desc:'Smart learning thermostat',                              price:fmtR(220,380)},
+                  {value:'ecobee',   label:'Ecobee',           desc:'Smart with room sensors',                               price:fmtR(220,400)},
+                  {value:'honeywell_t6',label:'Honeywell T6 Pro', desc:'Reliable programmable thermostat',                      price:fmtR(140,250)},
+                  {value:'none',     label:'No new thermostat',desc:'Keep existing'},
+                ].map(opt=>(
+                  <button key={opt.value} className={`wo${answers.thermostat===opt.value?' sel':''}`} onClick={()=>setA('thermostat',opt.value)}>
+                    <span className="wo-label">
+                      {opt.label}
+                      {opt.badge&&<span className="wo-badge">★ GES Preferred</span>}
+                    </span>
+                    <span className="wo-desc">{opt.desc}</span>
+                    {opt.price&&opt.value!=='none'&&<span className="wo-price">+{opt.price}</span>}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: DEHUMIDIFIER ── */}
+          {curStepId === 'dehu' && (
+            ()=>{
+              const isFD = answers.unit_location === 'furdown';
+              const tierKey = getDehuTier(answers.sqft, isFD);
+              const opts = getDehuOpts(tierKey);
+              const tier = DEHU_TIERS[tierKey];
+              const sizeName = tier?.sf ? `${tier.sf.pints}-pint` : null;
+              return (
+                <>
+                  <h2 className="wq">
+                    {sizeName
+                      ? `Add a whole-home dehumidifier? (${sizeName} recommended for your home)`
+                      : 'Add a whole-home dehumidifier?'}
+                  </h2>
+                  <p className="wh">Austin humidity makes 78°F feel like 85°F. A whole-home unit ties into your existing system — no portable units needed. We size it to your home automatically.</p>
+                  <div className="wg1">
+                    {opts.map(opt=>(
+                      <button key={opt.value} className={`wo${answers.dehu===opt.value?' sel':''}`}
+                        onClick={()=>setA('dehu',opt.value)}>
+                        <span className="wo-label">
+                          {opt.label}
+                          {opt.recommended && <span className="wo-badge">★ Recommended</span>}
+                        </span>
+                        <span className="wo-desc">{opt.sub}</span>
+                        {opt.price && <span className="wo-price">+{fmt(opt.price)}</span>}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              );
+            }
+          )()}
+
+          {/* ── STEP: ZONE BOARD ── */}
+          {curStepId === 'zone_board' && (
+            <>
+              <h2 className="wq">Your home has a zone damper system — does the zone board need replacing?</h2>
+              <p className="wh">Zone boards and dampers wear out over time. If your system is 10+ years old, a new board is often recommended alongside the equipment.</p>
+              <div className="wg1">
+                {[
+                  {value:'replace',label:'Yes — replace zone board & dampers', desc:`+${fmtR(1200,2800)}`},
+                  {value:'no',     label:'No — zone system stays as-is',       desc:'Board is newer or recently serviced'},
+                  {value:'unsure', label:"Not sure — tech should assess",      desc:'Will be noted in your estimate summary'},
+                ].map(opt=>(
+                  <button key={opt.value} className={`wo${answers.zone_board===opt.value?' sel':''}`} onClick={()=>setA('zone_board',opt.value)}>
+                    <span className="wo-label">{opt.label}</span>
+                    <span className="wo-desc">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── STEP: WARRANTY ── */}
+          {curStepId === 'warranty' && (
+            ()=>{
+              const isGE = currentTierDef?.isGE || currentTierDef?.geKey;
+              return (
+                <>
+                  <h2 className="wq">Would you like to add a labor warranty?</h2>
+                  <p className="wh">Equipment comes with a manufacturer warranty. Our labor warranty covers our installation work — parts and labor — for the full term.</p>
+                  <div className="wg1">
+                    {[
+                      {value:'w5',  label:'5-Year Labor Warranty',  desc:'Extended coverage — 5 full years of parts & labor',   price:`+${fmtR(400,700)}`},
+                      {value:'w10', label:'10-Year Labor Warranty',  desc:'Comprehensive coverage — 10 full years',              price:`+${fmtR(700,1100)}`},
+                      ...(isGE?[{value:'w12',label:'12-Year Labor Warranty',desc:'GE systems only — maximum coverage available', price:`+${fmtR(900,1400)}`,badge:true}]:[]),
+                      {value:'none',label:'Standard warranty only',  desc:'Manufacturer equipment warranty included',           price:null},
+                    ].map(opt=>(
+                      <button key={opt.value} className={`wo${answers.warranty===opt.value?' sel':''}`} onClick={()=>setA('warranty',opt.value)}>
+                        <span className="wo-label">
+                          {opt.label}
+                          {opt.badge&&<span className="wo-badge-ge">GE Systems Only</span>}
+                        </span>
+                        <span className="wo-desc">{opt.desc}</span>
+                        {opt.price&&<span className="wo-price">{opt.price}</span>}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              );
+            }
+          )()}
+
+          <div className="wnav">
+            <button className="wback" onClick={goBack}>← Back</button>
+            {(curStepId==='air_purif'||curStepId==='vent_count'||curStepId==='plenum')&&(
+              <button className="wskip" onClick={skip}>
+                {curStepId==='air_purif'?'Skip — no air purification':'Skip — tech will assess'}
+              </button>
+            )}
+            <button className="wnext" onClick={goNext} disabled={!canNext}>
+              {stepIdx===activeSteps.length-1?'See My Estimate →':'Continue →'}
+            </button>
+          </div>
+        </div>
+      </div></div>
+    );
+  }
+
+  // ── RESULTS ───────────────────────────────────────────────
+  return (
+    <div ref={topRef}><div className="wc">
+      {submitted ? (
+        <div className="wconfirm">
+          <div className="wconfirm-check">✓</div>
+          <div className="wconfirm-title">We Got It — Thank You!</div>
+          <div className="wconfirm-body">Someone from our team will be in touch shortly to discuss your estimate and schedule your free in-home visit.</div>
+          <a href="tel:5124894653" className="wconfirm-phone">512-489-4653</a>
+          <div className="wconfirm-tag">SWIFT · TRUSTED · SUPER FRIENDLY</div>
+          <button className="wrestart" onClick={restart}>Start a new estimate</button>
+        </div>
+      ) : (
+        <div className="wr">
+          <div className="wr-eye">Your Estimate</div>
+          <h2 className="wr-title">Here's What a New System Could Cost</h2>
+
+          {/* GExGE callout — revealed on results screen */}
+          {currentTierDef?.isGE && (
+            <div className="wge-callout">
+              <div className="wge-title">
+                <div className="wge-logo"><span>GE</span><span className="wge-x">×</span>Gold Eagle Services</div>
+              </div>
+              <div className="wge-body">
+                <strong>Our recommended partnership.</strong> GE Connect systems combine inverter-driven technology with Gold Eagle's expert installation and local service — factory-grade reliability with small-business accountability.
+                {(currentTierDef.seer||'').includes('18') ? ' The GE Connect 18 SEER2 qualifies for the maximum $950 Austin Energy heat pump rebate.' : ''}
+              </div>
+            </div>
+          )}
+
+          {/* System selected card */}
+          {est && (
+            <>
+              <div className="wr-sec">Estimated cost</div>
+              <div className="wsys-card">
+                <div className="wsys-card-top">
+                  <div>
+                    <div className="wsys-card-name">{currentTierDef?.brand} {currentTierDef?.label}</div>
+                    <div className="wsys-card-meta">
+                      {currentTierDef && [currentTierDef.seer, currentTierDef.stage].map((p,i)=>(<span key={i} className="wsys-card-pill">{p}</span>))}
+                      {currentTierDef?.isGE && <span className="wsys-card-pill" style={{borderColor:'rgba(35,137,224,.4)',color:'#2389e0'}}>GExGE</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="wsys-card-price">{fmtR(est.equip.lo,est.equip.hi)}</div>
+                    <div className="wsys-card-ton">equipment + labor · installed</div>
+                  </div>
+                </div>
+                {est.rebate > 0 && (
+                  <div className="wsys-card-rebate">⚡ ${est.rebate.toLocaleString()} Austin Energy rebate — you may qualify</div>
+                )}
+              </div>
+
+              {/* Full breakdown */}
+              {(est.duct.lo > 0 || est.duct.hi > 0 || est.ductAssess || est.plenum.lo > 0 || est.addons.length > 0) && (
+                <>
+                  <div className="wr-sec">Add-ons & extras</div>
+                  {(est.duct.lo > 0 || est.ductAssess) && (
+                    <div className="wbd-row">
+                      <span className="wbd-name">Ductwork</span>
+                      {est.ductAssess ? <span className="wbd-note">Tech must assess</span> : <span className="wbd-amt">{fmtR(est.duct.lo,est.duct.hi)}</span>}
+                    </div>
+                  )}
+                  {(est.plenum.lo > 0 || est.plenum.hi > 0) && (
+                    <div className="wbd-row">
+                      <span className="wbd-name">Plenum / return air box</span>
+                      <span className="wbd-amt">{fmtR(est.plenum.lo,est.plenum.hi)}</span>
+                    </div>
+                  )}
+                  {est.addons.map((a,i)=>(
+                    <div key={i} className="wbd-row">
+                      <span className="wbd-name">{a.label}</span>
+                      <span className="wbd-amt">{fmtR(a.lo,a.hi)}</span>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              <div className="wtotal">
+                <div className="wtotal-label">Estimated Total Investment</div>
+                <div className="wtotal-range">{fmtR(est.total.lo,est.total.hi)}</div>
+                <div className="wtotal-note">Installed · Austin TX{est.ductAssess?' · Ductwork not included':''}{est.rebate>0?` · Before $${est.rebate.toLocaleString()} AE rebate`:''}</div>
+              </div>
+
+              {/* Financing */}
+              <div className="wfin">
+                <div className="wfin-top">
+                  <div className="wfin-label">
+                    <strong>💳 Financing available through Wisetack</strong>
+                    Get pre-qualified in minutes — no hard credit pull. Then enter your monthly payment below.
+                  </div>
+                  <a href="https://wisetack.com" target="_blank" rel="noopener noreferrer" className="wcta-s" style={{padding:'9px 14px',fontSize:'12px',flexShrink:0}}>Check My Rate →</a>
+                </div>
+                <div className="wfin-row">
+                  <span className="wfin-sym">$</span>
+                  <input className="wfin-input" type="number" placeholder="Monthly payment" value={moPayment} onChange={e=>setMoPayment(e.target.value)} min="0"/>
+                  <span style={{fontSize:'12px',color:'rgba(255,255,255,.32)'}}>/mo</span>
+                </div>
+                {moPayment && <div className="wfin-mo">Your Wisetack payment of ${moPayment}/mo will be included in your estimate submission.</div>}
+              </div>
+
+              {/* Austin Energy rebate */}
+              {est.rebate > 0 && (
+                <div className="wrebate">
+                  <div className="wrebate-icon">⚡</div>
+                  <div className="wrebate-text">
+                    <strong>Austin Energy rebate: ${est.rebate.toLocaleString()}</strong>
+                    Based on your system type and efficiency tier, you may qualify for a ${est.rebate.toLocaleString()} rebate from Austin Energy. Subject to eligibility and availability.{' '}
+                    <a href="https://austinenergy.com/green-power/plug-in-austin/for-your-home/home-performance/hvac-rebates" target="_blank" rel="noopener noreferrer">Austin Energy rebate details →</a>
+                  </div>
+                </div>
+              )}
+
+              {/* Flags */}
+              {est.flags.length > 0 && (
+                <div className="wflags">
+                  <div className="wflag-title">Items our tech still needs to verify</div>
+                  {est.flags.map((f,i)=>(
+                    <div key={i} className="wflag-item"><div className="wflag-dot"/>{f}</div>
+                  ))}
+                </div>
+              )}
+
+              {/* Efficiency upgrade table */}
+              <button className="wupgrade-btn" onClick={()=>setShowUpgrade(o=>!o)}>
+                <span>📊 {showUpgrade?'Hide':'Compare'} efficiency tiers for your home size</span>
+                <span>{showUpgrade?'▲':'▼'}</span>
+              </button>
+              {showUpgrade && (
+                <div style={{marginBottom:14,animation:'wIn .2s ease both'}}>
+                  <table className="weff-table">
+                    <thead><tr><th>Tier</th><th>Brand</th><th>SEER2</th><th>Price range</th><th>AE Rebate</th></tr></thead>
+                    <tbody>
+                      {(TIERS[answers.system]||[]).map(t=>{
+                        const pr2 = getPriceRange(t.key,answers.sqft,answers.foundation);
+                        const reb = AE_REBATES[getTierKey(answers.system)]?.[t.tier]||0;
+                        return (
+                          <tr key={t.key} className={answers.tier===t.key?'cur':''}>
+                            <td>{t.label}{answers.tier===t.key?' ✓':''}</td>
+                            <td>{t.brand}</td>
+                            <td>{t.seer}</td>
+                            <td>{pr2&&pr2.lo?fmtR(pr2.lo,pr2.hi||pr2.lo):'—'}</td>
+                            <td>{reb?<span className="weff-rebate">${reb}</span>:<span style={{color:'rgba(255,255,255,.2)'}}>—</span>}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Tech checklist */}
+          <div className="wcklist">
+            <div className="wcklist-title">Here's your range — a free visit locks in the exact number</div>
+            {TECH_LIST.map((item,i)=>(
+              <div key={i} className="wcklist-item"><div className="wcklist-box"/>{item}</div>
+            ))}
+          </div>
+
+          <div className="wline"/>
+
+          {/* Selections summary */}
+          <div className="wr-sec">Your selections</div>
+          <div className="wsum">
+            {summary.map(item=>(
+              <div key={item.key} className="wsum-item">
+                <div className="wsum-key">{item.key}</div>
+                <div className="wsum-val">{item.val}</div>
+                {item.flag&&<div className="wsum-flag">{item.flag}</div>}
+              </div>
+            ))}
+          </div>
+
+          <div className="wline"/>
+
+          {/* CTAs */}
+          <div className="wcta-row">
+            <a href="tel:5124894653" className="wcta-p">📞 Schedule Free Estimate</a>
+            <button className="wcta-s" onClick={()=>window.print()}>🖨 Print Estimate</button>
+          </div>
+
+          {/* Email to self */}
+          {!selfSent ? (
+            <div className="wemail-wrap">
+              <div className="wemail-label">Email this estimate to yourself:</div>
+              <div className="wemail-row">
+                <input type="email" placeholder="your@email.com" value={selfEmail} onChange={e=>setSelfEmail(e.target.value)}/>
+                <button onClick={()=>setSelfSent(true)} disabled={!selfEmail}>Send</button>
+              </div>
+            </div>
+          ) : (
+            <div className="wemail-sent">✓ Estimate sent to {selfEmail}</div>
+          )}
+
+          <div className="worcall">Or call us: <a href="tel:5124894653">512-489-4653</a> — available 24/7</div>
+
+          <div className="wline"/>
+
+          {/* Form */}
+          <div>
+            <button className="wftoggle" onClick={()=>setFormOpen(o=>!o)}>
+              <span style={{flex:1}}>
+                <span className="wftitle">📋 Send This Estimate to Our Team</span>
+                <span className="wfsub">Optional — share your info & photos for a faster follow-up</span>
+              </span>
+              <span className={`wftico${formOpen?' open':''}`}>+</span>
+            </button>
+            {formOpen && (
+              <div className="wfbody">
+                <div className="wf2">
+                  <div className="wfield">
+                    <label className="wlbl">Name <span style={{color:'rgba(215,183,64,.5)'}}>*</span></label>
+                    <input className="winput" type="text" placeholder="First & Last" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}/>
+                  </div>
+                  <div className="wfield">
+                    <label className="wlbl">Phone <span style={{color:'rgba(215,183,64,.5)'}}>*</span></label>
+                    <input className="winput" type="tel" placeholder="(512) 000-0000" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))}/>
+                  </div>
+                </div>
+                <div className="wf2">
+                  <div className="wfield">
+                    <label className="wlbl">Email <span className="wlbl-note">optional</span></label>
+                    <input className="winput" type="email" placeholder="you@example.com" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))}/>
+                  </div>
+                  <div className="wfield">
+                    <label className="wlbl">Service Address <span className="wlbl-note">optional</span></label>
+                    <input className="winput" type="text" placeholder="Street, Austin TX" value={form.address} onChange={e=>setForm(p=>({...p,address:e.target.value}))}/>
+                  </div>
+                </div>
+                {moPayment && (
+                  <div className="wfield">
+                    <label className="wlbl">Wisetack monthly payment</label>
+                    <input className="winput" type="text" value={`$${moPayment}/mo`} readOnly style={{opacity:.6}}/>
+                  </div>
+                )}
+                <div className="wfield">
+                  <label className="wlbl">Best times to reach you</label>
+                  <div className="wtimes">
+                    {TIME_OPTS.map(t=>(
+                      <button key={t} className={`wtpill${times.includes(t)?' on':''}`} onClick={()=>setTimes(p=>p.includes(t)?p.filter(v=>v!==t):[...p,t])}>{t}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="wfield">
+                  <label className="wlbl">Photos <span className="wlbl-note">optional but very helpful</span></label>
+                  <div className="wupload">
+                    <input type="file" accept="image/*" multiple onChange={handlePhoto}/>
+                    <div style={{fontSize:'13px',color:'rgba(255,255,255,.42)'}}>📸 <strong style={{color:'var(--gm)'}}>Tap to add photos</strong></div>
+                    <div className="wupload-hint">Outdoor condenser · indoor air handler · thermostat · breaker panel</div>
+                  </div>
+                  {photos.length > 0 && (
+                    <div className="wthumbs">
+                      {photos.map((p,i)=>(
+                        <div key={i} className="wthumb">
+                          <img src={p.url} alt={p.name}/>
+                          <button className="wthumb-rm" onClick={()=>setPhotos(ps=>ps.filter((_,idx)=>idx!==i))}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="wfield">
+                  <label className="wlbl">Anything else? <span className="wlbl-note">optional</span></label>
+                  <textarea className="wtarea" placeholder="Age of system, specific concerns, access notes, brand preferences..." value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}/>
+                </div>
+                <button className="wsubmit" onClick={handleSubmit} disabled={!form.name||!form.phone||sending}>
+                  {sending?'Sending…':<><span>📨</span> Send My Estimate Request</>}
+                </button>
+                <div className="worcall" style={{marginTop:10}}>Or call: <a href="tel:5124894653">512-489-4653</a> — 24/7</div>
+              </div>
+            )}
+          </div>
+
+          <button className="wrestart" onClick={restart}>← Start over with different selections</button>
+        </div>
+      )}
+    </div></div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('ges-widget')).render(<App/>);
+</script>
+</body>
+</html>
