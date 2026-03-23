@@ -56,7 +56,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 @keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
 
 /* SIDEBAR */
-.sidebar{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;height:100%}
+.sidebar{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;height:100%;min-height:0}
 @media(max-width:900px){.sidebar{border-left:none;border-top:1px solid var(--border);height:auto;overflow-y:auto;max-height:none}}
 
 /* STEP HEADER */
@@ -71,7 +71,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .step-hint{font-size:11px;color:var(--mut);line-height:1.5}
 
 /* OPTIONS */
-.opts{padding:12px 14px;display:flex;flex-direction:column;gap:7px;flex:1}
+.opts{padding:12px 14px;display:flex;flex-direction:column;gap:7px;flex:1;overflow-y:auto;min-height:0}
 .opt{background:var(--surf);border:1px solid var(--border);cursor:pointer;text-align:left;outline:none;-webkit-appearance:none;transition:border-color .15s,background .15s;position:relative;overflow:hidden}
 .opt:hover{border-color:rgba(215,183,64,.35);background:#1a1a1a}
 .opt.sel{border-color:var(--gl);background:rgba(240,214,78,.05)}
@@ -89,8 +89,11 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .opt-badge{display:inline-block;background:var(--gh);color:var(--bk);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .opt-badge-blue{background:linear-gradient(90deg,#1a6cb5,#2389e0);color:#fff}
 .opt-note{font-size:10px;color:rgba(240,214,78,.45);margin-top:2px;display:block;font-style:italic}
-.opt-check{width:17px;height:17px;border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;margin-top:2px;transition:all .15s}
+.opt-check{width:17px;height:17px;border:1.5px solid rgba(215,183,64,.45);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;margin-top:2px;transition:all .15s;border-radius:0}
+.opt-check.radio{border-radius:50%}
 .opt.sel .opt-check{border-color:var(--gl);background:var(--gm);color:var(--bk)}
+.opt-check.radio.sel-radio{border-color:var(--gl);background:transparent}
+.opt-check.radio.sel-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--gh);display:block}
 
 /* INFO CARD */
 .info-card{margin:0 14px 10px;padding:10px 12px;background:rgba(215,183,64,.05);border:1px solid rgba(215,183,64,.15);font-size:11px;color:rgba(255,255,255,.45);line-height:1.55}
@@ -128,9 +131,17 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .done-note{font-size:10px;color:rgba(255,255,255,.25);margin-bottom:22px}
 .done-cta{display:block;width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px;font-family:var(--ft);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:8px;text-decoration:none;text-align:center}
 .done-restart{background:transparent;border:none;color:rgba(255,255,255,.2);font-family:var(--fb);font-size:11px;cursor:pointer;text-decoration:underline;outline:none}
+@media print{
+  .sidebar{width:100%!important;max-width:420px;margin:0 auto}
+  .canvas-wrap,.hdr-step,.btn-back,.btn-next,.btn-skip,.done-restart,[class*="btn-"]{display:none!important}
+  .main{display:block!important}
+  body{background:#fff!important;color:#000!important}
+  .done-wrap{padding:20px!important;color:#000!important}
+  .done-title{color:#000!important}
+}
 .toggle-hint{animation:glow-pulse 2.5s ease-in-out 3;animation-fill-mode:both;animation-delay:1.2s}
-.line-pulse{animation:linepulse 1.8s ease-in-out infinite}
-@keyframes linepulse{0%,100%{opacity:0.55;stroke-width:3}50%{opacity:1;stroke-width:5.5}}
+.line-pulse{animation:linepulse 1.6s ease-in-out infinite;stroke-width:4.5}
+@keyframes linepulse{0%,100%{opacity:0.6}50%{opacity:1}}
 @keyframes toggle-glow{0%,100%{box-shadow:0 0 0 0 rgba(215,183,64,0)}50%{box-shadow:0 0 12px 3px rgba(215,183,64,.35)}}
 </style>
 </head>
@@ -242,7 +253,7 @@ function Canvas({a}){
   const isFD=loc==='furdown';
   const hasFurnace=a.indoor_type==='furnace';
   const hasCoil=!!a.indoor_type;
-  const hasCond=!!a.cond_tier;
+  const hasCond=!!a.cond_tier||(a.purif!==undefined);
   const hasPlenum=!!a.plenum;  // true for ductboard, metal, AND none (existing)
   const hasTstat=a.thermostat&&a.thermostat!=='none';
   const hasUV=Array.isArray(a.purif)&&a.purif.includes('uv');
@@ -298,22 +309,24 @@ function Canvas({a}){
 
   // UV rod — thin horizontal rod ~45px (9" at scale), UV purple glow
   function UVRod({x,y,len,vertical}){
-    len=len||46;
+    len=len||56;
     const x2=vertical?x:x+len, y2=vertical?y+len:y;
     return <g className="fadein">
-      {/* Glow halo */}
+      {/* Wide diffuse glow */}
       <line x1={x} y1={y} x2={x2} y2={y2}
-        stroke="rgba(167,139,250,.4)" strokeWidth={vertical?8:8} strokeLinecap="round" filter="url(#glow-uv)"/>
+        stroke="rgba(139,92,246,.55)" strokeWidth={vertical?22:22} strokeLinecap="round" filter="url(#glow-uv)" className="glow-pulse"/>
+      {/* Mid glow */}
+      <line x1={x} y1={y} x2={x2} y2={y2}
+        stroke="rgba(167,139,250,.75)" strokeWidth={vertical?10:10} strokeLinecap="round" filter="url(#glow-uv)"/>
       {/* Rod body */}
       <line x1={x} y1={y} x2={x2} y2={y2}
-        stroke="rgba(196,181,253,.9)" strokeWidth={vertical?2.5:2.5} strokeLinecap="round"/>
+        stroke="rgba(216,180,254,.95)" strokeWidth={vertical?3.5:3.5} strokeLinecap="round"/>
       {/* End caps */}
-      <circle cx={x} cy={y} r="3" fill="rgba(167,139,250,.8)" stroke="rgba(196,181,253,.6)" strokeWidth="0.8"/>
-      <circle cx={x2} cy={y2} r="3" fill="rgba(167,139,250,.8)" stroke="rgba(196,181,253,.6)" strokeWidth="0.8"/>
-      {/* Active glow pulse */}
+      <circle cx={x} cy={y} r="4" fill="rgba(167,139,250,.9)" stroke="rgba(216,180,254,.8)" strokeWidth="1"/>
+      <circle cx={x2} cy={y2} r="4" fill="rgba(167,139,250,.9)" stroke="rgba(216,180,254,.8)" strokeWidth="1"/>
+      {/* Pulse overlay */}
       <line x1={x} y1={y} x2={x2} y2={y2}
-        stroke="rgba(221,214,254,.5)" strokeWidth={vertical?1.5:1.5} strokeLinecap="round"
-        className="glow-pulse"/>
+        stroke="rgba(233,213,255,.6)" strokeWidth={vertical?2:2} strokeLinecap="round" className="glow-pulse"/>
     </g>;
   }
 
@@ -392,9 +405,9 @@ function Canvas({a}){
           horizontal midline = y+h/2, depth center = x + w*0.45
           rod runs horizontal, length ~9" at scale (46px) */}
       {hasUV&&(()=>{
-        const rodLen=Math.min(46, w*0.52);
-        const rodCX=x+w/2;   // true horizontal center
-        const rodCY=y+h/2;      // exact horizontal midline of the > shape
+        const rodLen=Math.min(w*0.70, w-12);
+        const rodCX=x+w*0.48;
+        const rodCY=y+h/2;
         return <UVRod x={rodCX-rodLen/2} y={rodCY} len={rodLen}/>;
       })()}
     </g>;
@@ -435,8 +448,9 @@ function Canvas({a}){
       {hasUV&&(()=>{
         const rodLen=Math.min(46, h*0.42);
         const rodCX=x+w*0.5;     // horizontal center of the A-frame
-        const rodCY=y+h*0.55;  // slightly below center
-        return <UVRod x={rodCX} y={rodCY-rodLen/2} len={rodLen} vertical={true}/>;
+        const rodLen2=Math.min(h*0.75, h-12);
+        const rodCY=y+h/2;
+        return <UVRod x={rodCX} y={rodCY-rodLen2/2} len={rodLen2} vertical={true}/>;
       })()}
       <rect x={peakX-16} y={y+h+6} width={8} height={12} rx="1.5" fill={active?(evapC+'2a'):'rgba(22,22,44,.7)'} stroke={evapC} strokeWidth="0.9"/>
       <rect x={peakX+8} y={y+h+6} width={8} height={12} rx="1.5" fill={active?(evapC2+'2a'):'rgba(22,22,44,.7)'} stroke={evapC2} strokeWidth="0.9"/>
@@ -862,12 +876,12 @@ function Canvas({a}){
       {/* Foam sleeve on pipes — from wall to condenser */}
       <path d={`M${sidingX+wallThick} ${lineY1} L${condX+condW*0.35} ${lineY1} L${condX+condW*0.35} ${condY+condH}`}
         fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round"/>
-      {/* Liquid line */}
+      {/* Liquid line — full bold red/blue */}
       <path d={`M${sidingX+wallThick} ${lineY1} L${condX+condW*0.35} ${lineY1} L${condX+condW*0.35} ${condY+condH}`}
-        fill="none" stroke={line1C} strokeLinecap="round" strokeLinejoin="round" className={active?"line-pulse draw":"draw"}/>
-      {/* Suction line (offset) */}
+        fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse draw"/>
+      {/* Suction line — full bold, offset */}
       <path d={`M${sidingX+wallThick} ${lineY2} L${condX+condW*0.42} ${lineY2} L${condX+condW*0.42} ${condY+condH}`}
-        fill="none" stroke={line2C} strokeLinecap="round" strokeLinejoin="round" className={active?"line-pulse draw":"draw"} style={{animationDelay:'.15s'}}/>
+        fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse draw" style={{animationDelay:'.15s'}}/>
       {/* Animated flow dots -- both pipes */}
       {active&&Array.from({length:6},(_,i)=>{
         const isLine1=i<3;
@@ -886,8 +900,8 @@ function Canvas({a}){
       {/* ── DISCONNECT BOX — prominent, on outside wall face ── */}
       {(()=>{
         const DX=sidingX+wallThick+4;
-        const DY=condY+Math.round(condH*0.12);
-        const DW=44, DH=68;   // significantly bigger
+        const DY=groundY-160; // fixed position on wall regardless of condenser size
+        const DW=44, DH=68;
         return <>
           {/* Box body */}
           <rect x={DX} y={DY} width={DW} height={DH} rx="4"
@@ -1003,7 +1017,7 @@ function Canvas({a}){
     const VW=1200, VH=700;
 
     // 2/3 house when condenser selected, full width otherwise
-    const HOUSE_W=hasCond ? Math.round(VW*(0.62)) : VW-12;
+    const HOUSE_W=hasCond ? Math.round(VW*(2/3)) : VW-12;
     const OUTSIDE_W=hasCond ? VW-HOUSE_W : 0;
 
     // Shallow pitch
@@ -1015,18 +1029,17 @@ function Canvas({a}){
     const DECK_Y=VH-120;
     const ATTIC_H=DECK_Y-EAVE_Y;
 
-    // Units larger when no condenser (fill space), tighter when condenser shown
-    const UNIT_H=hasCond?Math.round(ATTIC_H*0.36):Math.round(ATTIC_H*0.52);
+    const SCALE_PX=6.2;
+    const SCALE=hasCond?1:1.18;
+    const UNIT_H=Math.round(15*SCALE_PX*1.13); // ~105px -- 15" unit at 6.2px/inch x1.13
     const UNIT_Y=EAVE_Y+Math.round((ATTIC_H-UNIT_H)/2)+4;
 
-    const RET_PLEN_W=52;
-    const APR_W=hasAprilaire?20:0;
-    // Scale furnace/AH wider when no condenser
-    const SCALE=hasCond?1.28:1.55;
+    const RET_PLEN_W=72;
+    const APR_W=hasAprilaire?32:0;
     const FURN_W=hasFurnace?Math.round(196*SCALE):0;
     const ACOIL_W=hasFurnace?Math.round(108*SCALE):0;
     const AH_W=!hasFurnace?Math.round(296*SCALE):0;
-    const SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?160:a.plenum==='none'?100:0;
+    const SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?208:a.plenum==='none'?130:0;
     const SUP_PLEN_H=UNIT_H;
 
     // Center system in house zone when no condenser
@@ -1042,23 +1055,23 @@ function Canvas({a}){
     const SUP_X=unitRightEdge+4;
     const SUP_PLEN_Y=UNIT_Y;
 
-    const RL_START_X=unitRightEdge+4;
+    const RL_START_X=hasFurnace?ACOIL_X-4:AH_X-4;
     const RL_ROOF_Y=EAVE_Y+14;
 
     // Real-world condenser sizes @ 3.2px/inch
     // Outside zone is 1/3 of VW. Condenser takes up majority of that zone.
     const PX_C=3.2;
     const COND_SIZES={
-      fedmin:   {w:Math.round(30*PX_C), h:Math.round(37*PX_C)},
+      fedmin:   {w:Math.round(22*PX_C), h:Math.round(28*PX_C)},
       mid_ge15: {w:Math.round(36*PX_C), h:Math.round(22*PX_C)},
       high_ge18:{w:Math.round(36*PX_C), h:Math.round(50*PX_C)},
     };
     const CS=COND_SIZES[a.cond_tier]||COND_SIZES.fedmin;
     // Scale condenser up to fill ~70% of the outside zone width
-    const ZONE_COND_W=Math.round(OUTSIDE_W*0.72);
-    const COND_SCALE=ZONE_COND_W/CS.w;
-    const COND_W=Math.round(CS.w*COND_SCALE);
-    const COND_H=Math.round(CS.h*COND_SCALE);
+    const ZONE_COND_W=OUTSIDE_W>0?Math.round(OUTSIDE_W*0.72):1;
+    const COND_SCALE=ZONE_COND_W/(CS.w||1);
+    const COND_W=Math.max(1,Math.round(CS.w*COND_SCALE));
+    const COND_H=Math.max(1,Math.round(CS.h*COND_SCALE));
     const EXT_WALL_X=HOUSE_W;
     const WALL_THICK=18;
     const DISC_ZONE=52;  // space for disconnect on wall face
@@ -1122,7 +1135,7 @@ function Canvas({a}){
               <text x="28" y={DECK_Y-22} fill="rgba(232,236,246,.32)" fontSize="5.5" fontFamily="monospace">SPRAY FOAM — SEALED ATTIC</text>
             </g>
             :<g>
-              <rect x="0" y={DECK_Y-15} width={HOUSE_W} height={17} fill="rgba(255,182,193,.06)"/>
+              <rect x="0" y={DECK_Y-22} width={HOUSE_W} height={24} fill="rgba(255,130,170,.18)" stroke="rgba(255,140,180,.08)" strokeWidth="0.5"/>
               {Array.from({length:Math.floor(HOUSE_W/17)},(_,i)=>(
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-7} rx={11} ry={8}
                   fill="rgba(255,182,193,.17)" stroke="rgba(255,182,193,.2)" strokeWidth=".45"/>
@@ -1271,11 +1284,11 @@ function Canvas({a}){
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+14} textAnchor="middle"
                   fill={G+'.32)'} fontSize="5.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
-                {/* Ionizer */}
+                {/* Ionizer -- enters from bottom of plenum */}
                 {hasIonizer&&!isExisting&&<Ionizer
-                  bulbX={SUP_X+SUP_PLEN_W*0.55}
-                  bulbY={SUP_PLEN_Y-16}
-                  rodLen={Math.round(SUP_PLEN_H*0.55)}/>}
+                  bulbX={SUP_X+SUP_PLEN_W*0.5}
+                  bulbY={SUP_PLEN_Y+SUP_PLEN_H+16}
+                  rodLen={-(Math.round(SUP_PLEN_H*0.55))}/>}
               </>;
             })()}
           </g>}
@@ -1325,20 +1338,20 @@ function Canvas({a}){
           {hasCoil&&hasCond&&<g key="rl">
             {(()=>{
               const active=evapActive;
-              const lc=active?evapC:'rgba(30,30,50,.5)';
-              const lc2=active?evapC2:'rgba(30,30,50,.38)';
-              const ry1=UNIT_Y+UNIT_H*0.32, ry2=UNIT_Y+UNIT_H*0.54;
+              const ry1=UNIT_Y+UNIT_H*0.35, ry2=UNIT_Y+UNIT_H*0.55;
               const wallX=EXT_WALL_X-14;
               return <>
                 {/* Foam sleeve */}
                 <path d={`M${RL_START_X} ${ry1} L${RL_START_X} ${RL_ROOF_Y} L${wallX} ${RL_ROOF_Y}`}
-                  fill="none" stroke="rgba(24,24,44,.6)" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"/>
-                {/* Liquid line */}
-                <path d={`M${RL_START_X} ${ry1} L${RL_START_X} ${RL_ROOF_Y} L${wallX} ${RL_ROOF_Y}`}
-                  fill="none" stroke={line1C} strokeLinecap="round" strokeLinejoin="round" className={active?"line-pulse draw":"draw"}/>
-                {/* Suction line */}
+                  fill="none" stroke="rgba(20,20,36,.75)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d={`M${RL_START_X+5} ${ry2} L${RL_START_X+5} ${RL_ROOF_Y+9} L${wallX} ${RL_ROOF_Y+9}`}
-                  fill="none" stroke={line2C} strokeLinecap="round" strokeLinejoin="round" className={active?"line-pulse draw":"draw"} style={{animationDelay:'.15s'}}/>
+                  fill="none" stroke="rgba(20,20,36,.6)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Line 1 -- always bold red/blue */}
+                <path d={`M${RL_START_X} ${ry1} L${RL_START_X} ${RL_ROOF_Y} L${wallX} ${RL_ROOF_Y}`}
+                  fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse draw"/>
+                {/* Line 2 -- always bold, opposite color */}
+                <path d={`M${RL_START_X+5} ${ry2} L${RL_START_X+5} ${RL_ROOF_Y+9} L${wallX} ${RL_ROOF_Y+9}`}
+                  fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse draw" style={{animationDelay:'.15s'}}/>
                 {/* Flow dots -- both pipes */}
                 {active&&Array.from({length:6},(_,i)=>{
                   const isLine1=i<3;
@@ -1401,92 +1414,97 @@ function Canvas({a}){
             })()}
           </g>}
 
-          {/* Dehu -- anchored left of flue pipe, clear of it */}
-          {hasDehu&&<g className="snap" key="dehu" style={{animationDelay:'.3s'}}>
+                    {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
+          {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&<g>
             {(()=>{
               const sysX=hasFurnace?FURN_X:AH_X;
               const sysW=hasFurnace?FURN_W:AH_W;
-              const DW=Math.round(sysW*0.82);
-              const DH=Math.round(UNIT_H*0.52);
-              // Anchor left of center -- flue exits right side of HX, so dehu goes left
-              const DX=sysX+Math.round(sysW*0.06);
-              const DY=UNIT_Y-DH-18;
-              const rod1X=DX+DW*0.25, rod2X=DX+DW*0.75;
+              const BW=80, BH=48;
+              const GAP=8;
+              const hasERV=Array.isArray(a.extras)&&a.extras.includes('erv');
+              const both=hasDehu&&hasERV;
+              const totalW=both?(BW*2+GAP):BW;
+              const startX=sysX+Math.round((sysW-totalW)/2);
+              const BY=UNIT_Y-BH-14;
               const roofY=EAVE_Y+14;
-              return <>
-                <line x1={rod1X} y1={roofY} x2={rod1X} y2={DY}
-                  stroke="#22c55e" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.6"/>
-                <line x1={rod2X} y1={roofY} x2={rod2X} y2={DY}
-                  stroke="#22c55e" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.6"/>
-                <rect x={rod1X-4} y={roofY-4} width="8" height="5" rx="1"
-                  fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.8"/>
-                <rect x={rod2X-4} y={roofY-4} width="8" height="5" rx="1"
-                  fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.8"/>
-                <rect x={DX} y={DY} width={DW} height={DH} rx="4"
-                  fill="#05120a" stroke="#22c55e" strokeWidth="1.5"/>
-                <rect x={DX} y={DY} width={DW} height={8} rx="4"
-                  fill="rgba(34,197,94,.3)" stroke="none"/>
-                <text x={DX+DW/2} y={DY+DH/2-4} textAnchor="middle" fill="#22c55e" fontSize="9">💧</text>
-                <text x={DX+DW/2} y={DY+DH/2+10} textAnchor="middle"
-                  fill="#22c55e" fontSize="7" fontFamily="monospace">DEHUMIDIFIER</text>
-              </>;
+              // ERV left of dehu
+              const boxes=[];
+              if(hasERV) boxes.push('erv');
+              if(hasDehu) boxes.push('dehu');
+              return boxes.map((type,i)=>{
+                const BX=startX+i*(BW+GAP);
+                const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
+                const isDehu=type==='dehu';
+                const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
+                return <g key={type}>
+                  {isDehu
+                    ?<>
+                      <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
+                      <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
+                      <rect x={r1X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+                      <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+                    </>
+                    :<>
+                      {/* ERV -- blue IN + orange OUT through roof */}
+                      <rect x={pipe1X-2} y={4} width={5} height={BY-4} rx="1" fill={B+'.3)'} stroke={B+'.55)'} strokeWidth="0.8"/>
+                      <rect x={pipe1X-5} y={1} width={11} height={5} rx="1" fill={B+'.35)'} stroke={B+'.6)'} strokeWidth="0.8"/>
+                      <text x={pipe1X} y={-1} textAnchor="middle" fill={B+'.6)'} fontSize="5.5" fontFamily="monospace">IN</text>
+                      <rect x={pipe2X-2} y={4} width={5} height={BY-4} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.55)" strokeWidth="0.8"/>
+                      <path d={'M'+(pipe2X-4)+' 2 L'+pipe2X+' -5 L'+(pipe2X+4)+' 2'} fill="rgba(249,115,22,.45)"/>
+                      <text x={pipe2X} y={-1} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="5.5" fontFamily="monospace">OUT</text>
+                      <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+                      <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+                    </>
+                  }
+                  <rect x={BX} y={BY} width={BW} height={BH} rx="4"
+                    fill={isDehu?"#05120a":"#0a0a06"}
+                    stroke={isDehu?"#22c55e":(G+'.55)')} strokeWidth="1.4"/>
+                  <rect x={BX} y={BY} width={BW} height={7} rx="4"
+                    fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
+                  {isDehu
+                    ?<>
+                      <text x={BX+BW/2} y={BY+BH/2-2} textAnchor="middle" fill="#22c55e" fontSize="11">💧</text>
+                      <text x={BX+BW/2} y={BY+BH/2+13} textAnchor="middle" fill="#22c55e" fontSize="7.5" fontFamily="monospace">DEHU</text>
+                    </>
+                    :<>
+                      <path d={'M'+(BX+10)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.8" markerEnd="url(#arr)"/>
+                      <path d={'M'+(BX+BW-10)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.8" markerEnd="url(#arr)"/>
+                      <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="9" fontFamily="monospace">ERV</text>
+                    </>
+                  }
+                </g>;
+              });
             })()}
           </g>}
 
-          {/* ERV -- blue IN + orange OUT pipes through roof */}
-          {Array.isArray(a.extras)&&a.extras.includes('erv')&&<g className="snap" key="erv" style={{animationDelay:'.32s'}}>
+          {/* Condensate drain — dashed blue line below coil, pump box if selected */}
+          {hasCoil&&<g key="attic-drain">
             {(()=>{
-              const DW=hasFurnace?FURN_W:AH_W;
-              const DH=Math.round(UNIT_H*0.5);
-              const baseX=hasFurnace?FURN_X:AH_X;
-              const DX=hasDehu?baseX-DW-14:baseX;
-              const DY=UNIT_Y-DH-18;
-              const pipe1X=DX+Math.round(DW*0.28);
-              const pipe2X=DX+Math.round(DW*0.68);
-              const roofY=EAVE_Y+14;
-              const pipeTop=4;
-              return <>
-                {/* Blue IN pipe -- fresh air in, from outside through roof */}
-                <rect x={pipe1X-3} y={pipeTop} width={6} height={DY-pipeTop} rx="1"
-                  fill={B+'.3)'} stroke={B+'.55)'} strokeWidth="0.9"/>
-                <rect x={pipe1X-6} y={pipeTop} width={12} height={5} rx="1"
-                  fill={B+'.35)'} stroke={B+'.6)'} strokeWidth="0.8"/>
-                <text x={pipe1X} y={pipeTop-2} textAnchor="middle"
-                  fill={B+'.65)'} fontSize="6" fontFamily="monospace">IN</text>
-                {/* Orange OUT pipe -- stale air exhaust through roof */}
-                <rect x={pipe2X-3} y={pipeTop} width={6} height={DY-pipeTop} rx="1"
-                  fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.55)" strokeWidth="0.9"/>
-                <path d={'M'+(pipe2X-5)+' '+(pipeTop+2)+' L'+pipe2X+' '+(pipeTop-5)+' L'+(pipe2X+5)+' '+(pipeTop+2)}
-                  fill="rgba(249,115,22,.45)"/>
-                <text x={pipe2X} y={pipeTop-2} textAnchor="middle"
-                  fill="rgba(249,115,22,.65)" fontSize="6" fontFamily="monospace">OUT</text>
-                {/* Hanging mount rods */}
-                <line x1={DX+DW*0.28} y1={roofY} x2={DX+DW*0.28} y2={DY}
-                  stroke={G+'.35)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-                <line x1={DX+DW*0.72} y1={roofY} x2={DX+DW*0.72} y2={DY}
-                  stroke={G+'.35)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-                {/* ERV box */}
-                <rect x={DX} y={DY} width={DW} height={DH} rx="4"
-                  fill="#0a0a06" stroke={G+'.55)'} strokeWidth="1.5"/>
-                <rect x={DX} y={DY} width={DW} height={8} rx="4"
-                  fill={G+'.25)'} stroke="none"/>
-                {/* Blue IN arrow (left to center) */}
-                <path d={'M'+(DX+DW*0.12)+' '+(DY+DH*0.44)+' L'+(DX+DW*0.46)+' '+(DY+DH*0.44)}
-                  fill="none" stroke={B+'.65)'} strokeWidth="2.5" markerEnd="url(#arr)"/>
-                {/* Orange OUT arrow (right to center) */}
-                <path d={'M'+(DX+DW*0.88)+' '+(DY+DH*0.64)+' L'+(DX+DW*0.54)+' '+(DY+DH*0.64)}
-                  fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="2.5" markerEnd="url(#arr)"/>
-                <text x={DX+DW/2} y={DY+DH*0.3} textAnchor="middle"
-                  fill={G+'.8)'} fontSize="10" fontFamily="monospace" fontWeight="700">ERV</text>
-                <text x={DX+DW/2} y={DY+DH*0.82} textAnchor="middle"
-                  fill={G+'.4)'} fontSize="5.5" fontFamily="monospace">ENERGY RECOVERY</text>
-              </>;
+              const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
+              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.5:AH_X+AH_W*0.55;
+              const drainTopY=UNIT_Y+UNIT_H+4;
+              if(hasPump){
+                const pW=58, pH=20;
+                const pX=coilCX-pW/2, pY=drainTopY+4;
+                return <>
+                  <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={pY}
+                    stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="3 2"/>
+                  <rect x={pX} y={pY} width={pW} height={pH} rx="3"
+                    fill="rgba(35,137,224,.1)" stroke={B+'.5)'} strokeWidth="1.1"/>
+                  <text x={coilCX} y={pY+9} textAnchor="middle"
+                    fill={B+'.75)'} fontSize="6.5" fontFamily="monospace">COND. PUMP</text>
+                  <text x={coilCX} y={pY+17} textAnchor="middle"
+                    fill={B+'.45)'} fontSize="5" fontFamily="monospace">condensate</text>
+                </>;
+              } else {
+                return <>
+                  <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={DECK_Y+20}
+                    stroke={B+'.35)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
+                  <text x={coilCX+7} y={DECK_Y+14} textAnchor="start"
+                    fill={B+'.35)'} fontSize="5.5" fontFamily="monospace">DRAIN</text>
+                </>;
+              }
             })()}
-          </g>}
-
-          {/* Condensate pump */}
-          {Array.isArray(a.extras)&&a.extras.includes('condensate')&&hasCoil&&<g className="fadein" key="cpump">
-            <CondensatePump x={hasFurnace?ACOIL_X:AH_X} y={UNIT_Y+UNIT_H+8} w={hasFurnace?ACOIL_W:AH_W}/>
           </g>}
 
           {/* Empty state */}
@@ -1524,17 +1542,18 @@ function Canvas({a}){
 
     // Plenum
     const PLEN_W=UNIT_W;
-    const PLEN_ABOVE=hasPlenum?100:0;
-    const PLEN_BELOW=hasPlenum?44:0;
+    const PLEN_ABOVE=hasPlenum?130:0;
+    const PLEN_BELOW=hasPlenum?57:0;
     const PLEN_TOTAL=PLEN_ABOVE+PLEN_BELOW;
     const PLEN_TOP=DECK_Y-PLEN_ABOVE;
     const PLEN_BOT=DECK_Y+PLEN_BELOW;
 
-    const UNIT_TOP=PLEN_BOT;
+    const UNIT_BOT_OFFSET=72; // always offset unit below deck — gives chase room
+    const UNIT_TOP=DECK_Y+UNIT_BOT_OFFSET;
     const ACOIL_H=hasFurnace?COIL_H:AH_H;
     const ACOIL_Y=UNIT_TOP;
     const FURN_Y=ACOIL_Y+ACOIL_H+4;
-    const APR_H=hasAprilaire?16:0;
+    const APR_H=hasAprilaire?28:0;
     const APR_Y=hasFurnace?FURN_Y+FURN_H:ACOIL_Y+ACOIL_H;
     const CHASE_H=52;
     const CHASE_Y=APR_Y+APR_H+2;
@@ -1544,7 +1563,7 @@ function Canvas({a}){
     // Condenser — same real-world proportions, scaled to fill ~70% of outside zone
     const PX=3.2;
     const CU_SIZES={
-      fedmin:   {w:Math.round(30*PX), h:Math.round(37*PX)},
+      fedmin:   {w:Math.round(22*PX), h:Math.round(28*PX)},
       mid_ge15: {w:Math.round(36*PX), h:Math.round(22*PX)},
       high_ge18:{w:Math.round(36*PX), h:Math.round(50*PX)},
       premium:  {w:Math.round(36*PX), h:Math.round(50*PX)},
@@ -1552,7 +1571,7 @@ function Canvas({a}){
     const CU=CU_SIZES[a.cond_tier]||CU_SIZES.fedmin;
     // Scale condenser to fill outside zone — ensure it fits
     const ZONE_COND_W=Math.round(OUTSIDE_ZONE_W*0.62);
-    const C_SCALE=hasCond&&OUTSIDE_ZONE_W>0?(ZONE_COND_W/CU.w):1;
+    const C_SCALE=hasCond&&OUTSIDE_ZONE_W>0?(ZONE_COND_W/(CU.w||1)):1;
     const COND_W=Math.round(CU.w*C_SCALE);
     const COND_H=Math.round(CU.h*C_SCALE);
     const EXT_WALL_X=HOUSE_W;
@@ -1707,7 +1726,7 @@ function Canvas({a}){
                 {hasIonizer&&!isExisting&&(()=>{
                   const rodLen=Math.round(PLEN_W*0.62);
                   const bulbX=UNIT_X+PLEN_W+12;
-                  const rodY=PLEN_TOP+PLEN_TOTAL*0.72;
+                  const rodY=PLEN_TOP+PLEN_TOTAL*0.88;
                   const rodTip=UNIT_X+PLEN_W-rodLen;
                   return <g className="fadein">
                     <circle cx={bulbX} cy={rodY} r={16} fill="rgba(253,224,71,.07)" stroke="rgba(253,224,71,.18)" strokeWidth="0.5" filter="url(#glow-uv)"/>
@@ -1885,17 +1904,41 @@ function Canvas({a}){
               fill="rgba(138,98,42,.62)" fontSize="6" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
           </g>}
 
+          {/* Condensate drain — below coil/furnace */}
+          {hasCoil&&(()=>{
+            const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
+            const coilCX=UNIT_X+UNIT_W*0.5;
+            const startY=hasFurnace?FURN_Y+FURN_H+4:ACOIL_Y+ACOIL_H+4;
+            if(hasPump){
+              return <>
+                <line x1={coilCX} y1={startY} x2={coilCX} y2={startY+4}
+                  stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="3 2"/>
+                <rect x={coilCX-29} y={startY+4} width={58} height={20} rx="3"
+                  fill="rgba(35,137,224,.1)" stroke={B+'.5)'} strokeWidth="1.1"/>
+                <text x={coilCX} y={startY+13} textAnchor="middle"
+                  fill={B+'.75)'} fontSize="6.5" fontFamily="monospace">COND. PUMP</text>
+                <text x={coilCX} y={startY+21} textAnchor="middle"
+                  fill={B+'.45)'} fontSize="5" fontFamily="monospace">condensate</text>
+              </>;
+            } else {
+              return <line x1={coilCX} y1={startY} x2={coilCX} y2={Math.min(startY+50,CHASE_Y+CHASE_H)}
+                stroke={B+'.3)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>;
+            }
+          })()}
+
           {/* ── REFRIGERANT LINE STUBS — exit right face of A-coil, run to wall ── */}
           {hasCoil&&hasCond&&<g key="rl-c">
             {/* Foam sleeve background */}
             <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
-              fill="none" stroke="rgba(22,22,42,.55)" strokeWidth="10" strokeLinecap="round"/>
-            {/* Liquid line */}
-            <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
-              fill="none" stroke={line1C} strokeLinecap="round" className={evapActive?"line-pulse draw":"draw"}/>
-            {/* Suction line */}
+              fill="none" stroke="rgba(22,22,42,.55)" strokeWidth="11" strokeLinecap="round"/>
             <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
-              fill="none" stroke={line2C} strokeLinecap="round" className={evapActive?"line-pulse draw":"draw"} style={{animationDelay:'.15s'}}/>
+              fill="none" stroke="rgba(22,22,42,.45)" strokeWidth="11" strokeLinecap="round"/>
+            {/* Liquid line — always bold */}
+            <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
+              fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse draw"/>
+            {/* Suction line — always bold */}
+            <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
+              fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse draw" style={{animationDelay:'.15s'}}/>
             {/* Flow dots -- both pipes */}
             {Array.from({length:6},(_,i)=>{
               const isLine1=i<3;
@@ -1953,57 +1996,67 @@ function Canvas({a}){
             })()}
           </g>}
 
-          {/* Dehumidifier — top-RIGHT corner of attic */}
-          {hasDehu&&<g className="snap" key="dehu-c" style={{animationDelay:'.32s'}}>
-            {(()=>{
-              const BW=72, BH=52;
-              const BX=HOUSE_W-BW-8;
-              const BY=10;
-              return <>
+          {/* Dehu + ERV — hang from roofline in attic zone */}
+          {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
+            const rW=hasCond?HOUSE_W:VW-8;
+            const rRise=Math.round(Math.min(rW/2*(3/12),60));
+            const rEave=rRise+12; // eave Y — bottom of roofline
+            const BW=68, BH=48, GAP=10;
+            const hasERV=Array.isArray(a.extras)&&a.extras.includes('erv');
+            // Hang boxes from eave: top of box just below eave
+            const BY=rEave+10;
+            const roofY=rEave+4; // rod anchors here
+            // Position: ERV left-center, dehu right-center of attic
+            const centerX=Math.round(rW/2);
+            const both=hasDehu&&hasERV;
+            const totalW=both?BW*2+GAP:BW;
+            const startX=centerX-Math.round(totalW/2);
+            const boxes=[];
+            if(hasERV) boxes.push('erv');
+            if(hasDehu) boxes.push('dehu');
+            return <g key="dehu-erv-closet">{boxes.map((type,i)=>{
+              const BX=startX+i*(BW+GAP);
+              const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
+              const isDehu=type==='dehu';
+              const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
+              return <g key={type} className="snap" style={{animationDelay:(0.32+i*0.05)+'s'}}>
+                {isDehu
+                  ?<>
+                    <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
+                    <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
+                    <rect x={r1X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+                    <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+                  </>
+                  :<>
+                    <rect x={pipe1X-2} y={0} width={5} height={BY} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
+                    <rect x={pipe1X-5} y={0} width={11} height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
+                    <text x={pipe1X} y={-2} textAnchor="middle" fill={B+'.6)'} fontSize="5.5" fontFamily="monospace">IN</text>
+                    <rect x={pipe2X-2} y={0} width={5} height={BY} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
+                    <path d={'M'+(pipe2X-4)+' 2 L'+pipe2X+' -5 L'+(pipe2X+4)+' 2'} fill="rgba(249,115,22,.4)"/>
+                    <text x={pipe2X} y={-2} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="5.5" fontFamily="monospace">OUT</text>
+                    <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+                    <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+                  </>
+                }
                 <rect x={BX} y={BY} width={BW} height={BH} rx="4"
-                  fill="#05120a" stroke="#22c55e" strokeWidth="1.4"/>
+                  fill={isDehu?"#05120a":"#0a0a06"}
+                  stroke={isDehu?"#22c55e":(G+'.55)')} strokeWidth="1.4"/>
                 <rect x={BX} y={BY} width={BW} height={7} rx="4"
-                  fill="rgba(34,197,94,.3)" stroke="none"/>
-                <text x={BX+BW/2} y={BY+BH/2-2} textAnchor="middle" fill="#22c55e" fontSize="14">💧</text>
-                <text x={BX+BW/2} y={BY+BH/2+13} textAnchor="middle" fill="#22c55e" fontSize="7" fontFamily="monospace">DEHU</text>
-                {/* Hanging rod to deck */}
-                <line x1={BX+BW/2} y1={BY+BH} x2={BX+BW/2} y2={DECK_Y}
-                  stroke="rgba(34,197,94,.35)" strokeWidth="1.5" strokeDasharray="3 2"/>
-              </>;
-            })()}
-          </g>}
-          {/* ERV — top-LEFT corner of attic */}
-          {Array.isArray(a.extras)&&a.extras.includes('erv')&&<g className="snap" key="erv-c" style={{animationDelay:'.35s'}}>
-            {(()=>{
-              const BW=72, BH=52;
-              const BX=8;
-              const BY=10;
-              const pipe1X=BX+BW*0.28, pipe2X=BX+BW*0.68;
-              return <>
-                {/* Blue IN pipe through roof */}
-                <rect x={pipe1X-2} y={0} width={5} height={BY+BH/2} rx="1"
-                  fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
-                <rect x={pipe1X-5} y={0} width={11} height={5} rx="1"
-                  fill={B+'.4)'} stroke={B+'.6)'} strokeWidth="0.8"/>
-                <text x={pipe1X} y={-1} textAnchor="middle" fill={B+'.55)'} fontSize="5" fontFamily="monospace">IN</text>
-                {/* Orange OUT pipe through roof */}
-                <rect x={pipe2X-2} y={0} width={5} height={BY+BH/2} rx="1"
-                  fill="rgba(249,115,22,.35)" stroke="rgba(249,115,22,.55)" strokeWidth="0.8"/>
-                <path d={'M'+(pipe2X-4)+' 2 L'+pipe2X+' -4 L'+(pipe2X+4)+' 2'} fill="rgba(249,115,22,.4)"/>
-                <text x={pipe2X} y={-1} textAnchor="middle" fill="rgba(249,115,22,.55)" fontSize="5" fontFamily="monospace">OUT</text>
-                {/* ERV box */}
-                <rect x={BX} y={BY} width={BW} height={BH} rx="4"
-                  fill="#0a0a06" stroke={G+'.55)'} strokeWidth="1.4"/>
-                <rect x={BX} y={BY} width={BW} height={7} rx="4"
-                  fill={G+'.25)'} stroke="none"/>
-                <path d={'M'+(BX+10)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)}
-                  fill="none" stroke={B+'.65)'} strokeWidth="1.8" markerEnd="url(#arr)"/>
-                <path d={'M'+(BX+BW-10)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)}
-                  fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.8" markerEnd="url(#arr)"/>
-                <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="9" fontFamily="monospace">ERV</text>
-              </>;
-            })()}
-          </g>}
+                  fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
+                {isDehu
+                  ?<>
+                    <text x={BX+BW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="11">💧</text>
+                    <text x={BX+BW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="7" fontFamily="monospace">DEHU</text>
+                  </>
+                  :<>
+                    <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
+                    <path d={'M'+(BX+BW-8)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
+                    <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="9" fontFamily="monospace">ERV</text>
+                  </>
+                }
+              </g>;
+            })}</g>;
+          })()}
 
         </svg>
       </div>
@@ -2055,11 +2108,28 @@ function App(){
 
   const opts=useMemo(()=>cur?getOpts(cur.id,answers):[], [cur,answers]);
 
+  const [showInfo,setShowInfo]=React.useState(false);
+  React.useEffect(()=>setShowInfo(false),[stepIdx]);
+
+  const INFO_TEXT={
+    location:"Your indoor unit location sets the whole system layout. Attic is the most common in Austin -- the unit sits horizontally above the living space. Closet is upflow -- the unit stands vertically in a hallway or utility closet. Both work great; closet installs are slightly easier to service.",
+    indoor_type:"A furnace uses natural gas for heat and pairs with AC for cooling. An air handler is all-electric -- it works only with a heat pump for both heating and cooling. If you have a gas line, a furnace is usually the better value. No gas line? Air handler + heat pump is the way to go.",
+    insulation:"Attic insulation type determines which furnace you can install. Fiberglass or blown insulation means your attic is vented -- a standard 80% AFUE furnace with a metal B-vent flue works fine. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
+    plenum:"The supply plenum is the box that connects your indoor unit to all your ductwork. Think of it as the distribution hub -- conditioned air flows from the unit into the plenum, then out through the ducts to every room. If your existing plenum is damaged, leaking, or over 15 years old, replacing it improves efficiency and airflow.",
+    thermostat:"A basic programmable thermostat is reliable and accurate -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
+    purif:"Air purification add-ons are installed inside your indoor unit and treat every cubic foot of air your system moves. The Aprilaire 5 inch filter captures dust and pollen. A UV light kills mold and bacteria on the evaporator coil. An ionizer neutralizes airborne particles, odors, and VOCs throughout the home.",
+    cond_tier:"The condenser is the outdoor unit. Federal Minimum meets current energy code -- solid and reliable, lowest upfront cost. Mid Efficiency is our best-value tier -- variable speed, noticeably lower monthly bills, better humidity control. High Efficiency is our top inverter-driven tier -- eligible for Austin Energy rebates and the best humidity performance available.",
+    system_for:"With a gas furnace you have two options. Dual fuel (heat pump + furnace) means the heat pump handles cooling in summer and heating in mild weather -- the gas furnace only fires when it gets genuinely cold below about 35 degrees. Most efficient combo. Straight cool means your AC only cools and the furnace handles all heating year-round.",
+    dehu:"Austin humidity makes your home feel significantly warmer than the thermostat reads. A whole-home dehumidifier connects directly to your HVAC system and runs automatically -- no buckets, no maintenance. Recommended for any home that feels muggy even when the AC is running.",
+    extras:"A surge protector mounts on the disconnect box and shields your condenser from voltage spikes -- one lightning strike can destroy a compressor. A condensate pump is needed when gravity drainage is not available. An ERV brings fresh filtered outdoor air in while recovering the energy from outgoing stale air.",
+  };
+  const infoText=cur&&INFO_TEXT[cur.id];
+
   return(
     <div ref={topRef}>
       <header className="hdr">
         <div className="hdr-logo">GOLD EAGLE SERVICES™</div>
-        <div className="hdr-step">{cur?`${cur.id.replace(/_/g,' ').toUpperCase()}`:done?'COMPLETE':''}</div>
+        <div className="hdr-step">{done?'COMPLETE':`${stepIdx+1} / ${activeSteps.length}`}</div>
         <div style={{fontFamily:'var(--fm)',fontSize:'9px',color:'rgba(215,183,64,.4)',letterSpacing:'.15em'}}>BUILD YOUR SYSTEM</div>
       </header>
       <div className="prog"><div className="prog-fill" style={{width:done?'100%':`${pct}%`}}/></div>
@@ -2075,25 +2145,21 @@ function App(){
           {!done?(
             <>
               <div className="step-hdr">
-                <div className="step-eyebrow">Step {stepIdx+1} of {activeSteps.length}</div>
-                <div className="step-q">{cur?.q}</div>
-                {cur?.hint&&<div className="step-hint">{cur.hint}</div>}
+                <div className="step-eyebrow">
+                  <span>Step {stepIdx+1} of {activeSteps.length}</span>
+                  {infoText&&<button className="info-btn" onClick={()=>setShowInfo(v=>!v)} title="Learn more">{showInfo?'x':'i'}</button>}
+                </div>
+                <div className="step-q">{cur.q}</div>
+                {cur.hint&&<div className="step-hint">{cur.hint}</div>}
               </div>
+              {showInfo&&infoText&&<div className="info-expand"><div className="info-body">{infoText}</div></div>}
 
               <div className="opts">
                 {opts.map(opt=>{
                   const isMulti=cur?.multi;
                   const isOn=isMulti?msel(cur.id).includes(opt.v):sel(cur?.id)===opt.v;
                   const isDisabled=!!opt.disabled;
-                  const click=isDisabled?null:isMulti?()=>toggle(cur.id,opt.v):()=>{
-                    setA(cur.id,opt.v);
-                    if(!isMulti){
-                      setTimeout(()=>{
-                        if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}
-                        else{setDone(true);scrollTop();}
-                      },320);
-                    }
-                  };
+                  const click=isDisabled?null:isMulti?()=>toggle(cur.id,opt.v):()=>setA(cur.id,opt.v);
                   return(
                     <button key={opt.v} className={`opt${isOn?' sel':''}${isDisabled?' disabled':''}`} onClick={click}>
                       <div className="opt-inner">
@@ -2107,7 +2173,8 @@ function App(){
                           {opt.note&&<span className="opt-note">{opt.note}</span>}
                           {opt.disabledNote&&<span className="opt-note" style={{color:'rgba(249,115,22,.6)'}}>{opt.disabledNote}</span>}
                         </div>
-                        <div className="opt-check">{isOn?'✓':''}</div>
+                        <div className={isMulti?"opt-check":"opt-check radio"} style={isOn&&!isMulti?{borderColor:'var(--gl)',background:'transparent',display:'flex',alignItems:'center',justifyContent:'center'}:{}}>
+                          {isMulti?isOn?'✓':'':isOn?<div style={{width:8,height:8,borderRadius:'50%',background:'var(--gh)'}}/>:''}</div>
                       </div>
                     </button>
                   );
@@ -2123,12 +2190,49 @@ function App(){
               </div>
             </>
           ):(
-            <div className="done-wrap">
-              <div className="done-icon">✓</div>
-              <div className="done-title">Your System is Built</div>
-              <div className="done-sub">Every component you selected is visualized to the left. A Gold Eagle tech will walk you through the full install — free, about 30 minutes on-site.</div>
-              <a href="tel:5124894653" className="done-cta">📞 Schedule Your Free Visit — 512-489-4653</a>
-              <div style={{background:"rgba(215,183,64,.07)",border:"1px solid rgba(215,183,64,.2)",padding:"10px 14px",fontSize:"12px",color:"rgba(215,183,64,.75)",lineHeight:"1.55",borderRadius:"2px",marginBottom:"14px",textAlign:"left",width:"100%"}}>Call today to ask about current manufacturer discounts -- they change monthly and can save you hundreds.</div><button className="done-restart" onClick={restart}>Start over</button>
+            <div className="done-wrap" style={{justifyContent:'flex-start',padding:'14px 14px 8px',overflowY:'auto'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10,width:'100%'}}>
+                <div className="done-icon" style={{margin:0,width:36,height:36,fontSize:16,flexShrink:0}}>✓</div>
+                <div>
+                  <div className="done-title" style={{fontSize:15,marginBottom:1}}>Your System is Built</div>
+                  <div style={{fontSize:10,color:'var(--mut)'}}>Review and edit selections below</div>
+                </div>
+              </div>
+
+              {/* Itemized editable list */}
+              <div style={{width:'100%',marginBottom:10}}>
+                {[
+                  {step:'location', label:'Location', val:answers.location==='attic'?'Attic horizontal':answers.location==='closet'?'Upflow closet':null},
+                  {step:'indoor_type', label:'Indoor unit', val:answers.indoor_type==='furnace'?'Gas furnace':answers.indoor_type==='ah'?'Air handler':null},
+                  answers.furnace_eff?{step:'insulation', label:'Insulation', val:answers.furnace_eff==='e90'?'Spray foam (90% AFUE)':'Fiberglass (80% AFUE)'}:null,
+                  {step:'plenum', label:'Plenum', val:answers.plenum==='ductboard'?'New ductboard':answers.plenum==='metal'?'New sheet metal':answers.plenum==='none'?'Keep existing':null},
+                  {step:'thermostat', label:'Thermostat', val:answers.thermostat==='wifi'?'Wi-Fi smart':answers.thermostat==='basic'?'Basic programmable':null},
+                  Array.isArray(answers.purif)&&answers.purif.length>0?{step:'purif', label:'Purification', val:answers.purif.map(v=>v==='aprilaire'?'Aprilaire 5"':v==='uv'?'UV Light':v==='ionizer'?'Ionizer':v).join(', ')}:null,
+                  {step:'cond_tier', label:'Efficiency', val:answers.cond_tier==='fedmin'?'Federal min (14 SEER2)':answers.cond_tier==='mid_ge15'?'Mid efficiency (18 SEER2)':answers.cond_tier==='high_ge18'?'High efficiency (21 SEER2)':null},
+                  answers.system_for?{step:'system_for', label:'Heat source', val:answers.system_for==='hp'?'Dual Fuel (HP + furnace)':'Straight cool'}:null,
+                  {step:'dehu', label:'Dehumidifier', val:answers.dehu==='yes'?'Yes — included':answers.dehu==='no'?'No':''},
+                  Array.isArray(answers.extras)&&answers.extras.length>0?{step:'extras', label:'Add-ons', val:answers.extras.map(v=>v==='surge'?'Surge protector':v==='condensate'?'Condensate pump':v==='erv'?'ERV':v).join(', ')}:null,
+                ].filter(Boolean).map((item,i)=>item&&item.val?(
+                  <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 8px',borderBottom:'1px solid rgba(255,255,255,.06)',background:i%2===0?'rgba(255,255,255,.02)':'transparent'}}>
+                    <span style={{color:'rgba(215,183,64,.55)',fontFamily:'monospace',fontSize:'9.5px',letterSpacing:'.05em',flexShrink:0}}>{item.label}</span>
+                    <div style={{display:'flex',alignItems:'center',gap:6,minWidth:0}}>
+                      <span style={{color:'rgba(255,255,255,.75)',fontFamily:'monospace',fontSize:'9.5px',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'110px'}}>{item.val}</span>
+                      <button onClick={()=>{
+                        const stepI=activeSteps.findIndex(s=>s.id===item.step);
+                        if(stepI>=0){setDone(false);setStepIdx(stepI);}
+                      }} style={{background:'rgba(215,183,64,.12)',border:'1px solid rgba(215,183,64,.25)',color:'rgba(215,183,64,.7)',fontFamily:'monospace',fontSize:'8px',padding:'2px 6px',cursor:'pointer',flexShrink:0,letterSpacing:'.05em'}}>EDIT</button>
+                    </div>
+                  </div>
+                ):null)}
+              </div>
+
+              {/* CTA */}
+              <a href="tel:5124894653" className="done-cta" style={{marginBottom:8}}>📞 Schedule Your Free Visit — 512-489-4653</a>
+              <div style={{background:"rgba(215,183,64,.06)",border:"1px solid rgba(215,183,64,.18)",padding:"8px 12px",fontSize:"11px",color:"rgba(215,183,64,.7)",lineHeight:"1.55",borderRadius:"2px",marginBottom:10,textAlign:"left",width:"100%"}}>Ask about current manufacturer discounts — can save you hundreds.</div>
+
+              {/* Save / Print */}
+              <button onClick={()=>window.print()} style={{width:'100%',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.12)',color:'rgba(255,255,255,.55)',fontFamily:'monospace',fontSize:'10px',padding:'8px',cursor:'pointer',letterSpacing:'.08em',marginBottom:6}}>⬇ SAVE / PRINT BUILD SUMMARY</button>
+              <button className="done-restart" onClick={restart}>Start over</button>
             </div>
           )}
         </div>
