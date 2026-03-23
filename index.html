@@ -338,8 +338,7 @@ function Canvas({a}){
   const condC  = (!heatMode||hasFurnace) ? '#ef4444' : '#2389e0'; // cond: red=cool, blue=HP heat
   const condC2 = (!heatMode||hasFurnace) ? '#fca5a5' : '#7dd3fc';
 
-  const TL={fedmin:'14.3 SEER2',mid_ge15:'15 SEER2',high_ge18:'18 SEER2',premium:'22+ SEER2'}[a.cond_tier]||'';
-  const BL={fedmin:'AMERISTAR',mid_ge15:'GE CONNECT',high_ge18:'GE CONNECT',premium:'AM.STD'}[a.cond_tier]||'';
+  const TL={fedmin:'14 SEER2',mid_ge15:'18 SEER2',high_ge18:'21 SEER2',premium:'21 SEER2'}[a.cond_tier]||'';
 
   // ── SUB-COMPONENTS ──────────────────────────────────────────
 
@@ -606,7 +605,63 @@ function Canvas({a}){
     </g>;
   }
 
-  // Condenser
+  // CapFan — side-perspective view into the top of a condenser
+  // Blades clipped to cap bounds so nothing escapes the housing
+  function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount,clipId}){
+    slatCount=slatCount||Math.floor(h*0.7/4.5);
+    const cx=x+w/2, cy=y+h/2;
+    const fanRx=w*0.46, fanRy=h*0.36;
+    const spd=active?0.9:0;
+    const spinStyle=active?{
+      transformOrigin:'50% 50%',
+      transformBox:'fill-box',
+      animation:`spin ${(1/spd).toFixed(2)}s linear infinite`,
+    }:{};
+    const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
+    // Use a unique clipId per instance to avoid collisions
+    const cid=clipId||'capfan-clip';
+    return <>
+      {/* ClipPath — strict rect matching cap bounds */}
+      <defs>
+        <clipPath id={cid}>
+          <rect x={x} y={y} width={w} height={h} rx="3"/>
+        </clipPath>
+      </defs>
+      {/* Everything inside the clip */}
+      <g clipPath={`url(#${cid})`}>
+        {/* Dark recess */}
+        <ellipse cx={cx} cy={cy} rx={fanRx} ry={fanRy}
+          fill={active?"rgba(10,11,14,.95)":"rgba(8,9,12,.9)"}
+          stroke="rgba(30,32,38,.6)" strokeWidth="0.7"/>
+        {/* Fan blades */}
+        <g style={spinStyle}>
+          {Array.from({length:4},(_,i)=>{
+            const ang=i*(Math.PI/2);
+            const bx1=cx+fanRx*0.15*Math.cos(ang);
+            const by1=cy+fanRy*0.15*Math.sin(ang);
+            const bx2=cx+fanRx*0.88*Math.cos(ang+0.55);
+            const by2=cy+fanRy*0.88*Math.sin(ang+0.55);
+            const cpx=cx+fanRx*0.72*Math.cos(ang+0.28);
+            const cpy=cy+fanRy*0.72*Math.sin(ang+0.28);
+            return <path key={i}
+              d={`M${bx1} ${by1} Q${cpx} ${cpy} ${bx2} ${by2}`}
+              fill="none" stroke={bC} strokeWidth="5" strokeLinecap="round" opacity="0.9"/>;
+          })}
+        </g>
+        {/* Hub */}
+        <ellipse cx={cx} cy={cy} rx={fanRx*0.1} ry={fanRy*0.1}
+          fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
+      </g>
+      {/* Grille slats — outside clip, drawn over fan, always visible */}
+      {Array.from({length:slatCount},(_,i)=>{
+        const sy=y+2+i*(h-4)/slatCount;
+        return <rect key={i} x={x+2} y={sy} width={w-4} height={(h-4)/slatCount*0.55} rx="0.5"
+          fill={slatFill||"rgba(36,39,46,.9)"}
+          stroke="rgba(18,20,24,.5)" strokeWidth="0.3"/>;
+      })}
+    </>;
+  }
+
   // Condenser — real-world proportioned by tier
   // Fed min: ~30"W × 37"H — square/boxy, fan covers 90% of top
   // Mid (GE Connect): mini-split style — horizontal rectangle, inverter label
@@ -633,106 +688,272 @@ function Canvas({a}){
         fill={condenserActive&&!refReversed?"rgba(239,68,68,.025)":"rgba(35,137,224,.018)"} stroke="none"/>}
 
       {isMini
-        /* ── MINI-SPLIT STYLE ── */
+        /* ── MINI-SPLIT / GE COMPACT — matches reference photo ── */
         ?<>
-          {/* Top fan section */}
-          <rect x={x+3} y={y+3} width={w-6} height={fanSectionH-3} rx="8"
-            fill="rgba(0,0,0,.4)" stroke={G+'.1)'} strokeWidth="0.5"/>
-          <BlowerWheel cx={fanCX} cy={fanCY} r={fanR} spd={active?1.1:0.3} active={active}/>
-          {/* Top grille ring */}
-          <circle cx={fanCX} cy={fanCY} r={fanR+6}
-            fill="none" stroke={G+'.18)'} strokeWidth="1"/>
-          {/* Bottom coil/louvre section */}
-          <rect x={x} y={y+fanSectionH} width={w} height={coilSectionH} rx="0"
-            fill="rgba(0,0,0,.2)" stroke="none"/>
-          {Array.from({length:Math.floor(coilSectionH/6)},(_,i)=>(
-            <rect key={i} x={x+3} y={y+fanSectionH+2+i*6} width={w-6} height={3} rx="0.5"
-              fill={active?(cc+'14'):'rgba(10,10,20,.8)'} stroke={active?cc:(G+'.12)')} strokeWidth="0.5"/>
+          {/* Outer body — slightly rounded, square-ish, medium gray */}
+          <rect x={x} y={y} width={w} height={h} rx={6}
+            fill={active?"#1c1e22":"#181a1e"}
+            stroke={active?cc:"rgba(80,85,95,.7)"} strokeWidth={active?1.8:1.4}/>
+
+          {/* Discharge grille across top — horizontal slots */}
+          <rect x={x+4} y={y+2} width={w-8} height={Math.round(h*0.1)} rx="2"
+            fill="rgba(0,0,0,.35)" stroke="rgba(70,75,85,.5)" strokeWidth="0.6"/>
+          {Array.from({length:3},(_,i)=>(
+            <rect key={i} x={x+6} y={y+4+i*4} width={w-12} height={2} rx="0.5"
+              fill="rgba(35,38,45,.9)" stroke="rgba(60,65,75,.4)" strokeWidth="0.3"/>
           ))}
-          {/* Inverter badge */}
-          <rect x={x+4} y={y+h-18} width={w-8} height={13} rx="2"
-            fill="rgba(35,137,224,.2)" stroke={B+'.45)'} strokeWidth="0.8"/>
-          <text x={x+w/2} y={y+h-9} textAnchor="middle"
-            fill="#5ba8f5" fontSize="6" fontFamily="monospace">VARIABLE SPEED · INVERTER</text>
-        </>
-        /* ── STANDARD CONDENSER ── fedmin looks older/basic, big looks premium ── */
-        :<>
-          {/* TOP: Fan section */}
-          {tierKey==='fedmin'
-            ?<>
-              {/* Fed min: flat painted grille, no fancy rings, basic look */}
-              <rect x={x+2} y={y+2} width={w-4} height={fanSectionH-2} rx="1"
-                fill="rgba(0,0,0,.3)" stroke="rgba(60,60,60,.4)" strokeWidth="0.8"/>
-              {/* Simple flat grille bars — old school look */}
-              {Array.from({length:5},(_,i)=>(
-                <rect key={i} x={x+4} y={y+6+i*((fanSectionH-10)/5)} width={w-8} height={2} rx="0"
-                  fill="rgba(45,45,45,.9)" stroke="rgba(55,55,55,.5)" strokeWidth="0.4"/>
+
+          {/* LEFT: Large circular fan area — ~68% of unit width */}
+          {(()=>{
+            const fanAreaW=Math.round(w*0.68);
+            const fanAreaH=h-Math.round(h*0.1)-4;
+            const fanAreaY=y+Math.round(h*0.1)+2;
+            const fCX=x+fanAreaW/2;
+            const fCY=fanAreaY+fanAreaH/2;
+            const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.43);
+            return <>
+              {/* Fan housing — recessed circle */}
+              <rect x={x+2} y={fanAreaY} width={fanAreaW-2} height={fanAreaH} rx="3"
+                fill="rgba(0,0,0,.4)" stroke="rgba(55,60,70,.5)" strokeWidth="0.7"/>
+              {/* Fine mesh grille — dot pattern behind fan */}
+              {Array.from({length:Math.floor(fanAreaH/5)},(_,row)=>
+                Array.from({length:Math.floor(fanAreaW/5)},(_,col)=>{
+                  const gx=x+4+col*5, gy=fanAreaY+2+row*5;
+                  const dx=gx-fCX, dy=gy-fCY;
+                  if(Math.sqrt(dx*dx+dy*dy)>fR+4) return null;
+                  return <rect key={`${row}-${col}`} x={gx} y={gy} width={1.5} height={1.5} rx="0.3"
+                    fill="rgba(40,45,55,.9)"/>;
+                })
+              )}
+              {/* Outer grille ring */}
+              <circle cx={fCX} cy={fCY} r={fR+8}
+                fill="none" stroke="rgba(60,65,78,.7)" strokeWidth="2.5"/>
+              {/* Inner shroud ring */}
+              <circle cx={fCX} cy={fCY} r={fR+4}
+                fill="rgba(12,13,16,.6)" stroke="rgba(50,55,65,.5)" strokeWidth="1.2"/>
+              {/* Fan blades */}
+              <BlowerWheel cx={fCX} cy={fCY} r={fR} spd={active?1.1:0.3} active={active}/>
+              {/* Hub cap */}
+              <circle cx={fCX} cy={fCY} r={fR*0.14}
+                fill="#2a2c32" stroke="rgba(90,95,110,.6)" strokeWidth="0.8"/>
+            </>;
+          })()}
+
+          {/* RIGHT: Narrow service panel — ~30% of unit width */}
+          {(()=>{
+            const panelX=x+Math.round(w*0.7);
+            const panelW=w-Math.round(w*0.7)-2;
+            const panelY=y+Math.round(h*0.1)+4;
+            const panelH=h-Math.round(h*0.1)-8;
+            return <>
+              {/* Panel background */}
+              <rect x={panelX} y={panelY} width={panelW} height={panelH} rx="4"
+                fill={active?"rgba(28,32,40,.8)":"rgba(22,24,30,.7)"}
+                stroke="rgba(55,60,72,.6)" strokeWidth="0.8"/>
+              {/* Service cover — rounded rectangle cutout */}
+              <rect x={panelX+3} y={panelY+6} width={panelW-6} height={Math.round(panelH*0.55)} rx="3"
+                fill={active?"rgba(20,25,35,.9)":"rgba(16,18,24,.8)"}
+                stroke="rgba(50,55,68,.5)" strokeWidth="0.7"/>
+              {/* Status indicator LED */}
+              <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.7)} r={3.5}
+                fill={active?(heatMode?"rgba(249,115,22,.8)":"rgba(35,137,224,.8)"):"rgba(40,45,55,.6)"}
+                stroke={active?(heatMode?"rgba(249,115,22,.5)":"rgba(35,137,224,.4)"):"rgba(55,60,70,.3)"}
+                strokeWidth="0.8"/>
+              {active&&<circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.7)} r={2}
+                fill={heatMode?"#fbbf24":"#60a5fa"} className="glow-pulse"/>}
+              {/* Service screws */}
+              {[0.18,0.88].map((ty,i)=>(
+                <circle key={i} cx={panelX+panelW/2} cy={panelY+panelH*ty} r={1.8}
+                  fill="rgba(45,50,60,.9)" stroke="rgba(70,75,90,.5)" strokeWidth="0.5"/>
               ))}
-              {/* Fan visible through grille — slower, less refined */}
-              <BlowerWheel cx={fanCX} cy={fanCY} r={fanR*0.85} spd={active?0.7:0.2} active={active}/>
-              {/* Rust/age corner marks */}
-              <rect x={x+1} y={y+1} width={6} height={6}
-                fill="rgba(90,45,10,.15)" stroke="rgba(100,55,15,.2)" strokeWidth="0.5"/>
-              <rect x={x+w-7} y={y+1} width={6} height={6}
-                fill="rgba(90,45,10,.15)" stroke="rgba(100,55,15,.2)" strokeWidth="0.5"/>
-            </>
-            :<>
-              {/* Big units: clean grille with concentric rings */}
-              <rect x={x+3} y={y+3} width={w-6} height={fanSectionH-3} rx="3"
-                fill="rgba(0,0,0,.35)" stroke={G+'.08)'} strokeWidth="0.5"/>
-              <circle cx={fanCX} cy={fanCY} r={fanR+5}
-                fill="none" stroke={G+'.18)'} strokeWidth="1.2"/>
-              <circle cx={fanCX} cy={fanCY} r={fanR+3}
-                fill="none" stroke={G+'.1)'} strokeWidth="0.6"/>
-              <BlowerWheel cx={fanCX} cy={fanCY} r={fanR} spd={active?1.0:0.3} active={active}/>
-            </>
-          }
-
-          {/* BOTTOM: Coil tubes section */}
-          {Array.from({length:Math.floor((coilSectionH-6)/6)},(_,i)=>{
-            const n=Math.floor((coilSectionH-6)/6);
-            if(i>=n) return null;
-            // Fed min coils look flatter/cheaper — less glow, more muted
-            const isFed=tierKey==='fedmin';
-            return <g key={i}>
-              <rect x={x+3} y={y+fanSectionH+2+i*6} width={w-6} height={isFed?2.5:3.5} rx="0"
-                fill={active?(isFed?'rgba(180,30,30,.08)':(cc+'16')):'rgba(10,10,22,.8)'}
-                stroke={active?(isFed?'rgba(150,50,50,.25)':cc):(isFed?'rgba(50,50,55,.35)':(G+'.14)'))}
-                strokeWidth={isFed?"0.4":"0.6"}/>
-              {active&&!isFed&&i%2===0&&<circle cx={x+w*0.35} cy={y+fanSectionH+3.5+i*6} r={1.8}
-                fill={cc} opacity="0.45" className="glow-pulse"
-                style={{animationDelay:i*0.08+'s'}}/>}
-            </g>;
-          })}
-
-          {/* Compressor dome */}
+              {/* Brand mark — subtle circle */}
+              <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.85)} r={5}
+                fill="rgba(30,35,45,.8)" stroke={active?cc:"rgba(70,75,90,.5)"} strokeWidth="0.8"/>
+              <text x={panelX+panelW/2} y={panelY+Math.round(panelH*0.87)} textAnchor="middle"
+                fill={active?cc:"rgba(90,95,110,.7)"} fontSize="4.5" fontFamily="sans-serif" fontWeight="700">VS</text>
+            </>;
+          })()}
+        </>
+        /* ── STANDARD CONDENSER ── fedmin = louvered box, big = premium ── */
+        :<>
           {tierKey==='fedmin'
             ?<>
-              {/* Fed min: smaller, boxy compressor — no inner glow details */}
-              <rect x={x+w-22} y={y+h-20} width={18} height={14} rx="2"
-                fill="#060606" stroke={active?'rgba(180,80,80,.5)':(G+'.2)')} strokeWidth="1"/>
-              <text x={x+w-13} y={y+h-1} textAnchor="middle"
-                fill={active?'rgba(180,80,80,.5)':(G+'.2)')} fontSize="4.5" fontFamily="monospace">COMP</text>
+              {/* ── FED MIN: louvered box — matches reference photo ── */}
+              {/* Light gray body */}
+              <rect x={x} y={y} width={w} height={h} rx={3}
+                fill={active?"#b8bcc4":"#c2c6ce"}
+                stroke={active?"rgba(150,155,165,.9)":"rgba(130,135,145,.8)"} strokeWidth="1.2"/>
+
+              {/* Dark top cap — CapFan: side-perspective view through grille slats */}
+              {(()=>{
+                const capH=Math.round(h*0.16);
+                return <>
+                  <rect x={x} y={y} width={w} height={capH} rx={3}
+                    fill={active?"#3a3d42":"#2e3035"}
+                    stroke="rgba(20,22,26,.8)" strokeWidth="1"/>
+                  <CapFan x={x+2} y={y+1} w={w-4} h={capH-2}
+                    active={active}
+                    clipId={`cf-fed-${x|0}-${y|0}`}
+                    bladeColor={active?"rgba(90,95,105,.8)":"rgba(45,48,55,.6)"}
+                    slatFill={active?"rgba(44,47,54,.88)":"rgba(36,39,46,.92)"}
+                    slatCount={Math.floor(capH*0.7/4.5)}/>
+                  {/* Corner screws */}
+                  {[[x+5,y+4],[x+w-5,y+4],[x+5,y+capH-4],[x+w-5,y+capH-4]].map(([sx,sy],i)=>(
+                    <circle key={i} cx={sx} cy={sy} r={1.8}
+                      fill="rgba(50,55,62,.9)" stroke="rgba(80,85,95,.5)" strokeWidth="0.5"/>
+                  ))}
+                </>;
+              })()}
+
+              {/* Horizontal louver slats — cover the full body below the cap */}
+              {(()=>{
+                const capH=Math.round(h*0.16);
+                const slotY=y+capH+2;
+                const slotH=h-capH-4;
+                const slotCount=Math.floor(slotH/5.5);
+                const slotStep=slotH/slotCount;
+                return Array.from({length:slotCount},(_,i)=>{
+                  const sy=slotY+i*slotStep;
+                  return <g key={i}>
+                    {/* Shadow gap between louvers */}
+                    <rect x={x+2} y={sy} width={w-4} height={slotStep-1.5} rx="0.5"
+                      fill={active?"rgba(145,150,158,.85)":"rgba(155,160,168,.8)"}/>
+                    {/* Louver face highlight */}
+                    <rect x={x+2} y={sy} width={w-4} height={1.5} rx="0"
+                      fill={active?"rgba(190,195,202,.6)":"rgba(200,204,210,.55)"}/>
+                    {/* Louver shadow line at bottom */}
+                    <rect x={x+2} y={sy+slotStep-2.5} width={w-4} height={1.2} rx="0"
+                      fill="rgba(100,105,115,.4)"/>
+                  </g>;
+                });
+              })()}
+
+              {/* Brand badge — centered on face */}
+              {(()=>{
+                const capH=Math.round(h*0.16);
+                const badgeY=y+capH+Math.round((h-capH)*0.38);
+                return <>
+                  <circle cx={x+w/2} cy={badgeY} r={10}
+                    fill="rgba(55,58,65,.9)" stroke="rgba(80,85,95,.7)" strokeWidth="1.2"/>
+                  <circle cx={x+w/2} cy={badgeY} r={7.5}
+                    fill="rgba(35,38,45,.8)" stroke="rgba(90,95,108,.4)" strokeWidth="0.6"/>
+                  {/* Simple brand initial */}
+                  <text x={x+w/2} y={badgeY+3.5} textAnchor="middle"
+                    fill="rgba(200,205,215,.7)" fontSize="7" fontFamily="sans-serif" fontWeight="700">G</text>
+                </>;
+              })()}
+
+              {/* Bottom corner feet/bolts */}
+              {[[x+4,y+h-4],[x+w-4,y+h-4]].map(([fx,fy],i)=>(
+                <circle key={i} cx={fx} cy={fy} r={2.5}
+                  fill="rgba(90,95,105,.8)" stroke="rgba(60,65,75,.6)" strokeWidth="0.7"/>
+              ))}
             </>
             :<>
-              <circle cx={x+w-14} cy={y+h-14} r={isBig?14:10}
-                fill="#070707" stroke={active?cc:(G+'.32)')} strokeWidth="1.2"/>
-              <circle cx={x+w-14} cy={y+h-14} r={isBig?9:6}
-                fill="#040404" stroke={G+'.18)'} strokeWidth="0.7"/>
-              {active&&<circle cx={x+w-14} cy={y+h-14} r={isBig?4:3}
-                fill={cc+'66'} className="glow-pulse"/>}
-              <text x={x+w-14} y={y+h-1} textAnchor="middle"
-                fill={active?cc:(G+'.24)')} fontSize="5" fontFamily="monospace">COMP</text>
+              {/* ── HIGH EFFICIENCY: taller premium unit — dark, vertical louvers, rounded top cap ── */}
+
+              {/* Main body — dark charcoal/graphite, premium color */}
+              <rect x={x} y={y} width={w} height={h} rx={5}
+                fill={active?"#3a3d42":"#343740"}
+                stroke={active?cc:"rgba(55,60,68,.8)"} strokeWidth={active?1.8:1.4}/>
+
+              {/* Chamfered corner panels — left and right vertical strips */}
+              <rect x={x} y={y+4} width={8} height={h-8} rx="2"
+                fill={active?"#3e424a":"#383c44"}
+                stroke="rgba(50,55,62,.7)" strokeWidth="0.8"/>
+              <rect x={x+w-8} y={y+4} width={8} height={h-8} rx="2"
+                fill={active?"#3e424a":"#383c44"}
+                stroke="rgba(50,55,62,.7)" strokeWidth="0.8"/>
+
+              {/* DARK ROUNDED TOP CAP — CapFan side-perspective view */}
+              {(()=>{
+                const capH=Math.round(h*0.2);
+                return <>
+                  <rect x={x} y={y} width={w} height={capH} rx={5}
+                    fill="#1e2024" stroke="rgba(15,17,20,.9)" strokeWidth="1.2"/>
+                  <CapFan x={x+4} y={y+2} w={w-8} h={capH-4}
+                    active={active}
+                    clipId={`cf-hi-${x|0}-${y|0}`}
+                    bladeColor={active?(refReversed?"rgba(100,160,220,.7)":"rgba(220,90,90,.65)"):"rgba(40,44,52,.6)"}
+                    slatFill={active?"rgba(24,27,33,.88)":"rgba(18,21,27,.92)"}
+                    slatCount={Math.floor(capH*0.72/5.5)}/>
+                  {/* Corner screws */}
+                  {[[x+6,y+6],[x+w-6,y+6],[x+6,y+capH-6],[x+w-6,y+capH-6]].map(([sx,sy],i)=>(
+                    <circle key={i} cx={sx} cy={sy} r={2}
+                      fill="rgba(35,38,44,.9)" stroke="rgba(55,60,68,.5)" strokeWidth="0.5"/>
+                  ))}
+                </>;
+              })()}
+
+              {/* VERTICAL LOUVER PANELS — fine vertical slats covering body below cap */}
+              {(()=>{
+                const capH=Math.round(h*0.2);
+                const bodyY=y+capH+2;
+                const bodyH=h-capH-4;
+                const slotW=3.5;
+                const gap=2;
+                const step=slotW+gap;
+                // Left panel
+                const leftPanelW=Math.round(w*0.44);
+                const rightPanelX=x+w-leftPanelW;
+                return <>
+                  {/* Left louver panel */}
+                  {Array.from({length:Math.floor(leftPanelW/step)},(_,i)=>(
+                    <rect key={'l'+i} x={x+9+i*step} y={bodyY} width={slotW} height={bodyH} rx="0.5"
+                      fill={active?"rgba(48,52,60,.9)":"rgba(42,46,54,.85)"}
+                      stroke="rgba(30,33,40,.5)" strokeWidth="0.3"/>
+                  ))}
+                  {/* Fine mesh fins visible behind left louvers */}
+                  {Array.from({length:Math.floor(bodyH/4)},(_,i)=>(
+                    <line key={'lf'+i}
+                      x1={x+9} y1={bodyY+2+i*4} x2={x+9+leftPanelW-8} y2={bodyY+2+i*4}
+                      stroke="rgba(25,28,34,.6)" strokeWidth="0.5"/>
+                  ))}
+                  {/* Vertical divider strip between panels */}
+                  <rect x={x+leftPanelW+4} y={bodyY} width={6} height={bodyH} rx="1"
+                    fill={active?"#3c4048":"#363a40"}
+                    stroke="rgba(45,50,58,.6)" strokeWidth="0.6"/>
+                  {/* Right louver panel */}
+                  {Array.from({length:Math.floor(leftPanelW/step)},(_,i)=>(
+                    <rect key={'r'+i} x={rightPanelX-3+i*step} y={bodyY} width={slotW} height={bodyH} rx="0.5"
+                      fill={active?"rgba(48,52,60,.9)":"rgba(42,46,54,.85)"}
+                      stroke="rgba(30,33,40,.5)" strokeWidth="0.3"/>
+                  ))}
+                  {Array.from({length:Math.floor(bodyH/4)},(_,i)=>(
+                    <line key={'rf'+i}
+                      x1={rightPanelX-3} y1={bodyY+2+i*4} x2={rightPanelX+leftPanelW-12} y2={bodyY+2+i*4}
+                      stroke="rgba(25,28,34,.6)" strokeWidth="0.5"/>
+                  ))}
+                </>;
+              })()}
+
+              {/* Active glow overlay */}
+              {active&&<rect x={x} y={y} width={w} height={h} rx={5}
+                fill={refReversed?"rgba(35,137,224,.04)":"rgba(239,68,68,.03)"} stroke="none"/>}
+
+              {/* Black base pan */}
+              <rect x={x} y={y+h-6} width={w} height={6} rx={2}
+                fill="#14151a" stroke="rgba(20,22,28,.8)" strokeWidth="0.7"/>
             </>
           }
         </>
       }
 
-      {/* SEER badge bottom */}
-      <rect x={x+3} y={y+h-12} width={w-6} height={9} rx="2"
-        fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".55"/>
-      <text x={x+w/2} y={y+h-5} textAnchor="middle"
-        fill="#fff" fontSize="5" fontFamily="monospace" fontWeight="700">{TL}</text>
+      {/* SEER badge bottom — bigger text, taller badge */}
+      {tierKey==='fedmin'
+        ?<>
+          <rect x={x+3} y={y+h-16} width={w-6} height={13} rx="2"
+            fill="rgba(40,43,50,.82)" opacity="0.95"/>
+          <text x={x+w/2} y={y+h-6} textAnchor="middle"
+            fill="rgba(195,200,210,.9)" fontSize="7.5" fontFamily="monospace" fontWeight="700">{TL}</text>
+        </>
+        :<>
+          <rect x={x+3} y={y+h-16} width={w-6} height={13} rx="2"
+            fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
+          <text x={x+w/2} y={y+h-6} textAnchor="middle"
+            fill="#fff" fontSize="7.5" fontFamily="monospace" fontWeight="700">{TL}</text>
+        </>
+      }
     </g>;
   }
 
