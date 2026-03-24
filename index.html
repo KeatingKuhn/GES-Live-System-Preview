@@ -993,7 +993,7 @@ function Canvas({a, stepIdx, activeSteps}){
         active={active} tierKey={tierKey}/>
       <text x={condX+condW/2} y={condY-9} textAnchor="middle"
         fill={active?condC:(G+'.3)')} fontSize="8" fontFamily="monospace">
-        CONDENSER {active?"· ACTIVE":"· STANDBY"}
+        {active?(heatMode?"CONDENSER · ABSORBING HEAT":"CONDENSER · ACTIVE"):"CONDENSER · STANDBY"}
       </text>
 
       {/* OUTSIDE label */}
@@ -1197,7 +1197,7 @@ function Canvas({a, stepIdx, activeSteps}){
     const SUP_X=unitRightEdge+4;
     const SUP_PLEN_Y=UNIT_Y;
 
-    const RL_START_X=hasFurnace?ACOIL_X-4:AH_X+Math.round(AH_W*0.72);
+    const RL_START_X=hasFurnace?ACOIL_X-4:AH_X+Math.round(AH_W*0.52);
     const RL_ROOF_Y=EAVE_Y+14;
 
     // Real-world condenser sizes @ 3.2px/inch
@@ -1383,7 +1383,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   fill={active?evapC:(G+'.36)')} fontSize="7.5" fontFamily="monospace">A-COIL</text>
                 <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
-                  {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
+                  {active?(refReversed?"":"ABSORBING HEAT"):"STANDBY"}
                 </text>
               </>;
             })()}
@@ -1396,7 +1396,7 @@ function Canvas({a, stepIdx, activeSteps}){
               fill={evapActive?evapC:(G+'.36)')} fontSize="7.5" fontFamily="monospace">AIR HANDLER</text>
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
               fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
-              {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
+              {evapActive?(refReversed?"":"ABSORBING HEAT"):"STANDBY"}
             </text>
           </g>}
 
@@ -1428,6 +1428,16 @@ function Canvas({a, stepIdx, activeSteps}){
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+14} textAnchor="middle"
                   fill={G+'.32)'} fontSize="6.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
+                {!isExisting&&[SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.28), SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.72)].map((ay,i)=>(
+                  <g key={"af"+i}>
+                    <line x1={SUP_X+8} y1={ay} x2={SUP_X+SUP_PLEN_W-8} y2={ay}
+                      fill="none" stroke={G+'.22)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
+                    <line x1={SUP_X+8} y1={ay} x2={SUP_X+SUP_PLEN_W-8} y2={ay}
+                      fill="none" stroke={G+'.5)'} strokeWidth="1.2"
+                      strokeDasharray="8 5" className="airflow" style={{strokeDashoffset:0}}
+                      markerEnd="url(#arr)"/>
+                  </g>
+                ))}
                 {/* Ionizer -- enters from bottom of plenum */}
                 {hasIonizer&&(()=>{
                   // Ionizer: bulb at bottom of coil housing, rod goes UP into airstream
@@ -1607,7 +1617,7 @@ function Canvas({a, stepIdx, activeSteps}){
               // Dehu: left of furnace center (clear of flue which is on right side)
               const dehuBX=sysX+44;
               // ERV: far left of return plenum
-              const ervBX=Math.max(8, RET_X-BW+40);
+              const ervBX=Math.max(8, RET_X-BW+56);
               const BY=UNIT_Y-BH-14;
               const roofY=EAVE_Y+14;
               const boxes=[];
@@ -1663,7 +1673,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasCoil&&<g key="attic-drain">
             {(()=>{
               const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
-              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+AH_W*0.15;
+              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.68);
               const drainTopY=UNIT_Y+UNIT_H+4;
               if(hasPump){
                 const pW=58, pH=20;
