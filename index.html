@@ -163,6 +163,61 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .closet-layout{position:absolute;inset:0;display:flex;flex-direction:row;transition:opacity .35s,transform .35s}
 .closet-layout.out{opacity:0;pointer-events:none;transform:translateX(8px)}
 .closet-canvas-area{flex:1;min-width:0;position:relative;overflow:hidden}
+
+/* ═══════════════════════════════════════════════
+   MOBILE & TABLET RESPONSIVE (≤768px phone, ≤1024px tablet)
+   Strategy: attic → vertical stack (canvas top, steps bottom scrollable)
+             closet → vertical stack (canvas top, sidebar below)
+             splash → single column tall cards
+   Desktop layout is UNTOUCHED above 1024px.
+   ═══════════════════════════════════════════════ */
+
+@media(max-width:1024px){
+  /* Splash: single column, stack cards vertically */
+  .splash-cards{flex-direction:column;align-items:center;gap:12px}
+  .splash-card{width:min(90vw,420px);padding:20px 22px}
+  .splash-logo{font-size:clamp(28px,7vw,52px)}
+  .splash-sub{font-size:11px;letter-spacing:.14em}
+
+  /* Attic layout: canvas top 55%, bar bottom 45% scrollable */
+  .attic-layout{flex-direction:column}
+  .attic-canvas-area{flex:none;height:52vh;min-height:220px}
+  .attic-bar{height:auto;flex:1;min-height:0;overflow-y:auto}
+  .attic-bar-body{flex-direction:column;overflow-y:auto;overflow-x:hidden}
+  .attic-info{width:100%;border-right:none;border-bottom:1px solid var(--border);padding:10px 14px;flex-shrink:0}
+  .attic-scroll{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;height:auto;flex:none;padding:8px 10px;gap:6px}
+  .attic-opt{flex:1;min-width:calc(50% - 8px);max-width:100%;width:auto}
+  .attic-next-col{width:100%;border-left:none;border-top:1px solid var(--border);height:44px;padding:0 10px;flex-shrink:0}
+
+  /* Closet layout: canvas top 55%, sidebar below */
+  .closet-layout{flex-direction:column}
+  .closet-canvas-area{flex:none;height:52vh;min-height:220px}
+  .sidebar{width:100%;height:auto;flex-shrink:0;border-left:none;border-top:1px solid var(--border);overflow-y:auto;max-height:45vh}
+  .opts{flex-direction:row;flex-wrap:wrap;overflow-y:auto;flex:none}
+  .opt{flex:1;min-width:calc(50% - 6px);max-width:100%}
+  .nav-row{position:sticky;bottom:0}
+
+  /* Done screen */
+  .closet-layout.done-screen,
+  div[style*="position:absolute"][style*="inset:0"]{flex-direction:column}
+  
+  /* General */
+  .hdr{padding:8px 14px}
+  .hdr-logo{font-size:12px}
+}
+
+@media(max-width:600px){
+  /* Phone: smaller canvas, single-column options */
+  .attic-canvas-area{height:45vh}
+  .closet-canvas-area{height:45vh}
+  .sidebar{max-height:50vh}
+  .opt{min-width:100%;max-width:100%}
+  .attic-opt{min-width:100%;max-width:100%}
+  .splash-logo{font-size:clamp(22px,8vw,38px)}
+  .splash-card{padding:16px 18px}
+  .attic-bar-top .btn-skip{display:none}
+  .step-hint{display:none}
+}
 </style>
 </head>
 <body>
@@ -2426,7 +2481,7 @@ function App(){
       {/* ── SPLASH — step 1 location picker ── */}
       <div className={"splash-screen"+(loc||done?" out":"")}>
         <div className="splash-logo">GOLD EAGLE SERVICES</div>
-        <div className="splash-sub">AUSTIN TX  |  512-489-4653  |  GOLDeagleservices.COM</div>
+        <div className="splash-sub">AUSTIN TX  |  512-489-4653  |  GOLDEAGLESERVICES.COM</div>
         <p style={{fontFamily:"var(--fb)",fontSize:"17px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:560,lineHeight:1.7,margin:"8px 0 4px"}}>
           Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system — every component, every connection, sized and labeled.
         </p>
