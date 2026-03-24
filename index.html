@@ -994,7 +994,7 @@ function Canvas({a, stepIdx, activeSteps}){
       {/* ── CONDENSER UNIT ── */}
       <Condenser x={condX} y={condY} w={condW} h={condH}
         active={active} tierKey={tierKey}/>
-      <text x={condX+condW/2} y={condY-9} textAnchor="middle"
+      <text x={wallX+zoneW-8} y={condY-9} textAnchor="end"
         fill={active?condC:(G+'.3)')} fontSize="8" fontFamily="monospace">
         {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
       </text>
@@ -2018,7 +2018,7 @@ function Canvas({a, stepIdx, activeSteps}){
                     {refReversed?'←':'→'}
                   </text>}
                 </>}
-                <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H+APR_H+16} textAnchor="middle"
+                <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y-6} textAnchor="middle"
                   fill={active?evapC:(G+'.35)')} fontSize="7" fontFamily="monospace">
                   {hasFurnace?"A-COIL":"AIR HANDLER"}
                 </text>
@@ -2122,7 +2122,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 x2={UNIT_X+5+i*(UNIT_W-10)/14} y2={APR_Y+APR_H-2}
                 stroke="#22c55e" strokeWidth="0.6" opacity="0.52"/>
             ))}
-            <text x={UNIT_X+UNIT_W/2} y={APR_Y-4} textAnchor="middle"
+            <text x={UNIT_X+UNIT_W/2} y={APR_Y+APR_H+12} textAnchor="middle"
               fill="#22c55e" fontSize="6.5" fontFamily="monospace">APRILAIRE 5" FILTER RACK</text>
           </g>}
 
