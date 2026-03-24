@@ -366,7 +366,7 @@ function Canvas({a, stepIdx, activeSteps}){
       {/* Plasma tip at rod end */}
       <circle cx={bulbX} cy={rodBot} r={3} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
       <text x={bulbX+14} y={bulbY} textAnchor="start"
-        fill="rgba(253,224,71,.48)" fontSize="5" fontFamily="monospace">IONIZER</text>
+        fill="rgba(253,224,71,.48)" fontSize="6" fontFamily="monospace">IONIZER</text>
     </g>;
   }
 
@@ -474,7 +474,7 @@ function Canvas({a, stepIdx, activeSteps}){
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
         spd={active?1.6:0.5} active={active||!heatMode}/>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.3)'} fontSize="5.5" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.3)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
       {Array.from({length:6},(_,i)=>{
         const gy=y+10+i*(h-18)/6;
         return <path key={i}
@@ -494,7 +494,7 @@ function Canvas({a, stepIdx, activeSteps}){
           </>}
         </g>;
       })}
-      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.44)':(G+'.28)')} fontSize="5.5" fontFamily="monospace">HEAT EXCH.</text>
+      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.44)':(G+'.28)')} fontSize="6.5" fontFamily="monospace">HEAT EXCH.</text>
       {(()=>{
         const pW=is90?5:7;
         const pC=is90?"#bfdbfe":"#c0c0c0";
@@ -510,13 +510,12 @@ function Canvas({a, stepIdx, activeSteps}){
             :<path d={'M'+(fX-pW-2)+' -1 L'+fX+' -9 L'+(fX+pW+2)+' -1'} fill={pC} stroke={pS} strokeWidth="0.5"/>
           }
           <text x={fX+6} y={y-8} textAnchor="start"
-            fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="5" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
+            fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="6" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
         </>;
       })()}
-      <rect x={x+4} y={y+11} width={isComm?62:is2?52:44} height="8" rx="2" fill={isComm?"url(#blue)":(G+'.1)')}/>
-      <text x={x+7} y={y+18} fill={isComm?"#fff":(G+'.78)')} fontSize="5.5" fontFamily="monospace">{isComm?'COMMUNICATING':is2?'2-STAGE':'1-STAGE'}</text>
+      {isComm&&<><rect x={x+4} y={y+11} width={62} height="8" rx="2" fill="url(#blue)"/><text x={x+7} y={y+18} fill="#fff" fontSize="6.5" fontFamily="monospace">COMMUNICATING</text></>}
       <rect x={mid+4} y={y+11} width={36} height="8" rx="2" fill={is90?"rgba(35,137,224,.13)":(G+'.07)')} stroke={is90?(B+'.24)'):(G+'.16)')} strokeWidth="0.5"/>
-      <text x={mid+22} y={y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="5.5" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
+      <text x={mid+22} y={y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="6.5" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
     </g>;
   }
 
@@ -536,13 +535,12 @@ function Canvas({a, stepIdx, activeSteps}){
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
         spd={active?1.5:0.45} active={active||!heatMode}/>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.28)'} fontSize="5.5" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.28)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
       <rect x={mid+2} y={y+8} width={w/2-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
       <ACoilH x={mid+8} y={y+12} w={w/2-18} h={h-22} active={active}/>
-      <text x={mid+w/4} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.28)')} fontSize="5.5" fontFamily="monospace">A-COIL</text>
+      <text x={mid+w/4} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.28)')} fontSize="6.5" fontFamily="monospace">A-COIL</text>
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
-      {isComm&&<><rect x={mid+4} y={y+11} width={62} height="8" rx="2" fill="url(#blue)"/>
-      <text x={mid+7} y={y+18} fill="#fff" fontSize="5.5" fontFamily="monospace">COMMUNICATING</text></>}
+
     </g>;
   }
 
@@ -641,7 +639,7 @@ function Canvas({a, stepIdx, activeSteps}){
             <circle cx={x+w/2} cy={by} r={7.5}
               fill="rgba(35,38,45,.8)" stroke="rgba(90,95,108,.4)" strokeWidth="0.6"/>
             <text x={x+w/2} y={by+3.5} textAnchor="middle"
-              fill="rgba(200,205,215,.7)" fontSize="7" fontFamily="sans-serif" fontWeight="700">G</text>
+              fill="rgba(200,205,215,.7)" fontSize="8" fontFamily="sans-serif" fontWeight="700">G</text>
           </>;
         })()}
         {[[x+4,y+h-4],[x+w-4,y+h-4]].map(([fx,fy],i)=>(
@@ -667,14 +665,14 @@ function Canvas({a, stepIdx, activeSteps}){
             <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
               fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
             <text x={cX+cW/2} y={cY+cH+domeH+10} textAnchor="middle"
-              fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="5" fontFamily="monospace">COMP.</text>
+              fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="6" fontFamily="monospace">COMP.</text>
           </g>;
         })()}
         {/* SEER badge */}
         <rect x={x+3} y={y+h-16} width={w-6} height={13} rx="2"
           fill="rgba(40,43,50,.82)" opacity="0.95"/>
         <text x={x+w/2} y={y+h-6} textAnchor="middle"
-          fill="rgba(195,200,210,.9)" fontSize="7.5" fontFamily="monospace" fontWeight="700">{TL}</text>
+          fill="rgba(195,200,210,.9)" fontSize="8.5" fontFamily="monospace" fontWeight="700">{TL}</text>
       </>}
 
       {isMini&&<>
@@ -736,14 +734,14 @@ function Canvas({a, stepIdx, activeSteps}){
             <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.85)} r={5}
               fill="rgba(30,35,45,.8)" stroke={active?cc:"rgba(70,75,90,.5)"} strokeWidth="0.8"/>
             <text x={panelX+panelW/2} y={panelY+Math.round(panelH*0.87)} textAnchor="middle"
-              fill={active?cc:"rgba(90,95,110,.7)"} fontSize="4.5" fontFamily="sans-serif" fontWeight="700">VS</text>
+              fill={active?cc:"rgba(90,95,110,.7)"} fontSize="5.5" fontFamily="sans-serif" fontWeight="700">VS</text>
           </>;
         })()}
         {/* SEER badge */}
         <rect x={x+3} y={y+h-16} width={w-6} height={13} rx="2"
           fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
         <text x={x+w/2} y={y+h-6} textAnchor="middle"
-          fill="#fff" fontSize="7.5" fontFamily="monospace" fontWeight="700">{TL}</text>
+          fill="#fff" fontSize="8.5" fontFamily="monospace" fontWeight="700">{TL}</text>
       </>}
 
       {isBig&&<>
@@ -821,14 +819,14 @@ function Canvas({a, stepIdx, activeSteps}){
             <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
               fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
             <text x={cX+cW/2} y={cY+cH+domeH+10} textAnchor="middle"
-              fill={active?cc:"rgba(80,85,95,.45)"} fontSize="5" fontFamily="monospace">COMP.</text>
+              fill={active?cc:"rgba(80,85,95,.45)"} fontSize="6" fontFamily="monospace">COMP.</text>
           </g>;
         })()}
         {/* SEER badge */}
         <rect x={x+3} y={y+h-16} width={w-6} height={13} rx="2"
           fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
         <text x={x+w/2} y={y+h-6} textAnchor="middle"
-          fill="#fff" fontSize="7.5" fontFamily="monospace" fontWeight="700">{TL}</text>
+          fill="#fff" fontSize="8.5" fontFamily="monospace" fontWeight="700">{TL}</text>
       </>}
     </g>;
   }
@@ -851,7 +849,7 @@ function Canvas({a, stepIdx, activeSteps}){
           stroke="rgba(90,80,45,.2)" strokeWidth="0.7"/>
       ))}
       <text x={wallX+zoneW/2} y={groundY+18} textAnchor="middle"
-        fill="rgba(110,95,55,.45)" fontSize="5.5" fontFamily="monospace">GROUND LEVEL</text>
+        fill="rgba(110,95,55,.45)" fontSize="6.5" fontFamily="monospace">GROUND LEVEL</text>
 
       {/* ── CONCRETE PAD — under condenser ── */}
       <rect x={condX-10} y={padY} width={condW+20} height={14} rx="2"
@@ -862,7 +860,7 @@ function Canvas({a, stepIdx, activeSteps}){
           stroke="rgba(190,185,168,.1)" strokeWidth="0.5"/>
       ))}
       <text x={condX+condW/2} y={padY+10} textAnchor="middle"
-        fill="rgba(170,160,140,.4)" fontSize="4.5" fontFamily="monospace">CONCRETE PAD</text>
+        fill="rgba(170,160,140,.4)" fontSize="5.5" fontFamily="monospace">CONCRETE PAD</text>
 
       {/* ── WALL CROSS-SECTION ── proper side view of exterior wall */}
       {/* Wall body */}
@@ -886,7 +884,7 @@ function Canvas({a, stepIdx, activeSteps}){
       <rect x={sidingX+1} y={lineY1-6} width={wallThick-2} height={lineY2-lineY1+12} rx="2"
         fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
       <text x={sidingX+wallThick/2} y={lineY2+16} textAnchor="middle"
-        fill="rgba(150,110,40,.5)" fontSize="5" fontFamily="monospace">LINESET</text>
+        fill="rgba(150,110,40,.5)" fontSize="6" fontFamily="monospace">LINESET</text>
       {/* Foam sleeve on pipes — from wall to condenser */}
       <path d={`M${sidingX+wallThick} ${lineY1} L${condX+condW*0.35} ${lineY1} L${condX+condW*0.35} ${condY+condH}`}
         fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round"/>
@@ -927,7 +925,7 @@ function Canvas({a, stepIdx, activeSteps}){
           <rect x={DX+3} y={DY+4} width={DW-6} height={14} rx="2"
             fill={G+'.14)'} stroke={G+'.32)'} strokeWidth="0.8"/>
           <text x={DX+DW/2} y={DY+14} textAnchor="middle"
-            fill={G+'.82)'} fontSize="7" fontFamily="monospace" fontWeight="700">DISC.</text>
+            fill={G+'.82)'} fontSize="8" fontFamily="monospace" fontWeight="700">DISC.</text>
           {/* Switch housing */}
           <rect x={DX+5} y={DY+22} width={DW-10} height={32} rx="3"
             fill={active?"rgba(239,68,68,.18)":"rgba(35,38,62,.75)"}
@@ -960,12 +958,12 @@ function Canvas({a, stepIdx, activeSteps}){
             <rect x={DX+4} y={DY+DH+10} width={DW-8} height={13} rx="2"
               fill="rgba(249,115,22,.12)" stroke="#f97316" strokeWidth="0.7"/>
             <text x={DX+DW/2} y={DY+DH+20} textAnchor="middle"
-              fill="#f97316" fontSize="7" fontFamily="monospace" fontWeight="700">SURGE</text>
+              fill="#f97316" fontSize="8" fontFamily="monospace" fontWeight="700">SURGE</text>
             {/* Lightning bolt */}
             <text x={DX+DW/2} y={DY+DH+40} textAnchor="middle"
               fill="#f97316" fontSize="18">⚡</text>
             <text x={DX+DW/2} y={DY+DH+54} textAnchor="middle"
-              fill="rgba(249,115,22,.6)" fontSize="5.5" fontFamily="monospace">PROTECTOR</text>
+              fill="rgba(249,115,22,.6)" fontSize="6.5" fontFamily="monospace">PROTECTOR</text>
           </g>}
         </>;
       })()}
@@ -974,13 +972,13 @@ function Canvas({a, stepIdx, activeSteps}){
       <Condenser x={condX} y={condY} w={condW} h={condH}
         active={active} tierKey={tierKey}/>
       <text x={condX+condW/2} y={condY-9} textAnchor="middle"
-        fill={active?condC:(G+'.3)')} fontSize="7" fontFamily="monospace">
+        fill={active?condC:(G+'.3)')} fontSize="8" fontFamily="monospace">
         CONDENSER {active?"· ACTIVE":"· STANDBY"}
       </text>
 
       {/* OUTSIDE label */}
       <text x={wallX+zoneW/2} y={12} textAnchor="middle"
-        fill={W+'.07)'} fontSize="6" fontFamily="monospace" letterSpacing="1.2">OUTSIDE</text>
+        fill={W+'.07)'} fontSize="7" fontFamily="monospace" letterSpacing="1.2">OUTSIDE</text>
     </g>;
   }
 
@@ -1011,7 +1009,7 @@ function Canvas({a, stepIdx, activeSteps}){
         fill="rgba(8,10,20,.75)" stroke={G2+'.12)'} strokeWidth="0.8"/>
       <rect x={px} y={py} width={pw} height={12} rx="4" fill={G2+'.07)'} stroke="none"/>
       <text x={px+pw/2} y={py+9} textAnchor="middle"
-        fill={G2+'.5)'} fontSize="5" fontFamily="monospace" letterSpacing=".12em">SYSTEM DATA</text>
+        fill={G2+'.5)'} fontSize="6" fontFamily="monospace" letterSpacing=".12em">SYSTEM DATA</text>
 
       {/* Weather block */}
       <rect x={px+4} y={row(0)-8} width={pw-8} height={32} rx="3" fill={tBg} stroke={tBorder} strokeWidth="0.8"/>
@@ -1022,46 +1020,55 @@ function Canvas({a, stepIdx, activeSteps}){
           <line x1={iX-iR} y1={iY} x2={iX+iR} y2={iY} stroke={tColor} strokeWidth="1.2"/>
           <line x1={iX-iR*.7} y1={iY-iR*.7} x2={iX+iR*.7} y2={iY+iR*.7} stroke={tColor} strokeWidth="1.2"/>
           <line x1={iX+iR*.7} y1={iY-iR*.7} x2={iX-iR*.7} y2={iY+iR*.7} stroke={tColor} strokeWidth="1.2"/>
-          {[0,1,2,3].map(i=>{const a=i*(Math.PI/2),bx=iX+Math.cos(a)*iR*.55,by=iY+Math.sin(a)*iR*.55;return <circle key={i} cx={bx} cy={by} r="1.2" fill={tColor}/>;})}
+          <circle cx={iX+iR*.55*Math.cos(0)} cy={iY+iR*.55*Math.sin(0)} r="1.2" fill={tColor}/>
+          <circle cx={iX+iR*.55*Math.cos(Math.PI/2)} cy={iY+iR*.55*Math.sin(Math.PI/2)} r="1.2" fill={tColor}/>
+          <circle cx={iX+iR*.55*Math.cos(Math.PI)} cy={iY+iR*.55*Math.sin(Math.PI)} r="1.2" fill={tColor}/>
+          <circle cx={iX+iR*.55*Math.cos(3*Math.PI/2)} cy={iY+iR*.55*Math.sin(3*Math.PI/2)} r="1.2" fill={tColor}/>
         </>
-        :Array.from({length:8},(_,i)=>{
-          const a=i*(Math.PI/4);
-          return <line key={i} x1={iX+Math.cos(a)*iR*.65} y1={iY+Math.sin(a)*iR*.65} x2={iX+Math.cos(a)*iR} y2={iY+Math.sin(a)*iR} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>;
-        })
+        :<>
+          <circle cx={iX} cy={iY} r={iR*.52} fill={tColor} opacity=".9"/>
+          <line x1={iX} y1={iY-iR} x2={iX} y2={iY-iR*.65} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1={iX} y1={iY+iR*.65} x2={iX} y2={iY+iR} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1={iX-iR} y1={iY} x2={iX-iR*.65} y2={iY} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1={iX+iR*.65} y1={iY} x2={iX+iR} y2={iY} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1={iX-iR*.46} y1={iY-iR*.46} x2={iX-iR*.7} y2={iY-iR*.7} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1={iX+iR*.46} y1={iY-iR*.46} x2={iX+iR*.7} y2={iY-iR*.7} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1={iX+iR*.46} y1={iY+iR*.46} x2={iX+iR*.7} y2={iY+iR*.7} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1={iX-iR*.46} y1={iY+iR*.46} x2={iX-iR*.7} y2={iY+iR*.7} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
+        </>
       }
-      {!heatMode&&<circle cx={iX} cy={iY} r={iR*.52} fill={tColor} opacity=".9"/>}
       <text x={px+24} y={row(0)} fill={tColor} fontSize="11" fontFamily="monospace" fontWeight="700">{condition}</text>
-      <text x={px+24} y={row(0)+9} fill={tColor} opacity=".7" fontSize="4.5" fontFamily="monospace">{season}</text>
-      <text x={px+pw-6} y={row(0)+9} textAnchor="end" fill={tColor} opacity=".4" fontSize="4" fontFamily="monospace">AUSTIN TX</text>
+      <text x={px+24} y={row(0)+9} fill={tColor} opacity=".7" fontSize="5.5" fontFamily="monospace">{season}</text>
+      <text x={px+pw-6} y={row(0)+9} textAnchor="end" fill={tColor} opacity=".4" fontSize="5" fontFamily="monospace">AUSTIN TX</text>
 
       {/* Spec rows */}
       <line x1={px+4} y1={row(0)+24} x2={px+pw-4} y2={row(0)+24} stroke={G2+'.07)'} strokeWidth="0.5"/>
 
-      <text x={px+6} y={row(2)} fill={G2+'.4)'} fontSize="4.5" fontFamily="monospace">EFFICIENCY</text>
-      <text x={px+pw-6} y={row(2)} textAnchor="end" fill={isHigh?'#5ba8f5':isMid?(G2+'.9)'):W2+'.55)'} fontSize="5.5" fontFamily="monospace" fontWeight="700">{seer} SEER2</text>
+      <text x={px+6} y={row(2)} fill={G2+'.4)'} fontSize="5.5" fontFamily="monospace">EFFICIENCY</text>
+      <text x={px+pw-6} y={row(2)} textAnchor="end" fill={isHigh?'#5ba8f5':isMid?(G2+'.9)'):W2+'.55)'} fontSize="6.5" fontFamily="monospace" fontWeight="700">{seer} SEER2</text>
       <line x1={px+4} y1={row(2)+4} x2={px+pw-4} y2={row(2)+4} stroke={G2+'.07)'} strokeWidth="0.5"/>
 
       {is90!==undefined&&<>
-        <text x={px+6} y={row(3)} fill={G2+'.4)'} fontSize="4.5" fontFamily="monospace">FURNACE</text>
-        <text x={px+pw-6} y={row(3)} textAnchor="end" fill={W2+'.55)'} fontSize="5" fontFamily="monospace">{afue}</text>
+        <text x={px+6} y={row(3)} fill={G2+'.4)'} fontSize="5.5" fontFamily="monospace">FURNACE</text>
+        <text x={px+pw-6} y={row(3)} textAnchor="end" fill={W2+'.55)'} fontSize="6" fontFamily="monospace">{afue}</text>
         <line x1={px+4} y1={row(3)+4} x2={px+pw-4} y2={row(3)+4} stroke={G2+'.07)'} strokeWidth="0.5"/>
       </>}
 
       {savings&&<>
-        <text x={px+6} y={row(4)} fill={G2+'.4)'} fontSize="4.5" fontFamily="monospace">VS FED. MIN</text>
-        <text x={px+pw-6} y={row(4)} textAnchor="end" fill="rgba(34,197,94,.85)" fontSize="5" fontFamily="monospace">{savings}</text>
+        <text x={px+6} y={row(4)} fill={G2+'.4)'} fontSize="5.5" fontFamily="monospace">VS FED. MIN</text>
+        <text x={px+pw-6} y={row(4)} textAnchor="end" fill="rgba(34,197,94,.85)" fontSize="6" fontFamily="monospace">{savings}</text>
         <line x1={px+4} y1={row(4)+4} x2={px+pw-4} y2={row(4)+4} stroke={G2+'.07)'} strokeWidth="0.5"/>
       </>}
 
       {rebate&&<>
         <rect x={px+4} y={row(5)-9} width={pw-8} height={16} rx="2" fill="rgba(35,137,224,.1)" stroke={B2+'.25)'} strokeWidth="0.7"/>
-        <text x={px+pw/2} y={row(5)-1} textAnchor="middle" fill={B2+'.7)'} fontSize="4.5" fontFamily="monospace" letterSpacing=".05em">AE REBATE {rebate}</text>
+        <text x={px+pw/2} y={row(5)-1} textAnchor="middle" fill={B2+'.7)'} fontSize="5.5" fontFamily="monospace" letterSpacing=".05em">AE REBATE {rebate}</text>
       </>}
 
       {/* Status */}
       <circle cx={px+9} cy={py+ph-8} r={3} fill={active?"rgba(34,197,94,.6)":"rgba(50,50,80,.5)"} stroke={active?"#22c55e":(G2+'.15)')} strokeWidth="0.7"/>
       {active&&<circle cx={px+9} cy={py+ph-8} r={1.5} fill="#22c55e" className="glow-pulse"/>}
-      <text x={px+16} y={py+ph-4} fill={active?"rgba(34,197,94,.65)":(G2+'.3)')} fontSize="4.5" fontFamily="monospace">
+      <text x={px+16} y={py+ph-4} fill={active?"rgba(34,197,94,.65)":(G2+'.3)')} fontSize="5.5" fontFamily="monospace">
         {active?(heatMode?"HEATING":"COOLING"):"STANDBY"}
       </text>
     </g>;
@@ -1073,7 +1080,7 @@ function Canvas({a, stepIdx, activeSteps}){
       <rect x={x+w*0.28} y={y} width={w*0.44} height={16} rx="2"
         fill="rgba(35,137,224,.1)" stroke={B+'.48)'} strokeWidth="1.1"/>
       <text x={x+w/2} y={y+10} textAnchor="middle"
-        fill={B+'.72)'} fontSize="5.5" fontFamily="monospace">COND. PUMP</text>
+        fill={B+'.72)'} fontSize="6.5" fontFamily="monospace">COND. PUMP</text>
       <line x1={x+w/2} y1={y+16} x2={x+w/2} y2={y+28}
         stroke={B+'.3)'} strokeWidth="1.2" strokeDasharray="3 2"/>
     </g>;
@@ -1231,7 +1238,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   fill="rgba(234,238,246,.16)" stroke="rgba(234,238,246,.22)" strokeWidth=".5"
                   transform={`rotate(${ang},${sx},${sy+7})`}/>;
               })}
-              <text x="28" y={DECK_Y-22} fill="rgba(232,236,246,.32)" fontSize="5.5" fontFamily="monospace">SPRAY FOAM — SEALED ATTIC</text>
+              <text x="28" y={DECK_Y-22} fill="rgba(232,236,246,.32)" fontSize="6.5" fontFamily="monospace">SPRAY FOAM — SEALED ATTIC</text>
             </g>
             :<g>
               <rect x="0" y={DECK_Y-22} width={HOUSE_W} height={24} fill="rgba(255,130,170,.18)" stroke="rgba(255,140,180,.08)" strokeWidth="0.5"/>
@@ -1239,7 +1246,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-7} rx={11} ry={8}
                   fill="rgba(255,182,193,.17)" stroke="rgba(255,182,193,.2)" strokeWidth=".45"/>
               ))}
-              <text x="28" y={DECK_Y-22} fill="rgba(255,182,193,.35)" fontSize="5.5" fontFamily="monospace">FIBERGLASS INSULATION</text>
+              <text x="28" y={DECK_Y-22} fill="rgba(255,182,193,.35)" fontSize="6.5" fontFamily="monospace">FIBERGLASS INSULATION</text>
             </g>
           )}
 
@@ -1258,7 +1265,7 @@ function Canvas({a, stepIdx, activeSteps}){
             <line key={'rr'+i} x1={rx} y1={DECK_Y} x2={RIDGE_X} y2={RIDGE_Y}
               stroke="rgba(88,68,32,.09)" strokeWidth="1.5"/>
           ))}
-          <text x="22" y={DECK_Y+18} fill={W+'.09)'} fontSize="5.5" fontFamily="monospace" letterSpacing="0.8">LIVING SPACE</text>
+          <text x="22" y={DECK_Y+18} fill={W+'.09)'} fontSize="6.5" fontFamily="monospace" letterSpacing="0.8">LIVING SPACE</text>
 
           {/* Return grille */}
           {hasCoil&&<g>
@@ -1270,7 +1277,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 stroke="rgba(255,182,193,.25)" strokeWidth="0.5"/>
             ))}
             <text x={RET_X+RET_PLEN_W/2} y={DECK_Y+19} textAnchor="middle"
-              fill="rgba(255,182,193,.26)" fontSize="5" fontFamily="monospace">RETURN</text>
+              fill="rgba(255,182,193,.26)" fontSize="6" fontFamily="monospace">RETURN</text>
           </g>}
 
           {/* Return plenum */}
@@ -1283,7 +1290,7 @@ function Canvas({a, stepIdx, activeSteps}){
               return <ellipse key={i} cx={bx} cy={by} rx={6+(i%4)*2.5} ry={5+(i%3)*1.5} fill="rgba(255,182,193,.1)"/>;
             })}
             <text x={RET_X+RET_PLEN_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
-              fill="rgba(255,182,193,.52)" fontSize="6" fontFamily="monospace"
+              fill="rgba(255,182,193,.52)" fontSize="7" fontFamily="monospace"
               transform={`rotate(-90,${RET_X+RET_PLEN_W/2},${UNIT_Y+UNIT_H/2})`}>RETURN PLENUM</text>
             {Array.from({length:8},(_,i)=>(
               <line key={i} x1={RET_X+2} y1={UNIT_Y+12+i*(UNIT_H-24)/8}
@@ -1305,7 +1312,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 stroke="#22c55e" strokeWidth="0.55" opacity="0.52"/>
             ))}
             <text x={APR_X+APR_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
-              fill="#22c55e" fontSize="6" fontFamily="monospace"
+              fill="#22c55e" fontSize="7" fontFamily="monospace"
               transform={`rotate(-90,${APR_X+APR_W/2},${UNIT_Y+UNIT_H/2})`}>APRILAIRE 5"</text>
           </g>}
 
@@ -1313,9 +1320,9 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu'+a.stage+a.furnace_eff} filter="url(#shadow)">
             <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive}/>
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.64)':(G+'.38)')} fontSize="6.5" fontFamily="monospace">FURNACE</text>
+              fill={furnaceActive?'rgba(249,115,22,.64)':(G+'.38)')} fontSize="7.5" fontFamily="monospace">FURNACE</text>
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="5.5" fontFamily="monospace">
+              fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="6.5" fontFamily="monospace">
               {furnaceActive?"GAS HEATING ACTIVE":"STANDBY"}
             </text>
           </g>}
@@ -1335,9 +1342,9 @@ function Canvas({a, stepIdx, activeSteps}){
                 <ACoilH x={ACOIL_X+8} y={UNIT_Y+12} w={ACOIL_W-16} h={UNIT_H-20} active={active}/>
                 <rect x={ACOIL_X} y={UNIT_Y+UNIT_H-2} width={ACOIL_W} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.6"/>
                 <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
-                  fill={active?evapC:(G+'.36)')} fontSize="6.5" fontFamily="monospace">A-COIL</text>
+                  fill={active?evapC:(G+'.36)')} fontSize="7.5" fontFamily="monospace">A-COIL</text>
                 <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
-                  fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="5.5" fontFamily="monospace">
+                  fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
                   {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
                 </text>
               </>;
@@ -1348,9 +1355,9 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasCoil&&!hasFurnace&&<g className="snap" key={'ah'+a.cond_tier} filter="url(#shadow)">
             <AirHandlerH x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} active={evapActive}/>
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
-              fill={evapActive?evapC:(G+'.36)')} fontSize="6.5" fontFamily="monospace">AIR HANDLER</text>
+              fill={evapActive?evapC:(G+'.36)')} fontSize="7.5" fontFamily="monospace">AIR HANDLER</text>
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
-              fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="5.5" fontFamily="monospace">
+              fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
               {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
             </text>
           </g>}
@@ -1378,16 +1385,16 @@ function Canvas({a, stepIdx, activeSteps}){
                   ))
                 )}
                 <text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+3} textAnchor="middle"
-                  fill={isExisting?(G+'.3)'):(G+'.52)')} fontSize="6.5" fontFamily="monospace">
+                  fill={isExisting?(G+'.3)'):(G+'.52)')} fontSize="7.5" fontFamily="monospace">
                   {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+14} textAnchor="middle"
-                  fill={G+'.32)'} fontSize="5.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
+                  fill={G+'.32)'} fontSize="6.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
                 {/* Ionizer -- enters from bottom of plenum */}
                 {hasIonizer&&(()=>{
                   // Ionizer: bulb at bottom of coil housing, rod goes UP into airstream
                   // Ionizer: bulb below supply plenum left-third, rod goes UP into plenum
-                  const ionX=SUP_X+Math.round(SUP_PLEN_W*0.28); // first 1/3 of plenum
+                  const ionX=SUP_X+Math.round(SUP_PLEN_W*0.18); // ~1/5 of plenum, left
                   const plenBot=SUP_PLEN_Y+SUP_PLEN_H;
                   const ionBulbY=plenBot+14;
                   const ionRodLen=Math.round(SUP_PLEN_H*0.55);
@@ -1403,7 +1410,7 @@ function Canvas({a, stepIdx, activeSteps}){
                     <line x1={ionX} y1={plenBot} x2={ionX} y2={plenBot-ionRodLen} stroke="rgba(253,224,71,.22)" strokeWidth={6} strokeLinecap="round" filter="url(#glow-uv)"/>
                     <line x1={ionX} y1={plenBot} x2={ionX} y2={plenBot-ionRodLen} stroke="rgba(253,224,71,.8)" strokeWidth={2} strokeLinecap="round"/>
                     <circle cx={ionX} cy={plenBot-ionRodLen} r={2.5} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
-                    <text x={ionX+14} y={ionBulbY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="5" fontFamily="monospace">IONIZER</text>
+                    <text x={ionX+14} y={ionBulbY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="6" fontFamily="monospace">IONIZER</text>
                   </g>;
                 })()}
               </>;
@@ -1434,7 +1441,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={leftRunX-4} y={pTop-riseH-DW-4} width={DW+8} height={DW+8} rx="2"
                   fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
                 <text x={leftRunX+DW/2} y={pTop-riseH-DW-10} textAnchor="middle"
-                  fill={G+'.38)'} fontSize="5" fontFamily="monospace">SUPPLY</text>
+                  fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
 
                 {/* TOP RIGHT duct run — exits top of plenum */}
                 <rect x={pCX+DW*0.8} y={pTop-riseH} width={DW} height={riseH} rx="0"
@@ -1444,7 +1451,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={rightRunX-4} y={pTop-riseH-DW-4} width={DW+8} height={DW+8} rx="2"
                   fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
                 <text x={rightRunX+DW/2} y={pTop-riseH-DW-10} textAnchor="middle"
-                  fill={G+'.38)'} fontSize="5" fontFamily="monospace">SUPPLY</text>
+                  fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
 
                 {/* BOTTOM LEFT duct run — exits bottom of plenum, same X as top left */}
                 <rect x={pCX-DW*1.8-DW/2} y={pBot} width={DW} height={riseH} rx="0"
@@ -1454,7 +1461,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={leftRunX-4} y={pBot+riseH+4} width={DW+8} height={DW+8} rx="2"
                   fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
                 <text x={leftRunX+DW/2} y={pBot+riseH+DW+16} textAnchor="middle"
-                  fill={G+'.38)'} fontSize="5" fontFamily="monospace">SUPPLY</text>
+                  fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
 
                 {/* BOTTOM RIGHT duct run — exits bottom of plenum, same X as top right */}
                 <rect x={pCX+DW*0.8} y={pBot} width={DW} height={riseH} rx="0"
@@ -1464,7 +1471,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={rightRunX-4} y={pBot+riseH+4} width={DW+8} height={DW+8} rx="2"
                   fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
                 <text x={rightRunX+DW/2} y={pBot+riseH+DW+16} textAnchor="middle"
-                  fill={G+'.38)'} fontSize="5" fontFamily="monospace">SUPPLY</text>
+                  fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
               </>;
             })()}
           </g>}
@@ -1538,7 +1545,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   <path d={`M${TX+35} ${TY+74} Q${TX+44} ${TY+67} ${TX+53} ${TY+74}`}
                     fill="none" stroke={B+'.7)'} strokeWidth="2" strokeLinecap="round"/>
                   <circle cx={TX+44} cy={TY+78} r={3} fill={B+'.8)'}/>
-                  <text x={TX+44} y={TY+94} textAnchor="middle" fill={G+'.5)'} fontSize="7" fontFamily="monospace">WI-FI SMART</text>
+                  <text x={TX+44} y={TY+94} textAnchor="middle" fill={G+'.5)'} fontSize="8" fontFamily="monospace">WI-FI SMART</text>
                 </>
                 :<>
                   <rect x={TX} y={TY} width={90} height={74} rx="4"
@@ -1551,7 +1558,7 @@ function Canvas({a, stepIdx, activeSteps}){
                     <rect key={i} x={TX+bx} y={TY+54} width="10" height="6" rx="1.5"
                       fill={G+'.22)'} stroke={G+'.12)'} strokeWidth="0.5"/>
                   ))}
-                  <text x={TX+45} y={TY+70} textAnchor="middle" fill={G+'.42)'} fontSize="7" fontFamily="monospace">BASIC PROGRAMMABLE</text>
+                  <text x={TX+45} y={TY+70} textAnchor="middle" fill={G+'.42)'} fontSize="8" fontFamily="monospace">BASIC PROGRAMMABLE</text>
                 </>;
             })()}
           </g>}
@@ -1592,10 +1599,10 @@ function Canvas({a, stepIdx, activeSteps}){
                       {/* ERV -- blue IN + orange OUT through roof */}
                       <rect x={pipe1X-2} y={4} width={5} height={BY-4} rx="1" fill={B+'.3)'} stroke={B+'.55)'} strokeWidth="0.8"/>
                       <rect x={pipe1X-5} y={1} width={11} height={5} rx="1" fill={B+'.35)'} stroke={B+'.6)'} strokeWidth="0.8"/>
-                      <text x={pipe1X} y={-1} textAnchor="middle" fill={B+'.6)'} fontSize="5.5" fontFamily="monospace">IN</text>
+                      <text x={pipe1X} y={-1} textAnchor="middle" fill={B+'.6)'} fontSize="6.5" fontFamily="monospace">IN</text>
                       <rect x={pipe2X-2} y={4} width={5} height={BY-4} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.55)" strokeWidth="0.8"/>
                       <path d={'M'+(pipe2X-4)+' 2 L'+pipe2X+' -5 L'+(pipe2X+4)+' 2'} fill="rgba(249,115,22,.45)"/>
-                      <text x={pipe2X} y={-1} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="5.5" fontFamily="monospace">OUT</text>
+                      <text x={pipe2X} y={-1} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="6.5" fontFamily="monospace">OUT</text>
                       <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
                       <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
                     </>
@@ -1608,12 +1615,12 @@ function Canvas({a, stepIdx, activeSteps}){
                   {isDehu
                     ?<>
                       <text x={BX+BW/2} y={BY+BH/2-2} textAnchor="middle" fill="#22c55e" fontSize="11">💧</text>
-                      <text x={BX+BW/2} y={BY+BH/2+13} textAnchor="middle" fill="#22c55e" fontSize="7.5" fontFamily="monospace">DEHU</text>
+                      <text x={BX+BW/2} y={BY+BH/2+13} textAnchor="middle" fill="#22c55e" fontSize="8.5" fontFamily="monospace">DEHU</text>
                     </>
                     :<>
                       <path d={'M'+(BX+10)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.8" markerEnd="url(#arr)"/>
                       <path d={'M'+(BX+BW-10)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.8" markerEnd="url(#arr)"/>
-                      <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="9" fontFamily="monospace">ERV</text>
+                      <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="10" fontFamily="monospace">ERV</text>
                     </>
                   }
                 </g>;
@@ -1625,7 +1632,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasCoil&&<g key="attic-drain">
             {(()=>{
               const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
-              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.5:AH_X+AH_W*0.55;
+              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+AH_W*0.15;
               const drainTopY=UNIT_Y+UNIT_H+4;
               if(hasPump){
                 const pW=58, pH=20;
@@ -1636,23 +1643,23 @@ function Canvas({a, stepIdx, activeSteps}){
                   <rect x={pX} y={pY} width={pW} height={pH} rx="3"
                     fill="rgba(35,137,224,.1)" stroke={B+'.5)'} strokeWidth="1.1"/>
                   <text x={coilCX} y={pY+9} textAnchor="middle"
-                    fill={B+'.75)'} fontSize="6.5" fontFamily="monospace">COND. PUMP</text>
+                    fill={B+'.75)'} fontSize="7.5" fontFamily="monospace">COND. PUMP</text>
                   <text x={coilCX} y={pY+17} textAnchor="middle"
-                    fill={B+'.45)'} fontSize="5" fontFamily="monospace">condensate</text>
+                    fill={B+'.45)'} fontSize="6" fontFamily="monospace">condensate</text>
                 </>;
               } else {
                 return <>
                   <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={DECK_Y+20}
                     stroke={B+'.35)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
                   <text x={coilCX+7} y={DECK_Y+14} textAnchor="start"
-                    fill={B+'.35)'} fontSize="5.5" fontFamily="monospace">DRAIN</text>
+                    fill={B+'.35)'} fontSize="6.5" fontFamily="monospace">DRAIN</text>
                 </>;
               }
             })()}
           </g>}
 
           {/* LIVE SYSTEM PREVIEW label */}
-          {loc&&<text x={12} y={EAVE_Y-4} fill={G+'.22)'} fontSize="6" fontFamily="monospace" letterSpacing=".18em">LIVE SYSTEM PREVIEW</text>}
+          {loc&&<text x={12} y={EAVE_Y-4} fill={G+'.22)'} fontSize="7" fontFamily="monospace" letterSpacing=".18em">LIVE SYSTEM PREVIEW</text>}
 
           {/* Info panel — right of unit in closet space */}
           {hasTstat&&hasCond&&(()=>{
@@ -1669,8 +1676,8 @@ function Canvas({a, stepIdx, activeSteps}){
 
           {/* Empty state */}
           {!loc&&<g>
-            <text x={HOUSE_W/2} y={VH/2-10} textAnchor="middle" fill={G+'.12)'} fontSize="10" fontFamily="monospace">Choose your location to begin building</text>
-            <text x={HOUSE_W/2} y={VH/2+8} textAnchor="middle" fill={G+'.06)'} fontSize="8" fontFamily="monospace">Components assemble here in real time →</text>
+            <text x={HOUSE_W/2} y={VH/2-10} textAnchor="middle" fill={G+'.12)'} fontSize="11" fontFamily="monospace">Choose your location to begin building</text>
+            <text x={HOUSE_W/2} y={VH/2+8} textAnchor="middle" fill={G+'.06)'} fontSize="9" fontFamily="monospace">Components assemble here in real time →</text>
           </g>}
         </svg>
       </div>
@@ -1761,7 +1768,7 @@ function Canvas({a, stepIdx, activeSteps}){
           <rect x={UNIT_X-28} y={DECK_Y} width="4" height={VH-DECK_Y} fill="#0d0d0d"/>
           <rect x={UNIT_X+UNIT_W+28} y={DECK_Y} width="4" height={VH-DECK_Y} fill="#0d0d0d"/>
           <text x={UNIT_X+UNIT_W/2} y={DECK_Y+14} textAnchor="middle"
-            fill={W+'.1)'} fontSize="6.5" fontFamily="monospace" letterSpacing="1.5">UTILITY CLOSET</text>
+            fill={W+'.1)'} fontSize="7.5" fontFamily="monospace" letterSpacing="1.5">UTILITY CLOSET</text>
 
           {/* ── LOW-PITCH ROOF — spans attic width ── */}
           {(()=>{
@@ -1807,7 +1814,7 @@ function Canvas({a, stepIdx, activeSteps}){
                       fill="rgba(234,238,246,.14)" stroke="rgba(234,238,246,.2)" strokeWidth=".5"
                       transform={`rotate(${ang},${sx},${sy+8})`}/>;
                   })}
-                  <text x="22" y={DECK_Y-24} fill="rgba(232,236,246,.3)" fontSize="5.5" fontFamily="monospace">SPRAY FOAM</text>
+                  <text x="22" y={DECK_Y-24} fill="rgba(232,236,246,.3)" fontSize="6.5" fontFamily="monospace">SPRAY FOAM</text>
                 </>;
               })()}
             </>
@@ -1816,7 +1823,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-8} rx={11} ry={7}
                   fill="rgba(255,182,193,.15)" stroke="rgba(255,182,193,.19)" strokeWidth=".4"/>
               ))}
-              <text x="22" y={DECK_Y-22} fill="rgba(255,182,193,.3)" fontSize="5.5" fontFamily="monospace">FIBERGLASS INSULATION</text>
+              <text x="22" y={DECK_Y-22} fill="rgba(255,182,193,.3)" fontSize="6.5" fontFamily="monospace">FIBERGLASS INSULATION</text>
             </>
           )}
 
@@ -1828,7 +1835,7 @@ function Canvas({a, stepIdx, activeSteps}){
             <rect key={i} x={38+i*68} y={DECK_Y-2} width="10" height="7" rx="1"
               fill="rgba(90,68,32,.2)" stroke="rgba(108,82,36,.12)" strokeWidth="0.4"/>
           ))}
-          <text x="22" y={DECK_Y+20} fill={W+'.08)'} fontSize="5.5" fontFamily="monospace" letterSpacing="0.8">ATTIC</text>
+          <text x="22" y={DECK_Y+20} fill={W+'.08)'} fontSize="6.5" fontFamily="monospace" letterSpacing="0.8">ATTIC</text>
 
 
 
@@ -1857,7 +1864,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 </text>
                 {/* ATTIC zone label inside plenum */}
                 <text x={UNIT_X+PLEN_W/2} y={PLEN_TOP+PLEN_ABOVE*0.38+4} textAnchor="middle"
-                  fill={G+'.26)'} fontSize="5" fontFamily="monospace">↑ ATTIC SPACE</text>
+                  fill={G+'.26)'} fontSize="6" fontFamily="monospace">↑ ATTIC SPACE</text>
                 {/* Supply airflow arrows INSIDE the plenum — two upward flow arrows */}
                 {!isExisting&&[UNIT_X+PLEN_W*0.28, UNIT_X+PLEN_W*0.68].map((ax,i)=>(
                   <g key={i}>
@@ -1868,7 +1875,7 @@ function Canvas({a, stepIdx, activeSteps}){
                       strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}}
                       markerEnd="url(#arr)"/>
                     <text x={ax} y={PLEN_TOP+PLEN_ABOVE*0.92} textAnchor="middle"
-                      fill={G+'.3)'} fontSize="4.5" fontFamily="monospace">SUPPLY</text>
+                      fill={G+'.3)'} fontSize="5.5" fontFamily="monospace">SUPPLY</text>
                   </g>
                 ))}
                 {/* Ionizer — horizontal from right */}
@@ -1887,7 +1894,7 @@ function Canvas({a, stepIdx, activeSteps}){
                     <line x1={UNIT_X+PLEN_W} y1={rodY} x2={rodTip} y2={rodY} stroke="rgba(253,224,71,.22)" strokeWidth={8} strokeLinecap="round" filter="url(#glow-uv)"/>
                     <line x1={UNIT_X+PLEN_W} y1={rodY} x2={rodTip} y2={rodY} stroke="rgba(253,224,71,.8)" strokeWidth={2.2} strokeLinecap="round"/>
                     <circle cx={rodTip} cy={rodY} r={3} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
-                    <text x={bulbX+18} y={rodY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="5" fontFamily="monospace">IONIZER</text>
+                    <text x={bulbX+18} y={rodY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="6" fontFamily="monospace">IONIZER</text>
                   </g>;
                 })()}
               </>;
@@ -1915,10 +1922,10 @@ function Canvas({a, stepIdx, activeSteps}){
                       r={Math.min(UNIT_W*0.32,ACOIL_H*0.18)}
                       spd={active?1.4:0.4} active={active||!heatMode}/>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.24+UNIT_W*0.32+12} textAnchor="middle"
-                      fill={G+'.26)'} fontSize="5.5" fontFamily="monospace">BLOWER</text>
+                      fill={G+'.26)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
                     <ACoilV x={UNIT_X+8} y={ACOIL_Y+ACOIL_H*0.52+8} w={UNIT_W-16} h={ACOIL_H*0.46-16} active={active}/>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H-7} textAnchor="middle"
-                      fill={active?evapC:(G+'.24)')} fontSize="5.5" fontFamily="monospace">A-COIL</text>
+                      fill={active?evapC:(G+'.24)')} fontSize="6.5" fontFamily="monospace">A-COIL</text>
                   </>
                 }
                 {hasCond&&<>
@@ -1927,12 +1934,12 @@ function Canvas({a, stepIdx, activeSteps}){
                   <path d={`M${UNIT_X+UNIT_W} ${ACOIL_Y+ACOIL_H*0.52} L${UNIT_X+UNIT_W+28} ${ACOIL_Y+ACOIL_H*0.52}`}
                     fill="none" stroke={active?evapC2:'rgba(32,32,52,.4)'} strokeWidth="2.8" strokeLinecap="round" className="draw" style={{animationDelay:'.08s'}}/>
                   {active&&<text x={UNIT_X+UNIT_W+14} y={ACOIL_Y+ACOIL_H*0.24}
-                    textAnchor="middle" fill={evapC} fontSize="7" fontFamily="monospace">
+                    textAnchor="middle" fill={evapC} fontSize="8" fontFamily="monospace">
                     {refReversed?'←':'→'}
                   </text>}
                 </>}
                 <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H+12} textAnchor="middle"
-                  fill={active?evapC:(G+'.35)')} fontSize="6" fontFamily="monospace">
+                  fill={active?evapC:(G+'.35)')} fontSize="7" fontFamily="monospace">
                   {hasFurnace?"A-COIL":"AIR HANDLER"}
                 </text>
               </>;
@@ -1966,13 +1973,13 @@ function Canvas({a, stepIdx, activeSteps}){
                 fill={O+'.55)'} className="glow-pulse" style={{animationDelay:i*0.12+'s'}}/>
             ))}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H/4+6} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.44)':(G+'.24)')} fontSize="5.5" fontFamily="monospace">HEAT EXCH.</text>
+              fill={furnaceActive?'rgba(249,115,22,.44)':(G+'.24)')} fontSize="6.5" fontFamily="monospace">HEAT EXCH.</text>
             {/* BOTTOM: blower */}
             <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.75}
               r={Math.min(UNIT_W*0.32,FURN_H*0.18)}
               spd={furnaceActive?1.55:0.5} active={furnaceActive||!heatMode}/>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
-              fill={G+'.26)'} fontSize="5.5" fontFamily="monospace">BLOWER</text>
+              fill={G+'.26)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
             {/* Flue — 45° elbow routing:
                 exits top of furnace → 45° elbow left → horizontal run → 45° elbow up → vertical through roof */}
             {(()=>{
@@ -2012,15 +2019,14 @@ function Canvas({a, stepIdx, activeSteps}){
                 {/* Cap at top */}
                 {!is90&&<path d={`M${HORIZ_X-PIPE_W-2} ${TOP_Y+4} L${HORIZ_X} ${TOP_Y-2} L${HORIZ_X+PIPE_W+2} ${TOP_Y+4}`} fill={PIPE_C}/>}
                 <text x={HORIZ_X} y={TOP_Y-6} textAnchor="middle"
-                  fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="5" fontFamily="monospace">
+                  fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="6" fontFamily="monospace">
                   {is90?'PVC':'B-VENT'}
                 </text>
               </>;
             })()}
-            <rect x={UNIT_X+4} y={FURN_Y+11} width={isComm?62:is2?52:44} height="8" rx="2" fill={isComm?"url(#blue)":(G+'.1)')}/>
-            <text x={UNIT_X+7} y={FURN_Y+18} fill={isComm?"#fff":(G+'.78)')} fontSize="5.5" fontFamily="monospace">{isComm?'COMMUNICATING':is2?'2-STAGE':'1-STAGE'}</text>
+            {isComm&&<><rect x={UNIT_X+4} y={FURN_Y+11} width={62} height="8" rx="2" fill="url(#blue)"/><text x={UNIT_X+7} y={FURN_Y+18} fill="#fff" fontSize="6.5" fontFamily="monospace">COMMUNICATING</text></>}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H+12} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.62)':(G+'.36)')} fontSize="6" fontFamily="monospace">FURNACE</text>
+              fill={furnaceActive?'rgba(249,115,22,.62)':(G+'.36)')} fontSize="7" fontFamily="monospace">FURNACE</text>
           </g>}
 
           {/* Aprilaire — between bottom of unit and 2x4 chase */}
@@ -2033,7 +2039,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 stroke="#22c55e" strokeWidth="0.6" opacity="0.52"/>
             ))}
             <text x={UNIT_X+UNIT_W/2} y={APR_Y-4} textAnchor="middle"
-              fill="#22c55e" fontSize="5.5" fontFamily="monospace">APRILAIRE 5" FILTER RACK</text>
+              fill="#22c55e" fontSize="6.5" fontFamily="monospace">APRILAIRE 5" FILTER RACK</text>
           </g>}
 
           {/* 2×4 return chase */}
@@ -2050,7 +2056,7 @@ function Canvas({a, stepIdx, activeSteps}){
               fill="none" stroke={W+'.09)'} strokeWidth="1"
               strokeDasharray="5 3" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
             <text x={UNIT_X+UNIT_W/2} y={VH-8} textAnchor="middle"
-              fill="rgba(138,98,42,.62)" fontSize="6" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
+              fill="rgba(138,98,42,.62)" fontSize="7" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
           </g>}
 
           {/* Condensate drain — exits right face of coil, runs right past furnace into 2x4 chase */}
@@ -2068,15 +2074,15 @@ function Canvas({a, stepIdx, activeSteps}){
                 fill="none" stroke={B+'.42)'} strokeWidth="1.8" strokeDasharray="4 3" strokeLinecap="round"/>
               {/* DRAIN label */}
               {!hasPump&&<text x={drainExitX+6} y={drainExitY-4} textAnchor="start"
-                fill={B+'.4)'} fontSize="5" fontFamily="monospace">DRAIN</text>}
+                fill={B+'.4)'} fontSize="6" fontFamily="monospace">DRAIN</text>}
               {hasPump&&<>
                 {/* Condensate pump box inside the 2x4 return chase */}
                 <rect x={chaseCX-26} y={pumpY} width={52} height={22} rx="3"
                   fill="rgba(35,137,224,.18)" stroke={B+'.6)'} strokeWidth="1.2"/>
                 <text x={chaseCX} y={pumpY+9} textAnchor="middle"
-                  fill={B+'.85)'} fontSize="5.5" fontFamily="monospace">COND. PUMP</text>
+                  fill={B+'.85)'} fontSize="6.5" fontFamily="monospace">COND. PUMP</text>
                 <text x={chaseCX} y={pumpY+18} textAnchor="middle"
-                  fill={B+'.5)'} fontSize="5" fontFamily="monospace">condensate</text>
+                  fill={B+'.5)'} fontSize="6" fontFamily="monospace">condensate</text>
               </>}
             </>;
           })()}
@@ -2140,7 +2146,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   <path d={`M${TX+28} ${TY+67} Q${TX+38} ${TY+61} ${TX+48} ${TY+67}`}
                     fill="none" stroke={B+'.7)'} strokeWidth="1.8" strokeLinecap="round"/>
                   <circle cx={TX+38} cy={TY+71} r={2.5} fill={B+'.8)'}/>
-                  <text x={TX+38} y={TY+85} textAnchor="middle" fill={G+'.45)'} fontSize="6.5" fontFamily="monospace">WI-FI SMART</text>
+                  <text x={TX+38} y={TY+85} textAnchor="middle" fill={G+'.45)'} fontSize="7.5" fontFamily="monospace">WI-FI SMART</text>
                 </>
                 :<>
                   <rect x={TX} y={TY} width={76} height={62} rx="3"
@@ -2153,7 +2159,7 @@ function Canvas({a, stepIdx, activeSteps}){
                     <rect key={i} x={TX+bx-4} y={TY+46} width="9" height="5" rx="1.5"
                       fill={G+'.22)'} stroke={G+'.12)'} strokeWidth="0.4"/>
                   ))}
-                  <text x={TX+38} y={TY+58} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">BASIC</text>
+                  <text x={TX+38} y={TY+58} textAnchor="middle" fill={G+'.38)'} fontSize="7" fontFamily="monospace">BASIC</text>
                 </>;
             })()}
           </g>}
@@ -2189,10 +2195,10 @@ function Canvas({a, stepIdx, activeSteps}){
                   :<>
                     <rect x={pipe1X-2} y={0} width={5} height={BY} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
                     <rect x={pipe1X-5} y={0} width={11} height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
-                    <text x={pipe1X} y={-2} textAnchor="middle" fill={B+'.6)'} fontSize="5.5" fontFamily="monospace">IN</text>
+                    <text x={pipe1X} y={-2} textAnchor="middle" fill={B+'.6)'} fontSize="6.5" fontFamily="monospace">IN</text>
                     <rect x={pipe2X-2} y={0} width={5} height={BY} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
                     <path d={'M'+(pipe2X-4)+' 2 L'+pipe2X+' -5 L'+(pipe2X+4)+' 2'} fill="rgba(249,115,22,.4)"/>
-                    <text x={pipe2X} y={-2} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="5.5" fontFamily="monospace">OUT</text>
+                    <text x={pipe2X} y={-2} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="6.5" fontFamily="monospace">OUT</text>
                     <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
                     <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
                   </>
@@ -2205,12 +2211,12 @@ function Canvas({a, stepIdx, activeSteps}){
                 {isDehu
                   ?<>
                     <text x={BX+BW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="11">💧</text>
-                    <text x={BX+BW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="7" fontFamily="monospace">DEHU</text>
+                    <text x={BX+BW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="8" fontFamily="monospace">DEHU</text>
                   </>
                   :<>
                     <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
                     <path d={'M'+(BX+BW-8)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
-                    <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="9" fontFamily="monospace">ERV</text>
+                    <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="10" fontFamily="monospace">ERV</text>
                   </>
                 }
               </g>;
