@@ -1678,7 +1678,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasCoil&&<g key="attic-drain">
             {(()=>{
               const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
-              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.76);
+              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.60);
               const drainTopY=UNIT_Y+UNIT_H+4;
               if(hasPump){
                 const pW=58, pH=20;
@@ -1757,8 +1757,8 @@ function Canvas({a, stepIdx, activeSteps}){
     const APR_Y=hasFurnace?FURN_Y+FURN_H:ACOIL_Y+ACOIL_H;
     const CHASE_H=52;
     const CHASE_Y=APR_Y+APR_H+2;
-    const LS_Y1=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.30):ACOIL_Y+Math.round(ACOIL_H*0.80);
-    const LS_Y2=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.48):ACOIL_Y+Math.round(ACOIL_H*0.88);
+    const LS_Y1=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.30):ACOIL_Y+Math.round(ACOIL_H*0.88);
+    const LS_Y2=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.48):ACOIL_Y+Math.round(ACOIL_H*0.92);
 
     // Condenser — same real-world proportions, scaled to fill ~70% of outside zone
     const PX=3.2;
@@ -2009,11 +2009,11 @@ function Canvas({a, stepIdx, activeSteps}){
                   </>
                 }
                 {hasCond&&!hasFurnace&&<>
-                  <path d={`M${UNIT_X+UNIT_W} ${ACOIL_Y+ACOIL_H*0.84} L${UNIT_X+UNIT_W+28} ${ACOIL_Y+ACOIL_H*0.84}`}
+                  <path d={`M${UNIT_X+UNIT_W} ${ACOIL_Y+ACOIL_H*0.88} L${UNIT_X+UNIT_W+28} ${ACOIL_Y+ACOIL_H*0.88}`}
                     fill="none" stroke={active?evapC:'rgba(32,32,52,.5)'} strokeWidth="2.8" strokeLinecap="round" className="draw"/>
-                  <path d={`M${UNIT_X+UNIT_W} ${ACOIL_Y+ACOIL_H*0.91} L${UNIT_X+UNIT_W+28} ${ACOIL_Y+ACOIL_H*0.91}`}
+                  <path d={`M${UNIT_X+UNIT_W} ${ACOIL_Y+ACOIL_H*0.92} L${UNIT_X+UNIT_W+28} ${ACOIL_Y+ACOIL_H*0.92}`}
                     fill="none" stroke={active?evapC2:'rgba(32,32,52,.4)'} strokeWidth="2.8" strokeLinecap="round" className="draw" style={{animationDelay:'.08s'}}/>
-                  {active&&<text x={UNIT_X+UNIT_W+14} y={ACOIL_Y+ACOIL_H*0.84-8}
+                  {active&&<text x={UNIT_X+UNIT_W+14} y={ACOIL_Y+ACOIL_H*0.88-8}
                     textAnchor="middle" fill={evapC} fontSize="8" fontFamily="monospace">
                     {refReversed?'←':'→'}
                   </text>}
