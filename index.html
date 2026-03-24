@@ -56,7 +56,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 @keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
 
 /* SIDEBAR */
-.sidebar{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;max-height:calc(100vh - 45px)}
+.sidebar{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;width:320px;flex-shrink:0;height:100%}
 @media(max-width:860px){.sidebar{border-left:none;border-top:1px solid var(--border);max-height:none}}
 
 /* STEP HEADER */
@@ -67,18 +67,18 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .step-hint{font-size:11px;color:var(--mut);line-height:1.5}
 
 /* OPTIONS */
-.opts{padding:12px 14px;display:flex;flex-direction:column;gap:7px;flex:1}
-.opt{background:var(--surf);border:1px solid var(--border);cursor:pointer;text-align:left;outline:none;-webkit-appearance:none;transition:border-color .15s,background .15s;position:relative;overflow:hidden}
+.opts{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1;min-height:0}
+.opt{background:var(--surf);border:1px solid var(--border);cursor:pointer;text-align:left;outline:none;-webkit-appearance:none;transition:border-color .15s,background .15s;position:relative;overflow:hidden;flex:1;display:flex;align-items:stretch}
 .opt:hover{border-color:rgba(215,183,64,.35);background:#1a1a1a}
 .opt.sel{border-color:var(--gl);background:rgba(240,214,78,.05)}
 .opt.sel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
 .opt.disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
-.opt-inner{display:flex;align-items:flex-start;gap:10px;padding:11px 13px 11px 16px}
+.opt-inner{display:flex;align-items:flex-start;gap:10px;padding:11px 13px 11px 16px;width:100%;min-height:0}
 .opt-vis{width:52px;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(215,183,64,.05);border:1px solid rgba(215,183,64,.1)}
 .opt-body{flex:1;min-width:0}
-.opt-label{font-family:var(--ft);font-size:13px;font-weight:600;color:var(--wh);display:block;margin-bottom:2px;line-height:1.3}
+.opt-label{font-family:var(--ft);font-size:13px;font-weight:600;color:var(--wh);display:block;margin-bottom:2px;line-height:1.3;white-space:normal}
 .opt.sel .opt-label{color:var(--gl)}
-.opt-desc{font-size:12px;color:var(--dim);line-height:1.5;display:block}
+.opt-desc{font-size:11.5px;color:var(--dim);line-height:1.5;display:block}
 .opt.sel .opt-desc{color:rgba(240,214,78,.6)}
 .opt-price{font-family:var(--fm);font-size:11px;color:rgba(215,183,64,.65);display:block;margin-top:2px}
 .opt.sel .opt-price{color:var(--gl)}
@@ -1465,61 +1465,42 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* ── DUCTWORK — clean rectangular runs off supply plenum top ── */}
+          {/* ── DUCTWORK — 4 stems off supply plenum top and bottom ── */}
           {hasPlenum&&hasCoil&&<g className="fadein" key="ducts" style={{animationDelay:'.18s'}}>
             {(()=>{
               const pTop=SUP_PLEN_Y;
               const pCX=SUP_X+SUP_PLEN_W/2;
-              const DW=14; // duct width
-              const DC=G+'.32)'; // duct color
-              const DS=G+'.18)'; // duct shadow
-              // Two rectangular duct runs: one left, one right
-              // Each: vertical rise from plenum top, then 90° elbow, then horizontal run with boot cap
+              const DW=14;
+              const DC=G+'.32)';
+              const DS=G+'.18)';
               const leftRunX=SUP_X-60;
               const rightRunX=Math.min(SUP_X+SUP_PLEN_W+60, HOUSE_W-20);
-              const riseH=40; // how far up before turning
-              const elbowR=DW;
-              const pBot=SUP_PLEN_Y+SUP_PLEN_H; // bottom of plenum
+              const riseH=40;
+              const pBot=SUP_PLEN_Y+SUP_PLEN_H;
               return <>
-                {/* TOP LEFT duct run — exits top of plenum */}
-                <rect x={pCX-DW*1.8-DW/2} y={pTop-riseH} width={DW} height={riseH} rx="0"
-                  fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX} y={pTop-riseH-DW} width={pCX-DW*1.8-leftRunX+DW} height={DW} rx="0"
-                  fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX-4} y={pTop-riseH-DW-4} width={DW+8} height={DW+8} rx="2"
-                  fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
-                <text x={leftRunX+DW/2} y={pTop-riseH-DW-10} textAnchor="middle"
-                  fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                {/* TOP LEFT */}
+                <rect x={pCX-DW*1.8-DW/2} y={pTop-riseH} width={DW} height={riseH} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftRunX} y={pTop-riseH-DW} width={pCX-DW*1.8-leftRunX+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftRunX-4} y={pTop-riseH-DW-4} width={DW+8} height={DW+8} rx="2" fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
+                <text x={leftRunX+DW/2} y={pTop-riseH-DW-10} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
 
-                {/* TOP RIGHT duct run — exits top of plenum */}
-                <rect x={pCX+DW*0.8} y={pTop-riseH} width={DW} height={riseH} rx="0"
-                  fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={pCX+DW*0.8} y={pTop-riseH-DW} width={rightRunX-pCX-DW*0.8} height={DW} rx="0"
-                  fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={rightRunX-4} y={pTop-riseH-DW-4} width={DW+8} height={DW+8} rx="2"
-                  fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
-                <text x={rightRunX+DW/2} y={pTop-riseH-DW-10} textAnchor="middle"
-                  fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                {/* TOP RIGHT */}
+                <rect x={pCX+DW*0.8} y={pTop-riseH} width={DW} height={riseH} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={pCX+DW*0.8} y={pTop-riseH-DW} width={rightRunX-pCX-DW*0.8} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={rightRunX-4} y={pTop-riseH-DW-4} width={DW+8} height={DW+8} rx="2" fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
+                <text x={rightRunX+DW/2} y={pTop-riseH-DW-10} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
 
-                {/* BOTTOM LEFT duct run — exits bottom of plenum, same X as top left */}
-                <rect x={pCX-DW*1.8-DW/2} y={pBot} width={DW} height={riseH} rx="0"
-                  fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX} y={pBot+riseH} width={pCX-DW*1.8-leftRunX+DW} height={DW} rx="0"
-                  fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX-4} y={pBot+riseH+4} width={DW+8} height={DW+8} rx="2"
-                  fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
-                <text x={leftRunX+DW/2} y={pBot+riseH+DW+16} textAnchor="middle"
-                  fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                {/* BOTTOM LEFT */}
+                <rect x={pCX-DW*1.8-DW/2} y={pBot} width={DW} height={riseH} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftRunX} y={pBot+riseH} width={pCX-DW*1.8-leftRunX+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftRunX-4} y={pBot+riseH+4} width={DW+8} height={DW+8} rx="2" fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
+                <text x={leftRunX+DW/2} y={pBot+riseH+DW+16} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
 
-                {/* BOTTOM RIGHT duct run — exits bottom of plenum, same X as top right */}
-                <rect x={pCX+DW*0.8} y={pBot} width={DW} height={riseH} rx="0"
-                  fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={pCX+DW*0.8} y={pBot+riseH} width={rightRunX-pCX-DW*0.8} height={DW} rx="0"
-                  fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={rightRunX-4} y={pBot+riseH+4} width={DW+8} height={DW+8} rx="2"
-                  fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
-                <text x={rightRunX+DW/2} y={pBot+riseH+DW+16} textAnchor="middle"
-                  fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                {/* BOTTOM RIGHT */}
+                <rect x={pCX+DW*0.8} y={pBot} width={DW} height={riseH} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={pCX+DW*0.8} y={pBot+riseH} width={rightRunX-pCX-DW*0.8} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={rightRunX-4} y={pBot+riseH+4} width={DW+8} height={DW+8} rx="2" fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
+                <text x={rightRunX+DW/2} y={pBot+riseH+DW+16} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
               </>;
             })()}
           </g>}
@@ -1617,7 +1598,7 @@ function Canvas({a, stepIdx, activeSteps}){
               // Dehu: left of furnace center (clear of flue which is on right side)
               const dehuBX=sysX+44;
               // ERV: far left of return plenum
-              const ervBX=Math.max(8, RET_X-BW+56);
+              const ervBX=Math.max(8, RET_X-BW+80);
               const BY=UNIT_Y-BH-14;
               const roofY=EAVE_Y+14;
               const boxes=[];
@@ -1673,7 +1654,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasCoil&&<g key="attic-drain">
             {(()=>{
               const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
-              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.68);
+              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.76);
               const drainTopY=UNIT_Y+UNIT_H+4;
               if(hasPump){
                 const pW=58, pH=20;
@@ -1743,7 +1724,7 @@ function Canvas({a, stepIdx, activeSteps}){
     const PLEN_TOP=DECK_Y-PLEN_ABOVE;
     const PLEN_BOT=DECK_Y+PLEN_BELOW;
 
-    const UNIT_BOT_OFFSET=72; // always offset unit below deck — gives chase room
+    const UNIT_BOT_OFFSET=57; // matches PLEN_BELOW so plenum is flush with unit top
     const UNIT_TOP=DECK_Y+UNIT_BOT_OFFSET;
     const ACOIL_H=hasFurnace?COIL_H:AH_H;
     const ACOIL_Y=UNIT_TOP;
@@ -1925,6 +1906,55 @@ function Canvas({a, stepIdx, activeSteps}){
                     <text x={bulbX+18} y={rodY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="6" fontFamily="monospace">IONIZER</text>
                   </g>;
                 })()}
+              </>;
+            })()}
+          </g>}
+
+          {/* Upflow supply ducts — exit plenum sides, run long, drop to ceiling grille */}
+          {hasPlenum&&hasCoil&&a.plenum!=='none'&&<g className="fadein" key="upflow-ducts" style={{animationDelay:'.2s'}}>
+            {(()=>{
+              const DW=13; // duct thickness
+              const DC=G+'.30)';
+              const DS=G+'.16)';
+              const GW=DW+10; // grille width
+              // Ducts exit at upper portion of plenum's attic section
+              const exitY=PLEN_TOP+Math.round(PLEN_ABOVE*0.38);
+              // How far out before dropping — well past unit edges
+              const leftDropX=UNIT_X-120;
+              const rightDropX=UNIT_X+PLEN_W+120;
+              // Vertical drop goes from exitY down to DECK_Y
+              return <>
+                {/* ── LEFT DUCT ── */}
+                {/* Horizontal run from plenum left face outward */}
+                <rect x={leftDropX} y={exitY} width={UNIT_X-leftDropX} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                {/* Vertical drop from horizontal run down to deck */}
+                <rect x={leftDropX} y={exitY} width={DW} height={DECK_Y-exitY} fill={DC} stroke={DS} strokeWidth="1"/>
+                {/* Ceiling grille at DECK_Y */}
+                <rect x={leftDropX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1"
+                  fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
+                {Array.from({length:5},(_,i)=>(
+                  <line key={i} x1={leftDropX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
+                    x2={leftDropX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8}
+                    stroke={DC} strokeWidth="0.8"/>
+                ))}
+                <text x={leftDropX+DW/2} y={DECK_Y+18} textAnchor="middle"
+                  fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+
+                {/* ── RIGHT DUCT ── */}
+                {/* Horizontal run from plenum right face outward */}
+                <rect x={UNIT_X+PLEN_W} y={exitY} width={rightDropX-(UNIT_X+PLEN_W)+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                {/* Vertical drop down to deck */}
+                <rect x={rightDropX} y={exitY} width={DW} height={DECK_Y-exitY} fill={DC} stroke={DS} strokeWidth="1"/>
+                {/* Ceiling grille at DECK_Y */}
+                <rect x={rightDropX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1"
+                  fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
+                {Array.from({length:5},(_,i)=>(
+                  <line key={i} x1={rightDropX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
+                    x2={rightDropX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8}
+                    stroke={DC} strokeWidth="0.8"/>
+                ))}
+                <text x={rightDropX+DW/2} y={DECK_Y+18} textAnchor="middle"
+                  fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
               </>;
             })()}
           </g>}
