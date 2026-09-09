@@ -2556,9 +2556,11 @@ function App(){
                 </div>
               ):null)}
             </div>
-            <a href="tel:5124894653" className="done-cta" style={{marginBottom:8}}>📞 Schedule Your Free Visit — 512-489-4653</a>
+            <a href="tel:5124894653" className="done-cta" style={{marginBottom:8}}>
+              <span style={{display:"block"}}>📞 Schedule Your Free Visit</span>
+              <span style={{display:"block",fontSize:"12px",opacity:.85,marginTop:2}}>512-489-4653</span>
+            </a>
             <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"block",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",marginBottom:8,textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 FINANCING AVAILABLE — CHECK YOUR RATE</a>
-            <div style={{background:"rgba(215,183,64,.06)",border:"1px solid rgba(215,183,64,.18)",padding:"8px 12px",fontSize:"11px",color:"rgba(215,183,64,.7)",lineHeight:"1.55",marginBottom:10}}>Ask about current manufacturer discounts — can save you hundreds.</div>
             <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",letterSpacing:".08em",marginBottom:8}}>⬇ SAVE / PRINT BUILD SUMMARY</button>
             <div style={{display:"flex",gap:8,width:"100%"}}>
               <button className="btn-back" style={{flex:1,padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
