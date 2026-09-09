@@ -226,12 +226,12 @@ const STEPS=[
     showIf:a=>a.indoor_type==='furnace'},
   {id:'plenum',      q:'What about the supply plenum?',
     hint:'The plenum is the box that distributes conditioned air from your unit into all your ducts.', optional:false},
+  {id:'cond_tier',   q:'Choose your efficiency level.',
+    hint:'Higher efficiency = lower monthly bills and better humidity control.', optional:false},
   {id:'thermostat',  q:'Which thermostat?',
     hint:'Smart thermostats save 10–15% on energy bills.',            optional:false},
   {id:'purif',       q:'Air purification add-ons?',
     hint:'Select any combination — installed inside the air handler.',optional:true, multi:true},
-  {id:'cond_tier',   q:'Choose your efficiency level.',
-    hint:'Higher efficiency = lower monthly bills and better humidity control.', optional:false},
   {id:'system_for',  q:'Heat pump or straight cool?',
     hint:'Heat pump both heats and cools. Straight cool = AC only, furnace does all heating.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
@@ -266,7 +266,11 @@ function getOpts(stepId, answers){
       {v:'metal',    label:'Sheet metal plenum',desc:'Galvanized sheet metal — more durable, lasts 25+ years, better for high-humidity attics. Preferred when the system is expected to run hard.'},
       {v:'none',     label:'Keep existing',     desc:'Your current plenum is in good condition. We will connect to it directly — saves on material and labor.'},
     ];
-    case 'thermostat':return[
+    case 'thermostat':
+      if(answers.cond_tier==='high_ge18')return[
+        {v:'proprietary',label:'Proprietary Communicating Thermostat', desc:'Required at this efficiency tier — talks directly to the furnace/air handler and condenser over a dedicated communicating protocol for the most precise comfort, staging, and diagnostics.'},
+      ];
+      return[
       {v:'basic',label:'Basic Programmable', desc:'Reliable, accurate, no app or subscription required. Set your schedule and it runs. Best choice if you prefer simple controls.'},
       {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, set schedules, get energy reports. Learns your habits over time. Saves 10–15% on energy bills on average.',badge:true},
     ];
@@ -275,7 +279,11 @@ function getOpts(stepId, answers){
       {v:'uv',       label:'UV Light System',    desc:'UV-C bulb mounted inside the air handler keeps the evaporator coil clean for longevity and efficiency. Eliminates musty odors at the source.'},
       {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Emits charged ions throughout your duct system that neutralize airborne particles, odors, VOCs, and smoke. Works while the system runs.'},
     ];
-    case 'system_for':return[
+    case 'system_for':
+      if(answers.cond_tier==='mid_ge15')return[
+        {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Mid-efficiency is only available as dual fuel: heat pump cools in summer and heats efficiently down to ~35°F, gas furnace takes over below that.'},
+      ];
+      return[
       {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Best of both: heat pump cools in summer and heats efficiently down to ~35°F. Below that the gas furnace takes over. Lowest combined energy bill.'},
       {v:'sc', label:'Straight Cool',        desc:'AC cools only. Your gas furnace handles all heating year-round. Simpler system, lower upfront cost. Good if heating efficiency is not a priority.'},
     ];
@@ -323,8 +331,7 @@ function Canvas({a, stepIdx, activeSteps}){
   const isSurge=Array.isArray(a.extras)&&a.extras.includes('surge');
   const is90=a.furnace_eff==='e90';
   const isSpray=a.insulation==='spray';
-  // a.stage is never set by any step yet — isComm is always false until a "communicating system" tier is wired in
-  const isComm=a.stage==='comm';
+  const isComm=a.cond_tier==='high_ge18';
   const isDualFuel=hasFurnace&&(a.system_for==='hp');
   const furnaceHeatActive=heatMode&&hasFurnace&&(!isDualFuel||heatSubMode==='furnace');
   const furnaceActive=furnaceHeatActive;
@@ -1606,7 +1613,8 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasTstat&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
             {(()=>{
               const TX=HOUSE_W-110, TY=DECK_Y+16;
-              const isWifi=a.thermostat==='wifi';
+              const isProprietary=a.thermostat==='proprietary';
+              const isWifi=a.thermostat==='wifi'||isProprietary;
               return isWifi
                 ?<>
                   <circle cx={TX+44} cy={TY+42} r={40} fill="#0d0d0d" stroke={G+'.65)'} strokeWidth="2"/>
@@ -1620,7 +1628,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   <path d={`M${TX+35} ${TY+74} Q${TX+44} ${TY+67} ${TX+53} ${TY+74}`}
                     fill="none" stroke={B+'.7)'} strokeWidth="2" strokeLinecap="round"/>
                   <circle cx={TX+44} cy={TY+78} r={3} fill={B+'.8)'}/>
-                  <text x={TX+44} y={TY+94} textAnchor="middle" fill={G+'.5)'} fontSize="8" fontFamily="monospace">WI-FI SMART</text>
+                  <text x={TX+44} y={TY+94} textAnchor="middle" fill={G+'.5)'} fontSize="8" fontFamily="monospace">{isProprietary?'COMMUNICATING':'WI-FI SMART'}</text>
                 </>
                 :<>
                   <rect x={TX} y={TY} width={90} height={74} rx="4"
@@ -2254,7 +2262,8 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasTstat&&<g className="snap" key="tstat-c" style={{animationDelay:'.26s'}}>
             {(()=>{
               const TX=UNIT_X-UNIT_W-14, TY=ACOIL_Y+Math.round(ACOIL_H*0.75);
-              return a.thermostat==='wifi'
+              const isProprietaryC=a.thermostat==='proprietary';
+              return(a.thermostat==='wifi'||isProprietaryC)
                 ?<>
                   <circle cx={TX+38} cy={TY+38} r={36} fill="#0d0d0d" stroke={G+'.62)'} strokeWidth="1.8"/>
                   <circle cx={TX+38} cy={TY+38} r={28} fill="#060e1c" stroke={B+'.42)'} strokeWidth="1.1"/>
@@ -2267,7 +2276,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   <path d={`M${TX+28} ${TY+67} Q${TX+38} ${TY+61} ${TX+48} ${TY+67}`}
                     fill="none" stroke={B+'.7)'} strokeWidth="1.8" strokeLinecap="round"/>
                   <circle cx={TX+38} cy={TY+71} r={2.5} fill={B+'.8)'}/>
-                  <text x={TX+38} y={TY+85} textAnchor="middle" fill={G+'.45)'} fontSize="7.5" fontFamily="monospace">WI-FI SMART</text>
+                  <text x={TX+38} y={TY+85} textAnchor="middle" fill={G+'.45)'} fontSize="7.5" fontFamily="monospace">{isProprietaryC?'COMMUNICATING':'WI-FI SMART'}</text>
                 </>
                 :<>
                   <rect x={TX} y={TY} width={76} height={62} rx="3"
@@ -2392,6 +2401,13 @@ function App(){
     const next={...p,[k]:v};
     // Auto-set furnace_eff when insulation is chosen
     if(k==='insulation') next.furnace_eff=deriveFurnaceEff(v);
+    // Changing efficiency tier can invalidate an already-picked thermostat/system_for —
+    // clear those so the (now differently-filtered) step forces a fresh explicit pick.
+    if(k==='cond_tier'){
+      const thermostatStillValid=v==='high_ge18'?p.thermostat==='proprietary':p.thermostat!=='proprietary';
+      if(!thermostatStillValid) delete next.thermostat;
+      if(v==='mid_ge15'&&p.system_for==='sc') delete next.system_for;
+    }
     return next;
   });
   const toggle=(k,v)=>setAnswers(p=>{const c=Array.isArray(p[k])?p[k]:[];return{...p,[k]:c.includes(v)?c.filter(x=>x!==v):[...c,v]};});
@@ -2611,7 +2627,7 @@ function App(){
                 {step:"indoor_type",label:"Indoor unit",val:answers.indoor_type==="furnace"?"Gas furnace":answers.indoor_type==="ah"?"Air handler":null},
                 answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam — 90% AFUE":"Fiberglass — 80% AFUE"}:null,
                 {step:"plenum",label:"Plenum",val:answers.plenum==="ductboard"?"New ductboard plenum":answers.plenum==="metal"?"New sheet metal plenum":answers.plenum==="none"?"Keep existing plenum":null},
-                {step:"thermostat",label:"Thermostat",val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":null},
+                {step:"thermostat",label:"Thermostat",val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null},
                 Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Air quality",val:answers.purif.map(v=>v==="aprilaire"?"5\" Filter Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v).join(" + ")}:null,
                 {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum — 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency — 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency — 21 SEER2":null},
                 answers.system_for?{step:"system_for",label:"Heat source",val:answers.system_for==="hp"?"Dual Fuel — heat pump + furnace":"Straight cool — furnace only"}:null,
