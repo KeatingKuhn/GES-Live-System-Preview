@@ -119,6 +119,9 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
 .splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
 .splash-sub{font-family:var(--fm);font-size:13px;color:rgba(215,183,64,.5);letter-spacing:.22em;margin-top:-8px}
+.trust-line{font-family:var(--fb);font-size:12px;color:rgba(255,255,255,.4);letter-spacing:.02em;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.trust-line strong{color:rgba(215,183,64,.75);font-weight:600}
+.trust-dot{color:rgba(255,255,255,.2)}
 .splash-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .splash-card{width:360px;padding:28px 32px;background:rgba(215,183,64,.04);border:1px solid rgba(215,183,64,.15);cursor:pointer;transition:all .18s;display:flex;flex-direction:row;align-items:center;gap:18px}
 .splash-card:hover{background:rgba(215,183,64,.09);border-color:rgba(215,183,64,.4);transform:translateY(-2px)}
@@ -2350,7 +2353,29 @@ function Canvas({a, stepIdx, activeSteps}){
   return null;
 }
 // ─── APP ────────────────────────────────────────────────────────
+// ─── AUTOSAVE ───────────────────────────────────────────────────
+const SAVE_KEY='gesBuild_v1';
+const SAVE_MAX_AGE_MS=14*24*60*60*1000; // ignore builds older than 14 days
+function loadSavedBuild(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return null;
+    const s=JSON.parse(raw);
+    if(!s||!s.answers||!s.answers.location)return null;
+    if(!s.ts||Date.now()-s.ts>SAVE_MAX_AGE_MS)return null;
+    return s;
+  }catch(e){return null;}
+}
+function saveBuild(state){
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({...state,ts:Date.now()}));}catch(e){}
+}
+function clearSavedBuild(){
+  try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+}
+
 function App(){
+  const [savedBuild]=useState(loadSavedBuild);
+  const [resumePending,setResumePending]=useState(!!savedBuild);
   const [answers,setAnswers]=useState({});
   const [stepIdx,setStepIdx]=useState(0);
   const [done,setDone]=useState(false);
@@ -2382,7 +2407,19 @@ function App(){
     if(stepIdx>0){setStepIdx(s=>s-1);scrollTop();}
   };
   const skip=()=>{if(cur.multi)setA(cur.id,[]);goNext();};
-  const restart=()=>{setAnswers({});setStepIdx(0);setDone(false);};
+  const restart=()=>{clearSavedBuild();setAnswers({});setStepIdx(0);setDone(false);};
+  const resumeBuild=()=>{
+    setAnswers(savedBuild.answers||{});
+    setStepIdx(savedBuild.stepIdx||0);
+    setDone(!!savedBuild.done);
+    setResumePending(false);
+  };
+  const discardSavedBuild=()=>{clearSavedBuild();setResumePending(false);};
+
+  React.useEffect(()=>{
+    if(resumePending||!answers.location)return;
+    saveBuild({answers,stepIdx,done});
+  },[answers,stepIdx,done,resumePending]);
 
   const opts=useMemo(()=>cur?getOpts(cur.id,answers):[], [cur,answers]);
 
@@ -2439,6 +2476,24 @@ function App(){
 
     return(
     <div ref={topRef} className="app-root">
+      {/* ── RESUME PROMPT — shown once on load if a saved build exists ── */}
+      {resumePending&&<div style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
+        <div className="splash-logo" style={{fontSize:"clamp(28px,6vw,44px)"}}>WELCOME BACK</div>
+        <p style={{fontFamily:"var(--fb)",fontSize:15,color:"rgba(255,255,255,.6)",maxWidth:420,lineHeight:1.6}}>
+          {(()=>{
+            const savedSteps=STEPS.filter(s=>!s.showIf||s.showIf(savedBuild.answers));
+            const savedCur=savedSteps[savedBuild.stepIdx];
+            return savedBuild.done
+              ? "You already finished building a system. Pick up right where you left off?"
+              : savedCur
+                ? <>You were on <strong style={{color:"rgba(255,255,255,.85)"}}>"{savedCur.q}"</strong> — want to keep going?</>
+                : "You have a build in progress. Want to keep going?";
+          })()}
+        </p>
+        <button className="done-cta" style={{width:220}} onClick={resumeBuild}>Resume My Build</button>
+        <button className="done-restart" onClick={discardSavedBuild}>Start Fresh Instead</button>
+      </div>}
+
       {/* ── PROGRESS BAR ── */}
       <div className="prog" style={{position:"absolute",top:0,left:0,right:0,zIndex:30}}><div className="prog-fill" style={{width:done?"100%":`${pct}%`}}/></div>
 
@@ -2446,6 +2501,13 @@ function App(){
       <div className={"splash-screen"+(loc||done?" out":"")}>
         <div className="splash-logo">GOLD EAGLE SERVICES</div>
         <div className="splash-sub">AUSTIN TX  |  512-489-4653  |  GOLDEAGLESERVICES.COM</div>
+        <div className="trust-line">
+          <span><strong>★ 4.9</strong> on Google</span>
+          <span className="trust-dot">·</span>
+          <span>Licensed &amp; Insured</span>
+          <span className="trust-dot">·</span>
+          <span>TACLA #119235C</span>
+        </div>
         <p style={{fontFamily:"var(--fb)",fontSize:"17px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:560,lineHeight:1.7,margin:"8px 0 4px"}}>
           Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system — every component, every connection, sized and labeled.
         </p>
@@ -2562,6 +2624,13 @@ function App(){
                   <button onClick={()=>{const i2=activeSteps.findIndex(s=>s.id===item.step);if(i2>=0){setDone(false);setStepIdx(i2);}}} style={{background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"9px",padding:"3px 8px",cursor:"pointer",flexShrink:0,letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                 </div>
               ):null)}
+            </div>
+            <div className="trust-line" style={{marginBottom:8,fontSize:11}}>
+              <span><strong>★ 4.9</strong> on Google</span>
+              <span className="trust-dot">·</span>
+              <span>Licensed &amp; Insured</span>
+              <span className="trust-dot">·</span>
+              <span>TACLA #119235C</span>
             </div>
             <a href="tel:5124894653" className="done-cta" style={{marginBottom:8}}>
               <span style={{display:"block"}}>📞 Schedule Your Free Visit</span>
