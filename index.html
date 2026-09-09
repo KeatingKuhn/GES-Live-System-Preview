@@ -16,49 +16,30 @@
   --ft:'Lora',Georgia,serif;--fm:'Share Tech Mono',monospace;--fb:'Trebuchet MS',sans-serif;
 
   /* Type scale — mobile/tablet default. Desktop (>=1025px) overrides below. */
-  --fs-opt-label:13px;--fs-opt-desc:11.5px;--fs-opt-price:11px;--fs-opt-badge:8px;--fs-opt-note:10px;
+  --fs-opt-label:13px;--fs-opt-desc:11.5px;--fs-opt-badge:8px;
   --fs-attic-label:13px;--fs-attic-desc:11px;--fs-attic-steplabel:10px;
   --fs-step-eyebrow:8.5px;--fs-step-q:15.5px;--fs-step-hint:11px;
   --fs-info-btn:9px;--fs-info-body:11px;
-  --fs-log-name:10.5px;--fs-log-total-label:10px;--fs-log-total-val:15px;
   --fs-btn-back:12px;--fs-btn-next:13px;--fs-btn-skip:11px;
-  --fs-done-sub:11.5px;--fs-done-note:10px;--fs-info-card:11px;
 }
 @media(min-width:1025px){
   :root{
-    --fs-opt-label:15.5px;--fs-opt-desc:13.5px;--fs-opt-price:12.5px;--fs-opt-badge:9px;--fs-opt-note:11px;
+    --fs-opt-label:15.5px;--fs-opt-desc:13.5px;--fs-opt-badge:9px;
     --fs-attic-label:15.5px;--fs-attic-desc:13px;--fs-attic-steplabel:12px;
     --fs-step-eyebrow:10px;--fs-step-q:18px;--fs-step-hint:13px;
     --fs-info-btn:10px;--fs-info-body:13px;
-    --fs-log-name:12.5px;--fs-log-total-label:11.5px;--fs-log-total-val:17px;
     --fs-btn-back:13.5px;--fs-btn-next:14.5px;--fs-btn-skip:12.5px;
-    --fs-done-sub:13px;--fs-done-note:11px;--fs-info-card:12.5px;
   }
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bk);color:var(--wh);font-family:var(--fb);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.025) 0px,rgba(0,0,0,.025) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:9999}
 
-/* HEADER */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:100}
-.hdr-logo{font-family:var(--ft);font-weight:700;font-size:14px;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em}
-.hdr-step{font-family:var(--fm);font-size:9px;color:rgba(215,183,64,.5);letter-spacing:.18em;text-transform:uppercase;text-align:center}
-.hdr-total-wrap{text-align:right}
-.hdr-total-label{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:1px}
-.hdr-total{font-family:var(--fm);font-size:17px;color:var(--gl);letter-spacing:.04em;transition:all .3s}
-
 /* PROGRESS */
 .prog{height:2px;background:rgba(215,183,64,.08)}
 .prog-fill{height:100%;background:var(--gh);transition:width .55s cubic-bezier(.4,0,.2,1)}
 
-/* LAYOUT */
-.main{display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 45px)}
-@media(max-width:860px){.main{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
-
 /* CANVAS */
-.canvas-wrap{position:relative;background:var(--bk);overflow:hidden}
-.canvas-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(215,183,64,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(215,183,64,.03) 1px,transparent 1px);background-size:36px 36px;pointer-events:none}
-.canvas-tag{position:absolute;top:12px;left:16px;font-family:var(--fm);font-size:9px;color:rgba(215,183,64,.3);letter-spacing:.15em;text-transform:uppercase}
 .canvas-svg{width:100%;height:100%;position:absolute;inset:0}
 
 /* ANIMATIONS */
@@ -74,6 +55,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 @keyframes airflow{to{stroke-dashoffset:-32}}
 .glow-pulse{animation:gpulse 2.5s ease-in-out infinite}
 @keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
+.line-pulse{animation:gpulse 2.2s ease-in-out infinite}
 
 /* SIDEBAR */
 .sidebar{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;width:320px;flex-shrink:0;height:100%}
@@ -98,36 +80,14 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .opt.sel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
 .opt.disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
 .opt-inner{display:flex;align-items:flex-start;gap:10px;padding:11px 13px 11px 16px;width:100%;min-height:0}
-.opt-vis{width:52px;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(215,183,64,.05);border:1px solid rgba(215,183,64,.1)}
 .opt-body{flex:1;min-width:0}
 .opt-label{font-family:var(--ft);font-size:var(--fs-opt-label);font-weight:600;color:var(--wh);display:block;margin-bottom:2px;line-height:1.3;white-space:normal}
 .opt.sel .opt-label{color:var(--gl)}
 .opt-desc{font-size:var(--fs-opt-desc);color:var(--dim);line-height:1.5;display:block}
 .opt.sel .opt-desc{color:rgba(240,214,78,.6)}
-.opt-price{font-family:var(--fm);font-size:var(--fs-opt-price);color:rgba(215,183,64,.65);display:block;margin-top:2px}
-.opt.sel .opt-price{color:var(--gl)}
 .opt-badge{display:inline-block;background:var(--gh);color:var(--bk);font-size:var(--fs-opt-badge);font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;margin-left:6px;vertical-align:middle}
-.opt-badge-blue{background:linear-gradient(90deg,#1a6cb5,#2389e0);color:#fff}
-.opt-note{font-size:var(--fs-opt-note);color:rgba(240,214,78,.45);margin-top:2px;display:block;font-style:italic}
 .opt-check{width:17px;height:17px;border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;margin-top:2px;transition:all .15s}
 .opt.sel .opt-check{border-color:var(--gl);background:var(--gm);color:var(--bk)}
-
-/* INFO CARD */
-.info-card{margin:0 14px 10px;padding:10px 12px;background:rgba(215,183,64,.05);border:1px solid rgba(215,183,64,.15);font-size:var(--fs-info-card);color:rgba(255,255,255,.45);line-height:1.55}
-.info-card strong{color:rgba(255,255,255,.7)}
-
-/* BUILD LOG */
-.build-log{border-top:1px solid var(--border);padding:12px 14px;background:#0a0a0a}
-.log-title{font-family:var(--fm);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(215,183,64,.35);margin-bottom:8px}
-.log-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);gap:8px}
-.log-item:last-child{border-bottom:none}
-.log-name{font-size:var(--fs-log-name);color:var(--dim);display:flex;align-items:center;gap:5px;flex:1;min-width:0}
-.log-dot{width:4px;height:4px;background:var(--gm);flex-shrink:0;border-radius:50%}
-.log-price{font-family:var(--fm);font-size:var(--fs-log-name);color:var(--gm);white-space:nowrap}
-.log-divider{height:1px;background:rgba(215,183,64,.15);margin:8px 0}
-.log-total-row{display:flex;justify-content:space-between;align-items:center}
-.log-total-label{font-size:var(--fs-log-total-label);color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
-.log-total-val{font-family:var(--fm);font-size:var(--fs-log-total-val);color:var(--gl)}
 
 /* NAV */
 .nav-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--panel);position:sticky;bottom:0}
@@ -143,9 +103,6 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .done-wrap{padding:24px 18px;text-align:center;animation:snap .35s ease both;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .done-icon{width:54px;height:54px;background:var(--gh);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--bk);font-weight:700}
 .done-title{font-family:var(--ft);font-size:19px;font-weight:700;color:var(--wh);margin-bottom:6px}
-.done-sub{font-size:var(--fs-done-sub);color:var(--mut);max-width:270px;margin:0 auto 18px;line-height:1.65}
-.done-price{font-family:var(--fm);font-size:30px;background:var(--gd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:3px}
-.done-note{font-size:var(--fs-done-note);color:rgba(255,255,255,.25);margin-bottom:22px}
 .done-cta{display:block;width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px;font-family:var(--ft);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:8px;text-decoration:none;text-align:center}
 .done-restart{background:transparent;border:none;color:rgba(255,255,255,.2);font-family:var(--fb);font-size:11px;cursor:pointer;text-decoration:underline;outline:none}
 
@@ -158,7 +115,6 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .splash-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .splash-card{width:360px;padding:28px 32px;background:rgba(215,183,64,.04);border:1px solid rgba(215,183,64,.15);cursor:pointer;transition:all .18s;display:flex;flex-direction:row;align-items:center;gap:18px}
 .splash-card:hover{background:rgba(215,183,64,.09);border-color:rgba(215,183,64,.4);transform:translateY(-2px)}
-.splash-card-icon{font-size:40px;line-height:1}
 .splash-card-title{font-family:var(--ft);font-size:22px;font-weight:700;color:var(--wh);white-space:nowrap}
 .splash-card-desc{font-family:var(--fb);font-size:13px;color:var(--mut);text-align:left;line-height:1.6}
 /* Attic: canvas fills all, step bar on bottom */
@@ -223,12 +179,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   .nav-row{position:sticky;bottom:0}
 
   /* Done screen */
-  .closet-layout.done-screen,
   div[style*="position:absolute"][style*="inset:0"]{flex-direction:column}
-  
-  /* General */
-  .hdr{padding:8px 14px}
-  .hdr-logo{font-size:12px}
 }
 
 @media(max-width:600px){
@@ -319,8 +270,6 @@ function getOpts(stepId, answers){
       {v:'sc', label:'Straight Cool',        desc:'AC cools only. Your gas furnace handles all heating year-round. Simpler system, lower upfront cost. Good if heating efficiency is not a priority.'},
     ];
     case 'cond_tier':{
-      const isAH=answers.indoor_type==='ah';
-      const isHP=isAH||(answers.system_for==='hp');
       return[
         {v:'fedmin',   label:'Federal Minimum — 14 SEER2', desc:'Meets 2023 federal energy code. Reliable single-stage system, lowest upfront cost. Good choice for rentals or budget installs.'},
         {v:'mid_ge15', label:'Mid Efficiency — 18 SEER2',  desc:'Variable-speed system. Noticeably lower electric bills, better humidity control, quieter operation. Best overall value for most homes.'},
@@ -351,7 +300,6 @@ function Canvas({a, stepIdx, activeSteps}){
   const loc=a.location;
   const isAttic=!loc||loc==='attic';
   const isCloset=loc==='closet';
-  const isFD=loc==='furdown';
   const hasFurnace=a.indoor_type==='furnace';
   const hasCoil=!!a.indoor_type;
   const _purifIdx=activeSteps?activeSteps.findIndex(s=>s.id==='purif'):-1;
@@ -365,13 +313,9 @@ function Canvas({a, stepIdx, activeSteps}){
   const isSurge=Array.isArray(a.extras)&&a.extras.includes('surge');
   const is90=a.furnace_eff==='e90';
   const isSpray=a.insulation==='spray';
+  // a.stage is never set by any step yet — isComm is always false until a "communicating system" tier is wired in
   const isComm=a.stage==='comm';
-  const is2=a.stage==='two';
-  const systemFor=a.indoor_type==='ah'?'hp':(a.system_for||'sc');
-  const isHP=systemFor==='hp'; // heat pump involved (AH always, furnace if hp selected)
-
   const isDualFuel=hasFurnace&&(a.system_for==='hp');
-  const hpHeatActive=heatMode&&isDualFuel&&heatSubMode==='hp';
   const furnaceHeatActive=heatMode&&hasFurnace&&(!isDualFuel||heatSubMode==='furnace');
   const furnaceActive=furnaceHeatActive;
   const evapActive=!heatMode||(isDualFuel?(heatSubMode==='hp'):!hasFurnace);
@@ -382,12 +326,10 @@ function Canvas({a, stepIdx, activeSteps}){
   const evapC  = refReversed ? '#ef4444' : '#2389e0'; // evap: red=HP heat, blue=cool
   const evapC2 = refReversed ? '#fca5a5' : '#7dd3fc';
   const condC  = (heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'))) ? '#2389e0' : '#ef4444';
-  const condC2 = (heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'))) ? '#7dd3fc' : '#fca5a5';
   const line1C = refReversed ? '#2389e0' : '#ef4444';
   const line2C = refReversed ? '#ef4444' : '#2389e0';
 
   const TL={fedmin:'14 SEER2',mid_ge15:'18 SEER2',high_ge18:'21 SEER2',premium:'21 SEER2'}[a.cond_tier]||'';
-  const BL={fedmin:'',mid_ge15:'',high_ge18:'',premium:''}[a.cond_tier]||'';
 
   // ── SUB-COMPONENTS ──────────────────────────────────────────
 
@@ -550,7 +492,6 @@ function Canvas({a, stepIdx, activeSteps}){
           Triangle centroid is at (x+w/2, y + h*2/3) — that's the geometric center.
           Rod runs vertical through the centroid, ~9" at scale (46px) */}
       {hasUV&&(()=>{
-        const rodLen=Math.min(46, h*0.42);
         const rodCX=x+w*0.5;     // horizontal center of the A-frame
         const rodLen2=Math.min(h*0.75, h-12);
         const rodCY=y+h/2;
@@ -1090,7 +1031,6 @@ function Canvas({a, stepIdx, activeSteps}){
     if(ph<80) return null;
     var G2='rgba(215,183,64,'; var W2='rgba(255,255,255,'; var B2='rgba(35,137,224,';
     var seer=tierKey==='high_ge18'?'21':tierKey==='mid_ge15'?'18':'14';
-    var brand='';
     var isHigh=tierKey==='high_ge18'; var isMid=tierKey==='mid_ge15';
     var savings=isMid?'~$28/mo':isHigh?'~$52/mo':null;
     var rebate=isHigh?'$300-800':null;
@@ -1325,9 +1265,6 @@ function Canvas({a, stepIdx, activeSteps}){
     // Condenser sits at ground level in the outside zone
     // OutsideZone groundY = VH-28 = 552. padY = 542. condY = 542-COND_H.
     const COND_Y=VH-28-10-COND_H;
-    // Lineset exits wall at bottom 1/3 of condenser — enters condenser bottom
-    const LS_Y1=COND_Y+Math.round(COND_H*0.72);
-    const LS_Y2=COND_Y+Math.round(COND_H*0.82);
 
     return(
       <div style={{position:'absolute',inset:0}}>
@@ -1656,7 +1593,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {/* ── THERMOSTAT — visible at bottom of living space ── */}
           {hasTstat&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
             {(()=>{
-              const TX=22, TY=DECK_Y+16;
+              const TX=HOUSE_W-110, TY=DECK_Y+16;
               const isWifi=a.thermostat==='wifi';
               return isWifi
                 ?<>
@@ -1693,12 +1630,8 @@ function Canvas({a, stepIdx, activeSteps}){
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&<g>
             {(()=>{
               const sysX=hasFurnace?FURN_X:AH_X;
-              const sysW=hasFurnace?FURN_W:AH_W;
               const BW=80, BH=48;
-              const GAP=8;
               const hasERV=Array.isArray(a.extras)&&a.extras.includes('erv');
-              const both=hasDehu&&hasERV;
-              const totalW=both?(BW*2+GAP):BW;
               // Dehu: left of furnace center (clear of flue which is on right side)
               const dehuBX=sysX+44;
               // ERV: far left of return plenum
@@ -1826,7 +1759,6 @@ function Canvas({a, stepIdx, activeSteps}){
     const PLEN_BELOW=hasPlenum?57:0;
     const PLEN_TOTAL=PLEN_ABOVE+PLEN_BELOW;
     const PLEN_TOP=DECK_Y-PLEN_ABOVE;
-    const PLEN_BOT=DECK_Y+PLEN_BELOW;
 
     const UNIT_BOT_OFFSET=57; // matches PLEN_BELOW so plenum is flush with unit top
     const UNIT_TOP=DECK_Y+UNIT_BOT_OFFSET;
@@ -1835,7 +1767,6 @@ function Canvas({a, stepIdx, activeSteps}){
     const FURN_Y=ACOIL_Y+ACOIL_H+4;
     const APR_H=hasAprilaire?28:0;
     const APR_Y=hasFurnace?FURN_Y+FURN_H:ACOIL_Y+ACOIL_H;
-    const CHASE_H=52;
     const CHASE_Y=APR_Y+APR_H+2;
     const LS_Y1=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.30):ACOIL_Y+Math.round(ACOIL_H*0.88);
     const LS_Y2=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.48):ACOIL_Y+Math.round(ACOIL_H*0.92);
@@ -2234,7 +2165,6 @@ function Canvas({a, stepIdx, activeSteps}){
             const pt1X=exitX+offset;
             const pt1Y=exitY+offset; // 45°
             // Step 2: straight down
-            const chaseInnerX=UNIT_X+UNIT_W+6;
             const chaseBottomY=VH-20;
             const pumpH=24;
             const pumpY=chaseBottomY-pumpH-6;
@@ -2244,7 +2174,6 @@ function Canvas({a, stepIdx, activeSteps}){
             const pt2X=pt1X;
             const pt3X=pt2X-offset; // back left 45°
             const pt3Y=pt2Y+offset;
-            const strokeProps="stroke="+'"'+(B+'.45)')+'"+strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"';
             return <>
               {/* 45° right-down from unit */}
               <line x1={exitX} y1={exitY} x2={pt1X} y2={pt1Y}
@@ -2348,7 +2277,7 @@ function Canvas({a, stepIdx, activeSteps}){
             const rW=hasCond?HOUSE_W:VW-8;
             const rRise=Math.round(Math.min(rW/2*(3/12),60));
             const rEave=rRise+12; // eave Y — bottom of roofline
-            const BW=80, BH=48, GAP=8;
+            const BW=80, BH=48;
             const hasERV=Array.isArray(a.extras)&&a.extras.includes('erv');
             const BY=rEave+42;
             const roofY=rEave+4;
