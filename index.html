@@ -4,6 +4,13 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Build Your System | Gold Eagle Services</title>
+<meta name="description" content="Design your own HVAC system in real time and see a live diagram build as you go. Free, no personal info required — Gold Eagle Services, Austin TX."/>
+<meta property="og:title" content="Build Your System | Gold Eagle Services"/>
+<meta property="og:description" content="Design your own HVAC system in real time and see a live diagram build as you go. Free, no personal info required."/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Build Your System | Gold Eagle Services"/>
+<meta name="twitter:description" content="Design your own HVAC system in real time and see a live diagram build as you go."/>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1271,7 +1278,7 @@ function Canvas({a, stepIdx, activeSteps}){
     return(
       <div style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}}/>}
-        <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg">
+        <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <Defs/>
 
           {/* Full canvas background */}
@@ -1802,7 +1809,7 @@ function Canvas({a, stepIdx, activeSteps}){
     return(
       <div style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}}/>}
-        <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg">
+        <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <Defs/>
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
           {/* Outside zone */}
@@ -2474,7 +2481,7 @@ function App(){
             <span className="attic-step-label">
               {cur ? "STEP "+stepIdx+" OF "+(activeSteps.length-1)+" · "+cur.q.toUpperCase() : ""}
             </span>
-            {infoText&&<button className="info-btn" onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
+            {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
             {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
           </div>
           {showInfo&&infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)",flexShrink:0}}>{infoText}</div>}
@@ -2505,7 +2512,7 @@ function App(){
           <div className="step-hdr">
             <div className="step-eyebrow">
               <span>Step {stepIdx} of {activeSteps.length-1}</span>
-              {infoText&&<button className="info-btn" onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
+              {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
             </div>
             <div className="step-q">{cur?cur.q:""}</div>
             {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
