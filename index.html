@@ -1253,9 +1253,11 @@ function Canvas({a, stepIdx, activeSteps}){
       high_ge18:{w:Math.round(36*PX_C), h:Math.round(50*PX_C)},
     };
     const CS=COND_SIZES[a.cond_tier]||COND_SIZES.fedmin;
-    // Scale condenser up to fill ~70% of the outside zone width
+    // Scale by the widest tier so cabinets keep their real relative size —
+    // fedmin (narrowest+shortest) should render smaller than high_ge18, not stretched to match it.
     const ZONE_COND_W=OUTSIDE_W>0?Math.round(OUTSIDE_W*0.62):1;
-    const COND_SCALE=ZONE_COND_W/(CS.w||1);
+    const MAX_COND_W=Math.max(...Object.values(COND_SIZES).map(s=>s.w));
+    const COND_SCALE=ZONE_COND_W/(MAX_COND_W||1);
     const COND_W=Math.max(1,Math.round(CS.w*COND_SCALE));
     const COND_H=Math.max(1,Math.round(CS.h*COND_SCALE));
     const EXT_WALL_X=HOUSE_W;
@@ -1780,9 +1782,10 @@ function Canvas({a, stepIdx, activeSteps}){
       premium:  {w:Math.round(36*PX), h:Math.round(50*PX)},
     };
     const CU=CU_SIZES[a.cond_tier]||CU_SIZES.fedmin;
-    // Scale condenser to fill outside zone — ensure it fits
+    // Scale by the widest tier so cabinets keep their real relative size (see attic canvas for why)
     const ZONE_COND_W=Math.round(OUTSIDE_ZONE_W*0.80);
-    const C_SCALE=hasCond&&OUTSIDE_ZONE_W>0?(ZONE_COND_W/(CU.w||1)):1;
+    const MAX_CU_W=Math.max(...Object.values(CU_SIZES).map(s=>s.w));
+    const C_SCALE=hasCond&&OUTSIDE_ZONE_W>0?(ZONE_COND_W/(MAX_CU_W||1)):1;
     const COND_W=Math.round(CU.w*C_SCALE);
     const COND_H=Math.round(CU.h*C_SCALE);
     const EXT_WALL_X=HOUSE_W;
