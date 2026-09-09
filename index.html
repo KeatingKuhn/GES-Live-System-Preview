@@ -306,6 +306,38 @@ function getOpts(stepId, answers){
     default:return[];
   }
 }
+
+// ─── PRICING DATA ───────────────────────────────────────────────
+// Not wired into any UI yet — pure data, captured as it's confirmed so the
+// schema only gets designed once. Whole dollars, complete installed bundle.
+const PRICING={
+  equipment:{
+    // fedmin: 14 SEER2 — half-ton granularity, all three system types available
+    fedmin:{
+      straight_cool:{1.5:12465, 2:12767, 2.5:13300, 3:14051, 3.5:14975, 4:15695, 5:16504},
+      dual_fuel:    {1.5:12894, 2:13047, 2.5:13973, 3:14337, 3.5:14978, 4:15410, 5:16286},
+      heat_pump_ah: {1.5:11923, 2:12082, 2.5:13088, 3:13916, 3.5:13729, 4:14171, 5:15513},
+    },
+    // mid_ge15: 18 SEER2 — full tons only, no straight-cool at this tier
+    mid_ge15:{
+      dual_fuel:    {2:16348, 3:17521, 4:21577, 5:21577},
+      heat_pump_ah: {2:13960, 3:15702, 4:17769, 5:18544},
+    },
+    // high_ge18: 21 SEER2 — full tons only, includes communicating system
+    high_ge18:{
+      straight_cool:{2:24564, 3:26259, 4:27822, 5:29834},
+      dual_fuel:    {2:29052, 3:30480, 4:31395, 5:35634},
+      heat_pump_ah: {2:23433, 3:26158, 4:29561, 5:31430},
+    },
+  },
+  // Whole-home dehumidifiers, ductwork tie-in included. Capacity (65/90/120 pint)
+  // is picked from home/system square footage — breakpoints TBD.
+  dehu:{p65:6482, p90:7966, p120:8362},
+  // Still TBD:
+  // - sq ft breakpoints mapping to dehu capacity (p65 / p90 / p120)
+  // - zoning: proprietary zone board + zone sensors + proprietary dampers
+  // - duct/vent pricing (tied to the "how many vents" question)
+};
 // ─── CANVAS ─────────────────────────────────────────────────────
 function Canvas({a, stepIdx, activeSteps}){
   const [heatMode,setHeatMode]=React.useState(false);
