@@ -330,9 +330,10 @@ const PRICING={
       heat_pump_ah: {2:23433, 3:26158, 4:29561, 5:31430},
     },
   },
-  // Whole-home dehumidifiers, ductwork tie-in included. Capacity (65/90/120 pint)
-  // is picked from home/system square footage — breakpoints TBD (proposed, awaiting confirm).
+  // Whole-home dehumidifiers, ductwork tie-in included. Capacity picked by
+  // home/system sq ft — confirmed cutoffs, rounded from Honeywell/Aprilaire specs.
   dehu:{p65:6482, p90:7966, p120:8362},
+  dehuSqftBreakpoints:{p65Max:2000, p90Max:3500}, // above p90Max => p120
   // Supply plenum upgrade. plenum:'none' (keep existing) has no charge.
   plenum:{ductboard:1920, metal:3121},
   // Air purification add-ons. The 5" Aprilaire filter cabinet (purif:'aprilaire')
@@ -340,9 +341,13 @@ const PRICING={
   purif:{uv:489, ionizer:1428},
   // Final add-ons. Thermostat (any tier/type) is always included with the system
   // — no separate charge, so there's no thermostat entry here either.
-  // ERV comes in two sizes (CFM) — which one applies still needs a sizing question
-  // of its own, same as dehu. Note: new roof penetrations need a roofer involved.
+  // Note: new roof penetrations for the ERV need a roofer involved.
   extras:{surge:860, condensate:882, erv:{cfm130:5222, cfm150:5877}},
+  // ERV size picked by home/system sq ft. Approximate — real ASHRAE 62.2 sizing
+  // also factors bedroom count, which this tool doesn't ask, so this assumes a
+  // typical 3-4BR home (~130 CFM covers most homes up to ~3,000 sq ft under that
+  // formula; larger homes or higher bedroom counts exceed it sooner).
+  ervSqftBreakpoints:{cfm130Max:3000}, // above cfm130Max => cfm150
   // Duct services — separate from the equipment bundles above.
   duct:{
     replacementPerStem:920,
@@ -351,10 +356,10 @@ const PRICING={
     // linearly interpolated at a constant $116.71/half-ton step in between.
     cleaning:{1.5:959, 2:1076, 2.5:1192, 3:1309, 3.5:1426, 4:1543, 5:1776},
   },
-  // Still TBD:
-  // - sq ft breakpoints mapping to dehu capacity (p65 / p90 / p120)
-  // - zoning: proprietary zone board + zone sensors + proprietary dampers
-  // - how ERV size (130 vs 150 CFM) gets picked
+  // Zoning: custom pricing only — always routes to "schedule an in-home visit",
+  // never a calculated number. Proprietary zone board + zone sensors +
+  // proprietary dampers, cost varies too much per home to estimate here.
+  zoning:'custom_visit_required',
 };
 // ─── CANVAS ─────────────────────────────────────────────────────
 function Canvas({a, stepIdx, activeSteps}){
