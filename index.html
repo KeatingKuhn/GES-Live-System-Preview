@@ -331,9 +331,18 @@ const PRICING={
     },
   },
   // Whole-home dehumidifiers, ductwork tie-in included. Capacity (65/90/120 pint)
-  // is picked from home/system square footage — breakpoints TBD.
+  // is picked from home/system square footage — breakpoints TBD (proposed, awaiting confirm).
   dehu:{p65:6482, p90:7966, p120:8362},
+  // Supply plenum upgrade. plenum:'none' (keep existing) has no charge.
+  plenum:{ductboard:1920, metal:3121},
+  // Air purification add-ons. The 5" Aprilaire filter cabinet (purif:'aprilaire')
+  // is bundled into every system at no charge, so it has no price here.
+  purif:{uv:489, ionizer:1428},
+  // Final add-ons. Thermostat (any tier/type) is always included with the system
+  // — no separate charge, so there's no thermostat entry here either.
+  extras:{surge:860},
   // Still TBD:
+  // - condensate pump, ERV pricing (extras.condensate / extras.erv)
   // - sq ft breakpoints mapping to dehu capacity (p65 / p90 / p120)
   // - zoning: proprietary zone board + zone sensors + proprietary dampers
   // - duct/vent pricing (tied to the "how many vents" question)
