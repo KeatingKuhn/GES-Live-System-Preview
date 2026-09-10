@@ -301,7 +301,7 @@ function getOpts(stepId, answers){
     case 'extras':return[
       {v:'surge',     label:'Surge Protector',       desc:'Mounts on the disconnect box. Protects the compressor from voltage spikes and lightning. One strike can destroy a $2,000+ compressor — this costs a fraction of that.'},
       {v:'condensate',label:'Condensate Pump',        desc:"Needed when there is no gravity drain nearby. Pumps condensate water up and out to a drain or exterior wall. Required in many closet installs."},
-      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings fresh filtered outdoor air into the home while exhausting stale air. Recovers ~70% of the heating/cooling energy from the outgoing air. Attic mounted.'},
+      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings fresh filtered outdoor air into the home while exhausting stale air. Recovers ~70% of the heating/cooling energy from the outgoing air. Attic mounted — if it needs a new roof penetration, we recommend having a roofer involved.'},
     ];
     default:return[];
   }
@@ -340,12 +340,21 @@ const PRICING={
   purif:{uv:489, ionizer:1428},
   // Final add-ons. Thermostat (any tier/type) is always included with the system
   // — no separate charge, so there's no thermostat entry here either.
-  extras:{surge:860},
+  // ERV comes in two sizes (CFM) — which one applies still needs a sizing question
+  // of its own, same as dehu. Note: new roof penetrations need a roofer involved.
+  extras:{surge:860, condensate:882, erv:{cfm130:5222, cfm150:5877}},
+  // Duct services — separate from the equipment bundles above.
+  duct:{
+    replacementPerStem:920,
+    // Cleaning is flat-rate by system tonnage. Only the 1.5T ($959) and 5T
+    // ($1,776) endpoints were given ("increments as you see fit") — these are
+    // linearly interpolated at a constant $116.71/half-ton step in between.
+    cleaning:{1.5:959, 2:1076, 2.5:1192, 3:1309, 3.5:1426, 4:1543, 5:1776},
+  },
   // Still TBD:
-  // - condensate pump, ERV pricing (extras.condensate / extras.erv)
   // - sq ft breakpoints mapping to dehu capacity (p65 / p90 / p120)
   // - zoning: proprietary zone board + zone sensors + proprietary dampers
-  // - duct/vent pricing (tied to the "how many vents" question)
+  // - how ERV size (130 vs 150 CFM) gets picked
 };
 // ─── CANVAS ─────────────────────────────────────────────────────
 function Canvas({a, stepIdx, activeSteps}){
