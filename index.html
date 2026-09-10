@@ -231,7 +231,7 @@ const STEPS=[
   {id:'thermostat',  q:'Which thermostat?',
     hint:'Smart thermostats save 10–15% on energy bills.',            optional:false},
   {id:'purif',       q:'Air purification add-ons?',
-    hint:'Select any combination — installed inside the air handler.',optional:true, multi:true},
+    hint:'The 5" filter cabinet ships standard on every install. Add UV or an ionizer on top of that.',optional:true, multi:true},
   {id:'system_for',  q:'Heat pump or straight cool?',
     hint:'Heat pump both heats and cools. Straight cool = AC only, furnace does all heating.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
@@ -275,7 +275,7 @@ function getOpts(stepId, answers){
       {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, set schedules, get energy reports. Learns your habits over time. Saves 10–15% on energy bills on average.',badge:true},
     ];
     case 'purif':return[
-      {v:'aprilaire',label:'5" Filter Cabinet',desc:'5-inch deep media filter — captures dust, pollen, pet dander, and allergens far better than a standard 1" filter. Replaces every 1–2 years.'},
+      {v:'aprilaire',label:'5" Filter Cabinet',desc:'Included standard on every install. 5-inch deep media filter — captures dust, pollen, pet dander, and allergens far better than a standard 1" filter. Replaces every 1–2 years.'},
       {v:'uv',       label:'UV Light System',    desc:'UV-C bulb mounted inside the air handler keeps the evaporator coil clean for longevity and efficiency. Eliminates musty odors at the source.'},
       {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Emits charged ions throughout your duct system that neutralize airborne particles, odors, VOCs, and smoke. Works while the system runs.'},
     ];
@@ -1622,6 +1622,9 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={SUP_X} y={SUP_PLEN_Y} width={SUP_PLEN_W} height={SUP_PLEN_H} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={pSW}
                   strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.65:1}/>
+                {/* Warm/cold air pulse — same idea as the refrigerant line pulse, orange for heat, blue for cool */}
+                <rect x={SUP_X} y={SUP_PLEN_Y} width={SUP_PLEN_W} height={SUP_PLEN_H} rx="3"
+                  fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="2.5" className="line-pulse"/>
                 {!isExisting&&(isMetal
                   ?Array.from({length:Math.floor(SUP_PLEN_H/8)},(_,i)=>(
                     <line key={i} x1={SUP_X+2} y1={SUP_PLEN_Y+4+i*8} x2={SUP_X+SUP_PLEN_W-2} y2={SUP_PLEN_Y+4+i*8}
@@ -2065,6 +2068,9 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={UNIT_X} y={PLEN_TOP} width={PLEN_W} height={PLEN_TOTAL} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={isExisting?1:isMetal?1.7:1.4}
                   strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.7:1}/>
+                {/* Warm/cold air pulse — same idea as the refrigerant line pulse, orange for heat, blue for cool */}
+                <rect x={UNIT_X} y={PLEN_TOP} width={PLEN_W} height={PLEN_TOTAL} rx="3"
+                  fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="2.5" className="line-pulse"/>
                 {!isExisting&&isMetal&&Array.from({length:Math.floor(PLEN_TOTAL/8)},(_,i)=>(
                   <line key={i} x1={UNIT_X+2} y1={PLEN_TOP+4+i*8} x2={UNIT_X+PLEN_W-2} y2={PLEN_TOP+4+i*8}
                     stroke={W+'.04)'} strokeWidth="0.3"/>
@@ -2535,7 +2541,10 @@ function clearSavedBuild(){
 function App(){
   const [savedBuild]=useState(loadSavedBuild);
   const [resumePending,setResumePending]=useState(!!savedBuild);
-  const [answers,setAnswers]=useState({});
+  // The 5" Aprilaire filter cabinet ships standard on every install, so it
+  // starts pre-selected (still toggle-able, just not opt-in by default).
+  const defaultAnswers=()=>({purif:['aprilaire']});
+  const [answers,setAnswers]=useState(defaultAnswers);
   const [stepIdx,setStepIdx]=useState(0);
   const [done,setDone]=useState(false);
   // Post-build pricing: null=not asked, 'asking'=Yes/No prompt, 'sizing'=sub-questions, 'result'=estimate shown
@@ -2578,7 +2587,7 @@ function App(){
   };
   const skip=()=>{if(cur.multi)setA(cur.id,[]);goNext();};
   const restart=()=>{
-    clearSavedBuild();setAnswers({});setStepIdx(0);setDone(false);
+    clearSavedBuild();setAnswers(defaultAnswers());setStepIdx(0);setDone(false);
     setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});
   };
   const resumeBuild=()=>{
