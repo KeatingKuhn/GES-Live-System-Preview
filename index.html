@@ -453,15 +453,13 @@ function calcEstimate(answers,pricingAnswers){
   }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
-  // Same -5%/+3% spread applied everywhere (total and every line item) so no
-  // single number on the page reads as a locked-in, binding figure.
-  const spread=(price,roundTo)=>({
-    low:Math.round(price*0.95/roundTo)*roundTo,
-    high:Math.round(price*1.03/roundTo)*roundTo,
-  });
-  const linesWithRange=lines.map(l=>({...l,...spread(l.price,10)}));
-  const{low,high}=spread(subtotal,50);
-  return{lines:linesWithRange,subtotal,low,high,tonnage};
+  // Rounded to the nearest $25 and shown with a "~" prefix (one number, not a
+  // range) so nothing reads as an exact locked-in figure. Source PRICING
+  // values stay exact - only this display layer rounds.
+  const roundTo25=price=>Math.round(price/25)*25;
+  const linesRounded=lines.map(l=>({...l,display:roundTo25(l.price)}));
+  const display=roundTo25(subtotal);
+  return{lines:linesRounded,subtotal,display,tonnage};
 }
 
 // ─── CANVAS ─────────────────────────────────────────────────────
@@ -2905,13 +2903,13 @@ function App(){
                 if(!est)return<div style={{fontSize:11,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
                 return <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
                   <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
-                  <div style={{fontFamily:"var(--fm)",fontSize:24,color:"var(--gl)",marginBottom:10}}>${est.low.toLocaleString()} – ${est.high.toLocaleString()}</div>
+                  <div style={{fontFamily:"var(--fm)",fontSize:24,color:"var(--gl)",marginBottom:10}}>~${est.display.toLocaleString()}</div>
                   {pricingAnswers.systemsCount&&pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:10,color:"rgba(215,183,64,.6)",marginBottom:10}}>Since your home has {pricingAnswers.systemsCount==='2'?'2 systems':'3+ systems'}, this estimate covers just the one you built here.</div>}
                   <div style={{marginBottom:10}}>
                     {est.lines.map((l,i)=>(
                       <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:10.5}}>
                         <span style={{color:"var(--dim)"}}>{l.label}</span>
-                        <span style={{color:"rgba(255,255,255,.8)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>${l.low.toLocaleString()} – ${l.high.toLocaleString()}</span>
+                        <span style={{color:"rgba(255,255,255,.8)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>~${l.display.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
