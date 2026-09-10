@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Build Your System | Gold Eagle Services</title>
-<meta name="description" content="Design your own HVAC system in real time and see a live diagram build as you go. Free, no personal info required — Gold Eagle Services, Austin TX."/>
+<meta name="description" content="Design your own HVAC system in real time and see a live diagram build as you go. Free, no personal info required - Gold Eagle Services, Austin TX."/>
 <meta property="og:title" content="Build Your System | Gold Eagle Services"/>
 <meta property="og:description" content="Design your own HVAC system in real time and see a live diagram build as you go. Free, no personal info required."/>
 <meta property="og:type" content="website"/>
@@ -22,7 +22,7 @@
   --blue:#2389e0;--green:#22c55e;--orange:#f97316;--purple:#8b5cf6;
   --ft:'Lora',Georgia,serif;--fm:'Share Tech Mono',monospace;--fb:'Trebuchet MS',sans-serif;
 
-  /* Type scale — mobile/tablet default. Desktop (>=1025px) overrides below. */
+  /* Type scale - mobile/tablet default. Desktop (>=1025px) overrides below. */
   --fs-opt-label:13px;--fs-opt-desc:11.5px;--fs-opt-badge:8px;
   --fs-attic-label:13px;--fs-attic-desc:11px;--fs-attic-steplabel:10px;
   --fs-step-eyebrow:8.5px;--fs-step-q:15.5px;--fs-step-hint:11px;
@@ -241,7 +241,7 @@ const STEPS=[
     hint:'Surge protector, condensate pump, or ERV.',                 optional:true, multi:true},
 ];
 
-// Auto-derive furnace_eff from insulation — never ask separately
+// Auto-derive furnace_eff from insulation - never ask separately
 function deriveFurnaceEff(insulation){
   return insulation==='spray'?'e90':'e80';
 }
@@ -250,32 +250,32 @@ function deriveFurnaceEff(insulation){
 function getOpts(stepId, answers){
   switch(stepId){
     case 'location':return[
-      {v:'attic', label:'Attic',          desc:'Horizontal install — most common in Austin'},
-      {v:'closet',label:'Closet',desc:'Upflow unit — hallway or utility closet'},
+      {v:'attic', label:'Attic',          desc:'Horizontal install - most common in Austin'},
+      {v:'closet',label:'Closet',desc:'Upflow unit - hallway or utility closet'},
     ];
     case 'indoor_type':return[
-      {v:'furnace',label:'Furnace',     desc:'Gas heat + AC — most popular in Austin. Burns natural gas for heat, uses AC for cooling. Lowest operating cost when gas rates are low.'},
-      {v:'ah',     label:'Air handler', desc:'All-electric heat pump system. No gas line needed. Heats and cools using refrigerant — very efficient in Austin winters, higher electric bills in extreme cold.'},
+      {v:'furnace',label:'Furnace',     desc:'Gas heat + AC - most popular in Austin. Burns natural gas for heat, uses AC for cooling. Lowest operating cost when gas rates are low.'},
+      {v:'ah',     label:'Air handler', desc:'All-electric heat pump system. No gas line needed. Heats and cools using refrigerant - very efficient in Austin winters, higher electric bills in extreme cold.'},
     ];
     case 'insulation':return[
       {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Standard vented attic. Works with an 80% AFUE furnace and a metal B-vent flue pipe through the roof. Most homes in Austin have this.'},
-      {v:'spray',     label:'Spray foam',               desc:'Sealed / conditioned attic. Requires a 90% AFUE condensing furnace — flue is a PVC pipe, not metal. Higher efficiency, cooler attic.'},
+      {v:'spray',     label:'Spray foam',               desc:'Sealed / conditioned attic. Requires a 90% AFUE condensing furnace - flue is a PVC pipe, not metal. Higher efficiency, cooler attic.'},
     ];
     case 'plenum':return[
-      {v:'ductboard',label:'Ductboard plenum',  desc:'Fiberglass duct board — standard choice, good insulation value, fits most attic installs. Typical lifespan 10–15 years.'},
-      {v:'metal',    label:'Sheet metal plenum',desc:'Galvanized sheet metal — more durable, lasts 25+ years, better for high-humidity attics. Preferred when the system is expected to run hard.'},
-      {v:'none',     label:'Keep existing',     desc:'Your current plenum is in good condition. We will connect to it directly — saves on material and labor.'},
+      {v:'ductboard',label:'Ductboard plenum',  desc:'Fiberglass duct board - standard choice, good insulation value, fits most attic installs. Typical lifespan 10–15 years.'},
+      {v:'metal',    label:'Sheet metal plenum',desc:'Galvanized sheet metal - more durable, lasts 25+ years, better for high-humidity attics. Preferred when the system is expected to run hard.'},
+      {v:'none',     label:'Keep existing',     desc:'Your current plenum is in good condition. We will connect to it directly - saves on material and labor.'},
     ];
     case 'thermostat':
       if(answers.cond_tier==='high_ge18')return[
-        {v:'proprietary',label:'Proprietary Communicating Thermostat', desc:'Required at this efficiency tier — talks directly to the furnace/air handler and condenser over a dedicated communicating protocol for the most precise comfort, staging, and diagnostics.'},
+        {v:'proprietary',label:'Proprietary Communicating Thermostat', desc:'Required at this efficiency tier - talks directly to the furnace/air handler and condenser over a dedicated communicating protocol for the most precise comfort, staging, and diagnostics.'},
       ];
       return[
       {v:'basic',label:'Basic Programmable', desc:'Reliable, accurate, no app or subscription required. Set your schedule and it runs. Best choice if you prefer simple controls.'},
       {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, set schedules, get energy reports. Learns your habits over time. Saves 10–15% on energy bills on average.',badge:true},
     ];
     case 'purif':return[
-      {v:'aprilaire',label:'Enhanced Filtration Cabinet',desc:'Included standard on every install. High-capacity media filter — captures dust, pollen, pet dander, and allergens far better than a standard 1" filter. Replaces every 1–2 years.'},
+      {v:'aprilaire',label:'Enhanced Filtration Cabinet',desc:'Included standard on every install. High-capacity media filter - captures dust, pollen, pet dander, and allergens far better than a standard 1" filter. Replaces every 1–2 years.'},
       {v:'uv',       label:'UV Light System',    desc:'UV-C bulb mounted inside the air handler keeps the evaporator coil clean for longevity and efficiency. Eliminates musty odors at the source.'},
       {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Emits charged ions throughout your duct system that neutralize airborne particles, odors, VOCs, and smoke. Works while the system runs.'},
     ];
@@ -289,41 +289,41 @@ function getOpts(stepId, answers){
     ];
     case 'cond_tier':{
       return[
-        {v:'fedmin',   label:'Federal Minimum — 14 SEER2', desc:'Meets 2023 federal energy code. Reliable single-stage system, lowest upfront cost. Good choice for rentals or budget installs.'},
-        {v:'mid_ge15', label:'Mid Efficiency — 18 SEER2',  desc:'Variable-speed system. Noticeably lower electric bills, better humidity control, quieter operation. Best overall value for most homes.'},
-        {v:'high_ge18',label:'High Efficiency — 21 SEER2', desc:'Inverter-driven top tier. Eligible for local energy rebates. Best humidity control, whisper-quiet, lowest monthly bills.'},
+        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. Reliable single-stage system, lowest upfront cost. Good choice for rentals or budget installs.'},
+        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed system. Noticeably lower electric bills, better humidity control, quieter operation. Best overall value for most homes.'},
+        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier. Eligible for local energy rebates. Best humidity control, whisper-quiet, lowest monthly bills.'},
       ];
     }
     case 'dehu':return[
-      {v:'yes',label:'Yes — add it',  desc:'Whole-home dehumidifier sized to your square footage. Runs automatically with the HVAC system — no buckets, no maintenance. Makes your home feel 5–7°F cooler at the same thermostat setting.'},
+      {v:'yes',label:'Yes - add it',  desc:'Whole-home dehumidifier sized to your square footage. Runs automatically with the HVAC system - no buckets, no maintenance. Makes your home feel 5–7°F cooler at the same thermostat setting.'},
       {v:'no', label:'No thanks',     desc:'Skip for now. Can always be added later as a standalone unit if humidity becomes an issue.'},
     ];
     case 'extras':return[
-      {v:'surge',     label:'Surge Protector',       desc:'Mounts on the disconnect box. Protects the compressor from voltage spikes and lightning. One strike can destroy a $2,000+ compressor — this costs a fraction of that.'},
+      {v:'surge',     label:'Surge Protector',       desc:'Mounts on the disconnect box. Protects the compressor from voltage spikes and lightning. One strike can destroy a $2,000+ compressor - this costs a fraction of that.'},
       {v:'condensate',label:'Condensate Pump',        desc:"Needed when there is no gravity drain nearby. Pumps condensate water up and out to a drain or exterior wall. Required in many closet installs."},
-      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings fresh filtered outdoor air into the home while exhausting stale air. Recovers ~70% of the heating/cooling energy from the outgoing air. Attic mounted — if it needs a new roof penetration, we recommend having a roofer involved.'},
+      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings fresh filtered outdoor air into the home while exhausting stale air. Recovers ~70% of the heating/cooling energy from the outgoing air. Attic mounted - if it needs a new roof penetration, we recommend having a roofer involved.'},
     ];
     default:return[];
   }
 }
 
 // ─── PRICING DATA ───────────────────────────────────────────────
-// Not wired into any UI yet — pure data, captured as it's confirmed so the
+// Not wired into any UI yet - pure data, captured as it's confirmed so the
 // schema only gets designed once. Whole dollars, complete installed bundle.
 const PRICING={
   equipment:{
-    // fedmin: 14 SEER2 — half-ton granularity, all three system types available
+    // fedmin: 14 SEER2 - half-ton granularity, all three system types available
     fedmin:{
       straight_cool:{1.5:12465, 2:12767, 2.5:13300, 3:14051, 3.5:14975, 4:15695, 5:16504},
       dual_fuel:    {1.5:12894, 2:13047, 2.5:13973, 3:14337, 3.5:14978, 4:15410, 5:16286},
       heat_pump_ah: {1.5:11923, 2:12082, 2.5:13088, 3:13729, 3.5:13916, 4:14171, 5:15513},
     },
-    // mid_ge15: 18 SEER2 — full tons only, no straight-cool at this tier
+    // mid_ge15: 18 SEER2 - full tons only, no straight-cool at this tier
     mid_ge15:{
       dual_fuel:    {2:16348, 3:17521, 4:21577, 5:21577},
       heat_pump_ah: {2:13960, 3:15702, 4:17769, 5:18544},
     },
-    // high_ge18: 21 SEER2 — full tons only, includes communicating system
+    // high_ge18: 21 SEER2 - full tons only, includes communicating system
     high_ge18:{
       straight_cool:{2:24564, 3:26259, 4:27822, 5:29834},
       dual_fuel:    {2:29052, 3:30480, 4:31395, 5:35634},
@@ -331,13 +331,13 @@ const PRICING={
     },
   },
   // Whole-home dehumidifiers, ductwork tie-in included. Capacity picked by
-  // home/system sq ft — confirmed cutoffs, rounded from Honeywell/Aprilaire specs.
+  // home/system sq ft - confirmed cutoffs, rounded from Honeywell/Aprilaire specs.
   dehu:{p65:6482, p90:7966, p120:8362},
   dehuSqftBreakpoints:{p65Max:2000, p90Max:3500}, // above p90Max => p120
   // Supply plenum upgrade. plenum:'none' (keep existing) has no charge.
   plenum:{ductboard:1920, metal:3121},
   // All furnace equipment pricing above assumes an 80% AFUE furnace. Spray-foam
-  // attics require 90% AFUE (furnace_eff:'e90', auto-derived from insulation) —
+  // attics require 90% AFUE (furnace_eff:'e90', auto-derived from insulation) -
   // that's a flat upgrade on top of the base price, furnace systems only (not
   // heat_pump_ah, which has no furnace/AFUE at all).
   furnace90Upgrade:1488,
@@ -345,23 +345,23 @@ const PRICING={
   // is bundled into every system at no charge, so it has no price here.
   purif:{uv:489, ionizer:1428},
   // Final add-ons. Thermostat (any tier/type) is always included with the system
-  // — no separate charge, so there's no thermostat entry here either.
+  // - no separate charge, so there's no thermostat entry here either.
   // Note: new roof penetrations for the ERV need a roofer involved.
   extras:{surge:860, condensate:882, erv:{cfm130:5222, cfm150:5877}},
-  // ERV size picked by home/system sq ft. Approximate — real ASHRAE 62.2 sizing
+  // ERV size picked by home/system sq ft. Approximate - real ASHRAE 62.2 sizing
   // also factors bedroom count, which this tool doesn't ask, so this assumes a
   // typical 3-4BR home (~130 CFM covers most homes up to ~3,000 sq ft under that
   // formula; larger homes or higher bedroom counts exceed it sooner).
   ervSqftBreakpoints:{cfm130Max:3000}, // above cfm130Max => cfm150
-  // Duct services — separate from the equipment bundles above.
+  // Duct services - separate from the equipment bundles above.
   duct:{
     replacementPerStem:920,
     // Cleaning is flat-rate by system tonnage. Only the 1.5T ($959) and 5T
-    // ($1,776) endpoints were given ("increments as you see fit") — these are
+    // ($1,776) endpoints were given ("increments as you see fit") - these are
     // linearly interpolated at a constant $116.71/half-ton step in between.
     cleaning:{1.5:959, 2:1076, 2.5:1192, 3:1309, 3.5:1426, 4:1543, 5:1776},
   },
-  // Zoning: custom pricing only — always routes to "schedule an in-home visit",
+  // Zoning: custom pricing only - always routes to "schedule an in-home visit",
   // never a calculated number. Proprietary zone board + zone sensors +
   // proprietary dampers, cost varies too much per home to estimate here.
   zoning:'custom_visit_required',
@@ -369,7 +369,7 @@ const PRICING={
 
 // ─── PRICING CALCULATION ────────────────────────────────────────
 // Tonnage is picked directly by the homeowner/rep rather than inferred
-// silently from a sq ft range — a hard sq ft cutoff was pushing borderline
+// silently from a sq ft range - a hard sq ft cutoff was pushing borderline
 // homes (e.g. ~1,000 sq ft) down to a smaller tonnage than Texas heat load
 // really wants. Each option still shows its reference sq ft (~600 sq ft/ton)
 // so the pick is guided, not a guess. sqftMid also drives dehu/ERV sizing.
@@ -383,7 +383,7 @@ const TONNAGE_OPTIONS=[
   {v:'t5',  label:'5 Tons',   sqftLabel:'3,000+ sq ft',         tons:5,   sqftMid:3600},
 ];
 // Picks the closest tonnage this tier/system-type actually offers (fedmin has
-// half-tons, mid/high don't) — ties round up toward the larger, safer size.
+// half-tons, mid/high don't) - ties round up toward the larger, safer size.
 function nearestTonnage(tierSystemPrices, targetTon){
   const keys=Object.keys(tierSystemPrices).map(Number);
   let best=keys[0], bestDiff=Infinity;
@@ -405,7 +405,7 @@ function systemTypeKey(answers){
   if(answers.indoor_type==='ah')return'heat_pump_ah';
   return answers.system_for==='hp'?'dual_fuel':'straight_cool';
 }
-const TIER_LABEL={fedmin:'Federal Minimum — 14 SEER2',mid_ge15:'Mid Efficiency — 18 SEER2',high_ge18:'High Efficiency — 21 SEER2'};
+const TIER_LABEL={fedmin:'Federal Minimum - 14 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
 // given the wizard's own filtering, but guards against stale/edge-case answers).
 function calcEstimate(answers,pricingAnswers){
@@ -415,7 +415,7 @@ function calcEstimate(answers,pricingAnswers){
   if(!tierPrices)return null;
   const picked=TONNAGE_OPTIONS.find(o=>o.v===pricingAnswers.tonnageChoice)||TONNAGE_OPTIONS[3];
   const tonnage=nearestTonnage(tierPrices,picked.tons);
-  const lines=[{label:`${tonnage}-ton system — ${TIER_LABEL[tier]||''}`,price:tierPrices[tonnage]}];
+  const lines=[{label:`${tonnage}-ton system - ${TIER_LABEL[tier]||''}`,price:tierPrices[tonnage]}];
 
   if(answers.indoor_type==='furnace'&&answers.furnace_eff==='e90'){
     lines.push({label:'90% AFUE furnace upgrade',price:PRICING.furnace90Upgrade});
@@ -489,7 +489,7 @@ function Canvas({a, stepIdx, activeSteps}){
   const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):!hasFurnace));
   const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
 
-  // Refrigerant colors — physically correct
+  // Refrigerant colors - physically correct
   const evapC  = refReversed ? '#ef4444' : '#2389e0'; // evap: red=HP heat, blue=cool
   const evapC2 = refReversed ? '#fca5a5' : '#7dd3fc';
   const condC  = (heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'))) ? '#2389e0' : '#ef4444';
@@ -520,7 +520,7 @@ function Canvas({a, stepIdx, activeSteps}){
     </g>;
   }
 
-  // UV rod — thin horizontal rod ~45px (9" at scale), UV purple glow
+  // UV rod - thin horizontal rod ~45px (9" at scale), UV purple glow
   function UVRod({x,y,len,vertical}){
     len=len||56;
     const x2=vertical?x:x+len, y2=vertical?y+len:y;
@@ -543,7 +543,7 @@ function Canvas({a, stepIdx, activeSteps}){
     </g>;
   }
 
-  // Ionizer — bulb sits OUTSIDE on top of plenum, rod penetrates DOWN into airstream
+  // Ionizer - bulb sits OUTSIDE on top of plenum, rod penetrates DOWN into airstream
   // bulbX/bulbY = center of the bulb (outside, above plenum top)
   // rodLen = how far the rod extends down inside the plenum
   function Ionizer({bulbX, bulbY, rodLen}){
@@ -554,7 +554,7 @@ function Canvas({a, stepIdx, activeSteps}){
       <circle cx={bulbX} cy={bulbY} r={14}
         fill="rgba(253,224,71,.08)" stroke="rgba(253,224,71,.2)" strokeWidth="0.6"
         filter="url(#glow-uv)"/>
-      {/* Bulb body — larger, amber glass shape */}
+      {/* Bulb body - larger, amber glass shape */}
       <ellipse cx={bulbX} cy={bulbY} rx={9} ry={11}
         fill="rgba(251,191,36,.18)" stroke="rgba(253,224,71,.75)" strokeWidth="1.5"/>
       {/* Bulb inner glow */}
@@ -582,7 +582,7 @@ function Canvas({a, stepIdx, activeSteps}){
     </g>;
   }
 
-  // A-coil > (peak RIGHT) — horizontal attic
+  // A-coil > (peak RIGHT) - horizontal attic
   function ACoilH({x,y,w,h,active}){
     const peakX=x+w, peakY=y+h/2; const n=8;
     const tc=active?evapC:'rgba(48,48,78,.8)';
@@ -614,7 +614,7 @@ function Canvas({a, stepIdx, activeSteps}){
       <circle cx={peakX-5} cy={peakY+4} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
       {active&&<circle cx={peakX-5} cy={peakY+4} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
-      {/* UV rod — centered exactly in the > coil:
+      {/* UV rod - centered exactly in the > coil:
           horizontal midline = y+h/2, depth center = x + w*0.45
           rod runs horizontal, length ~9" at scale (46px) */}
       {hasUV&&(()=>{
@@ -626,7 +626,7 @@ function Canvas({a, stepIdx, activeSteps}){
     </g>;
   }
 
-  // A-coil ^ (peak UP) — upflow
+  // A-coil ^ (peak UP) - upflow
   function ACoilV({x,y,w,h,active}){
     const peakX=x+w/2, peakY=y; const n=7;
     const tc=active?evapC:'rgba(48,48,78,.8)';
@@ -655,8 +655,8 @@ function Canvas({a, stepIdx, activeSteps}){
       <circle cx={peakX+4} cy={peakY+6} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
       {active&&<circle cx={peakX+4} cy={peakY+6} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
-      {/* UV rod — centered in the ^ A-coil triangle:
-          Triangle centroid is at (x+w/2, y + h*2/3) — that's the geometric center.
+      {/* UV rod - centered in the ^ A-coil triangle:
+          Triangle centroid is at (x+w/2, y + h*2/3) - that's the geometric center.
           Rod runs vertical through the centroid, ~9" at scale (46px) */}
       {hasUV&&(()=>{
         const rodCX=x+w*0.5;     // horizontal center of the A-frame
@@ -669,7 +669,7 @@ function Canvas({a, stepIdx, activeSteps}){
     </g>;
   }
 
-  // Furnace horizontal — blower LEFT | HX RIGHT
+  // Furnace horizontal - blower LEFT | HX RIGHT
   function FurnaceH({x,y,w,h,active}){
     const mid=x+w/2;
     return <g>
@@ -710,9 +710,9 @@ function Canvas({a, stepIdx, activeSteps}){
         const pW=is90?5:7;
         const pC=is90?"#bfdbfe":"#c0c0c0";
         const pS=is90?"#93c5fd":"#999";
-        const fX=mid+Math.round(w*0.2); // flue exit X — right half of furnace
+        const fX=mid+Math.round(w*0.2); // flue exit X - right half of furnace
         return <>
-          {/* Flue pipe — from top of furnace straight up through roof */}
+          {/* Flue pipe - from top of furnace straight up through roof */}
           <rect x={fX-pW/2} y={-999} width={pW} height={y+999} rx="1"
             fill={pC} stroke={pS} strokeWidth="0.7"/>
           {/* Cap at top (visible above roofline) */}
@@ -730,7 +730,7 @@ function Canvas({a, stepIdx, activeSteps}){
     </g>;
   }
 
-  // Air handler horizontal — blower LEFT | A-coil RIGHT
+  // Air handler horizontal - blower LEFT | A-coil RIGHT
   function AirHandlerH({x,y,w,h,active}){
     const mid=x+w/2;
     return <g>
@@ -857,7 +857,7 @@ function Canvas({a, stepIdx, activeSteps}){
           <circle key={i} cx={fx} cy={fy} r={2.5}
             fill="rgba(90,95,105,.8)" stroke="rgba(60,65,75,.6)" strokeWidth="0.7"/>
         ))}
-        {/* Compressor outline — visible inside housing */}
+        {/* Compressor outline - visible inside housing */}
         {(()=>{
           const capH=Math.round(h*0.16);
           const bodyH=h-capH;
@@ -1042,7 +1042,7 @@ function Canvas({a, stepIdx, activeSteps}){
     </g>;
   }
 
-  // Exterior outside zone — side view of wall + condenser on pad
+  // Exterior outside zone - side view of wall + condenser on pad
   // wallX = x position of the wall face
   // condenser = {x,y,w,h,tierKey}
   // Shows: wall cross-section, line-set penetration, disconnect, surge, pad, condenser
@@ -1062,7 +1062,7 @@ function Canvas({a, stepIdx, activeSteps}){
       <text x={wallX+zoneW/2} y={groundY+18} textAnchor="middle"
         fill="rgba(110,95,55,.45)" fontSize="6.5" fontFamily="monospace">GROUND LEVEL</text>
 
-      {/* ── CONCRETE PAD — under condenser ── */}
+      {/* ── CONCRETE PAD - under condenser ── */}
       <rect x={condX-10} y={padY} width={condW+20} height={14} rx="2"
         fill="rgba(165,160,148,.22)" stroke="rgba(190,185,168,.28)" strokeWidth="1"/>
       {Array.from({length:5},(_,i)=>(
@@ -1090,19 +1090,19 @@ function Canvas({a, stepIdx, activeSteps}){
       <line x1={sidingX} y1={0} x2={sidingX} y2={groundY}
         stroke="rgba(180,175,160,.08)" strokeWidth="0.5"/>
 
-      {/* ── LINE-SET — exits wall, drops to condenser bottom ── */}
+      {/* ── LINE-SET - exits wall, drops to condenser bottom ── */}
       {/* Wall sleeve / penetration */}
       <rect x={sidingX+1} y={lineY1-6} width={wallThick-2} height={lineY2-lineY1+12} rx="2"
         fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
       <text x={sidingX+wallThick/2} y={lineY2+16} textAnchor="middle"
         fill="rgba(150,110,40,.5)" fontSize="6" fontFamily="monospace">LINESET</text>
-      {/* Foam sleeve on pipes — from wall to condenser */}
+      {/* Foam sleeve on pipes - from wall to condenser */}
       <path d={`M${sidingX+wallThick} ${lineY1} L${condX+condW*0.35} ${lineY1} L${condX+condW*0.35} ${condY+condH}`}
         fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round"/>
-      {/* Liquid line — full bold red/blue */}
+      {/* Liquid line - full bold red/blue */}
       <path d={`M${sidingX+wallThick} ${lineY1} L${condX+condW*0.35} ${lineY1} L${condX+condW*0.35} ${condY+condH}`}
         fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse"/>
-      {/* Suction line — full bold, offset */}
+      {/* Suction line - full bold, offset */}
       <path d={`M${sidingX+wallThick} ${lineY2} L${condX+condW*0.42} ${lineY2} L${condX+condW*0.42} ${condY+condH}`}
         fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
       {/* Animated flow dots -- both pipes */}
@@ -1120,7 +1120,7 @@ function Canvas({a, stepIdx, activeSteps}){
         </circle>;
       })}
 
-      {/* ── DISCONNECT BOX — prominent, on outside wall face ── */}
+      {/* ── DISCONNECT BOX - prominent, on outside wall face ── */}
       {(()=>{
         const DX=sidingX+wallThick+4;
         const DY=Math.round(groundY*0.62)-34; // slightly lower than center
@@ -1159,7 +1159,7 @@ function Canvas({a, stepIdx, activeSteps}){
             stroke="rgba(22,22,42,.7)" strokeWidth="8" strokeLinecap="round"/>
           <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
             stroke={G+'.48)'} strokeWidth="4" strokeLinecap="round"/>
-          {/* Surge protector — bigger, below disconnect */}
+          {/* Surge protector - bigger, below disconnect */}
           {isSurge&&<g className="fadein">
             <rect x={DX} y={DY+DH+6} width={DW} height={52} rx="4"
               fill="#160700" stroke="#f97316" strokeWidth="1.8"/>
@@ -1289,7 +1289,7 @@ function Canvas({a, stepIdx, activeSteps}){
   }
 
 
-  // Condensate pump — small box below evap coil
+  // Condensate pump - small box below evap coil
   function CondensatePump({x,y,w}){
     return <g className="fadein">
       <rect x={x+w*0.28} y={y} width={w*0.44} height={16} rx="2"
@@ -1420,7 +1420,7 @@ function Canvas({a, stepIdx, activeSteps}){
       high_ge18:{w:Math.round(36*PX_C), h:Math.round(50*PX_C)},
     };
     const CS=COND_SIZES[a.cond_tier]||COND_SIZES.fedmin;
-    // Scale by the widest tier so cabinets keep their real relative size —
+    // Scale by the widest tier so cabinets keep their real relative size -
     // fedmin (narrowest+shortest) should render smaller than high_ge18, not stretched to match it.
     const ZONE_COND_W=OUTSIDE_W>0?Math.round(OUTSIDE_W*0.62):1;
     const MAX_COND_W=Math.max(...Object.values(COND_SIZES).map(s=>s.w));
@@ -1444,7 +1444,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {/* Full canvas background */}
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
 
-          {/* Outside zone (right of wall) — darker, sky-like */}
+          {/* Outside zone (right of wall) - darker, sky-like */}
           {hasCond&&<rect x={EXT_WALL_X} y="0" width={OUTSIDE_W} height={VH} fill="#080a10"/>}
 
           {/* Attic interior (above deck, inside house) */}
@@ -1453,7 +1453,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {/* Living space below deck */}
           <rect x="0" y={DECK_Y} width={HOUSE_W} height={VH-DECK_Y} fill="#0d0f18"/>
 
-          {/* ── LOW-PITCH ROOF — shallow, full house width ── */}
+          {/* ── LOW-PITCH ROOF - shallow, full house width ── */}
           {/* Left slope: eave (left edge) → ridge */}
           <line x1="0" y1={EAVE_Y} x2={RIDGE_X} y2={RIDGE_Y}
             stroke="rgba(160,152,128,.55)" strokeWidth="3"/>
@@ -1469,7 +1469,7 @@ function Canvas({a, stepIdx, activeSteps}){
           <line x1="0" y1={EAVE_Y} x2={HOUSE_W} y2={EAVE_Y}
             stroke="rgba(180,170,145,.18)" strokeWidth="3"/>
 
-          {/* ── INSULATION — only shown after selection ── */}
+          {/* ── INSULATION - only shown after selection ── */}
           {a.insulation&&(isSpray
             ?<g>
               {Array.from({length:20},(_,i)=>{
@@ -1486,7 +1486,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   fill="rgba(234,238,246,.16)" stroke="rgba(234,238,246,.22)" strokeWidth=".5"
                   transform={`rotate(${ang},${sx},${sy+7})`}/>;
               })}
-              <text x="28" y={DECK_Y-22} fill="rgba(232,236,246,.32)" fontSize="6.5" fontFamily="monospace">SPRAY FOAM — SEALED ATTIC</text>
+              <text x="28" y={DECK_Y-22} fill="rgba(232,236,246,.32)" fontSize="6.5" fontFamily="monospace">SPRAY FOAM - SEALED ATTIC</text>
             </g>
             :<g>
               <rect x="0" y={DECK_Y-22} width={HOUSE_W} height={24} fill="rgba(255,130,170,.18)" stroke="rgba(255,140,180,.08)" strokeWidth="0.5"/>
@@ -1498,7 +1498,7 @@ function Canvas({a, stepIdx, activeSteps}){
             </g>
           )}
 
-          {/* Attic deck — full house width */}
+          {/* Attic deck - full house width */}
           <rect x="0" y={DECK_Y} width={HOUSE_W} height="5" fill="#1c1e28" stroke="rgba(200,196,172,.22)" strokeWidth="0.4"/>
           {Array.from({length:Math.floor(HOUSE_W/68)},(_,i)=>(
             <rect key={i} x={38+i*68} y={DECK_Y-2} width="10" height="7" rx="1"
@@ -1610,7 +1610,7 @@ function Canvas({a, stepIdx, activeSteps}){
             </text>
           </g>}
 
-          {/* Supply plenum — right of A-coil/AH, same height */}
+          {/* Supply plenum - right of A-coil/AH, same height */}
           {hasPlenum&&hasCoil&&<g className="snap" key="spl" style={{animationDelay:'.12s'}}>
             {(()=>{
               const isExisting=a.plenum==='none';
@@ -1675,7 +1675,7 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* ── DUCTWORK — 4 stems off supply plenum top and bottom ── */}
+          {/* ── DUCTWORK - 4 stems off supply plenum top and bottom ── */}
           {hasPlenum&&hasCoil&&<g className="fadein" key="ducts" style={{animationDelay:'.18s'}}>
             {(()=>{
               const pTop=SUP_PLEN_Y;
@@ -1715,7 +1715,7 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* ── REFRIGERANT LINES — up to roofline, across to wall ── */}
+          {/* ── REFRIGERANT LINES - up to roofline, across to wall ── */}
           {hasCoil&&hasCond&&<g key="rl">
             {(()=>{
               const active=evapActive;
@@ -1752,14 +1752,14 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* ── OUTSIDE ZONE — exterior wall + condenser ── */}
+          {/* ── OUTSIDE ZONE - exterior wall + condenser ── */}
           {hasCond&&<OutsideZone
             wallX={EXT_WALL_X} zoneW={OUTSIDE_W} zoneH={VH}
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={RL_ROOF_Y} lineY2={RL_ROOF_Y+9}
             tierKey={a.cond_tier} active={condenserActive}/>}
 
-          {/* ── THERMOSTAT — visible at bottom of living space ── */}
+          {/* ── THERMOSTAT - visible at bottom of living space ── */}
           {hasTstat&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
             {(()=>{
               const TX=HOUSE_W-110, TY=DECK_Y+16;
@@ -1857,7 +1857,7 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* Condensate drain — dashed blue line below coil, pump box if selected */}
+          {/* Condensate drain - dashed blue line below coil, pump box if selected */}
           {hasCoil&&<g key="attic-drain">
             {(()=>{
               const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
@@ -1941,7 +1941,7 @@ function Canvas({a, stepIdx, activeSteps}){
     const LS_Y1=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.30):ACOIL_Y+Math.round(ACOIL_H*0.88);
     const LS_Y2=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.48):ACOIL_Y+Math.round(ACOIL_H*0.92);
 
-    // Condenser — same real-world proportions, scaled to fill ~70% of outside zone
+    // Condenser - same real-world proportions, scaled to fill ~70% of outside zone
     const PX=3.2;
     const CU_SIZES={
       fedmin:   {w:Math.round(22*PX), h:Math.round(28*PX)},
@@ -1960,10 +1960,10 @@ function Canvas({a, stepIdx, activeSteps}){
     const WALL_THICK=18;
     const DISC_ZONE=52;
     const COND_X=EXT_WALL_X+WALL_THICK+DISC_ZONE+8;
-    // Condenser sits at ground level — bottom near bottom of canvas
+    // Condenser sits at ground level - bottom near bottom of canvas
     const GROUND_Y=VH-40;
     const COND_Y=GROUND_Y-COND_H;
-    // Lineset exits the RIGHT face of the A-coil at its midpoint — NOT the plenum
+    // Lineset exits the RIGHT face of the A-coil at its midpoint - NOT the plenum
     // ACOIL_Y is defined below, so we compute after unit stack constants
     // (will be: ACOIL_Y + ACOIL_H * 0.35 and 0.55)
 
@@ -1985,7 +1985,7 @@ function Canvas({a, stepIdx, activeSteps}){
           <text x={UNIT_X+UNIT_W/2} y={DECK_Y+14} textAnchor="middle"
             fill={W+'.1)'} fontSize="7.5" fontFamily="monospace" letterSpacing="1.5">UTILITY CLOSET</text>
 
-          {/* ── LOW-PITCH ROOF — spans attic width ── */}
+          {/* ── LOW-PITCH ROOF - spans attic width ── */}
           {(()=>{
             const rW=hasCond?HOUSE_W:VW-8;
             const rRise=Math.round(Math.min(rW/2*(3/12),60));
@@ -2006,7 +2006,7 @@ function Canvas({a, stepIdx, activeSteps}){
             </>;
           })()}
 
-          {/* Insulation — spray on ROOF UNDERSIDE, fiberglass on ATTIC FLOOR, only when selected */}
+          {/* Insulation - spray on ROOF UNDERSIDE, fiberglass on ATTIC FLOOR, only when selected */}
           {a.insulation&&(isSpray
             ?<>
               {/* Spray foam follows roof pitch on underside */}
@@ -2054,7 +2054,7 @@ function Canvas({a, stepIdx, activeSteps}){
 
 
 
-          {/* ── SUPPLY PLENUM — crosses deck, extends into attic ── */}
+          {/* ── SUPPLY PLENUM - crosses deck, extends into attic ── */}
           {hasPlenum&&hasCoil&&<g className="snap" key="spl">
             {(()=>{
               const isExisting=a.plenum==='none';
@@ -2065,7 +2065,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={UNIT_X} y={PLEN_TOP} width={PLEN_W} height={PLEN_TOTAL} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={isExisting?1:isMetal?1.7:1.4}
                   strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.7:1}/>
-                {/* Warm/cold air pulse — same idea as the refrigerant line pulse, orange for heat, blue for cool.
+                {/* Warm/cold air pulse - same idea as the refrigerant line pulse, orange for heat, blue for cool.
                     Thick + glowing so it reads clearly against the plenum's own static material border underneath. */}
                 <rect x={UNIT_X-2} y={PLEN_TOP-2} width={PLEN_W+4} height={PLEN_TOTAL+4} rx="4"
                   fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="4" filter="url(#glow-sm)" className="line-pulse"/>
@@ -2084,7 +2084,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 {/* ATTIC zone label inside plenum */}
                 <text x={UNIT_X+PLEN_W/2} y={PLEN_TOP+PLEN_ABOVE*0.38+4} textAnchor="middle"
                   fill={G+'.26)'} fontSize="6" fontFamily="monospace">↑ ATTIC SPACE</text>
-                {/* Supply airflow arrows INSIDE the plenum — two upward flow arrows */}
+                {/* Supply airflow arrows INSIDE the plenum - two upward flow arrows */}
                 {[UNIT_X+PLEN_W*0.28, UNIT_X+PLEN_W*0.68].map((ax,i)=>(
                   <g key={i}>
                     <path d={`M${ax} ${PLEN_TOP+PLEN_ABOVE*0.85} L${ax} ${PLEN_TOP+PLEN_ABOVE*0.18}`}
@@ -2097,7 +2097,7 @@ function Canvas({a, stepIdx, activeSteps}){
                       fill={G+'.3)'} fontSize="5.5" fontFamily="monospace">SUPPLY</text>
                   </g>
                 ))}
-                {/* Ionizer — horizontal from right */}
+                {/* Ionizer - horizontal from right */}
                 {hasIonizer&&!isExisting&&(()=>{
                   const rodLen=Math.round(PLEN_W*0.62);
                   const bulbX=UNIT_X+PLEN_W+12;
@@ -2120,7 +2120,7 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* Upflow supply ducts — exit plenum sides, run long, drop to ceiling grille */}
+          {/* Upflow supply ducts - exit plenum sides, run long, drop to ceiling grille */}
           {hasPlenum&&hasCoil&&a.plenum!=='none'&&<g className="fadein" key="upflow-ducts" style={{animationDelay:'.2s'}}>
             {(()=>{
               const DW=13; // duct thickness
@@ -2129,7 +2129,7 @@ function Canvas({a, stepIdx, activeSteps}){
               const GW=DW+10; // grille width
               // Ducts exit at upper portion of plenum's attic section
               const exitY=PLEN_TOP+Math.round(PLEN_ABOVE*0.38);
-              // How far out before dropping — well past unit edges
+              // How far out before dropping - well past unit edges
               const leftDropX=UNIT_X-120;
               const rightDropX=UNIT_X+PLEN_W+120;
               // Vertical drop goes from exitY down to DECK_Y
@@ -2216,7 +2216,7 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* Furnace — HX top | blower bottom */}
+          {/* Furnace - HX top | blower bottom */}
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu-c'+a.stage}>
             <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
               fill={furnaceActive?"#0e0606":"#090909"}
@@ -2250,7 +2250,7 @@ function Canvas({a, stepIdx, activeSteps}){
               spd={furnaceActive?1.55:0.5} active={furnaceActive||!heatMode}/>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
               fill={G+'.55)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
-            {/* Flue — 45° elbow routing:
+            {/* Flue - 45° elbow routing:
                 exits top of furnace → 45° elbow left → horizontal run → 45° elbow up → vertical through roof */}
             {(()=>{
               const PIPE_W=is90?5:7;
@@ -2272,7 +2272,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 {/* Vertical stub from furnace up to elbow 1 */}
                 <rect x={EXIT_X-PIPE_W/2} y={ELB1_Y+ELBOW_R} width={PIPE_W} height={EXIT_Y-ELB1_Y-ELBOW_R}
                   fill={PIPE_C} stroke={PIPE_S} strokeWidth="0.7"/>
-                {/* 45° elbow 1: turn left — quarter circle arc */}
+                {/* 45° elbow 1: turn left - quarter circle arc */}
                 <path d={`M${EXIT_X-PIPE_W/2} ${ELB1_Y+ELBOW_R} Q${EXIT_X-PIPE_W/2} ${ELB1_Y} ${EXIT_X-PIPE_W/2-ELBOW_R} ${ELB1_Y}`}
                   fill="none" stroke={PIPE_S} strokeWidth={PIPE_W} strokeLinecap="round"/>
                 <path d={`M${EXIT_X+PIPE_W/2} ${ELB1_Y+ELBOW_R} Q${EXIT_X+PIPE_W/2} ${ELB1_Y-PIPE_W} ${EXIT_X+PIPE_W/2-ELBOW_R-PIPE_W} ${ELB1_Y-PIPE_W}`}
@@ -2299,7 +2299,7 @@ function Canvas({a, stepIdx, activeSteps}){
               fill={furnaceActive?'rgba(249,115,22,.78)':(G+'.55)')} fontSize="7" fontFamily="monospace">FURNACE</text>
           </g>}
 
-          {/* Aprilaire — between bottom of unit and 2x4 chase */}
+          {/* Aprilaire - between bottom of unit and 2x4 chase */}
           {hasCoil&&hasAprilaire&&<g className="fadein" key="apr-c">
             <rect x={UNIT_X} y={APR_Y} width={UNIT_W} height={APR_H} rx="2"
               fill="rgba(34,197,94,.1)" stroke="#22c55e" strokeWidth="1.4"/>
@@ -2329,7 +2329,7 @@ function Canvas({a, stepIdx, activeSteps}){
               fill="rgba(138,98,42,.62)" fontSize="7" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
           </g>}
 
-          {/* Condensate drain — exits right face of AH, S-curves into 2x4 chase */}
+          {/* Condensate drain - exits right face of AH, S-curves into 2x4 chase */}
           {hasCoil&&(()=>{
             const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
             // Exit point: right face of AH/coil, lower portion
@@ -2377,17 +2377,17 @@ function Canvas({a, stepIdx, activeSteps}){
             </>;
           })()}
 
-          {/* ── REFRIGERANT LINE STUBS — exit right face of A-coil, run to wall ── */}
+          {/* ── REFRIGERANT LINE STUBS - exit right face of A-coil, run to wall ── */}
           {hasCoil&&hasCond&&<g key="rl-c">
             {/* Foam sleeve background */}
             <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
               fill="none" stroke="rgba(22,22,42,.55)" strokeWidth="11" strokeLinecap="round"/>
             <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
               fill="none" stroke="rgba(22,22,42,.45)" strokeWidth="11" strokeLinecap="round"/>
-            {/* Liquid line — always bold */}
+            {/* Liquid line - always bold */}
             <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
               fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse"/>
-            {/* Suction line — always bold */}
+            {/* Suction line - always bold */}
             <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
               fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
             {/* Flow dots -- both pipes */}
@@ -2405,7 +2405,7 @@ function Canvas({a, stepIdx, activeSteps}){
             })}
           </g>}
 
-          {/* ── OUTSIDE ZONE — wall + condenser, condenser aligned with unit height ── */}
+          {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}
           {hasCond&&<OutsideZone
             wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH}
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
@@ -2448,16 +2448,16 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* Dehu + ERV — hang from roofline in attic zone */}
+          {/* Dehu + ERV - hang from roofline in attic zone */}
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
             const rW=hasCond?HOUSE_W:VW-8;
             const rRise=Math.round(Math.min(rW/2*(3/12),60));
-            const rEave=rRise+12; // eave Y — bottom of roofline
+            const rEave=rRise+12; // eave Y - bottom of roofline
             const BW=80, BH=48;
             const hasERV=Array.isArray(a.extras)&&a.extras.includes('erv');
             const BY=rEave+42;
             const roofY=rEave+4;
-            // Dehu anchored far RIGHT of attic, ERV anchored far LEFT — opposite sides
+            // Dehu anchored far RIGHT of attic, ERV anchored far LEFT - opposite sides
             const dehuX=rW-BW-34;
             const ervX=24; // ERV slightly right
             const boxes=[];
@@ -2562,7 +2562,7 @@ function App(){
     const next={...p,[k]:v};
     // Auto-set furnace_eff when insulation is chosen
     if(k==='insulation') next.furnace_eff=deriveFurnaceEff(v);
-    // Changing efficiency tier can invalidate an already-picked thermostat/system_for —
+    // Changing efficiency tier can invalidate an already-picked thermostat/system_for -
     // clear those so the (now differently-filtered) step forces a fresh explicit pick.
     if(k==='cond_tier'){
       const thermostatStillValid=v==='high_ge18'?p.thermostat==='proprietary':p.thermostat!=='proprietary';
@@ -2659,7 +2659,7 @@ function App(){
 
     return(
     <div ref={topRef} className="app-root">
-      {/* ── RESUME PROMPT — shown once on load if a saved build exists ── */}
+      {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
       {resumePending&&<div style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
         <div className="splash-logo" style={{fontSize:"clamp(28px,6vw,44px)"}}>WELCOME BACK</div>
         <p style={{fontFamily:"var(--fb)",fontSize:15,color:"rgba(255,255,255,.6)",maxWidth:420,lineHeight:1.6}}>
@@ -2669,7 +2669,7 @@ function App(){
             return savedBuild.done
               ? "You already finished building a system. Pick up right where you left off?"
               : savedCur
-                ? <>You were on <strong style={{color:"rgba(255,255,255,.85)"}}>"{savedCur.q}"</strong> — want to keep going?</>
+                ? <>You were on <strong style={{color:"rgba(255,255,255,.85)"}}>"{savedCur.q}"</strong> - want to keep going?</>
                 : "You have a build in progress. Want to keep going?";
           })()}
         </p>
@@ -2680,7 +2680,7 @@ function App(){
       {/* ── PROGRESS BAR ── */}
       <div className="prog" style={{position:"absolute",top:0,left:0,right:0,zIndex:30}}><div className="prog-fill" style={{width:done?"100%":`${pct}%`}}/></div>
 
-      {/* ── SPLASH — step 1 location picker ── */}
+      {/* ── SPLASH - step 1 location picker ── */}
       <div className={"splash-screen"+(loc||done?" out":"")}>
         <div className="splash-logo">GOLD EAGLE SERVICES</div>
         <div className="splash-sub">AUSTIN TX  |  512-489-4653  |  GOLDEAGLESERVICES.COM</div>
@@ -2692,7 +2692,7 @@ function App(){
           <span>TACLA #119235C</span>
         </div>
         <p style={{fontFamily:"var(--fb)",fontSize:"17px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:560,lineHeight:1.7,margin:"8px 0 4px"}}>
-          Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system — every component, every connection, sized and labeled.
+          Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.
         </p>
         <p style={{fontFamily:"var(--fm)",fontSize:"13px",color:"rgba(215,183,64,.55)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>SELECT YOUR SYSTEM LOCATION TO BEGIN</p>
         <div className="splash-cards">
@@ -2700,7 +2700,7 @@ function App(){
             <div style={{fontSize:36,lineHeight:1,flexShrink:0}}>A</div>
             <div style={{display:"flex",flexDirection:"column",gap:4}}>
               <div className="splash-card-title">Attic Horizontal</div>
-              <div className="splash-card-desc">Unit lays on its side above the ceiling — most common in Austin. Air flows horizontally through ducts in the attic.</div>
+              <div className="splash-card-desc">Unit lays on its side above the ceiling - most common in Austin. Air flows horizontally through ducts in the attic.</div>
             </div>
           </div>
           <div className="splash-card" onClick={()=>{setA("location","closet");setStepIdx(1);}}>
@@ -2716,7 +2716,7 @@ function App(){
         </p>
       </div>
 
-      {/* ── ATTIC LAYOUT — canvas full width, step bar on bottom ── */}
+      {/* ── ATTIC LAYOUT - canvas full width, step bar on bottom ── */}
       <div className={"attic-layout"+(!isAtticMode||done?" out":"")}>
         <div className="attic-canvas-area">
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
@@ -2748,7 +2748,7 @@ function App(){
         </div>
       </div>
 
-      {/* ── CLOSET LAYOUT — canvas left, sidebar right ── */}
+      {/* ── CLOSET LAYOUT - canvas left, sidebar right ── */}
       <div className={"closet-layout"+(!isClosetMode||done?" out":"")}>
         <div className="closet-canvas-area">
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
@@ -2792,13 +2792,13 @@ function App(){
               {[
                 {step:"location",label:"Location",val:answers.location==="attic"?"Attic horizontal":answers.location==="closet"?"Upflow closet":null},
                 {step:"indoor_type",label:"Indoor unit",val:answers.indoor_type==="furnace"?"Gas furnace":answers.indoor_type==="ah"?"Air handler":null},
-                answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam — 90% AFUE":"Fiberglass — 80% AFUE"}:null,
+                answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam - 90% AFUE":"Fiberglass - 80% AFUE"}:null,
                 {step:"plenum",label:"Plenum",val:answers.plenum==="ductboard"?"New ductboard plenum":answers.plenum==="metal"?"New sheet metal plenum":answers.plenum==="none"?"Keep existing plenum":null},
                 {step:"thermostat",label:"Thermostat",val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null},
                 Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Air quality",val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v).join(" + ")}:null,
-                {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum — 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency — 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency — 21 SEER2":null},
-                answers.system_for?{step:"system_for",label:"Heat source",val:answers.system_for==="hp"?"Dual Fuel — heat pump + furnace":"Straight cool — furnace only"}:null,
-                {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes — whole-home unit":answers.dehu==="no"?"No":null},
+                {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum - 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency - 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency - 21 SEER2":null},
+                answers.system_for?{step:"system_for",label:"Heat source",val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only"}:null,
+                {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes - whole-home unit":answers.dehu==="no"?"No":null},
                 Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Add-ons",val:answers.extras.map(v=>v==="surge"?"Surge protector":v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
               ].filter(Boolean).map((item,i)=>item&&item.val?(
                 <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,.05)",background:i%2===0?"rgba(255,255,255,.02)":"transparent",gap:8}}>
@@ -2843,7 +2843,7 @@ function App(){
                   {subId==='systems'&&<>
                     <div style={{fontSize:13,fontWeight:600,marginBottom:8,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                      {[{v:'1',label:'Just 1 — this one'},{v:'2',label:'2 systems'},{v:'3+',label:'3 or more'}].map(o=>(
+                      {[{v:'1',label:'Just 1 - this one'},{v:'2',label:'2 systems'},{v:'3+',label:'3 or more'}].map(o=>(
                         <button key={o.v} className={"opt"+(pricingAnswers.systemsCount===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,systemsCount:o.v}))}>
                           <div className="opt-inner"><div className="opt-body"><span className="opt-label">{o.label}</span></div></div>
                         </button>
@@ -2853,7 +2853,7 @@ function App(){
 
                   {subId==='sqft'&&<>
                     <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>What size system does this home need?</div>
-                    <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers — not the whole home.'} Reference sq ft below is Texas climate, ~600 sq ft/ton — adjust up or down based on what actually fits.</div>
+                    <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers - not the whole home.'} Reference sq ft below is Texas climate, ~600 sq ft/ton - adjust up or down based on what actually fits.</div>
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
                       {TONNAGE_OPTIONS.map(o=>(
                         <button key={o.v} className={"opt"+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
@@ -2894,7 +2894,7 @@ function App(){
 
               {pricingFlow==='result'&&(()=>{
                 const est=calcEstimate(answers,pricingAnswers);
-                if(!est)return<div style={{fontSize:11,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet — call us and we'll get you a number.</div>;
+                if(!est)return<div style={{fontSize:11,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
                 return <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
                   <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
                   <div style={{fontFamily:"var(--fm)",fontSize:24,color:"var(--gl)",marginBottom:10}}>${est.low.toLocaleString()} – ${est.high.toLocaleString()}</div>
@@ -2907,7 +2907,7 @@ function App(){
                       </div>
                     ))}
                   </div>
-                  <div style={{fontSize:10,color:"rgba(255,255,255,.6)",lineHeight:1.5,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit — we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
+                  <div style={{fontSize:10,color:"rgba(255,255,255,.6)",lineHeight:1.5,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
                   <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ Adjust my answers</button>
                 </div>;
               })()}
@@ -2924,7 +2924,7 @@ function App(){
               <span style={{display:"block"}}>📞 Schedule Your Free Visit</span>
               <span style={{display:"block",fontSize:"12px",opacity:.85,marginTop:2}}>512-489-4653</span>
             </a>
-            <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"block",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",marginBottom:8,textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 FINANCING AVAILABLE — CHECK YOUR RATE</a>
+            <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"block",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",marginBottom:8,textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 FINANCING AVAILABLE - CHECK YOUR RATE</a>
             <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",letterSpacing:".08em",marginBottom:8}}>⬇ SAVE / PRINT BUILD SUMMARY</button>
             <div style={{display:"flex",gap:8,width:"100%"}}>
               <button className="btn-back" style={{flex:1,padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
