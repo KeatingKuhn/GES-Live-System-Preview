@@ -230,17 +230,13 @@ const STEPS=[
     hint:'Higher efficiency = lower monthly bills and better humidity control.', optional:false},
   {id:'thermostat',  q:'Which thermostat?',
     hint:'Smart thermostats save 10–15% on energy bills.',            optional:false},
-  {id:'purif',       q:'Air purification add-ons?',
-    hint:'The enhanced filtration cabinet ships standard on every install. Add UV or an ionizer on top of that.',optional:true, multi:true},
+  {id:'purif',       q:'Any add-ons?',
+    hint:'The enhanced filtration cabinet ships standard on every install already. Add any of these on top of that.',optional:true, multi:true},
   {id:'system_for',  q:'Heat pump or straight cool?',
     hint:'Heat pump both heats and cools. Straight cool = AC only, furnace does all heating.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
   {id:'dehu',        q:'Add a whole-home dehumidifier?',
     hint:"Austin's humidity makes your home feel 7°F warmer. Runs automatically with your system.", optional:false},
-  {id:'extras',      q:'Any final add-ons?',
-    hint:'Surge protector, condensate pump, or ERV.',                 optional:true, multi:true},
-  {id:'return_duct', q:'Need return-side work too?',
-    hint:'Austin homes very commonly have undersized returns - the plenum, the ductwork, or both.', optional:true, multi:true},
 ];
 
 // Auto-derive furnace_eff from insulation - never ask separately
@@ -277,9 +273,11 @@ function getOpts(stepId, answers){
       {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, set schedules, get energy reports. Learns your habits over time. Saves 10–15% on energy bills on average.',badge:true},
     ];
     case 'purif':return[
-      {v:'aprilaire',label:'Enhanced Filtration Cabinet',desc:'Included standard on every install. High-capacity media filter - captures dust, pollen, pet dander, and allergens far better than a standard 1" filter. Replaces every 1–2 years.'},
+      // Enhanced Filtration Cabinet isn't listed - it's automatic on every
+      // system (see defaultAnswers), not a real choice to present.
       {v:'uv',       label:'UV Light System',    desc:'UV-C bulb mounted inside the air handler keeps the evaporator coil clean for longevity and efficiency. Eliminates musty odors at the source.'},
       {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Emits charged ions throughout your duct system that neutralize airborne particles, odors, VOCs, and smoke. Works while the system runs.'},
+      {v:'surge',    label:'Surge Protector',    desc:'Mounts on the disconnect box. Protects the compressor from voltage spikes and lightning. One strike can destroy a $2,000+ compressor - this costs a fraction of that.'},
     ];
     case 'system_for':
       if(answers.cond_tier==='mid_ge15')return[
@@ -299,16 +297,6 @@ function getOpts(stepId, answers){
     case 'dehu':return[
       {v:'yes',label:'Yes - add it',  desc:'Whole-home dehumidifier sized to your square footage. Runs automatically with the HVAC system - no buckets, no maintenance. Makes your home feel 5–7°F cooler at the same thermostat setting.'},
       {v:'no', label:'No thanks',     desc:'Skip for now. Can always be added later as a standalone unit if humidity becomes an issue.'},
-    ];
-    case 'extras':return[
-      {v:'surge',     label:'Surge Protector',       desc:'Mounts on the disconnect box. Protects the compressor from voltage spikes and lightning. One strike can destroy a $2,000+ compressor - this costs a fraction of that.'},
-      {v:'condensate',label:'Condensate Pump',        desc:"Needed when there is no gravity drain nearby. Pumps condensate water up and out to a drain or exterior wall. Required in many closet installs."},
-      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings fresh filtered outdoor air into the home while exhausting stale air. Recovers ~70% of the heating/cooling energy from the outgoing air. Attic mounted - if it needs a new roof penetration, we recommend having a roofer involved.'},
-    ];
-    case 'return_duct':return[
-      {v:'ret_ductboard',label:'New Return Plenum - Ductboard',desc:'Replaces an undersized or damaged return plenum with fiberglass duct board.'},
-      {v:'ret_metal',     label:'New Return Plenum - Metal',    desc:'Replaces an undersized or damaged return plenum with galvanized sheet metal - more durable, better for high-airflow systems.'},
-      {v:'ret_newduct',   label:'New Return Duct',              desc:'Replaces the ductwork feeding the return plenum - common alongside undersized returns.'},
     ];
     default:return[];
   }
@@ -371,8 +359,9 @@ const PRICING={
     // and grille together. In a 2-story house this needs sheetrock removal.
     newSupplyRun:1188,
     // Return side - a separate box/run from the supply plenum question above.
-    // Austin homes very commonly have undersized returns. Its own STEPS entry
-    // (id:'return_duct'), placed after extras.
+    // Austin homes very commonly have undersized returns. Not a wizard
+    // question anymore - referenced in the "Additional Considerations"
+    // education block on the done screen instead (see additionalConsiderations).
     returnPlenum:{ductboard:1420, metal:2148},
     newReturnDuct:1034,
   },
@@ -397,6 +386,13 @@ const TONNAGE_OPTIONS=[
   {v:'t4',  label:'4 Tons',   sqftLabel:'~2,400 sq ft',         tons:4,   sqftMid:2400},
   {v:'t5',  label:'5 Tons',   sqftLabel:'3,000+ sq ft',         tons:5,   sqftMid:3600},
 ];
+// Optional light-touch nudge: typing a sq ft doesn't lock anything in, it just
+// suggests the closest tonnage option so the pick steers toward accuracy
+// instead of a guess - still fully overridable by clicking any card.
+function nearestTonnageOption(sqft){
+  if(!sqft||sqft<=0)return null;
+  return TONNAGE_OPTIONS.reduce((best,o)=>Math.abs(o.sqftMid-sqft)<Math.abs(best.sqftMid-sqft)?o:best);
+}
 // Picks the closest tonnage this tier/system-type actually offers (fedmin has
 // half-tons, mid/high don't) - ties round up toward the larger, safer size.
 function nearestTonnage(tierSystemPrices, targetTon){
@@ -441,28 +437,21 @@ function calcEstimate(answers,pricingAnswers){
   const purifList=Array.isArray(answers.purif)?answers.purif:[];
   if(purifList.includes('uv'))lines.push({label:'UV Light System',price:PRICING.purif.uv});
   if(purifList.includes('ionizer'))lines.push({label:'Ionizer / Plasma',price:PRICING.purif.ionizer});
+  if(purifList.includes('surge'))lines.push({label:'Surge Protector',price:PRICING.extras.surge});
 
   if(answers.dehu==='yes'){
     const cap=dehuCapacity(picked.sqftMid);
     lines.push({label:`Whole-home dehumidifier (${cap.replace('p','')}pt)`,price:PRICING.dehu[cap]});
   }
 
-  const extrasList=Array.isArray(answers.extras)?answers.extras:[];
-  if(extrasList.includes('surge'))lines.push({label:'Surge Protector',price:PRICING.extras.surge});
-  if(extrasList.includes('condensate'))lines.push({label:'Condensate Pump',price:PRICING.extras.condensate});
-  if(extrasList.includes('erv')){
-    const cfmKey=ervCfmKey(picked.sqftMid);
-    lines.push({label:`ERV (${cfmKey==='cfm130'?'130':'150'} CFM)`,price:PRICING.extras.erv[cfmKey]});
-  }
+  // Condensate pump, ERV, and return-side work are no longer "choose your own"
+  // selections - they're common enough that guessing at them isn't homeowner-
+  // friendly, so they're covered as education (see additionalConsiderations
+  // below) with final scope confirmed at the in-home visit instead.
 
   if(pricingAnswers.wantDucts&&pricingAnswers.ventCount>0){
     lines.push({label:`Duct replacement (${pricingAnswers.ventCount} vents)`,price:pricingAnswers.ventCount*PRICING.duct.replacementPerStem});
   }
-
-  const returnDuctList=Array.isArray(answers.return_duct)?answers.return_duct:[];
-  if(returnDuctList.includes('ret_ductboard'))lines.push({label:'Return Plenum (Ductboard)',price:PRICING.duct.returnPlenum.ductboard});
-  if(returnDuctList.includes('ret_metal'))lines.push({label:'Return Plenum (Metal)',price:PRICING.duct.returnPlenum.metal});
-  if(returnDuctList.includes('ret_newduct'))lines.push({label:'New Return Duct',price:PRICING.duct.newReturnDuct});
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
   // Rounded to the nearest $25 and shown with a "~" prefix (one number, not a
@@ -496,7 +485,7 @@ function Canvas({a, stepIdx, activeSteps}){
   const hasIonizer=Array.isArray(a.purif)&&a.purif.includes('ionizer');
   const hasAprilaire=Array.isArray(a.purif)&&a.purif.includes('aprilaire');
   const hasDehu=a.dehu==='yes';
-  const isSurge=Array.isArray(a.extras)&&a.extras.includes('surge');
+  const isSurge=Array.isArray(a.purif)&&a.purif.includes('surge');
   const is90=a.furnace_eff==='e90';
   const isSpray=a.insulation==='spray';
   const isComm=a.cond_tier==='high_ge18';
@@ -2633,12 +2622,10 @@ function App(){
     insulation:"Attic insulation type determines which furnace you can install. Fiberglass or blown insulation means your attic is vented -- a standard 80% AFUE furnace with a metal B-vent flue works fine. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
     plenum:"The supply plenum is the box that connects your indoor unit to all your ductwork. Think of it as the distribution hub -- conditioned air flows from the unit into the plenum, then out through the ducts to every room. If your existing plenum is damaged, leaking, or over 15 years old, replacing it improves efficiency and airflow.",
     thermostat:"A basic programmable thermostat is reliable and accurate -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
-    purif:"Air purification add-ons are installed inside your indoor unit and treat every cubic foot of air your system moves. The enhanced filtration cabinet captures dust, pollen, and allergens far better than a standard 1 inch filter. A UV light keeps the evaporator coil clean for longevity and efficiency. An ionizer neutralizes airborne particles, odors, and VOCs throughout the home.",
+    purif:"The enhanced filtration cabinet ships standard on every install and already captures dust, pollen, and allergens far better than a standard 1 inch filter. A UV light keeps the evaporator coil clean for longevity and efficiency. An ionizer neutralizes airborne particles, odors, and VOCs throughout the home. A surge protector mounts on the disconnect box and shields your condenser from voltage spikes -- one lightning strike can destroy a compressor.",
     cond_tier:"The condenser is the outdoor unit. Federal Minimum meets current energy code -- solid and reliable, lowest upfront cost. Mid Efficiency is our best-value tier -- variable speed, noticeably lower monthly bills, better humidity control. High Efficiency is our top inverter-driven tier -- eligible for local energy rebates and the best humidity performance available.",
     system_for:"With a gas furnace you have two options. Dual fuel (heat pump + furnace) means the heat pump handles cooling in summer and heating in mild weather -- the gas furnace only fires when it gets genuinely cold below about 35 degrees. Most efficient combo. Straight cool means your AC only cools and the furnace handles all heating year-round.",
     dehu:"Austin humidity makes your home feel significantly warmer than the thermostat reads. A whole-home dehumidifier connects directly to your HVAC system and runs automatically -- no buckets, no maintenance. Recommended for any home that feels muggy even when the AC is running.",
-    extras:"A surge protector mounts on the disconnect box and shields your condenser from voltage spikes -- one lightning strike can destroy a compressor. A condensate pump is needed when gravity drainage is not available. An ERV brings fresh filtered outdoor air in while recovering the energy from outgoing stale air.",
-    return_duct:"The return side pulls air back into your system to be conditioned again. A lot of Austin homes were built with a return plenum or return ductwork too small for the system they're paired with, which shows up as weak airflow, hot/cold rooms, and a system that runs longer than it should. These are independent of your supply-side choices earlier -- add whichever apply.",
   };
   const infoText=cur&&INFO_TEXT[cur.id];
 
@@ -2814,12 +2801,10 @@ function App(){
                 answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam - 90% AFUE":"Fiberglass - 80% AFUE"}:null,
                 {step:"plenum",label:"Plenum",val:answers.plenum==="ductboard"?"New ductboard plenum":answers.plenum==="metal"?"New sheet metal plenum":answers.plenum==="none"?"Keep existing plenum":null},
                 {step:"thermostat",label:"Thermostat",val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null},
-                Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Air quality",val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v).join(" + ")}:null,
+                Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Add-ons",val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge protector":v).join(" + ")}:null,
                 {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum - 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency - 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency - 21 SEER2":null},
                 answers.system_for?{step:"system_for",label:"Heat source",val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only"}:null,
                 {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes - whole-home unit":answers.dehu==="no"?"No":null},
-                Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Add-ons",val:answers.extras.map(v=>v==="surge"?"Surge protector":v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
-                Array.isArray(answers.return_duct)&&answers.return_duct.length>0?{step:"return_duct",label:"Return side",val:answers.return_duct.map(v=>v==="ret_ductboard"?"Return plenum (ductboard)":v==="ret_metal"?"Return plenum (metal)":v==="ret_newduct"?"New return duct":v).join(" + ")}:null,
               ].filter(Boolean).map((item,i)=>item&&item.val?(
                 <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,.05)",background:i%2===0?"rgba(255,255,255,.02)":"transparent",gap:8}}>
                   <span style={{color:"rgba(215,183,64,.6)",fontFamily:"monospace",fontSize:"10px",flexShrink:0,minWidth:80}}>{item.label}</span>
@@ -2827,6 +2812,18 @@ function App(){
                   <button onClick={()=>{const i2=activeSteps.findIndex(s=>s.id===item.step);if(i2>=0){setDone(false);setStepIdx(i2);}}} style={{background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"9px",padding:"3px 8px",cursor:"pointer",flexShrink:0,letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                 </div>
               ):null)}
+            </div>
+
+            {/* ── ADDITIONAL CONSIDERATIONS — education, not "choose your own" ── */}
+            <div style={{width:"100%",marginBottom:12,padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)"}}>
+              <div style={{fontSize:9,color:"rgba(215,183,64,.7)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
+              <div style={{fontSize:10.5,color:"var(--dim)",lineHeight:1.7}}>
+                <div><strong style={{color:"rgba(255,255,255,.85)"}}>Condensate pump</strong> (~${PRICING.extras.condensate.toLocaleString()}) - needed when there's no gravity drain nearby.</div>
+                <div><strong style={{color:"rgba(255,255,255,.85)"}}>ERV fresh-air system</strong> (${PRICING.extras.erv.cfm130.toLocaleString()}-${PRICING.extras.erv.cfm150.toLocaleString()}) - optional air-quality upgrade.</div>
+                <div><strong style={{color:"rgba(255,255,255,.85)"}}>Return plenum/ductwork</strong> (${PRICING.duct.returnPlenum.ductboard.toLocaleString()}-${PRICING.duct.returnPlenum.metal.toLocaleString()}) - Austin homes very commonly have undersized returns.</div>
+                <div><strong style={{color:"rgba(255,255,255,.85)"}}>Duct cleaning</strong> - priced by system size.</div>
+              </div>
+              <div style={{fontSize:9.5,color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate below - we'll flag anything your system actually needs at your free in-home visit.</div>
             </div>
 
             {/* ── PRICING GATE / SIZING / RESULT ── */}
@@ -2871,20 +2868,32 @@ function App(){
                     </div>
                   </>}
 
-                  {subId==='sqft'&&<>
-                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
-                    <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers - not the whole home.'} Reference sq ft below is Texas climate, ~600 sq ft/ton - adjust up or down based on what actually fits.</div>
-                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                      {TONNAGE_OPTIONS.map(o=>(
-                        <button key={o.v} className={"opt"+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
-                          <div className="opt-inner"><div className="opt-body">
-                            <span className="opt-label">{o.label}</span>
-                            <span className="opt-desc">Typical for {o.sqftLabel} homes</span>
-                          </div></div>
-                        </button>
-                      ))}
-                    </div>
-                  </>}
+                  {subId==='sqft'&&(()=>{
+                    const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
+                    const recommended=nearestTonnageOption(sqftNum);
+                    return <>
+                      <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
+                      <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers - not the whole home.'} Not sure? Enter your sq ft below for a suggested starting point.</div>
+                      <input type="number" min="200" max="10000" placeholder="Sq ft (optional)"
+                        value={pricingAnswers.sqftInput||''}
+                        onChange={e=>{
+                          const val=e.target.value;
+                          const rec=nearestTonnageOption(parseInt(val)||0);
+                          setPricingAnswers(p=>({...p, sqftInput:val, ...(rec?{tonnageChoice:rec.v}:{})}));
+                        }}
+                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:"8px 10px",fontSize:12,fontFamily:"var(--fm)",marginBottom:10,outline:"none"}}/>
+                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                        {TONNAGE_OPTIONS.map(o=>(
+                          <button key={o.v} className={"opt"+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
+                            <div className="opt-inner"><div className="opt-body">
+                              <span className="opt-label">{o.label}{recommended&&recommended.v===o.v&&<span className="opt-badge">SUGGESTED</span>}</span>
+                              <span className="opt-desc">Typical for {o.sqftLabel} homes</span>
+                            </div></div>
+                          </button>
+                        ))}
+                      </div>
+                    </>;
+                  })()}
 
                   {subId==='ducts'&&<>
                     <div style={{fontSize:13,fontWeight:600,marginBottom:8,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>
