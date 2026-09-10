@@ -231,7 +231,7 @@ const STEPS=[
   {id:'thermostat',  q:'Which thermostat?',
     hint:'Smart thermostats save 10–15% on energy bills.',            optional:false},
   {id:'purif',       q:'Air purification add-ons?',
-    hint:'The 5" filter cabinet ships standard on every install. Add UV or an ionizer on top of that.',optional:true, multi:true},
+    hint:'The enhanced filtration cabinet ships standard on every install. Add UV or an ionizer on top of that.',optional:true, multi:true},
   {id:'system_for',  q:'Heat pump or straight cool?',
     hint:'Heat pump both heats and cools. Straight cool = AC only, furnace does all heating.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
@@ -275,7 +275,7 @@ function getOpts(stepId, answers){
       {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, set schedules, get energy reports. Learns your habits over time. Saves 10–15% on energy bills on average.',badge:true},
     ];
     case 'purif':return[
-      {v:'aprilaire',label:'5" Filter Cabinet',desc:'Included standard on every install. 5-inch deep media filter — captures dust, pollen, pet dander, and allergens far better than a standard 1" filter. Replaces every 1–2 years.'},
+      {v:'aprilaire',label:'Enhanced Filtration Cabinet',desc:'Included standard on every install. High-capacity media filter — captures dust, pollen, pet dander, and allergens far better than a standard 1" filter. Replaces every 1–2 years.'},
       {v:'uv',       label:'UV Light System',    desc:'UV-C bulb mounted inside the air handler keeps the evaporator coil clean for longevity and efficiency. Eliminates musty odors at the source.'},
       {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Emits charged ions throughout your duct system that neutralize airborne particles, odors, VOCs, and smoke. Works while the system runs.'},
     ];
@@ -341,7 +341,7 @@ const PRICING={
   // that's a flat upgrade on top of the base price, furnace systems only (not
   // heat_pump_ah, which has no furnace/AFUE at all).
   furnace90Upgrade:1488,
-  // Air purification add-ons. The 5" Aprilaire filter cabinet (purif:'aprilaire')
+  // Air purification add-ons. The enhanced filtration cabinet (purif:'aprilaire')
   // is bundled into every system at no charge, so it has no price here.
   purif:{uv:489, ionizer:1428},
   // Final add-ons. Thermostat (any tier/type) is always included with the system
@@ -1561,7 +1561,7 @@ function Canvas({a, stepIdx, activeSteps}){
             ))}
             <text x={APR_X+APR_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
               fill="#22c55e" fontSize="7" fontFamily="monospace"
-              transform={`rotate(-90,${APR_X+APR_W/2},${UNIT_Y+UNIT_H/2})`}>5" FILTER</text>
+              transform={`rotate(-90,${APR_X+APR_W/2},${UNIT_Y+UNIT_H/2})`}>FILTRATION</text>
           </g>}
 
           {/* Furnace */}
@@ -2311,7 +2311,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 stroke="#22c55e" strokeWidth="0.6" opacity="0.52"/>
             ))}
             <text x={UNIT_X+UNIT_W/2} y={APR_Y+APR_H+12} textAnchor="middle"
-              fill="#22c55e" fontSize="6.5" fontFamily="monospace">5" FILTER CABINET</text>
+              fill="#22c55e" fontSize="6.5" fontFamily="monospace">FILTRATION CABINET</text>
           </g>}
 
           {/* 2×4 return chase */}
@@ -2541,7 +2541,7 @@ function clearSavedBuild(){
 function App(){
   const [savedBuild]=useState(loadSavedBuild);
   const [resumePending,setResumePending]=useState(!!savedBuild);
-  // The 5" Aprilaire filter cabinet ships standard on every install, so it
+  // The enhanced filtration cabinet ships standard on every install, so it
   // starts pre-selected (still toggle-able, just not opt-in by default).
   const defaultAnswers=()=>({purif:['aprilaire']});
   const [answers,setAnswers]=useState(defaultAnswers);
@@ -2617,7 +2617,7 @@ function App(){
     insulation:"Attic insulation type determines which furnace you can install. Fiberglass or blown insulation means your attic is vented -- a standard 80% AFUE furnace with a metal B-vent flue works fine. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
     plenum:"The supply plenum is the box that connects your indoor unit to all your ductwork. Think of it as the distribution hub -- conditioned air flows from the unit into the plenum, then out through the ducts to every room. If your existing plenum is damaged, leaking, or over 15 years old, replacing it improves efficiency and airflow.",
     thermostat:"A basic programmable thermostat is reliable and accurate -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
-    purif:"Air purification add-ons are installed inside your indoor unit and treat every cubic foot of air your system moves. The 5 inch filter cabinet captures dust, pollen, and allergens far better than a standard 1 inch filter. A UV light keeps the evaporator coil clean for longevity and efficiency. An ionizer neutralizes airborne particles, odors, and VOCs throughout the home.",
+    purif:"Air purification add-ons are installed inside your indoor unit and treat every cubic foot of air your system moves. The enhanced filtration cabinet captures dust, pollen, and allergens far better than a standard 1 inch filter. A UV light keeps the evaporator coil clean for longevity and efficiency. An ionizer neutralizes airborne particles, odors, and VOCs throughout the home.",
     cond_tier:"The condenser is the outdoor unit. Federal Minimum meets current energy code -- solid and reliable, lowest upfront cost. Mid Efficiency is our best-value tier -- variable speed, noticeably lower monthly bills, better humidity control. High Efficiency is our top inverter-driven tier -- eligible for local energy rebates and the best humidity performance available.",
     system_for:"With a gas furnace you have two options. Dual fuel (heat pump + furnace) means the heat pump handles cooling in summer and heating in mild weather -- the gas furnace only fires when it gets genuinely cold below about 35 degrees. Most efficient combo. Straight cool means your AC only cools and the furnace handles all heating year-round.",
     dehu:"Austin humidity makes your home feel significantly warmer than the thermostat reads. A whole-home dehumidifier connects directly to your HVAC system and runs automatically -- no buckets, no maintenance. Recommended for any home that feels muggy even when the AC is running.",
@@ -2797,7 +2797,7 @@ function App(){
                 answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam — 90% AFUE":"Fiberglass — 80% AFUE"}:null,
                 {step:"plenum",label:"Plenum",val:answers.plenum==="ductboard"?"New ductboard plenum":answers.plenum==="metal"?"New sheet metal plenum":answers.plenum==="none"?"Keep existing plenum":null},
                 {step:"thermostat",label:"Thermostat",val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null},
-                Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Air quality",val:answers.purif.map(v=>v==="aprilaire"?"5\" Filter Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v).join(" + ")}:null,
+                Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Air quality",val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v).join(" + ")}:null,
                 {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum — 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency — 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency — 21 SEER2":null},
                 answers.system_for?{step:"system_for",label:"Heat source",val:answers.system_for==="hp"?"Dual Fuel — heat pump + furnace":"Straight cool — furnace only"}:null,
                 {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes — whole-home unit":answers.dehu==="no"?"No":null},
