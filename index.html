@@ -1638,7 +1638,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+14} textAnchor="middle"
                   fill={G+'.32)'} fontSize="6.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
-                {!isExisting&&[SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.28), SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.72)].map((ay,i)=>(
+                {[SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.28), SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.72)].map((ay,i)=>(
                   <g key={"af"+i}>
                     <line x1={SUP_X+8} y1={ay} x2={SUP_X+SUP_PLEN_W-8} y2={ay}
                       fill="none" stroke={(heatMode?O:B)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
@@ -2085,7 +2085,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <text x={UNIT_X+PLEN_W/2} y={PLEN_TOP+PLEN_ABOVE*0.38+4} textAnchor="middle"
                   fill={G+'.26)'} fontSize="6" fontFamily="monospace">↑ ATTIC SPACE</text>
                 {/* Supply airflow arrows INSIDE the plenum — two upward flow arrows */}
-                {!isExisting&&[UNIT_X+PLEN_W*0.28, UNIT_X+PLEN_W*0.68].map((ax,i)=>(
+                {[UNIT_X+PLEN_W*0.28, UNIT_X+PLEN_W*0.68].map((ax,i)=>(
                   <g key={i}>
                     <path d={`M${ax} ${PLEN_TOP+PLEN_ABOVE*0.85} L${ax} ${PLEN_TOP+PLEN_ABOVE*0.18}`}
                       fill="none" stroke={(heatMode?O:B)+'.3)'} strokeWidth="8" strokeLinecap="round" opacity="0.3"/>
