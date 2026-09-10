@@ -72,8 +72,8 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .step-hdr{padding:16px 18px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:10}
 .step-eyebrow{font-family:var(--fm);font-size:var(--fs-step-eyebrow);color:var(--gm);letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px;display:flex;align-items:center;gap:8px}
 .step-eyebrow::after{content:'';flex:1;height:1px;background:rgba(215,183,64,.15)}
-.step-q{font-family:var(--ft);font-size:var(--fs-step-q);font-weight:600;color:var(--wh);line-height:1.3;margin-bottom:3px}
-.step-hint{font-size:var(--fs-step-hint);color:var(--mut);line-height:1.5}
+.step-q{font-family:var(--ft);font-size:var(--fs-step-q);font-weight:600;color:var(--wh);line-height:1.3;margin-bottom:3px;text-align:center}
+.step-hint{font-size:var(--fs-step-hint);color:var(--mut);line-height:1.5;text-align:center}
 .info-btn{width:16px;height:16px;flex-shrink:0;border-radius:50%;border:1px solid rgba(215,183,64,.35);background:transparent;color:rgba(215,183,64,.7);font-family:var(--fm);font-size:var(--fs-info-btn);cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .info-btn:hover{border-color:var(--gl);color:var(--gl)}
 .info-expand{padding:0 18px 10px;flex-shrink:0}
@@ -131,7 +131,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .attic-layout{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
 .attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
 .attic-canvas-area{flex:1;min-height:0;position:relative;overflow:hidden}
-.attic-bar{height:148px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
+.attic-bar{height:200px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
 .attic-bar-top{height:22px;flex-shrink:0;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:10px}
 .attic-bar-body{flex:1;display:flex;min-height:0;overflow:hidden}
 .attic-info{width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:13px 18px;display:flex;flex-direction:column;gap:4px;overflow:hidden}
@@ -143,7 +143,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .attic-opt.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
 .attic-opt-label{font-family:var(--ft);font-size:var(--fs-attic-label);font-weight:600;color:var(--wh);line-height:1.25}
 .attic-opt.sel .attic-opt-label{color:var(--gl)}
-.attic-opt-desc{font-size:var(--fs-attic-desc);color:var(--dim);line-height:1.4;flex:1}
+.attic-opt-desc{font-size:var(--fs-attic-desc);color:var(--dim);line-height:1.4;flex:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
 .attic-step-label{font-family:var(--fm);font-size:var(--fs-attic-steplabel);color:rgba(215,183,64,.45);letter-spacing:.14em;flex:1;transition:font-size .2s}
 .attic-opt-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:2px}
 .attic-chk{width:15px;height:15px;border:1.5px solid rgba(215,183,64,.35);display:flex;align-items:center;justify-content:center;font-size:8px;color:transparent}
@@ -685,7 +685,7 @@ function Canvas({a, stepIdx, activeSteps}){
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
         spd={active?1.6:0.5} active={active||!heatMode}/>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.3)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
       {Array.from({length:6},(_,i)=>{
         const gy=y+10+i*(h-18)/6;
         return <path key={i}
@@ -705,7 +705,7 @@ function Canvas({a, stepIdx, activeSteps}){
           </>}
         </g>;
       })}
-      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.44)':(G+'.28)')} fontSize="6.5" fontFamily="monospace">HEAT EXCH.</text>
+      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(G+'.5)')} fontSize="6.5" fontFamily="monospace">HEAT EXCH.</text>
       {(()=>{
         const pW=is90?5:7;
         const pC=is90?"#bfdbfe":"#c0c0c0";
@@ -746,10 +746,10 @@ function Canvas({a, stepIdx, activeSteps}){
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
         spd={active?1.5:0.45} active={active||!heatMode}/>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.28)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
       <rect x={mid+2} y={y+8} width={w/2-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
       <ACoilH x={mid+8} y={y+12} w={w/2-18} h={h-22} active={active}/>
-      <text x={mid+w/4} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.28)')} fontSize="6.5" fontFamily="monospace">A-COIL</text>
+      <text x={mid+w/4} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.5)')} fontSize="6.5" fontFamily="monospace">A-COIL</text>
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
 
     </g>;
@@ -1183,13 +1183,13 @@ function Canvas({a, stepIdx, activeSteps}){
       <Condenser x={condX} y={condY} w={condW} h={condH}
         active={active} tierKey={tierKey}/>
       <text x={wallX+zoneW-8} y={condY-9} textAnchor="end"
-        fill={active?condC:(G+'.3)')} fontSize="8" fontFamily="monospace">
+        fill={active?condC:(G+'.55)')} fontSize="8" fontFamily="monospace">
         {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
       </text>
 
       {/* OUTSIDE label */}
       <text x={wallX+zoneW/2} y={12} textAnchor="middle"
-        fill={W+'.07)'} fontSize="7" fontFamily="monospace" letterSpacing="1.2">OUTSIDE</text>
+        fill={W+'.2)'} fontSize="7" fontFamily="monospace" letterSpacing="1.2">OUTSIDE</text>
     </g>;
   }
 
@@ -1525,7 +1525,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 stroke="rgba(255,182,193,.25)" strokeWidth="0.5"/>
             ))}
             <text x={RET_X+RET_PLEN_W/2} y={DECK_Y+19} textAnchor="middle"
-              fill="rgba(255,182,193,.26)" fontSize="6" fontFamily="monospace">RETURN</text>
+              fill="rgba(255,182,193,.5)" fontSize="6" fontFamily="monospace">RETURN</text>
           </g>}
 
           {/* Return plenum */}
@@ -1568,7 +1568,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu'+a.stage+a.furnace_eff} filter="url(#shadow)">
             <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive}/>
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.64)':(G+'.38)')} fontSize="7.5" fontFamily="monospace">FURNACE</text>
+              fill={furnaceActive?'rgba(249,115,22,.78)':(G+'.55)')} fontSize="7.5" fontFamily="monospace">FURNACE</text>
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="6.5" fontFamily="monospace">
               {furnaceActive?"GAS HEATING ACTIVE":"STANDBY"}
@@ -1590,7 +1590,7 @@ function Canvas({a, stepIdx, activeSteps}){
                 <ACoilH x={ACOIL_X+8} y={UNIT_Y+12} w={ACOIL_W-16} h={UNIT_H-20} active={active}/>
                 <rect x={ACOIL_X} y={UNIT_Y+UNIT_H-2} width={ACOIL_W} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.6"/>
                 <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
-                  fill={active?evapC:(G+'.36)')} fontSize="7.5" fontFamily="monospace">A-COIL</text>
+                  fill={active?evapC:(G+'.55)')} fontSize="7.5" fontFamily="monospace">A-COIL</text>
                 <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
                   {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
@@ -1603,7 +1603,7 @@ function Canvas({a, stepIdx, activeSteps}){
           {hasCoil&&!hasFurnace&&<g className="snap" key={'ah'+a.cond_tier} filter="url(#shadow)">
             <AirHandlerH x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} active={evapActive}/>
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
-              fill={evapActive?evapC:(G+'.36)')} fontSize="7.5" fontFamily="monospace">AIR HANDLER</text>
+              fill={evapActive?evapC:(G+'.55)')} fontSize="7.5" fontFamily="monospace">AIR HANDLER</text>
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
               fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
               {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
@@ -1633,7 +1633,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   ))
                 )}
                 <text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+3} textAnchor="middle"
-                  fill={isExisting?(G+'.3)'):(G+'.52)')} fontSize="7.5" fontFamily="monospace">
+                  fill={isExisting?(G+'.55)'):(G+'.52)')} fontSize="7.5" fontFamily="monospace">
                   {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+14} textAnchor="middle"
@@ -2078,7 +2078,7 @@ function Canvas({a, stepIdx, activeSteps}){
                   stroke={G+'.30)'} strokeWidth="1" strokeDasharray="4 3"/>
                 {/* Plenum label */}
                 <text x={UNIT_X+PLEN_W/2} y={PLEN_TOP+PLEN_TOTAL*0.58+3} textAnchor="middle"
-                  fill={isExisting?(G+'.3)'):(G+'.5)')} fontSize="5.8" fontFamily="monospace">
+                  fill={isExisting?(G+'.55)'):(G+'.5)')} fontSize="5.8" fontFamily="monospace">
                   {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
                 </text>
                 {/* ATTIC zone label inside plenum */}
@@ -2190,7 +2190,7 @@ function Canvas({a, stepIdx, activeSteps}){
                       r={Math.min(UNIT_W*0.32,ACOIL_H*0.18)}
                       spd={active?1.4:0.4} active={active||!heatMode}/>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.24+UNIT_W*0.32+12} textAnchor="middle"
-                      fill={G+'.26)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
+                      fill={G+'.55)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
                     <ACoilV x={UNIT_X+8} y={ACOIL_Y+ACOIL_H*0.52+8} w={UNIT_W-16} h={ACOIL_H*0.46-16} active={active}/>
                   </>
                 }
@@ -2243,13 +2243,13 @@ function Canvas({a, stepIdx, activeSteps}){
                 fill={O+'.55)'} className="glow-pulse" style={{animationDelay:i*0.12+'s'}}/>
             ))}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H/4+6} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.44)':(G+'.24)')} fontSize="6.5" fontFamily="monospace">HEAT EXCH.</text>
+              fill={furnaceActive?'rgba(249,115,22,.75)':(G+'.5)')} fontSize="6.5" fontFamily="monospace">HEAT EXCH.</text>
             {/* BOTTOM: blower */}
             <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.75}
               r={Math.min(UNIT_W*0.32,FURN_H*0.18)}
               spd={furnaceActive?1.55:0.5} active={furnaceActive||!heatMode}/>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
-              fill={G+'.26)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
+              fill={G+'.55)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
             {/* Flue — 45° elbow routing:
                 exits top of furnace → 45° elbow left → horizontal run → 45° elbow up → vertical through roof */}
             {(()=>{
@@ -2296,7 +2296,7 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
             {isComm&&<><rect x={UNIT_X+4} y={FURN_Y+11} width={62} height="8" rx="2" fill="url(#blue)"/><text x={UNIT_X+7} y={FURN_Y+18} fill="#fff" fontSize="6.5" fontFamily="monospace">COMMUNICATING</text></>}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y-6} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.62)':(G+'.36)')} fontSize="7" fontFamily="monospace">FURNACE</text>
+              fill={furnaceActive?'rgba(249,115,22,.78)':(G+'.55)')} fontSize="7" fontFamily="monospace">FURNACE</text>
           </g>}
 
           {/* Aprilaire — between bottom of unit and 2x4 chase */}
@@ -2723,7 +2723,6 @@ function App(){
         </div>
         <div className="attic-bar">
           <div className="attic-bar-top">
-            {stepIdx>0&&<button className="btn-back" style={{padding:"3px 10px",fontSize:"10px",flexShrink:0}} onClick={goBack}>‹ Back</button>}
             <span className="attic-step-label">
               {cur ? "STEP "+stepIdx+" OF "+(activeSteps.length-1)+" · "+cur.q.toUpperCase() : ""}
             </span>
@@ -2735,6 +2734,7 @@ function App(){
             <div className="attic-info">
               <div className="step-q" style={{marginBottom:2}}>{cur?cur.q:""}</div>
               {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
+              {stepIdx>0&&<button className="btn-back" style={{marginTop:8,alignSelf:"flex-start"}} onClick={goBack}>‹ Back</button>}
             </div>
             <div className="attic-scroll">
               {opts.map(opt=>makeOpt(opt,true))}
