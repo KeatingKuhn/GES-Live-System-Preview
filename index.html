@@ -2829,8 +2829,8 @@ function App(){
                   </>}
 
                   {subId==='sqft'&&<>
-                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>About how many square feet does this system cover?</div>
-                    <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>If you have more than one system, just count the area this one handles.</div>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'About how many square feet is your home?':'About how many square feet does this system cover?'}</div>
+                    {pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>Just count the area this one system handles — not the whole home.</div>}
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
                       {SQFT_BUCKETS.map(b=>(
                         <button key={b.v} className={"opt"+(pricingAnswers.sqftBucket===b.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,sqftBucket:b.v}))}>
@@ -2872,6 +2872,7 @@ function App(){
                 return <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
                   <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
                   <div style={{fontFamily:"var(--fm)",fontSize:24,color:"var(--gl)",marginBottom:10}}>${est.low.toLocaleString()} – ${est.high.toLocaleString()}</div>
+                  {pricingAnswers.systemsCount&&pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:10,color:"rgba(215,183,64,.6)",marginBottom:10}}>Since your home has {pricingAnswers.systemsCount==='2'?'2 systems':'3+ systems'}, this estimate covers just the one you built here.</div>}
                   <div style={{marginBottom:10}}>
                     {est.lines.map((l,i)=>(
                       <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:10.5}}>
