@@ -368,17 +368,19 @@ const PRICING={
 };
 
 // ─── PRICING CALCULATION ────────────────────────────────────────
-// Sq ft -> tonnage buckets, using the ~600 sq ft/ton Central Texas rule of
-// thumb (an estimate only — a real Manual J load calc happens at the visit).
-// sqftMid also drives the dehu/ERV sq ft breakpoints, so one answer covers both.
-const SQFT_BUCKETS=[
-  {v:'b1', label:'Under 1,050 sq ft',      tons:1.5, sqftMid:900},
-  {v:'b2', label:'1,050 – 1,350 sq ft',    tons:2,   sqftMid:1200},
-  {v:'b3', label:'1,350 – 1,650 sq ft',    tons:2.5, sqftMid:1500},
-  {v:'b4', label:'1,650 – 1,950 sq ft',    tons:3,   sqftMid:1800},
-  {v:'b5', label:'1,950 – 2,250 sq ft',    tons:3.5, sqftMid:2100},
-  {v:'b6', label:'2,250 – 2,700 sq ft',    tons:4,   sqftMid:2400},
-  {v:'b7', label:'2,700+ sq ft',           tons:5,   sqftMid:3600},
+// Tonnage is picked directly by the homeowner/rep rather than inferred
+// silently from a sq ft range — a hard sq ft cutoff was pushing borderline
+// homes (e.g. ~1,000 sq ft) down to a smaller tonnage than Texas heat load
+// really wants. Each option still shows its reference sq ft (~600 sq ft/ton)
+// so the pick is guided, not a guess. sqftMid also drives dehu/ERV sizing.
+const TONNAGE_OPTIONS=[
+  {v:'t15', label:'1.5 Tons', sqftLabel:'~900 sq ft',           tons:1.5, sqftMid:900},
+  {v:'t2',  label:'2 Tons',   sqftLabel:'~1,200 sq ft',         tons:2,   sqftMid:1200},
+  {v:'t25', label:'2.5 Tons', sqftLabel:'~1,500 sq ft',         tons:2.5, sqftMid:1500},
+  {v:'t3',  label:'3 Tons',   sqftLabel:'~1,800 sq ft',         tons:3,   sqftMid:1800},
+  {v:'t35', label:'3.5 Tons', sqftLabel:'~2,100 sq ft',         tons:3.5, sqftMid:2100},
+  {v:'t4',  label:'4 Tons',   sqftLabel:'~2,400 sq ft',         tons:4,   sqftMid:2400},
+  {v:'t5',  label:'5 Tons',   sqftLabel:'3,000+ sq ft',         tons:5,   sqftMid:3600},
 ];
 // Picks the closest tonnage this tier/system-type actually offers (fedmin has
 // half-tons, mid/high don't) — ties round up toward the larger, safer size.
@@ -411,8 +413,8 @@ function calcEstimate(answers,pricingAnswers){
   const sysKey=systemTypeKey(answers);
   const tierPrices=PRICING.equipment[tier]&&PRICING.equipment[tier][sysKey];
   if(!tierPrices)return null;
-  const bucket=SQFT_BUCKETS.find(b=>b.v===pricingAnswers.sqftBucket)||SQFT_BUCKETS[3];
-  const tonnage=nearestTonnage(tierPrices,bucket.tons);
+  const picked=TONNAGE_OPTIONS.find(o=>o.v===pricingAnswers.tonnageChoice)||TONNAGE_OPTIONS[3];
+  const tonnage=nearestTonnage(tierPrices,picked.tons);
   const lines=[{label:`${tonnage}-ton system — ${TIER_LABEL[tier]||''}`,price:tierPrices[tonnage]}];
 
   if(answers.indoor_type==='furnace'&&answers.furnace_eff==='e90'){
@@ -426,7 +428,7 @@ function calcEstimate(answers,pricingAnswers){
   if(purifList.includes('ionizer'))lines.push({label:'Ionizer / Plasma',price:PRICING.purif.ionizer});
 
   if(answers.dehu==='yes'){
-    const cap=dehuCapacity(bucket.sqftMid);
+    const cap=dehuCapacity(picked.sqftMid);
     lines.push({label:`Whole-home dehumidifier (${cap.replace('p','')}pt)`,price:PRICING.dehu[cap]});
   }
 
@@ -434,7 +436,7 @@ function calcEstimate(answers,pricingAnswers){
   if(extrasList.includes('surge'))lines.push({label:'Surge Protector',price:PRICING.extras.surge});
   if(extrasList.includes('condensate'))lines.push({label:'Condensate Pump',price:PRICING.extras.condensate});
   if(extrasList.includes('erv')){
-    const cfmKey=ervCfmKey(bucket.sqftMid);
+    const cfmKey=ervCfmKey(picked.sqftMid);
     lines.push({label:`ERV (${cfmKey==='cfm130'?'130':'150'} CFM)`,price:PRICING.extras.erv[cfmKey]});
   }
 
@@ -2825,7 +2827,7 @@ function App(){
                 };
                 const canSubNext=
                   subId==='systems'?!!pricingAnswers.systemsCount:
-                  subId==='sqft'?!!pricingAnswers.sqftBucket:
+                  subId==='sqft'?!!pricingAnswers.tonnageChoice:
                   subId==='ducts'?(pricingAnswers.wantDucts===false||(pricingAnswers.wantDucts===true&&pricingAnswers.ventCount>0)):
                   true;
                 return <div style={{border:"1px solid rgba(215,183,64,.2)",padding:12}}>
@@ -2843,12 +2845,15 @@ function App(){
                   </>}
 
                   {subId==='sqft'&&<>
-                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'About how many square feet is your home?':'About how many square feet does this system cover?'}</div>
-                    {pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>Just count the area this one system handles — not the whole home.</div>}
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>What size system does this home need?</div>
+                    <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers — not the whole home.'} Reference sq ft below is Texas climate, ~600 sq ft/ton — adjust up or down based on what actually fits.</div>
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                      {SQFT_BUCKETS.map(b=>(
-                        <button key={b.v} className={"opt"+(pricingAnswers.sqftBucket===b.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,sqftBucket:b.v}))}>
-                          <div className="opt-inner"><div className="opt-body"><span className="opt-label">{b.label}</span></div></div>
+                      {TONNAGE_OPTIONS.map(o=>(
+                        <button key={o.v} className={"opt"+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
+                          <div className="opt-inner"><div className="opt-body">
+                            <span className="opt-label">{o.label}</span>
+                            <span className="opt-desc">Typical for {o.sqftLabel} homes</span>
+                          </div></div>
                         </button>
                       ))}
                     </div>
