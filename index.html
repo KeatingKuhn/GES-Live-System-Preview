@@ -426,6 +426,25 @@ function systemTypeKey(answers){
   if(answers.indoor_type==='ah')return'heat_pump_ah';
   return answers.system_for==='hp'?'dual_fuel':'straight_cool';
 }
+// Fires a "build completed" conversion event through whatever site-wide GA4 /
+// Meta Pixel install already exists on the host page - this file never loads
+// its own gtag.js or fbq snippet (embedded on the WordPress site, those are
+// already running once for the whole page, and installing a second copy here
+// would double-count pageviews and require hardcoding IDs into this file).
+function trackBuildCompleted(answers){
+  try{
+    if(typeof window.gtag==='function'){
+      window.gtag('event','build_completed',{
+        event_category:'System Builder',
+        indoor_type:answers.indoor_type||'',
+        efficiency_tier:answers.cond_tier||'',
+      });
+    }
+    if(typeof window.fbq==='function'){
+      window.fbq('trackCustom','BuildCompleted');
+    }
+  }catch(e){/* analytics must never break the build flow */}
+}
 const TIER_LABEL={fedmin:'Federal Minimum - 14 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
 // given the wizard's own filtering, but guards against stale/edge-case answers).
@@ -2598,7 +2617,7 @@ function App(){
     return!!answers[cur.id];
   },[cur,answers]);
 
-  const goNext=()=>{if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}else{setDone(true);scrollTop();}};
+  const goNext=()=>{if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}else{setDone(true);scrollTop();trackBuildCompleted(answers);}};
   const goBack=()=>{
     if(stepIdx>0){setStepIdx(s=>s-1);scrollTop();}
   };
