@@ -2979,7 +2979,6 @@ function App(){
               {pricingFlow==='result'&&(()=>{
                 const est=calcEstimate(answers,pricingAnswers);
                 if(!est)return<div style={{fontSize:11,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
-                const ductCleanPrice=roundTo25(PRICING.duct.cleaning[est.tonnage]);
                 return <>
                   <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
                     <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
@@ -3001,12 +3000,12 @@ function App(){
                   <div style={{width:"100%",marginTop:12,padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)"}}>
                     <div style={{fontSize:9,color:"rgba(215,183,64,.7)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
                     <div style={{fontSize:10.5,color:"var(--dim)",lineHeight:1.7}}>
-                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>Return plenum/ductwork</strong> (~${PRICING.duct.returnPlenum.ductboard.toLocaleString()}-${PRICING.duct.returnPlenum.metal.toLocaleString()}) - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should.</div>
-                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>New return duct run</strong> (~${PRICING.duct.newReturnDuct.toLocaleString()}) - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended.</div>
-                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>New supply duct runs</strong> (~${PRICING.duct.newSupplyRun.toLocaleString()} each) - new duct, boot, and grille together for a single run. {pricingAnswers.ventCount>0?`You mentioned ${pricingAnswers.ventCount} vents - most homes only need a few of those runs redone, not all of them.`:"Ask us how many runs your home is likely to need."}</div>
-                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>Duct cleaning</strong> (~${ductCleanPrice.toLocaleString()} for your {est.tonnage}-ton system) - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.</div>
+                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>Return plenum/ductwork</strong> - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should.</div>
+                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>New return duct run</strong> - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended.</div>
+                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>New supply duct runs</strong> - new duct, boot, and grille together for a single run. {pricingAnswers.ventCount>0?`You mentioned ${pricingAnswers.ventCount} vents - most homes only need a few of those runs redone, not all of them.`:"Ask us how many runs your home is likely to need."}</div>
+                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>Duct cleaning</strong> - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.</div>
                     </div>
-                    <div style={{fontSize:9.5,color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate above - we'll flag anything your ductwork actually needs at your free in-home visit.</div>
+                    <div style={{fontSize:9.5,color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit.</div>
                   </div>
                 </>;
               })()}
