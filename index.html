@@ -336,6 +336,11 @@ const PRICING={
   dehuSqftBreakpoints:{p65Max:2000, p90Max:3500}, // above p90Max => p120
   // Supply plenum upgrade. plenum:'none' (keep existing) has no charge.
   plenum:{ductboard:1920, metal:3121},
+  // All furnace equipment pricing above assumes an 80% AFUE furnace. Spray-foam
+  // attics require 90% AFUE (furnace_eff:'e90', auto-derived from insulation) —
+  // that's a flat upgrade on top of the base price, furnace systems only (not
+  // heat_pump_ah, which has no furnace/AFUE at all).
+  furnace90Upgrade:1488,
   // Air purification add-ons. The 5" Aprilaire filter cabinet (purif:'aprilaire')
   // is bundled into every system at no charge, so it has no price here.
   purif:{uv:489, ionizer:1428},
@@ -410,6 +415,9 @@ function calcEstimate(answers,pricingAnswers){
   const tonnage=nearestTonnage(tierPrices,bucket.tons);
   const lines=[{label:`${tonnage}-ton system — ${TIER_LABEL[tier]||''}`,price:tierPrices[tonnage]}];
 
+  if(answers.indoor_type==='furnace'&&answers.furnace_eff==='e90'){
+    lines.push({label:'90% AFUE furnace upgrade',price:PRICING.furnace90Upgrade});
+  }
   if(answers.plenum&&answers.plenum!=='none'){
     lines.push({label:answers.plenum==='metal'?'Sheet metal plenum':'Ductboard plenum',price:PRICING.plenum[answers.plenum]});
   }
