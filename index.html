@@ -131,7 +131,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .attic-layout{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
 .attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
 .attic-canvas-area{flex:1;min-height:0;position:relative;overflow:hidden}
-.attic-bar{height:200px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
+.attic-bar{height:230px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
 .attic-bar-top{height:22px;flex-shrink:0;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:10px}
 .attic-bar-body{flex:1;display:flex;min-height:0;overflow:hidden}
 .attic-info{width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:13px 18px;display:flex;flex-direction:column;gap:4px;overflow:hidden}
@@ -263,7 +263,7 @@ function getOpts(stepId, answers){
     ];
     case 'plenum':return[
       {v:'ductboard',label:'Ductboard plenum',  desc:'Fiberglass duct board - standard choice, good insulation value, fits most attic installs. Typical lifespan 10–15 years.'},
-      {v:'metal',    label:'Sheet metal plenum',desc:'Galvanized sheet metal - more durable, lasts 25+ years, better for high-humidity attics. Preferred when the system is expected to run hard.'},
+      {v:'metal',    label:'Sheet metal plenum',desc:'Galvanized sheet metal, externally insulated - more durable, lasts 25+ years, better for indoor air quality.'},
       {v:'none',     label:'Keep existing',     desc:'Your current plenum is in good condition. We will connect to it directly - saves on material and labor.'},
     ];
     case 'thermostat':
@@ -2640,7 +2640,7 @@ function App(){
         <span className="attic-opt-label">{opt.label}</span>
         <span className="attic-opt-desc">{opt.desc||""}</span>
         <div className="attic-opt-foot">
-          <div className={"attic-chk"+(isMulti?"":" radio")}>{isMulti&&isOn?"checkmark":""}{!isMulti&&isOn?<div style={{width:7,height:7,borderRadius:"50%",background:"var(--gh)"}}/>:""}</div>
+          <div className={"attic-chk"+(isMulti?"":" radio")}>{isMulti&&isOn?"✓":""}{!isMulti&&isOn?<div style={{width:7,height:7,borderRadius:"50%",background:"var(--gh)"}}/>:""}</div>
         </div>
       </button>;
     }
@@ -2651,7 +2651,7 @@ function App(){
           {opt.desc&&<span className="opt-desc">{opt.desc}</span>}
         </div>
         <div className={isMulti?"opt-check":"opt-check radio"} style={isOn&&!isMulti?{borderColor:"var(--gl)",background:"transparent",display:"flex",alignItems:"center",justifyContent:"center"}:{}}>
-          {isMulti&&isOn?"checkmark":""}{!isMulti&&isOn?<div style={{width:8,height:8,borderRadius:"50%",background:"var(--gh)"}}/>:""}
+          {isMulti&&isOn?"✓":""}{!isMulti&&isOn?<div style={{width:8,height:8,borderRadius:"50%",background:"var(--gh)"}}/>:""}
         </div>
       </div>
     </button>;
