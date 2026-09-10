@@ -2723,6 +2723,7 @@ function App(){
         </div>
         <div className="attic-bar">
           <div className="attic-bar-top">
+            {stepIdx>0&&<button className="btn-back" style={{padding:"3px 10px",fontSize:"10px",flexShrink:0}} onClick={goBack}>‹ Back</button>}
             <span className="attic-step-label">
               {cur ? "STEP "+stepIdx+" OF "+(activeSteps.length-1)+" · "+cur.q.toUpperCase() : ""}
             </span>
@@ -2734,7 +2735,6 @@ function App(){
             <div className="attic-info">
               <div className="step-q" style={{marginBottom:2}}>{cur?cur.q:""}</div>
               {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
-              {stepIdx>0&&<button className="btn-back" style={{marginTop:"auto",padding:"4px 10px"}} onClick={goBack}>‹ Back</button>}
             </div>
             <div className="attic-scroll">
               {opts.map(opt=>makeOpt(opt,true))}
