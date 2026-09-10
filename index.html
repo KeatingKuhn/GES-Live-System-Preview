@@ -1622,9 +1622,10 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={SUP_X} y={SUP_PLEN_Y} width={SUP_PLEN_W} height={SUP_PLEN_H} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={pSW}
                   strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.65:1}/>
-                {/* Warm/cold air pulse — same idea as the refrigerant line pulse, orange for heat, blue for cool */}
-                <rect x={SUP_X} y={SUP_PLEN_Y} width={SUP_PLEN_W} height={SUP_PLEN_H} rx="3"
-                  fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="2.5" className="line-pulse"/>
+                {/* Warm/cold air pulse — same idea as the refrigerant line pulse, orange for heat, blue for cool.
+                    Thick + glowing so it reads clearly against the plenum's own static material border underneath. */}
+                <rect x={SUP_X-2} y={SUP_PLEN_Y-2} width={SUP_PLEN_W+4} height={SUP_PLEN_H+4} rx="4"
+                  fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="4" filter="url(#glow-sm)" className="line-pulse"/>
                 {!isExisting&&(isMetal
                   ?Array.from({length:Math.floor(SUP_PLEN_H/8)},(_,i)=>(
                     <line key={i} x1={SUP_X+2} y1={SUP_PLEN_Y+4+i*8} x2={SUP_X+SUP_PLEN_W-2} y2={SUP_PLEN_Y+4+i*8}
@@ -2068,9 +2069,10 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={UNIT_X} y={PLEN_TOP} width={PLEN_W} height={PLEN_TOTAL} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={isExisting?1:isMetal?1.7:1.4}
                   strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.7:1}/>
-                {/* Warm/cold air pulse — same idea as the refrigerant line pulse, orange for heat, blue for cool */}
-                <rect x={UNIT_X} y={PLEN_TOP} width={PLEN_W} height={PLEN_TOTAL} rx="3"
-                  fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="2.5" className="line-pulse"/>
+                {/* Warm/cold air pulse — same idea as the refrigerant line pulse, orange for heat, blue for cool.
+                    Thick + glowing so it reads clearly against the plenum's own static material border underneath. */}
+                <rect x={UNIT_X-2} y={PLEN_TOP-2} width={PLEN_W+4} height={PLEN_TOTAL+4} rx="4"
+                  fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="4" filter="url(#glow-sm)" className="line-pulse"/>
                 {!isExisting&&isMetal&&Array.from({length:Math.floor(PLEN_TOTAL/8)},(_,i)=>(
                   <line key={i} x1={UNIT_X+2} y1={PLEN_TOP+4+i*8} x2={UNIT_X+PLEN_W-2} y2={PLEN_TOP+4+i*8}
                     stroke={W+'.04)'} strokeWidth="0.3"/>
