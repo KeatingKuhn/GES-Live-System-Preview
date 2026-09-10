@@ -360,6 +360,14 @@ const PRICING={
     // ($1,776) endpoints were given ("increments as you see fit") - these are
     // linearly interpolated at a constant $116.71/half-ton step in between.
     cleaning:{1.5:959, 2:1076, 2.5:1192, 3:1309, 3.5:1426, 4:1543, 5:1776},
+    // Brand-new supply run (not a swap of an existing one) - new duct, boot,
+    // and grille together. In a 2-story house this needs sheetrock removal.
+    newSupplyRun:1188,
+    // Return side - a separate box/run from the supply plenum question above.
+    // Austin homes very commonly have undersized returns, so this is its own
+    // line item, not yet tied to a wizard question.
+    returnPlenum:{ductboard:1420, metal:2148},
+    newReturnDuct:1034,
   },
   // Zoning: custom pricing only - always routes to "schedule an in-home visit",
   // never a calculated number. Proprietary zone board + zone sensors +
