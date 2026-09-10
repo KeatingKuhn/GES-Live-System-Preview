@@ -2872,7 +2872,7 @@ function App(){
                   </>}
 
                   {subId==='sqft'&&<>
-                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>What size system does this home need?</div>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
                     <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers - not the whole home.'} Reference sq ft below is Texas climate, ~600 sq ft/ton - adjust up or down based on what actually fits.</div>
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
                       {TONNAGE_OPTIONS.map(o=>(
