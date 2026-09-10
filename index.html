@@ -1622,10 +1622,6 @@ function Canvas({a, stepIdx, activeSteps}){
                 <rect x={SUP_X} y={SUP_PLEN_Y} width={SUP_PLEN_W} height={SUP_PLEN_H} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={pSW}
                   strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.65:1}/>
-                {/* Warm/cold air pulse — same idea as the refrigerant line pulse, orange for heat, blue for cool.
-                    Thick + glowing so it reads clearly against the plenum's own static material border underneath. */}
-                <rect x={SUP_X-2} y={SUP_PLEN_Y-2} width={SUP_PLEN_W+4} height={SUP_PLEN_H+4} rx="4"
-                  fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="4" filter="url(#glow-sm)" className="line-pulse"/>
                 {!isExisting&&(isMetal
                   ?Array.from({length:Math.floor(SUP_PLEN_H/8)},(_,i)=>(
                     <line key={i} x1={SUP_X+2} y1={SUP_PLEN_Y+4+i*8} x2={SUP_X+SUP_PLEN_W-2} y2={SUP_PLEN_Y+4+i*8}
@@ -1645,9 +1641,9 @@ function Canvas({a, stepIdx, activeSteps}){
                 {!isExisting&&[SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.28), SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.72)].map((ay,i)=>(
                   <g key={"af"+i}>
                     <line x1={SUP_X+8} y1={ay} x2={SUP_X+SUP_PLEN_W-8} y2={ay}
-                      fill="none" stroke={G+'.22)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
+                      fill="none" stroke={(heatMode?O:B)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
                     <line x1={SUP_X+8} y1={ay} x2={SUP_X+SUP_PLEN_W-8} y2={ay}
-                      fill="none" stroke={G+'.5)'} strokeWidth="1.2"
+                      fill="none" stroke={(heatMode?O:B)+'.8)'} strokeWidth="1.4"
                       strokeDasharray="8 5" className="airflow" style={{strokeDashoffset:0}}
                       markerEnd="url(#arr)"/>
                   </g>
@@ -2092,9 +2088,9 @@ function Canvas({a, stepIdx, activeSteps}){
                 {!isExisting&&[UNIT_X+PLEN_W*0.28, UNIT_X+PLEN_W*0.68].map((ax,i)=>(
                   <g key={i}>
                     <path d={`M${ax} ${PLEN_TOP+PLEN_ABOVE*0.85} L${ax} ${PLEN_TOP+PLEN_ABOVE*0.18}`}
-                      fill="none" stroke={G+'.25)'} strokeWidth="8" strokeLinecap="round" opacity="0.3"/>
+                      fill="none" stroke={(heatMode?O:B)+'.3)'} strokeWidth="8" strokeLinecap="round" opacity="0.3"/>
                     <path d={`M${ax} ${PLEN_TOP+PLEN_ABOVE*0.85} L${ax} ${PLEN_TOP+PLEN_ABOVE*0.18}`}
-                      fill="none" stroke={G+'.35)'} strokeWidth="1.2"
+                      fill="none" stroke={(heatMode?O:B)+'.8)'} strokeWidth="1.4"
                       strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}}
                       markerEnd="url(#arr)"/>
                     <text x={ax} y={PLEN_TOP+PLEN_ABOVE*0.92} textAnchor="middle"
