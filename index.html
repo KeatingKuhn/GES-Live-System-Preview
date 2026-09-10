@@ -443,11 +443,11 @@ function calcEstimate(answers,pricingAnswers){
   }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
-  // Same -5%/+8% spread applied everywhere (total and every line item) so no
+  // Same -5%/+3% spread applied everywhere (total and every line item) so no
   // single number on the page reads as a locked-in, binding figure.
   const spread=(price,roundTo)=>({
     low:Math.round(price*0.95/roundTo)*roundTo,
-    high:Math.round(price*1.08/roundTo)*roundTo,
+    high:Math.round(price*1.03/roundTo)*roundTo,
   });
   const linesWithRange=lines.map(l=>({...l,...spread(l.price,10)}));
   const{low,high}=spread(subtotal,50);
