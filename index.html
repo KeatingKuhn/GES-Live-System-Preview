@@ -443,9 +443,15 @@ function calcEstimate(answers,pricingAnswers){
   }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
-  const low=Math.round(subtotal*0.95/50)*50;
-  const high=Math.round(subtotal*1.08/50)*50;
-  return{lines,subtotal,low,high,tonnage};
+  // Same -5%/+8% spread applied everywhere (total and every line item) so no
+  // single number on the page reads as a locked-in, binding figure.
+  const spread=(price,roundTo)=>({
+    low:Math.round(price*0.95/roundTo)*roundTo,
+    high:Math.round(price*1.08/roundTo)*roundTo,
+  });
+  const linesWithRange=lines.map(l=>({...l,...spread(l.price,10)}));
+  const{low,high}=spread(subtotal,50);
+  return{lines:linesWithRange,subtotal,low,high,tonnage};
 }
 
 // ─── CANVAS ─────────────────────────────────────────────────────
@@ -2885,7 +2891,7 @@ function App(){
                     {est.lines.map((l,i)=>(
                       <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:10.5}}>
                         <span style={{color:"var(--dim)"}}>{l.label}</span>
-                        <span style={{color:"rgba(255,255,255,.8)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>${l.price.toLocaleString()}</span>
+                        <span style={{color:"rgba(255,255,255,.8)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>${l.low.toLocaleString()} – ${l.high.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
