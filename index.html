@@ -361,6 +361,85 @@ const PRICING={
   // proprietary dampers, cost varies too much per home to estimate here.
   zoning:'custom_visit_required',
 };
+
+// ─── PRICING CALCULATION ────────────────────────────────────────
+// Sq ft -> tonnage buckets, using the ~600 sq ft/ton Central Texas rule of
+// thumb (an estimate only — a real Manual J load calc happens at the visit).
+// sqftMid also drives the dehu/ERV sq ft breakpoints, so one answer covers both.
+const SQFT_BUCKETS=[
+  {v:'b1', label:'Under 1,050 sq ft',      tons:1.5, sqftMid:900},
+  {v:'b2', label:'1,050 – 1,350 sq ft',    tons:2,   sqftMid:1200},
+  {v:'b3', label:'1,350 – 1,650 sq ft',    tons:2.5, sqftMid:1500},
+  {v:'b4', label:'1,650 – 1,950 sq ft',    tons:3,   sqftMid:1800},
+  {v:'b5', label:'1,950 – 2,250 sq ft',    tons:3.5, sqftMid:2100},
+  {v:'b6', label:'2,250 – 2,700 sq ft',    tons:4,   sqftMid:2400},
+  {v:'b7', label:'2,700+ sq ft',           tons:5,   sqftMid:3600},
+];
+// Picks the closest tonnage this tier/system-type actually offers (fedmin has
+// half-tons, mid/high don't) — ties round up toward the larger, safer size.
+function nearestTonnage(tierSystemPrices, targetTon){
+  const keys=Object.keys(tierSystemPrices).map(Number);
+  let best=keys[0], bestDiff=Infinity;
+  for(const k of keys){
+    const diff=Math.abs(k-targetTon);
+    if(diff<bestDiff||(diff===bestDiff&&k>best)){best=k; bestDiff=diff;}
+  }
+  return best;
+}
+function dehuCapacity(sqft){
+  if(sqft<=PRICING.dehuSqftBreakpoints.p65Max)return'p65';
+  if(sqft<=PRICING.dehuSqftBreakpoints.p90Max)return'p90';
+  return'p120';
+}
+function ervCfmKey(sqft){
+  return sqft<=PRICING.ervSqftBreakpoints.cfm130Max?'cfm130':'cfm150';
+}
+function systemTypeKey(answers){
+  if(answers.indoor_type==='ah')return'heat_pump_ah';
+  return answers.system_for==='hp'?'dual_fuel':'straight_cool';
+}
+const TIER_LABEL={fedmin:'Federal Minimum — 14 SEER2',mid_ge15:'Mid Efficiency — 18 SEER2',high_ge18:'High Efficiency — 21 SEER2'};
+// Returns null if this tier/system-type combo has no pricing (shouldn't happen
+// given the wizard's own filtering, but guards against stale/edge-case answers).
+function calcEstimate(answers,pricingAnswers){
+  const tier=answers.cond_tier;
+  const sysKey=systemTypeKey(answers);
+  const tierPrices=PRICING.equipment[tier]&&PRICING.equipment[tier][sysKey];
+  if(!tierPrices)return null;
+  const bucket=SQFT_BUCKETS.find(b=>b.v===pricingAnswers.sqftBucket)||SQFT_BUCKETS[3];
+  const tonnage=nearestTonnage(tierPrices,bucket.tons);
+  const lines=[{label:`${tonnage}-ton system — ${TIER_LABEL[tier]||''}`,price:tierPrices[tonnage]}];
+
+  if(answers.plenum&&answers.plenum!=='none'){
+    lines.push({label:answers.plenum==='metal'?'Sheet metal plenum':'Ductboard plenum',price:PRICING.plenum[answers.plenum]});
+  }
+  const purifList=Array.isArray(answers.purif)?answers.purif:[];
+  if(purifList.includes('uv'))lines.push({label:'UV Light System',price:PRICING.purif.uv});
+  if(purifList.includes('ionizer'))lines.push({label:'Ionizer / Plasma',price:PRICING.purif.ionizer});
+
+  if(answers.dehu==='yes'){
+    const cap=dehuCapacity(bucket.sqftMid);
+    lines.push({label:`Whole-home dehumidifier (${cap.replace('p','')}pt)`,price:PRICING.dehu[cap]});
+  }
+
+  const extrasList=Array.isArray(answers.extras)?answers.extras:[];
+  if(extrasList.includes('surge'))lines.push({label:'Surge Protector',price:PRICING.extras.surge});
+  if(extrasList.includes('condensate'))lines.push({label:'Condensate Pump',price:PRICING.extras.condensate});
+  if(extrasList.includes('erv')){
+    const cfmKey=ervCfmKey(bucket.sqftMid);
+    lines.push({label:`ERV (${cfmKey==='cfm130'?'130':'150'} CFM)`,price:PRICING.extras.erv[cfmKey]});
+  }
+
+  if(pricingAnswers.wantDucts&&pricingAnswers.ventCount>0){
+    lines.push({label:`Duct replacement (${pricingAnswers.ventCount} vents)`,price:pricingAnswers.ventCount*PRICING.duct.replacementPerStem});
+  }
+
+  const subtotal=lines.reduce((s,l)=>s+l.price,0);
+  const low=Math.round(subtotal*0.95/50)*50;
+  const high=Math.round(subtotal*1.08/50)*50;
+  return{lines,subtotal,low,high,tonnage};
+}
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 function Canvas({a, stepIdx, activeSteps}){
   const [heatMode,setHeatMode]=React.useState(false);
@@ -2443,6 +2522,10 @@ function App(){
   const [answers,setAnswers]=useState({});
   const [stepIdx,setStepIdx]=useState(0);
   const [done,setDone]=useState(false);
+  // Post-build pricing: null=not asked, 'asking'=Yes/No prompt, 'sizing'=sub-questions, 'result'=estimate shown
+  const [pricingFlow,setPricingFlow]=useState(null);
+  const [pricingSubStep,setPricingSubStep]=useState(0);
+  const [pricingAnswers,setPricingAnswers]=useState({});
   const topRef=useRef(null);
   const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
 
@@ -2478,19 +2561,25 @@ function App(){
     if(stepIdx>0){setStepIdx(s=>s-1);scrollTop();}
   };
   const skip=()=>{if(cur.multi)setA(cur.id,[]);goNext();};
-  const restart=()=>{clearSavedBuild();setAnswers({});setStepIdx(0);setDone(false);};
+  const restart=()=>{
+    clearSavedBuild();setAnswers({});setStepIdx(0);setDone(false);
+    setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});
+  };
   const resumeBuild=()=>{
     setAnswers(savedBuild.answers||{});
     setStepIdx(savedBuild.stepIdx||0);
     setDone(!!savedBuild.done);
+    setPricingFlow(savedBuild.pricingFlow||null);
+    setPricingSubStep(savedBuild.pricingSubStep||0);
+    setPricingAnswers(savedBuild.pricingAnswers||{});
     setResumePending(false);
   };
   const discardSavedBuild=()=>{clearSavedBuild();setResumePending(false);};
 
   React.useEffect(()=>{
     if(resumePending||!answers.location)return;
-    saveBuild({answers,stepIdx,done});
-  },[answers,stepIdx,done,resumePending]);
+    saveBuild({answers,stepIdx,done,pricingFlow,pricingSubStep,pricingAnswers});
+  },[answers,stepIdx,done,resumePending,pricingFlow,pricingSubStep,pricingAnswers]);
 
   const opts=useMemo(()=>cur?getOpts(cur.id,answers):[], [cur,answers]);
 
@@ -2696,6 +2785,107 @@ function App(){
                 </div>
               ):null)}
             </div>
+
+            {/* ── PRICING GATE / SIZING / RESULT ── */}
+            <div style={{width:"100%",marginBottom:12}}>
+              {pricingFlow===null&&<button className="btn-next" style={{width:"100%"}} onClick={()=>setPricingFlow('asking')}>💰 Want Pricing On This Build?</button>}
+
+              {pricingFlow==='asking'&&<div style={{border:"1px solid rgba(215,183,64,.25)",background:"rgba(215,183,64,.05)",padding:12,textAlign:"center"}}>
+                <div style={{fontSize:12,color:"rgba(255,255,255,.75)",marginBottom:10,lineHeight:1.5}}>Want an estimated price for the system you just built?</div>
+                <div style={{display:"flex",gap:8}}>
+                  <button className="btn-next" style={{flex:1}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>Yes, show me</button>
+                  <button className="btn-back" style={{flex:1,justifyContent:"center"}} onClick={()=>setPricingFlow(null)}>No thanks</button>
+                </div>
+              </div>}
+
+              {pricingFlow==='sizing'&&(()=>{
+                const subSteps=['systems','sqft','ducts'];
+                const subId=subSteps[pricingSubStep];
+                const goSubNext=()=>{
+                  if(pricingSubStep<subSteps.length-1)setPricingSubStep(s=>s+1);
+                  else setPricingFlow('result');
+                };
+                const goSubBack=()=>{
+                  if(pricingSubStep>0)setPricingSubStep(s=>s-1);
+                  else setPricingFlow('asking');
+                };
+                const canSubNext=
+                  subId==='systems'?!!pricingAnswers.systemsCount:
+                  subId==='sqft'?!!pricingAnswers.sqftBucket:
+                  subId==='ducts'?(pricingAnswers.wantDucts===false||(pricingAnswers.wantDucts===true&&pricingAnswers.ventCount>0)):
+                  true;
+                return <div style={{border:"1px solid rgba(215,183,64,.2)",padding:12}}>
+                  <div style={{fontSize:9,color:"rgba(215,183,64,.5)",letterSpacing:".1em",marginBottom:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
+
+                  {subId==='systems'&&<>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:8,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                      {[{v:'1',label:'Just 1 — this one'},{v:'2',label:'2 systems'},{v:'3+',label:'3 or more'}].map(o=>(
+                        <button key={o.v} className={"opt"+(pricingAnswers.systemsCount===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,systemsCount:o.v}))}>
+                          <div className="opt-inner"><div className="opt-body"><span className="opt-label">{o.label}</span></div></div>
+                        </button>
+                      ))}
+                    </div>
+                  </>}
+
+                  {subId==='sqft'&&<>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>About how many square feet does this system cover?</div>
+                    <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>If you have more than one system, just count the area this one handles.</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                      {SQFT_BUCKETS.map(b=>(
+                        <button key={b.v} className={"opt"+(pricingAnswers.sqftBucket===b.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,sqftBucket:b.v}))}>
+                          <div className="opt-inner"><div className="opt-body"><span className="opt-label">{b.label}</span></div></div>
+                        </button>
+                      ))}
+                    </div>
+                  </>}
+
+                  {subId==='ducts'&&<>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:8,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>
+                    <div style={{display:"flex",gap:8,marginBottom:pricingAnswers.wantDucts?10:0}}>
+                      <button className={"opt"+(pricingAnswers.wantDucts===true?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:true}))}>
+                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">Yes</span></div></div>
+                      </button>
+                      <button className={"opt"+(pricingAnswers.wantDucts===false?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:false,ventCount:undefined}))}>
+                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">No / Skip</span></div></div>
+                      </button>
+                    </div>
+                    {pricingAnswers.wantDucts&&<div>
+                      <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:6}}>How many vents/registers does this system serve?</div>
+                      <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,parseInt(e.target.value)||0)}))}
+                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:"9px 12px",fontFamily:"var(--fm)",fontSize:14,boxSizing:"border-box"}}/>
+                    </div>}
+                  </>}
+
+                  <div style={{display:"flex",gap:8,marginTop:12}}>
+                    <button className="btn-back" style={{flex:"0 0 auto"}} onClick={goSubBack}>‹ Back</button>
+                    <button className="btn-next" style={{flex:1}} disabled={!canSubNext} onClick={goSubNext}>
+                      {pricingSubStep===subSteps.length-1?"Get My Estimate":"Next"}
+                    </button>
+                  </div>
+                </div>;
+              })()}
+
+              {pricingFlow==='result'&&(()=>{
+                const est=calcEstimate(answers,pricingAnswers);
+                if(!est)return<div style={{fontSize:11,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet — call us and we'll get you a number.</div>;
+                return <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
+                  <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
+                  <div style={{fontFamily:"var(--fm)",fontSize:24,color:"var(--gl)",marginBottom:10}}>${est.low.toLocaleString()} – ${est.high.toLocaleString()}</div>
+                  <div style={{marginBottom:10}}>
+                    {est.lines.map((l,i)=>(
+                      <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:10.5}}>
+                        <span style={{color:"var(--dim)"}}>{l.label}</span>
+                        <span style={{color:"rgba(255,255,255,.8)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>${l.price.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{fontSize:10,color:"rgba(255,255,255,.4)",lineHeight:1.5,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit — we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
+                  <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ Adjust my answers</button>
+                </div>;
+              })()}
+            </div>
+
             <div className="trust-line" style={{marginBottom:8,fontSize:11}}>
               <span><strong>★ 4.9</strong> on Google</span>
               <span className="trust-dot">·</span>
