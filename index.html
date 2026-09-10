@@ -237,6 +237,8 @@ const STEPS=[
     showIf:a=>a.indoor_type==='furnace'},
   {id:'dehu',        q:'Add a whole-home dehumidifier?',
     hint:"Austin's humidity makes your home feel 7°F warmer. Runs automatically with your system.", optional:false},
+  {id:'extras',      q:'Any final add-ons?',
+    hint:'Condensate pump or ERV fresh-air system.', optional:true, multi:true},
 ];
 
 // Auto-derive furnace_eff from insulation - never ask separately
@@ -297,6 +299,10 @@ function getOpts(stepId, answers){
     case 'dehu':return[
       {v:'yes',label:'Yes - add it',  desc:'Whole-home dehumidifier sized to your square footage. Runs automatically with the HVAC system - no buckets, no maintenance. Makes your home feel 5–7°F cooler at the same thermostat setting.'},
       {v:'no', label:'No thanks',     desc:'Skip for now. Can always be added later as a standalone unit if humidity becomes an issue.'},
+    ];
+    case 'extras':return[
+      {v:'condensate',label:'Condensate Pump',        desc:"Needed when there is no gravity drain nearby. Pumps condensate water up and out to a drain or exterior wall. Required in many closet installs."},
+      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings fresh filtered outdoor air into the home while exhausting stale air. Recovers ~70% of the heating/cooling energy from the outgoing air. Attic mounted - if it needs a new roof penetration, we recommend having a roofer involved.'},
     ];
     default:return[];
   }
@@ -412,6 +418,10 @@ function dehuCapacity(sqft){
 function ervCfmKey(sqft){
   return sqft<=PRICING.ervSqftBreakpoints.cfm130Max?'cfm130':'cfm150';
 }
+// Rounded to the nearest $25 and shown with a "~" prefix (one number, not a
+// range) so nothing reads as an exact locked-in figure. Source PRICING
+// values stay exact - only this display layer rounds.
+const roundTo25=price=>Math.round(price/25)*25;
 function systemTypeKey(answers){
   if(answers.indoor_type==='ah')return'heat_pump_ah';
   return answers.system_for==='hp'?'dual_fuel':'straight_cool';
@@ -444,20 +454,22 @@ function calcEstimate(answers,pricingAnswers){
     lines.push({label:`Whole-home dehumidifier (${cap.replace('p','')}pt)`,price:PRICING.dehu[cap]});
   }
 
-  // Condensate pump, ERV, and return-side work are no longer "choose your own"
-  // selections - they're common enough that guessing at them isn't homeowner-
-  // friendly, so they're covered as education (see additionalConsiderations
-  // below) with final scope confirmed at the in-home visit instead.
+  const extrasList=Array.isArray(answers.extras)?answers.extras:[];
+  if(extrasList.includes('condensate'))lines.push({label:'Condensate Pump',price:PRICING.extras.condensate});
+  if(extrasList.includes('erv')){
+    const cfmKey=ervCfmKey(picked.sqftMid);
+    lines.push({label:`ERV (${cfmKey==='cfm130'?'130':'150'} CFM)`,price:PRICING.extras.erv[cfmKey]});
+  }
+  // Return-side work (plenum, new duct, duct cleaning) stays education-only
+  // (see additionalConsiderations below) with final scope confirmed at the
+  // in-home visit - unlike condensate/ERV, these don't have a self-contained
+  // on-diagram build-out for the customer to see update live.
 
   if(pricingAnswers.wantDucts&&pricingAnswers.ventCount>0){
     lines.push({label:`Duct replacement (${pricingAnswers.ventCount} vents)`,price:pricingAnswers.ventCount*PRICING.duct.replacementPerStem});
   }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
-  // Rounded to the nearest $25 and shown with a "~" prefix (one number, not a
-  // range) so nothing reads as an exact locked-in figure. Source PRICING
-  // values stay exact - only this display layer rounds.
-  const roundTo25=price=>Math.round(price/25)*25;
   const linesRounded=lines.map(l=>({...l,display:roundTo25(l.price)}));
   const display=roundTo25(subtotal);
   return{lines:linesRounded,subtotal,display,tonnage};
@@ -2626,6 +2638,7 @@ function App(){
     cond_tier:"The condenser is the outdoor unit. Federal Minimum meets current energy code -- solid and reliable, lowest upfront cost. Mid Efficiency is our best-value tier -- variable speed, noticeably lower monthly bills, better humidity control. High Efficiency is our top inverter-driven tier -- eligible for local energy rebates and the best humidity performance available.",
     system_for:"With a gas furnace you have two options. Dual fuel (heat pump + furnace) means the heat pump handles cooling in summer and heating in mild weather -- the gas furnace only fires when it gets genuinely cold below about 35 degrees. Most efficient combo. Straight cool means your AC only cools and the furnace handles all heating year-round.",
     dehu:"Austin humidity makes your home feel significantly warmer than the thermostat reads. A whole-home dehumidifier connects directly to your HVAC system and runs automatically -- no buckets, no maintenance. Recommended for any home that feels muggy even when the AC is running.",
+    extras:"A condensate pump is needed when gravity drainage is not available -- it pumps condensate water up and out to a drain or exterior wall, and is required in many closet installs. An ERV brings fresh filtered outdoor air into the home while exhausting stale air, recovering most of the heating/cooling energy from the outgoing air in the process.",
   };
   const infoText=cur&&INFO_TEXT[cur.id];
 
@@ -2805,6 +2818,7 @@ function App(){
                 {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum - 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency - 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency - 21 SEER2":null},
                 answers.system_for?{step:"system_for",label:"Heat source",val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only"}:null,
                 {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes - whole-home unit":answers.dehu==="no"?"No":null},
+                Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Add-ons",val:answers.extras.map(v=>v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
               ].filter(Boolean).map((item,i)=>item&&item.val?(
                 <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,.05)",background:i%2===0?"rgba(255,255,255,.02)":"transparent",gap:8}}>
                   <span style={{color:"rgba(215,183,64,.6)",fontFamily:"monospace",fontSize:"10px",flexShrink:0,minWidth:80}}>{item.label}</span>
@@ -2812,18 +2826,6 @@ function App(){
                   <button onClick={()=>{const i2=activeSteps.findIndex(s=>s.id===item.step);if(i2>=0){setDone(false);setStepIdx(i2);}}} style={{background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"9px",padding:"3px 8px",cursor:"pointer",flexShrink:0,letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                 </div>
               ):null)}
-            </div>
-
-            {/* ── ADDITIONAL CONSIDERATIONS — education, not "choose your own" ── */}
-            <div style={{width:"100%",marginBottom:12,padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)"}}>
-              <div style={{fontSize:9,color:"rgba(215,183,64,.7)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
-              <div style={{fontSize:10.5,color:"var(--dim)",lineHeight:1.7}}>
-                <div><strong style={{color:"rgba(255,255,255,.85)"}}>Condensate pump</strong> (~${PRICING.extras.condensate.toLocaleString()}) - needed when there's no gravity drain nearby.</div>
-                <div><strong style={{color:"rgba(255,255,255,.85)"}}>ERV fresh-air system</strong> (${PRICING.extras.erv.cfm130.toLocaleString()}-${PRICING.extras.erv.cfm150.toLocaleString()}) - optional air-quality upgrade.</div>
-                <div><strong style={{color:"rgba(255,255,255,.85)"}}>Return plenum/ductwork</strong> (${PRICING.duct.returnPlenum.ductboard.toLocaleString()}-${PRICING.duct.returnPlenum.metal.toLocaleString()}) - Austin homes very commonly have undersized returns.</div>
-                <div><strong style={{color:"rgba(255,255,255,.85)"}}>Duct cleaning</strong> - priced by system size.</div>
-              </div>
-              <div style={{fontSize:9.5,color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate below - we'll flag anything your system actually needs at your free in-home visit.</div>
             </div>
 
             {/* ── PRICING GATE / SIZING / RESULT ── */}
@@ -2924,21 +2926,36 @@ function App(){
               {pricingFlow==='result'&&(()=>{
                 const est=calcEstimate(answers,pricingAnswers);
                 if(!est)return<div style={{fontSize:11,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
-                return <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
-                  <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
-                  <div style={{fontFamily:"var(--fm)",fontSize:24,color:"var(--gl)",marginBottom:10}}>~${est.display.toLocaleString()}</div>
-                  {pricingAnswers.systemsCount&&pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:10,color:"rgba(215,183,64,.6)",marginBottom:10}}>Since your home has {pricingAnswers.systemsCount==='2'?'2 systems':'3+ systems'}, this estimate covers just the one you built here.</div>}
-                  <div style={{marginBottom:10}}>
-                    {est.lines.map((l,i)=>(
-                      <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:10.5}}>
-                        <span style={{color:"var(--dim)"}}>{l.label}</span>
-                        <span style={{color:"rgba(255,255,255,.8)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>~${l.display.toLocaleString()}</span>
-                      </div>
-                    ))}
+                const ductCleanPrice=roundTo25(PRICING.duct.cleaning[est.tonnage]);
+                return <>
+                  <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
+                    <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
+                    <div style={{fontFamily:"var(--fm)",fontSize:24,color:"var(--gl)",marginBottom:10}}>~${est.display.toLocaleString()}</div>
+                    {pricingAnswers.systemsCount&&pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:10,color:"rgba(215,183,64,.6)",marginBottom:10}}>Since your home has {pricingAnswers.systemsCount==='2'?'2 systems':'3+ systems'}, this estimate covers just the one you built here.</div>}
+                    <div style={{marginBottom:10}}>
+                      {est.lines.map((l,i)=>(
+                        <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:10.5}}>
+                          <span style={{color:"var(--dim)"}}>{l.label}</span>
+                          <span style={{color:"rgba(255,255,255,.8)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>~${l.display.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,.6)",lineHeight:1.5,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
+                    <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ Adjust my answers</button>
                   </div>
-                  <div style={{fontSize:10,color:"rgba(255,255,255,.6)",lineHeight:1.5,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
-                  <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ Adjust my answers</button>
-                </div>;
+
+                  {/* ── ADDITIONAL CONSIDERATIONS — education, not "choose your own" ── */}
+                  <div style={{width:"100%",marginTop:12,padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)"}}>
+                    <div style={{fontSize:9,color:"rgba(215,183,64,.7)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
+                    <div style={{fontSize:10.5,color:"var(--dim)",lineHeight:1.7}}>
+                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>Return plenum/ductwork</strong> (~${PRICING.duct.returnPlenum.ductboard.toLocaleString()}-${PRICING.duct.returnPlenum.metal.toLocaleString()}) - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should.</div>
+                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>New return duct run</strong> (~${PRICING.duct.newReturnDuct.toLocaleString()}) - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended.</div>
+                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>New supply duct runs</strong> (~${PRICING.duct.newSupplyRun.toLocaleString()} each) - new duct, boot, and grille together for a single run. {pricingAnswers.ventCount>0?`You mentioned ${pricingAnswers.ventCount} vents - most homes only need a few of those runs redone, not all of them.`:"Ask us how many runs your home is likely to need."}</div>
+                      <div><strong style={{color:"rgba(255,255,255,.85)"}}>Duct cleaning</strong> (~${ductCleanPrice.toLocaleString()} for your {est.tonnage}-ton system) - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.</div>
+                    </div>
+                    <div style={{fontSize:9.5,color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate above - we'll flag anything your ductwork actually needs at your free in-home visit.</div>
+                  </div>
+                </>;
               })()}
             </div>
 
