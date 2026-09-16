@@ -2915,10 +2915,10 @@ function App(){
               ):null)}
             </div>
 
-            {/* ── PRICING GATE / SIZING / RESULT ── */}
-            <div style={{width:"100%",marginBottom:12}}>
-              {pricingFlow===null&&<button className="btn-next" style={{width:"100%"}} onClick={()=>setPricingFlow('asking')}>💰 Want Pricing On This Build?</button>}
-
+            {/* ── PRICING GATE / SIZING / RESULT - only takes up room once
+                 actually engaged; the entry point lives in the button grid
+                 below instead of its own full-width row ── */}
+            {pricingFlow!==null&&<div style={{width:"100%",marginBottom:12}}>
               {pricingFlow==='asking'&&<div style={{border:"1px solid rgba(215,183,64,.25)",background:"rgba(215,183,64,.05)",padding:12,textAlign:"center"}}>
                 <div style={{fontSize:12,color:"rgba(255,255,255,.75)",marginBottom:10,lineHeight:1.5}}>Want an estimated price for the system you just built?</div>
                 <div style={{display:"flex",gap:8}}>
@@ -3047,7 +3047,7 @@ function App(){
                   </div>
                 </>;
               })()}
-            </div>
+            </div>}
 
             <div className="trust-line" style={{marginBottom:8,fontSize:11}}>
               <span><strong>★ 4.9</strong> on Google</span>
@@ -3056,12 +3056,18 @@ function App(){
               <span className="trust-dot">·</span>
               <span>TACLA #119235C</span>
             </div>
-            <a href="tel:5124894653" className="done-cta" style={{marginBottom:8}}>
-              <span style={{display:"block"}}>📞 Schedule Your Free Visit</span>
-              <span style={{display:"block",fontSize:"12px",opacity:.85,marginTop:2}}>512-489-4653</span>
-            </a>
-            <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"block",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",marginBottom:8,textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 FINANCING AVAILABLE - CHECK YOUR RATE</a>
-            <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",letterSpacing:".08em",marginBottom:8}}>⬇ SAVE / PRINT BUILD SUMMARY</button>
+            {/* ── QUICK ACTIONS - one compact button grid instead of five
+                 stacked full-width rows, so this panel stays low and the
+                 diagram keeps the room ── */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
+              {pricingFlow===null&&<button className="btn-next" style={{margin:0,width:"100%"}} onClick={()=>setPricingFlow('asking')}>💰 Get Pricing</button>}
+              <a href="tel:5124894653" className="done-cta" style={{margin:0}}>
+                <span style={{display:"block"}}>📞 Schedule Visit</span>
+                <span style={{display:"block",fontSize:"11px",opacity:.85,marginTop:2}}>512-489-4653</span>
+              </a>
+              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
+              <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
+            </div>
             <div style={{display:"flex",gap:8,width:"100%"}}>
               <button className="btn-back" style={{flex:1,padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
               <button className="done-restart" style={{flex:1,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.18)",color:"rgba(255,255,255,.6)",fontFamily:"var(--fb)",fontSize:"12px",cursor:"pointer",padding:"10px",outline:"none",borderRadius:0}} onClick={restart}>Start Over</button>
