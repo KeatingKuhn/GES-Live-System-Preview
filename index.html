@@ -1452,7 +1452,15 @@ function Canvas({a, stepIdx, activeSteps}){
   // Condenser: true side-wall view, lineset exits wall at condenser bottom.
   // ══════════════════════════════════════════════════════════
   if(isAttic){
-    const VW=1280, VH=580;
+    // VH trimmed from 580: the living-space band below the deck line only
+    // ever needed ~35 units (drain line + return duct + label) even before
+    // the thermostat moved out above the condenser - the other ~85 was
+    // dead space. Cutting it from the viewBox (not just repositioning
+    // things within it) means the "meet" scaling blows the whole scene up
+    // bigger on screen in the usual height-constrained case, instead of
+    // just leaving a shorter empty gap. DECK_Y stays numerically identical
+    // (580-120 === 495-35) so nothing above the deck line shifts at all.
+    const VW=1280, VH=495;
 
     // 2/3 house when condenser selected, full width otherwise
     const HOUSE_W=hasCond ? Math.round(VW*(2/3)) : VW-12;
@@ -1464,7 +1472,7 @@ function Canvas({a, stepIdx, activeSteps}){
     const RIDGE_Y=12;
     const RIDGE_X=HOUSE_W/2;
 
-    const DECK_Y=VH-120;
+    const DECK_Y=VH-35;
     const ATTIC_H=DECK_Y-EAVE_Y;
 
     const SCALE_PX=6.2;
@@ -1517,7 +1525,7 @@ function Canvas({a, stepIdx, activeSteps}){
     const DISC_ZONE=52;  // space for disconnect on wall face
     const COND_X=EXT_WALL_X+WALL_THICK+DISC_ZONE+8;
     // Condenser sits at ground level in the outside zone
-    // OutsideZone groundY = VH-28 = 552. padY = 542. condY = 542-COND_H.
+    // OutsideZone groundY = VH-28 = 467. padY = 457. condY = 457-COND_H.
     const COND_Y=VH-28-10-COND_H;
 
     return(
@@ -1600,8 +1608,11 @@ function Canvas({a, stepIdx, activeSteps}){
           ))}
           <text x="22" y={DECK_Y+18} fill={W+'.09)'} fontSize="6.5" fontFamily="monospace" letterSpacing="0.8">LIVING SPACE</text>
 
-          {/* Return grille */}
+          {/* Return grille - duct trunk connects it down to the return plenum
+              above instead of floating on its own ── */}
           {hasCoil&&<g>
+            <rect x={RET_X+RET_PLEN_W/2-7} y={UNIT_Y+UNIT_H} width={14} height={Math.max(0,DECK_Y-(UNIT_Y+UNIT_H))}
+              fill="rgba(255,182,193,.08)" stroke="rgba(255,182,193,.22)" strokeWidth="1"/>
             <rect x={RET_X+4} y={DECK_Y-1} width={RET_PLEN_W-8} height={9} rx="1"
               fill="none" stroke="rgba(255,182,193,.3)" strokeWidth="0.9" strokeDasharray="3 2.5"/>
             {Array.from({length:7},(_,i)=>(
@@ -1760,42 +1771,41 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* ── DUCTWORK - 4 stems off supply plenum top and bottom ── */}
+          {/* ── DUCTWORK - 2 supply stems off the plenum bottom, dropping
+               through the attic floor into a drywall ceiling grille below -
+               same idea as the upflow closet layout's supply ducts. (Used to
+               also route 2 stems upward off the plenum top, which made no
+               sense - there's nothing above but roof deck.) ── */}
           {hasPlenum&&hasCoil&&<g className="fadein" key="ducts" style={{animationDelay:'.18s'}}>
             {(()=>{
-              const pTop=SUP_PLEN_Y;
               const pCX=SUP_X+SUP_PLEN_W/2;
               const DW=14;
               const DC=G+'.32)';
               const DS=G+'.18)';
+              const GW=DW+10;
               const leftRunX=SUP_X-60;
               const rightRunX=Math.min(SUP_X+SUP_PLEN_W+60, HOUSE_W-20);
-              const riseH=40;
               const pBot=SUP_PLEN_Y+SUP_PLEN_H;
               return <>
-                {/* TOP LEFT */}
-                <rect x={pCX-DW*1.8-DW/2} y={pTop-riseH} width={DW} height={riseH} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX} y={pTop-riseH-DW} width={pCX-DW*1.8-leftRunX+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX-4} y={pTop-riseH-DW-4} width={DW+8} height={DW+8} rx="2" fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
-                <text x={leftRunX+DW/2} y={pTop-riseH-DW-10} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                {/* LEFT - exits plenum bottom-left, runs out, drops to grille */}
+                <rect x={leftRunX} y={pBot} width={pCX-DW*1.8-leftRunX+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftRunX} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftRunX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
+                {Array.from({length:5},(_,i)=>(
+                  <line key={i} x1={leftRunX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
+                    x2={leftRunX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
+                ))}
+                <text x={leftRunX+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
 
-                {/* TOP RIGHT */}
-                <rect x={pCX+DW*0.8} y={pTop-riseH} width={DW} height={riseH} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={pCX+DW*0.8} y={pTop-riseH-DW} width={rightRunX-pCX-DW*0.8} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={rightRunX-4} y={pTop-riseH-DW-4} width={DW+8} height={DW+8} rx="2" fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
-                <text x={rightRunX+DW/2} y={pTop-riseH-DW-10} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
-
-                {/* BOTTOM LEFT */}
-                <rect x={pCX-DW*1.8-DW/2} y={pBot} width={DW} height={riseH} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX} y={pBot+riseH} width={pCX-DW*1.8-leftRunX+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX-4} y={pBot+riseH+4} width={DW+8} height={DW+8} rx="2" fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
-                <text x={leftRunX+DW/2} y={pBot+riseH+DW+16} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
-
-                {/* BOTTOM RIGHT */}
-                <rect x={pCX+DW*0.8} y={pBot} width={DW} height={riseH} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={pCX+DW*0.8} y={pBot+riseH} width={rightRunX-pCX-DW*0.8} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={rightRunX-4} y={pBot+riseH+4} width={DW+8} height={DW+8} rx="2" fill="#0a0a0a" stroke={DC} strokeWidth="1.2"/>
-                <text x={rightRunX+DW/2} y={pBot+riseH+DW+16} textAnchor="middle" fill={G+'.38)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                {/* RIGHT - exits plenum bottom-right, runs out, drops to grille */}
+                <rect x={pCX+DW*0.8} y={pBot} width={rightRunX-pCX-DW*0.8} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={rightRunX} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={rightRunX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
+                {Array.from({length:5},(_,i)=>(
+                  <line key={i} x1={rightRunX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
+                    x2={rightRunX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
+                ))}
+                <text x={rightRunX+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
               </>;
             })()}
           </g>}
@@ -1849,7 +1859,10 @@ function Canvas({a, stepIdx, activeSteps}){
                the house zone any extra width/height ── */}
           {hasTstat&&hasCond&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
             {(()=>{
-              const TX=COND_X+COND_W/2-45, TY=58;
+              // Biased right of center (not just COND_W/2) - the lineset's
+              // vertical runs sit at ~35-42% of the condenser's width, and a
+              // dead-center thermostat was landing right on top of them.
+              const TX=COND_X+COND_W*0.75-45, TY=58;
               const isProprietary=a.thermostat==='proprietary';
               const isWifi=a.thermostat==='wifi'||isProprietary;
               return isWifi
@@ -2503,7 +2516,9 @@ function Canvas({a, stepIdx, activeSteps}){
               same reasoning as the attic layout above ── */}
           {hasTstat&&hasCond&&<g className="snap" key="tstat-c" style={{animationDelay:'.26s'}}>
             {(()=>{
-              const TX=COND_X+COND_W/2-38, TY=58;
+              // Same rightward bias as the attic layout - clears the
+              // lineset's vertical runs instead of sitting on top of them.
+              const TX=COND_X+COND_W*0.75-38, TY=58;
               const isProprietaryC=a.thermostat==='proprietary';
               return(a.thermostat==='wifi'||isProprietaryC)
                 ?<>
@@ -2905,7 +2920,7 @@ function App(){
                 {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum - 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency - 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency - 21 SEER2":null},
                 answers.system_for?{step:"system_for",label:"Heat source",val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only"}:null,
                 {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes - whole-home unit":answers.dehu==="no"?"No":null},
-                Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Add-ons",val:answers.extras.map(v=>v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
+                Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Final add-ons",val:answers.extras.map(v=>v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
               ].filter(Boolean).map((item,i)=>item&&item.val?(
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"7px 34px 7px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
                   <span style={{color:"rgba(215,183,64,.6)",fontFamily:"monospace",fontSize:"9px",letterSpacing:".03em"}}>{item.label}</span>
