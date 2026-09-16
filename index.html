@@ -1838,10 +1838,12 @@ function Canvas({a, stepIdx, activeSteps}){
             lineY1={RL_ROOF_Y} lineY2={RL_ROOF_Y+9}
             tierKey={a.cond_tier} active={condenserActive}/>}
 
-          {/* ── THERMOSTAT - visible at bottom of living space ── */}
-          {hasTstat&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
+          {/* ── THERMOSTAT - stacked above the condenser in the outside zone,
+               rather than its own row in the living space, so it doesn't cost
+               the house zone any extra width/height ── */}
+          {hasTstat&&hasCond&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
             {(()=>{
-              const TX=HOUSE_W-110, TY=DECK_Y+16;
+              const TX=COND_X+COND_W/2-45, TY=58;
               const isProprietary=a.thermostat==='proprietary';
               const isWifi=a.thermostat==='wifi'||isProprietary;
               return isWifi
@@ -2491,10 +2493,11 @@ function Canvas({a, stepIdx, activeSteps}){
             lineY1={LS_Y1} lineY2={LS_Y2}
             tierKey={a.cond_tier} active={condenserActive}/>}
 
-          {/* Thermostat */}
-          {hasTstat&&<g className="snap" key="tstat-c" style={{animationDelay:'.26s'}}>
+          {/* Thermostat - stacked above the condenser in the outside zone,
+              same reasoning as the attic layout above ── */}
+          {hasTstat&&hasCond&&<g className="snap" key="tstat-c" style={{animationDelay:'.26s'}}>
             {(()=>{
-              const TX=UNIT_X-UNIT_W-14, TY=ACOIL_Y+Math.round(ACOIL_H*0.75);
+              const TX=COND_X+COND_W/2-38, TY=58;
               const isProprietaryC=a.thermostat==='proprietary';
               return(a.thermostat==='wifi'||isProprietaryC)
                 ?<>
