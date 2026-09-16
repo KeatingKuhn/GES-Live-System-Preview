@@ -791,13 +791,19 @@ function Canvas({a, stepIdx, activeSteps}){
         const pS=is90?"#93c5fd":"#999";
         const fX=mid+Math.round(w*0.2); // flue exit X - right half of furnace
         return <>
-          {/* Flue pipe - from top of furnace straight up through roof */}
-          <rect x={fX-pW/2} y={-999} width={pW} height={y+999} rx="1"
+          {/* Flue pipe - from top of furnace up through the roof. Capped just
+              above the ridge line (y=4) instead of the old y=-999 - negative
+              viewBox coordinates paint straight through the canvas
+              container's overflow:hidden here (SVG viewport clipping isn't
+              the same as a block element clipping its box), so the old value
+              rendered for real, towering above the roofline into the header
+              instead of being clipped away. */}
+          <rect x={fX-pW/2} y={4} width={pW} height={y-4} rx="1"
             fill={pC} stroke={pS} strokeWidth="0.7"/>
           {/* Cap at top (visible above roofline) */}
           {is90
-            ?<rect x={fX-pW-1} y={-4} width={pW*2+2} height={5} rx="1" fill={pC} stroke={pS} strokeWidth="0.7"/>
-            :<path d={'M'+(fX-pW-2)+' -1 L'+fX+' -9 L'+(fX+pW+2)+' -1'} fill={pC} stroke={pS} strokeWidth="0.5"/>
+            ?<rect x={fX-pW-1} y={14} width={pW*2+2} height={5} rx="1" fill={pC} stroke={pS} strokeWidth="0.7"/>
+            :<path d={'M'+(fX-pW-2)+' 17 L'+fX+' 9 L'+(fX+pW+2)+' 17'} fill={pC} stroke={pS} strokeWidth="0.5"/>
           }
           <text x={fX+6} y={y-8} textAnchor="start"
             fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="6" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
