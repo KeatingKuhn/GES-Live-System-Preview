@@ -1611,17 +1611,17 @@ function Canvas({a, stepIdx, activeSteps}){
           {/* Return grille - duct trunk connects it down to the return plenum
               above instead of floating on its own ── */}
           {hasCoil&&<g>
-            <rect x={RET_X+RET_PLEN_W/2-7} y={UNIT_Y+UNIT_H} width={14} height={Math.max(0,DECK_Y-(UNIT_Y+UNIT_H))}
-              fill="rgba(255,182,193,.08)" stroke="rgba(255,182,193,.22)" strokeWidth="1"/>
-            <rect x={RET_X+4} y={DECK_Y-1} width={RET_PLEN_W-8} height={9} rx="1"
-              fill="none" stroke="rgba(255,182,193,.3)" strokeWidth="0.9" strokeDasharray="3 2.5"/>
+            <rect x={RET_X+RET_PLEN_W/2-16} y={UNIT_Y+UNIT_H} width={32} height={Math.max(0,DECK_Y-(UNIT_Y+UNIT_H))}
+              fill="rgba(255,182,193,.14)" stroke="rgba(255,182,193,.4)" strokeWidth="1.4"/>
+            <rect x={RET_X+2} y={DECK_Y-1} width={RET_PLEN_W-4} height={11} rx="1"
+              fill="rgba(0,0,0,.65)" stroke="rgba(255,182,193,.45)" strokeWidth="1.2"/>
             {Array.from({length:7},(_,i)=>(
-              <line key={i} x1={RET_X+8+i*((RET_PLEN_W-16)/7)} y1={DECK_Y-1}
-                x2={RET_X+8+i*((RET_PLEN_W-16)/7)} y2={DECK_Y+8}
-                stroke="rgba(255,182,193,.25)" strokeWidth="0.5"/>
+              <line key={i} x1={RET_X+8+i*((RET_PLEN_W-16)/7)} y1={DECK_Y}
+                x2={RET_X+8+i*((RET_PLEN_W-16)/7)} y2={DECK_Y+9}
+                stroke="rgba(255,182,193,.4)" strokeWidth="0.9"/>
             ))}
-            <text x={RET_X+RET_PLEN_W/2} y={DECK_Y+19} textAnchor="middle"
-              fill="rgba(255,182,193,.5)" fontSize="6" fontFamily="monospace">RETURN</text>
+            <text x={RET_X+RET_PLEN_W/2} y={DECK_Y+21} textAnchor="middle"
+              fill="rgba(255,182,193,.6)" fontSize="6.5" fontFamily="monospace">RETURN</text>
           </g>}
 
           {/* Return plenum */}
@@ -1778,34 +1778,43 @@ function Canvas({a, stepIdx, activeSteps}){
                sense - there's nothing above but roof deck.) ── */}
           {hasPlenum&&hasCoil&&<g className="fadein" key="ducts" style={{animationDelay:'.18s'}}>
             {(()=>{
-              const pCX=SUP_X+SUP_PLEN_W/2;
               const DW=14;
               const DC=G+'.32)';
               const DS=G+'.18)';
               const GW=DW+10;
-              const leftRunX=SUP_X-60;
-              const rightRunX=Math.min(SUP_X+SUP_PLEN_W+60, HOUSE_W-20);
               const pBot=SUP_PLEN_Y+SUP_PLEN_H;
+              // Both stems used to run out sideways right at the plenum's own
+              // bottom edge, which is exactly where the equipment labels
+              // (FURNACE/STANDBY, ABSORBING HEAT, etc.) sit - crossing right
+              // through the text. Right duct now just drops straight down
+              // from inside the plenum's own footprint, no sideways run at
+              // all. Left duct drops straight down too, but doesn't jog
+              // sideways until well below where any label could be.
+              const rightX=SUP_X+SUP_PLEN_W*0.75-DW/2;
+              const leftStartX=SUP_X+SUP_PLEN_W*0.5-DW/2;
+              const jogY=pBot+45;
+              const leftEndX=leftStartX-50;
               return <>
-                {/* LEFT - exits plenum bottom-left, runs out, drops to grille */}
-                <rect x={leftRunX} y={pBot} width={pCX-DW*1.8-leftRunX+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftRunX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
+                {/* LEFT - down from plenum center, jog left below the
+                    labels, down again into its own grille */}
+                <rect x={leftStartX} y={pBot} width={DW} height={Math.max(0,jogY-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftEndX} y={jogY} width={leftStartX-leftEndX+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftEndX} y={jogY} width={DW} height={Math.max(0,DECK_Y-jogY)} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={leftEndX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
                 {Array.from({length:5},(_,i)=>(
-                  <line key={i} x1={leftRunX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
-                    x2={leftRunX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
+                  <line key={i} x1={leftEndX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
+                    x2={leftEndX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
                 ))}
-                <text x={leftRunX+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                <text x={leftEndX+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
 
-                {/* RIGHT - exits plenum bottom-right, runs out, drops to grille */}
-                <rect x={pCX+DW*0.8} y={pBot} width={rightRunX-pCX-DW*0.8} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={rightRunX} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={rightRunX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
+                {/* RIGHT - straight down from 3/4 across the plenum, no jog */}
+                <rect x={rightX} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
+                <rect x={rightX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
                 {Array.from({length:5},(_,i)=>(
-                  <line key={i} x1={rightRunX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
-                    x2={rightRunX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
+                  <line key={i} x1={rightX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
+                    x2={rightX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
                 ))}
-                <text x={rightRunX+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                <text x={rightX+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
               </>;
             })()}
           </g>}
