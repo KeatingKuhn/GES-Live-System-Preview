@@ -1485,7 +1485,7 @@ function Canvas({a, stepIdx, activeSteps}){
     const FURN_W=hasFurnace?Math.round(196*SCALE):0;
     const ACOIL_W=hasFurnace?Math.round(108*SCALE):0;
     const AH_W=!hasFurnace?Math.round(296*SCALE):0;
-    const SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?208:a.plenum==='none'?130:0;
+    let SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?208:a.plenum==='none'?130:0;
     const SUP_PLEN_H=UNIT_H;
 
     // Center system in house zone when no condenser
@@ -1499,6 +1499,11 @@ function Canvas({a, stepIdx, activeSteps}){
     const AH_X=UNIT_X;
     const unitRightEdge=hasFurnace?ACOIL_X+ACOIL_W:AH_X+AH_W;
     const SUP_X=unitRightEdge+4;
+    // Once the condenser's outside zone appears, the house shrinks to 2/3
+    // width but the plenum stayed a fixed size - leaving a big empty gap
+    // between the plenum and the outside wall. Stretch it to close most of
+    // that gap instead (never shrinks it below the original fixed size).
+    if(hasCond)SUP_PLEN_W=Math.max(SUP_PLEN_W,HOUSE_W-SUP_X-24);
     const SUP_PLEN_Y=UNIT_Y;
 
     const RL_START_X=hasFurnace?ACOIL_X-4:AH_X+Math.round(AH_W*0.52);
@@ -1611,8 +1616,8 @@ function Canvas({a, stepIdx, activeSteps}){
           {/* Return grille - duct trunk connects it down to the return plenum
               above instead of floating on its own ── */}
           {hasCoil&&<g>
-            <rect x={RET_X+RET_PLEN_W/2-16} y={UNIT_Y+UNIT_H} width={32} height={Math.max(0,DECK_Y-(UNIT_Y+UNIT_H))}
-              fill="rgba(255,182,193,.14)" stroke="rgba(255,182,193,.4)" strokeWidth="1.4"/>
+            <rect x={RET_X+RET_PLEN_W/2-27} y={UNIT_Y+UNIT_H} width={54} height={Math.max(0,DECK_Y-(UNIT_Y+UNIT_H))}
+              fill="rgba(255,182,193,.18)" stroke="rgba(255,182,193,.5)" strokeWidth="1.6"/>
             <rect x={RET_X+2} y={DECK_Y-1} width={RET_PLEN_W-4} height={11} rx="1"
               fill="rgba(0,0,0,.65)" stroke="rgba(255,182,193,.45)" strokeWidth="1.2"/>
             {Array.from({length:7},(_,i)=>(
@@ -1773,12 +1778,11 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* ── DUCTWORK - 3 supply stems off the plenum bottom, straight
-               down through the attic floor into a drywall ceiling grille
-               below - same idea as the upflow closet layout's supply ducts.
-               With the ionizer moved to the top of the plenum and the A-coil
-               label moved above the coil, nothing sits in this space
-               anymore, so all three run straight down with no jog needed. ── */}
+          {/* ── DUCTWORK - 3 supply stems off the plenum bottom, down through
+               the attic floor into a drywall ceiling grille below - same
+               idea as the upflow closet layout's supply ducts. The middle
+               stem drops straight down; the outer two kick out with a 45°
+               elbow first so all three grilles aren't bunched together. ── */}
           {hasPlenum&&hasCoil&&<g className="fadein" key="ducts" style={{animationDelay:'.18s'}}>
             {(()=>{
               const DW=14;
@@ -1786,18 +1790,41 @@ function Canvas({a, stepIdx, activeSteps}){
               const DS=G+'.18)';
               const GW=DW+10;
               const pBot=SUP_PLEN_Y+SUP_PLEN_H;
-              const stemXs=[0.25,0.5,0.75].map(f=>SUP_X+SUP_PLEN_W*f-DW/2);
-              return stemXs.map((x,i)=>(
-                <g key={i}>
-                  <rect x={x} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
-                  <rect x={x-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
+              const FAN=36;
+              const grille=cx=>(
+                <>
+                  <rect x={cx-GW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
                   {Array.from({length:5},(_,j)=>(
-                    <line key={j} x1={x-GW/2+DW/2+3+j*(GW-6)/4} y1={DECK_Y+1}
-                      x2={x-GW/2+DW/2+3+j*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
+                    <line key={j} x1={cx-GW/2+3+j*(GW-6)/4} y1={DECK_Y+1}
+                      x2={cx-GW/2+3+j*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
                   ))}
-                  <text x={x+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                  <text x={cx} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                </>
+              );
+              const straight=(cx,key)=>(
+                <g key={key}>
+                  <rect x={cx-DW/2} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
+                  {grille(cx)}
                 </g>
-              ));
+              );
+              const angled=(topX,dir,key)=>{
+                const bendY=Math.min(pBot+FAN,DECK_Y-6);
+                const botX=topX+dir*(bendY-pBot);
+                const d=`M${topX},${pBot} L${botX},${bendY} L${botX},${DECK_Y}`;
+                return (
+                  <g key={key}>
+                    <path d={d} fill="none" stroke={DS} strokeWidth={DW+2} strokeLinejoin="round" strokeLinecap="square"/>
+                    <path d={d} fill="none" stroke={DC} strokeWidth={DW} strokeLinejoin="round" strokeLinecap="square"/>
+                    {grille(botX)}
+                  </g>
+                );
+              };
+              const leftX=SUP_X+SUP_PLEN_W*0.25, midX=SUP_X+SUP_PLEN_W*0.5, rightX=SUP_X+SUP_PLEN_W*0.75;
+              return <>
+                {angled(leftX,-1,'l')}
+                {straight(midX,'m')}
+                {angled(rightX,1,'r')}
+              </>;
             })()}
           </g>}
 
