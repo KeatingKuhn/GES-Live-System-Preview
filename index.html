@@ -2876,12 +2876,16 @@ function App(){
         </div>
       </div>
 
-      {/* ── DONE SCREEN ── */}
-      {done&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:"row",overflow:"hidden",zIndex:10}}>
-        <div className="canvas-frame" style={{flex:1,minWidth:0,position:"relative",overflow:"hidden"}}>
+      {/* ── DONE SCREEN — attic (wide/short diagram) keeps the review panel as
+           a horizontal bar below so the canvas keeps full width; closet
+           (tall/narrow diagram) keeps it as a side column so the canvas
+           keeps full height. Mirrors the same tradeoff each layout already
+           makes during the wizard steps (.attic-layout vs .closet-layout). ── */}
+      {done&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:isAtticMode?"column":"row",overflow:"hidden",zIndex:10}}>
+        <div className="canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
         </div>
-        <div className="sidebar" style={{overflowY:"auto"}}>
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"auto",maxHeight:"50vh",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           <div className="done-wrap" style={{justifyContent:"flex-start",padding:"14px 14px 10px",overflowY:"auto"}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
               <div className="done-icon" style={{margin:0,width:36,height:36,fontSize:16,flexShrink:0}}>✓</div>
