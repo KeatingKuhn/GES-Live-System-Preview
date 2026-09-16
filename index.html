@@ -1685,9 +1685,12 @@ function Canvas({a, stepIdx, activeSteps}){
                   fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#gold)"} opacity=".65"/>
                 <ACoilH x={ACOIL_X+8} y={UNIT_Y+12} w={ACOIL_W-16} h={UNIT_H-20} active={active}/>
                 <rect x={ACOIL_X} y={UNIT_Y+UNIT_H-2} width={ACOIL_W} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.6"/>
-                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
+                {/* Label moved above the coil - the space below is now clear
+                    for the supply ducts to drop straight down with nothing
+                    in their way */}
+                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-14} textAnchor="middle"
                   fill={active?evapC:(G+'.55)')} fontSize="7.5" fontFamily="monospace">A-COIL</text>
-                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
+                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-4} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
                   {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
                 </text>
@@ -1744,13 +1747,12 @@ function Canvas({a, stepIdx, activeSteps}){
                       markerEnd="url(#arr)"/>
                   </g>
                 ))}
-                {/* Ionizer -- enters from bottom of plenum */}
+                {/* Ionizer -- enters from top of plenum, clear of the supply
+                    ducts now dropping out the bottom */}
                 {hasIonizer&&(()=>{
-                  // Ionizer: bulb at bottom of coil housing, rod goes UP into airstream
-                  // Ionizer: bulb below supply plenum left-third, rod goes UP into plenum
                   const ionX=SUP_X+Math.round(SUP_PLEN_W*0.18); // ~1/5 of plenum, left
-                  const plenBot=SUP_PLEN_Y+SUP_PLEN_H;
-                  const ionBulbY=plenBot+14;
+                  const plenTop=SUP_PLEN_Y;
+                  const ionBulbY=plenTop-14;
                   const ionRodLen=Math.round(SUP_PLEN_H*0.55);
                   return <g className="fadein">
                     <circle cx={ionX} cy={ionBulbY} r={12} fill="rgba(253,224,71,.07)" stroke="rgba(253,224,71,.18)" strokeWidth="0.5" filter="url(#glow-uv)"/>
@@ -1758,12 +1760,12 @@ function Canvas({a, stepIdx, activeSteps}){
                     <ellipse cx={ionX} cy={ionBulbY} rx={5} ry={6.5} fill="rgba(253,224,71,.32)" stroke="none" className="glow-pulse"/>
                     <line x1={ionX-2} y1={ionBulbY-4} x2={ionX+2} y2={ionBulbY+4} stroke="rgba(253,224,71,.9)" strokeWidth="1.2" strokeLinecap="round"/>
                     <line x1={ionX+2} y1={ionBulbY-4} x2={ionX-2} y2={ionBulbY+4} stroke="rgba(253,224,71,.9)" strokeWidth="1.2" strokeLinecap="round"/>
-                    {/* Entry collar at plenum bottom */}
-                    <rect x={ionX-6} y={plenBot-2} width={12} height={8} rx="2" fill="rgba(180,130,20,.45)" stroke="rgba(253,224,71,.5)" strokeWidth="0.8"/>
-                    {/* Rod goes UP into plenum */}
-                    <line x1={ionX} y1={plenBot} x2={ionX} y2={plenBot-ionRodLen} stroke="rgba(253,224,71,.22)" strokeWidth={6} strokeLinecap="round" filter="url(#glow-uv)"/>
-                    <line x1={ionX} y1={plenBot} x2={ionX} y2={plenBot-ionRodLen} stroke="rgba(253,224,71,.8)" strokeWidth={2} strokeLinecap="round"/>
-                    <circle cx={ionX} cy={plenBot-ionRodLen} r={2.5} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
+                    {/* Entry collar at plenum top */}
+                    <rect x={ionX-6} y={plenTop-6} width={12} height={8} rx="2" fill="rgba(180,130,20,.45)" stroke="rgba(253,224,71,.5)" strokeWidth="0.8"/>
+                    {/* Rod goes DOWN into plenum */}
+                    <line x1={ionX} y1={plenTop} x2={ionX} y2={plenTop+ionRodLen} stroke="rgba(253,224,71,.22)" strokeWidth={6} strokeLinecap="round" filter="url(#glow-uv)"/>
+                    <line x1={ionX} y1={plenTop} x2={ionX} y2={plenTop+ionRodLen} stroke="rgba(253,224,71,.8)" strokeWidth={2} strokeLinecap="round"/>
+                    <circle cx={ionX} cy={plenTop+ionRodLen} r={2.5} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
                     <text x={ionX+14} y={ionBulbY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="6" fontFamily="monospace">IONIZER</text>
                   </g>;
                 })()}
@@ -1771,11 +1773,12 @@ function Canvas({a, stepIdx, activeSteps}){
             })()}
           </g>}
 
-          {/* ── DUCTWORK - 2 supply stems off the plenum bottom, dropping
-               through the attic floor into a drywall ceiling grille below -
-               same idea as the upflow closet layout's supply ducts. (Used to
-               also route 2 stems upward off the plenum top, which made no
-               sense - there's nothing above but roof deck.) ── */}
+          {/* ── DUCTWORK - 3 supply stems off the plenum bottom, straight
+               down through the attic floor into a drywall ceiling grille
+               below - same idea as the upflow closet layout's supply ducts.
+               With the ionizer moved to the top of the plenum and the A-coil
+               label moved above the coil, nothing sits in this space
+               anymore, so all three run straight down with no jog needed. ── */}
           {hasPlenum&&hasCoil&&<g className="fadein" key="ducts" style={{animationDelay:'.18s'}}>
             {(()=>{
               const DW=14;
@@ -1783,39 +1786,18 @@ function Canvas({a, stepIdx, activeSteps}){
               const DS=G+'.18)';
               const GW=DW+10;
               const pBot=SUP_PLEN_Y+SUP_PLEN_H;
-              // Both stems used to run out sideways right at the plenum's own
-              // bottom edge, which is exactly where the equipment labels
-              // (FURNACE/STANDBY, ABSORBING HEAT, etc.) sit - crossing right
-              // through the text. Right duct now just drops straight down
-              // from inside the plenum's own footprint, no sideways run at
-              // all. Left duct drops straight down too, but doesn't jog
-              // sideways until well below where any label could be.
-              const rightX=SUP_X+SUP_PLEN_W*0.75-DW/2;
-              const leftStartX=SUP_X+SUP_PLEN_W*0.5-DW/2;
-              const jogY=pBot+45;
-              const leftEndX=leftStartX-50;
-              return <>
-                {/* LEFT - down from plenum center, jog left below the
-                    labels, down again into its own grille */}
-                <rect x={leftStartX} y={pBot} width={DW} height={Math.max(0,jogY-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftEndX} y={jogY} width={leftStartX-leftEndX+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftEndX} y={jogY} width={DW} height={Math.max(0,DECK_Y-jogY)} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={leftEndX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
-                {Array.from({length:5},(_,i)=>(
-                  <line key={i} x1={leftEndX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
-                    x2={leftEndX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
-                ))}
-                <text x={leftEndX+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
-
-                {/* RIGHT - straight down from 3/4 across the plenum, no jog */}
-                <rect x={rightX} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
-                <rect x={rightX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
-                {Array.from({length:5},(_,i)=>(
-                  <line key={i} x1={rightX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
-                    x2={rightX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
-                ))}
-                <text x={rightX+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
-              </>;
+              const stemXs=[0.25,0.5,0.75].map(f=>SUP_X+SUP_PLEN_W*f-DW/2);
+              return stemXs.map((x,i)=>(
+                <g key={i}>
+                  <rect x={x} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
+                  <rect x={x-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
+                  {Array.from({length:5},(_,j)=>(
+                    <line key={j} x1={x-GW/2+DW/2+3+j*(GW-6)/4} y1={DECK_Y+1}
+                      x2={x-GW/2+DW/2+3+j*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
+                  ))}
+                  <text x={x+DW/2} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="6" fontFamily="monospace">SUPPLY</text>
+                </g>
+              ));
             })()}
           </g>}
 
