@@ -112,6 +112,12 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 @keyframes spin{to{transform:rotate(360deg)}}
 .airflow{stroke-dasharray:10 6;animation:airflow 2s linear infinite}
 @keyframes airflow{to{stroke-dashoffset:-32}}
+.rain-drop{animation:rainFall 1s linear infinite}
+@keyframes rainFall{0%{transform:translateY(-6px);opacity:0}20%{opacity:.85}80%{opacity:.85}100%{transform:translateY(20px);opacity:0}}
+.snow-flake{animation:snowFall 3.4s linear infinite}
+@keyframes snowFall{0%{transform:translate(0,-6px);opacity:0}12%{opacity:.9}88%{opacity:.9}100%{transform:translate(10px,26px);opacity:0}}
+.steam-wisp{animation:steamRise 2.6s ease-in infinite}
+@keyframes steamRise{0%{transform:translateY(0) scaleX(1);opacity:0}20%{opacity:.5}70%{opacity:.25}100%{transform:translateY(-22px) scaleX(1.4);opacity:0}}
 /* Selecting an option is the single most-repeated gesture in the whole
    build - give it a tactile settle instead of an instant flat color swap. */
 @keyframes selectPop{0%{transform:scale(1)}40%{transform:scale(1.035)}70%{transform:scale(.985)}100%{transform:scale(1)}}
@@ -925,7 +931,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   }
 
   // Furnace horizontal - blower LEFT | HX RIGHT
-  function FurnaceH({x,y,w,h,active}){
+  function FurnaceH({x,y,w,h,active,roofY}){
     const mid=x+w/2;
     return <g>
       <rect x={x} y={y} width={w} height={h} rx="4"
@@ -966,20 +972,17 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         const pC=is90?"#bfdbfe":"#c0c0c0";
         const pS=is90?"#93c5fd":"#999";
         const fX=mid+Math.round(w*0.2); // flue exit X - right half of furnace
+        const pipeTop=roofY-12; // pokes ~12px above the actual roof surface, not up into the sky
         return <>
-          {/* Flue pipe - from top of furnace up through the roof. Capped just
-              above the ridge line (y=4) instead of the old y=-999 - negative
-              viewBox coordinates paint straight through the canvas
-              container's overflow:hidden here (SVG viewport clipping isn't
-              the same as a block element clipping its box), so the old value
-              rendered for real, towering above the roofline into the header
-              instead of being clipped away. */}
-          <rect x={fX-pW/2} y={4} width={pW} height={y-4} rx="1"
+          {/* Flue pipe - from top of furnace up through the roof, stopping
+              just above the roofline instead of shooting up toward the
+              top of the canvas. */}
+          <rect x={fX-pW/2} y={pipeTop} width={pW} height={Math.max(0,y-pipeTop)} rx="1"
             fill={pC} stroke={pS} strokeWidth="0.7"/>
-          {/* Cap at top (visible above roofline) */}
+          {/* Cap at top (visible just above the roofline) */}
           {is90
-            ?<rect x={fX-pW-1} y={14} width={pW*2+2} height={5} rx="1" fill={pC} stroke={pS} strokeWidth="0.7"/>
-            :<path d={'M'+(fX-pW-2)+' 17 L'+fX+' 9 L'+(fX+pW+2)+' 17'} fill={pC} stroke={pS} strokeWidth="0.5"/>
+            ?<rect x={fX-pW-1} y={pipeTop} width={pW*2+2} height={5} rx="1" fill={pC} stroke={pS} strokeWidth="0.7"/>
+            :<path d={'M'+(fX-pW-2)+' '+(pipeTop+5)+' L'+fX+' '+(pipeTop-3)+' L'+(fX+pW+2)+' '+(pipeTop+5)} fill={pC} stroke={pS} strokeWidth="0.5"/>
           }
           <text x={fX+6} y={y-8} textAnchor="start"
             fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="7" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
@@ -1353,12 +1356,18 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
       {/* ── SNOW - furnace/aux-heat cold-snap mode only. Fades in/out
            instead of popping, so switching modes reads as a season
-           passing rather than an instant background swap. ── */}
+           passing rather than an instant background swap. Ground blanket
+           plus actual falling flakes, not just an accumulated drift. ── */}
       <g style={{opacity:(heatMode&&(!isDualFuel||heatSubMode==='furnace'))?1:0,transition:'opacity .8s ease'}}>
         <rect x={wallX} y={groundY-3} width={zoneW} height={6} fill="rgba(240,246,255,.5)"/>
         {Array.from({length:12},(_,i)=>(
           <ellipse key={'snow'+i} cx={wallX+(i+0.5)*(zoneW/12)} cy={groundY-2+((i%3)-1)} rx={zoneW/12*0.55} ry="3.2"
             fill="rgba(240,246,255,.38)"/>
+        ))}
+        {Array.from({length:9},(_,i)=>(
+          <circle key={'flake'+i} className="snow-flake"
+            cx={wallX+zoneW*0.08+(i*zoneW*0.85/9)} cy={zoneH*0.16+(i%4)*14} r={i%3===0?2.2:1.5}
+            fill="rgba(255,255,255,.85)" style={{animationDelay:(i*0.35)+'s',transformOrigin:'center'}}/>
         ))}
       </g>
 
@@ -1383,9 +1392,22 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         })}
       </g>
 
+      {/* ── HEAT SHIMMER - 96° cool-mode day, steam-like wisps rising off
+           the hot condenser cabinet. Same fade-with-mode treatment as the
+           sun/cloud/snow above. ── */}
+      <g style={{opacity:!heatMode?1:0,transition:'opacity .8s ease'}}>
+        {Array.from({length:3},(_,i)=>(
+          <path key={'wisp'+i} className="steam-wisp"
+            d={`M${condX+condW*(0.25+i*0.25)} ${condY} q-4,-10 0,-18 q4,-8 0,-16`}
+            fill="none" stroke="rgba(255,255,255,.45)" strokeWidth="1.6" strokeLinecap="round"
+            style={{animationDelay:(i*0.7)+'s'}}/>
+        ))}
+      </g>
+
       {/* ── CLOUD + RAIN - dual-fuel heat pump mode (52°, mild enough the
            compressor still runs) - overcast rather than sunny or snowed in,
-           same slot and reasoning as the sun above. ── */}
+           same slot and reasoning as the sun above. Rain falls across the
+           whole zone, not just in a few streaks under the cloud. ── */}
       <g style={{opacity:(heatMode&&isDualFuel&&heatSubMode==='hp')?1:0,transition:'opacity .8s ease'}}>
         <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#8a94a3"/>
         <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#9aa3b0"/>
@@ -1393,6 +1415,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         {Array.from({length:4},(_,i)=>(
           <line key={'rain'+i} x1={wallX+zoneW*0.25-11+i*9} y1={zoneH*0.075+29} x2={wallX+zoneW*0.25-14+i*9} y2={zoneH*0.075+37}
             stroke="#7ab8e0" strokeWidth="1.5" strokeLinecap="round"/>
+        ))}
+        {Array.from({length:9},(_,i)=>(
+          <line key={'drop'+i} className="rain-drop"
+            x1={wallX+zoneW*0.08+(i*zoneW*0.85/9)} y1={zoneH*0.16+(i%4)*14}
+            x2={wallX+zoneW*0.08+(i*zoneW*0.85/9)-2} y2={zoneH*0.16+(i%4)*14+7}
+            stroke="#7ab8e0" strokeWidth="1.3" strokeLinecap="round"
+            style={{animationDelay:(i*0.11)+'s'}}/>
         ))}
       </g>
 
@@ -1789,7 +1818,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const FURN_W=hasFurnace?Math.round(196*SCALE):0;
     const ACOIL_W=hasFurnace?Math.round(108*SCALE):0;
     const AH_W=!hasFurnace?Math.round(296*SCALE):0;
-    let SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?208:a.plenum==='none'?130:0;
+    let SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?240:a.plenum==='none'?130:0;
     const SUP_PLEN_H=UNIT_H;
 
     // Center system in house zone when no condenser
@@ -1849,12 +1878,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {/* Full canvas background */}
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
 
-          {/* Outside zone (right of wall) - brightens on a sunny (cool
-               mode) day to read as daylight outside, rather than a fixed
-               dark panel regardless of weather. Fades like the sun/cloud/
-               snow rendered inside OutsideZone itself. */}
+          {/* Outside zone (right of wall) - brightest on a sunny (cool
+               mode) day, dimmer for the overcast 52° heat-pump day, darkest
+               for the 28° cold snap - reads as daylight outside instead of
+               a fixed dark panel regardless of weather. Fades like the
+               sun/cloud/snow rendered inside OutsideZone itself. */}
           {hasCond&&<rect x={EXT_WALL_X} y="0" width={OUTSIDE_W} height={VH}
-            style={{fill:!heatMode?'#28314a':'#080a10',transition:'fill .8s ease'}}/>}
+            style={{fill:!heatMode?'#465c8c':(isDualFuel&&heatSubMode==='hp')?'#212b45':'#080a10',transition:'fill .8s ease'}}/>}
 
           {/* Attic interior (above deck, inside house) */}
           <rect x="0" y={EAVE_Y} width={HOUSE_W} height={DECK_Y-EAVE_Y} fill="#10121c"/>
@@ -1948,7 +1978,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             })}
             <text x={RET_X+RET_PLEN_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
               fill="rgba(255,182,193,.52)" fontSize="9" fontFamily="monospace"
-              transform={`rotate(-90,${RET_X+RET_PLEN_W/2},${UNIT_Y+UNIT_H/2})`}>RETURN PLENUM</text>
+              transform={`rotate(-45,${RET_X+RET_PLEN_W/2},${UNIT_Y+UNIT_H/2})`}>RETURN PLENUM</text>
             {Array.from({length:8},(_,i)=>(
               <line key={i} x1={RET_X+2} y1={UNIT_Y+12+i*(UNIT_H-24)/8}
                 x2={RET_X+2} y2={UNIT_Y+18+i*(UNIT_H-24)/8}
@@ -1975,7 +2005,17 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
           {/* Furnace */}
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu'+a.stage+a.furnace_eff} filter="url(#shadow)">
-            <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive}/>
+            {(()=>{
+              // Roof surface height at the flue's actual X (mid+w*0.2 inside
+              // FurnaceH) - EAVE_Y alone only holds at the eave itself, and
+              // the flue usually sits well in toward the ridge, where the
+              // sloped roof is much higher up (smaller y) than that.
+              const flueX=FURN_X+FURN_W*0.7;
+              const flueRoofY=(flueX<=RIDGE_X
+                ?EAVE_Y-(flueX/RIDGE_X)*(EAVE_Y-RIDGE_Y)
+                :RIDGE_Y+((flueX-RIDGE_X)/(HOUSE_W-RIDGE_X))*(EAVE_Y-RIDGE_Y))+14;
+              return <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive} roofY={flueRoofY}/>;
+            })()}
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+13} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.78)':(G+'.55)')} fontSize="9" fontFamily="monospace">FURNACE</text>
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+24} textAnchor="middle"
@@ -2262,15 +2302,16 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                       <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
                     </>
                     :<>
-                      {/* ERV -- blue IN + orange OUT through roof */}
-                      <rect x={pipe1X-2} y={4} width={5} height={BY-4} rx="1" fill={B+'.3)'} stroke={B+'.55)'} strokeWidth="0.8"/>
-                      <rect x={pipe1X-5} y={1} width={11} height={5} rx="1" fill={B+'.35)'} stroke={B+'.6)'} strokeWidth="0.8"/>
-                      <text x={pipe1X} y={-1} textAnchor="middle" fill={B+'.6)'} fontSize="7.5" fontFamily="monospace">IN</text>
-                      <rect x={pipe2X-2} y={4} width={5} height={BY-4} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.55)" strokeWidth="0.8"/>
-                      <path d={'M'+(pipe2X-4)+' 2 L'+pipe2X+' -5 L'+(pipe2X+4)+' 2'} fill="rgba(249,115,22,.45)"/>
-                      <text x={pipe2X} y={-1} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="7.5" fontFamily="monospace">OUT</text>
-                      <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-                      <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+                      {/* ERV -- blue IN + orange OUT through roof. Pipes
+                          stop right at the roofline (roofY), same as the
+                          dehu vents above, instead of running all the way
+                          up to the top of the canvas. */}
+                      <rect x={pipe1X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill={B+'.3)'} stroke={B+'.55)'} strokeWidth="0.8"/>
+                      <rect x={pipe1X-5} y={roofY-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.6)'} strokeWidth="0.8"/>
+                      <text x={pipe1X} y={roofY-6} textAnchor="middle" fill={B+'.6)'} fontSize="7.5" fontFamily="monospace">IN</text>
+                      <rect x={pipe2X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.55)" strokeWidth="0.8"/>
+                      <path d={'M'+(pipe2X-4)+' '+(roofY-2)+' L'+pipe2X+' '+(roofY-9)+' L'+(pipe2X+4)+' '+(roofY-2)} fill="rgba(249,115,22,.45)"/>
+                      <text x={pipe2X} y={roofY-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="7.5" fontFamily="monospace">OUT</text>
                     </>
                   }
                   <rect x={BX} y={BY} width={BW} height={BH} rx="4"
@@ -2414,10 +2455,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <Defs/>
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
-          {/* Outside zone - brightens on a sunny (cool mode) day, same as
-              the attic layout's outside zone. */}
+          {/* Outside zone - brightest sunny, dimmer overcast, darkest cold,
+              same as the attic layout's outside zone. */}
           {hasCond&&<rect x={HOUSE_W} y="0" width={VW-HOUSE_W} height={VH}
-            style={{fill:!heatMode?'#28314a':'#080a10',transition:'fill .8s ease'}}/>}
+            style={{fill:!heatMode?'#465c8c':(isDualFuel&&heatSubMode==='hp')?'#212b45':'#080a10',transition:'fill .8s ease'}}/>}
           {/* Full attic space above deck */}
           <rect x="0" y="0" width={hasCond?HOUSE_W:VW} height={DECK_Y} fill="#10121c"/>
           {/* Closet below deck */}
