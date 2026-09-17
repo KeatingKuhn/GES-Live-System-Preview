@@ -1460,7 +1460,19 @@ function Canvas({a, stepIdx, activeSteps}){
     // bigger on screen in the usual height-constrained case, instead of
     // just leaving a shorter empty gap. DECK_Y stays numerically identical
     // (580-120 === 495-35) so nothing above the deck line shifts at all.
-    const VW=1280, VH=495;
+    // VW doubles as "the full canvas width" everywhere below that checks
+    // hasCond?HOUSE_W:VW. Before a condenser exists the equipment chain's
+    // fixed pixel widths only ever filled a fraction of the original
+    // 1280x495, and width is already the constraining "meet" dimension
+    // here (the scene renders full-bleed edge to edge), so shrinking VW
+    // alone would just shrink the rendered SVG and pillarbox it instead
+    // of zooming in. Shrinking VW *and* VH together by the same ratio
+    // keeps that full-bleed width fit but at a smaller absolute canvas,
+    // so the same fixed-size equipment renders bigger AND eats a bigger
+    // share of the frame - a real zoom, not a crop. Left at 1x once a
+    // condenser exists since its own margins are already tight.
+    const ZOOM=hasCond?1:0.7;
+    const VW=Math.round(1280*ZOOM), VH=Math.round(495*ZOOM);
 
     // 2/3 house when condenser selected, full width otherwise
     const HOUSE_W=hasCond ? Math.round(VW*(2/3)) : VW-12;
