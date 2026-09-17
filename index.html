@@ -1539,7 +1539,10 @@ function Canvas({a, stepIdx, activeSteps}){
     const COND_SIZES={
       fedmin:   {w:Math.round(22*PX_C), h:Math.round(28*PX_C)},
       mid_ge15: {w:Math.round(36*PX_C), h:Math.round(22*PX_C)},
-      high_ge18:{w:Math.round(36*PX_C), h:Math.round(50*PX_C)},
+      // Real high-eff/variable-speed cabinets run tall (~50in), but next to
+      // fedmin's 28in and mid's 22in that read as a jarring size jump rather
+      // than a believable "biggest tier" - eased back to 40in.
+      high_ge18:{w:Math.round(36*PX_C), h:Math.round(40*PX_C)},
     };
     const CS=COND_SIZES[a.cond_tier]||COND_SIZES.fedmin;
     // Scale by the widest tier so cabinets keep their real relative size -
@@ -2088,8 +2091,9 @@ function Canvas({a, stepIdx, activeSteps}){
     const CU_SIZES={
       fedmin:   {w:Math.round(22*PX), h:Math.round(28*PX)},
       mid_ge15: {w:Math.round(36*PX), h:Math.round(22*PX)},
-      high_ge18:{w:Math.round(36*PX), h:Math.round(50*PX)},
-      premium:  {w:Math.round(36*PX), h:Math.round(50*PX)},
+      // Eased back from a real ~50in - see attic canvas's COND_SIZES for why.
+      high_ge18:{w:Math.round(36*PX), h:Math.round(40*PX)},
+      premium:  {w:Math.round(36*PX), h:Math.round(40*PX)},
     };
     const CU=CU_SIZES[a.cond_tier]||CU_SIZES.fedmin;
     // Scale by the widest tier so cabinets keep their real relative size (see attic canvas for why)
