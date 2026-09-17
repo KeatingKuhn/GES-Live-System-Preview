@@ -68,6 +68,18 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .done-screen.attic-mode{flex-direction:column}
 .done-screen.closet-mode{flex-direction:row}
 
+/* Review-selections grid: auto-fill by default (right for the closet
+   sidebar's narrow 320px column, and for any narrow viewport). The attic
+   sidebar goes full-width on desktop though, wide enough for 7 columns of
+   10 items - 7-then-3 looks unbalanced, so lock it to 5 columns (5-and-5)
+   once it's actually that wide. Has to be a class, not the inline style
+   it replaces - an inline style always beats a stylesheet rule, so this
+   media query couldn't win otherwise. */
+.done-review-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+@media(min-width:1025px){
+  .done-review-grid.attic-mode-grid{grid-template-columns:repeat(5,1fr)}
+}
+
 /* ANIMATIONS */
 .snap{animation:snap .45s cubic-bezier(.34,1.46,.64,1) both}
 @keyframes snap{from{opacity:0;transform:translateY(-14px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -178,12 +190,21 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .site-header-rule{width:100%;height:1px;background:rgba(255,255,255,.35);margin:3px 0}
 .site-header-sub{font-family:'Poppins',sans-serif;font-weight:400;font-size:8px;color:rgba(255,255,255,.8);letter-spacing:.18em}
 .site-header-phone{display:none;color:rgba(255,255,255,.7);text-decoration:none;font-family:'Poppins',sans-serif;font-size:13px;white-space:nowrap;flex-shrink:0}
+/* Sits between the logo and phone number - the trust signals (rating,
+   license, TACLA #) used to repeat on the splash and done screens; living
+   here once means they're always visible without cluttering either. */
+.site-header-trust{display:none;font-family:var(--fb);font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.02em;white-space:nowrap;gap:7px;align-items:center}
+.site-header-trust strong{color:rgba(215,183,64,.7);font-weight:600}
+.site-header-trust .trust-dot{color:rgba(255,255,255,.18)}
 @media(min-width:641px){
   .site-header{height:84px;padding:0 24px}
   .site-header-badge{width:52px;height:52px;font-size:24px}
   .site-header-brand{font-size:19px}
   .site-header-sub{font-size:10.5px;letter-spacing:.25em}
   .site-header-phone{display:block}
+}
+@media(min-width:900px){
+  .site-header-trust{display:flex}
 }
 
 /* ── ADAPTIVE LAYOUT ── */
@@ -666,6 +687,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut)));
   const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
   const auxHeatActive=hpLockedOut;
+  // The indoor blower moves air whenever ANY source is delivering
+  // conditioned air - cooling, furnace heat, heat pump heat, or aux/
+  // emergency heat alone once the compressor's locked out. It's easy to
+  // miss the heat-pump-heating and aux-heat-only cases since neither
+  // furnaceActive nor "not heatMode" covers them on their own.
+  const blowerActive=!heatMode||furnaceActive||evapActive||auxHeatActive;
   // Thermostat preview reading - not a fixed setpoint, but what the system
   // is actually doing right now: a couple degrees higher in cool mode once
   // a dehumidifier is pulling the humidity down (drier air reads as
@@ -870,7 +897,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           stroke={G+'.36)'} strokeWidth="3" strokeLinecap="round"/>
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
-        spd={active?1.6:0.5} active={active||!heatMode}/>
+        spd={blowerActive?1.6:0.5} active={blowerActive}/>
       <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="8" fontFamily="monospace">BLOWER</text>
       {Array.from({length:6},(_,i)=>{
         const gy=y+10+i*(h-18)/6;
@@ -937,7 +964,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           stroke={G+'.32)'} strokeWidth="3" strokeLinecap="round"/>
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
-        spd={active?1.5:0.45} active={active||!heatMode}/>
+        spd={blowerActive?1.5:0.45} active={blowerActive}/>
       <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="8" fontFamily="monospace">BLOWER</text>
       <rect x={mid+2} y={y+8} width={w/2-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
       <ACoilH x={mid+8} y={y+12} w={w/2-18} h={h-22} active={active}/>
@@ -1566,24 +1593,24 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       <span style={{fontFamily:'monospace',fontSize:'9px',letterSpacing:'.06em',color:'rgba(215,183,64,.55)'}}>
         ▸ preview how your system runs
       </span>
-      <div title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden'}}>
+      <div title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',flexDirection:'column',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden'}}>
       <button onClick={()=>setHeatMode(false)} style={{
         padding:'8px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'11px',letterSpacing:'.08em',
         background:!heatMode?'rgba(35,137,224,.18)':'transparent',
         color:!heatMode?'#5ba8f5':'rgba(255,255,255,.26)',outline:'none',transition:'all .2s',
-        display:'flex',alignItems:'center',gap:6}}>
+        display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
         <span>❄</span>
         <span>COOL MODE</span>
         <span style={{fontSize:'13px',fontWeight:700,opacity:!heatMode?1:0.3}}>96°</span>
       </button>
-      <div style={{width:'1px',background:'rgba(215,183,64,.22)'}}/>
+      <div style={{height:'1px',background:'rgba(215,183,64,.22)'}}/>
       {isDualFuel
         ?<>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
             padding:'8px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'11px',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='hp'?'rgba(35,137,224,.18)':'transparent',
             color:heatMode&&heatSubMode==='hp'?'#5ba8f5':'rgba(255,255,255,.26)',outline:'none',transition:'all .2s',
-            display:'flex',alignItems:'center',gap:5,borderRight:'1px solid rgba(215,183,64,.12)'}}>
+            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span>🔥</span>
             <span>HEAT PUMP</span>
             <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.3}}>52°</span>
@@ -1592,7 +1619,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             padding:'8px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'11px',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='furnace'?'rgba(249,115,22,.18)':'transparent',
             color:heatMode&&heatSubMode==='furnace'?'#f97316':'rgba(255,255,255,.26)',outline:'none',transition:'all .2s',
-            display:'flex',alignItems:'center',gap:5}}>
+            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span>🔥</span>
             <span>FURNACE</span>
             <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.3}}>28°</span>
@@ -1602,7 +1629,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           padding:'8px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'11px',letterSpacing:'.08em',
           background:heatMode?'rgba(249,115,22,.18)':'transparent',
           color:heatMode?'#f97316':'rgba(255,255,255,.26)',outline:'none',transition:'all .2s',
-          display:'flex',alignItems:'center',gap:6}}>
+          display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
           <span>🔥</span>
           <span>HEAT MODE</span>
           <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode?1:0.3}}>28°</span>
@@ -2495,7 +2522,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                       stroke={G+'.18)'} strokeWidth="0.9" strokeDasharray="4 3"/>
                     <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.24}
                       r={Math.min(UNIT_W*0.32,ACOIL_H*0.18)}
-                      spd={active?1.4:0.4} active={active||!heatMode}/>
+                      spd={blowerActive?1.4:0.4} active={blowerActive}/>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.24+UNIT_W*0.32+12} textAnchor="middle"
                       fill={G+'.55)'} fontSize="7.5" fontFamily="monospace">BLOWER</text>
                     <ACoilV x={UNIT_X+8} y={ACOIL_Y+ACOIL_H*0.52+8} w={UNIT_W-16} h={ACOIL_H*0.46-16} active={active}/>
@@ -2570,7 +2597,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             {/* BOTTOM: blower */}
             <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.75}
               r={Math.min(UNIT_W*0.32,FURN_H*0.18)}
-              spd={furnaceActive?1.55:0.5} active={furnaceActive||!heatMode}/>
+              spd={blowerActive?1.55:0.5} active={blowerActive}/>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
               fill={G+'.55)'} fontSize="7.5" fontFamily="monospace">BLOWER</text>
             {/* Flue - 45° elbow routing:
@@ -3089,6 +3116,13 @@ function App(){
             <span className="site-header-sub">SERVICES</span>
           </div>
         </a>
+        <div className="site-header-trust">
+          <span><strong>★ 4.9</strong> on Google</span>
+          <span className="trust-dot">·</span>
+          <span>Licensed &amp; Insured</span>
+          <span className="trust-dot">·</span>
+          <span>TACLA #119235C</span>
+        </div>
         <a href="tel:5124894653" className="site-header-phone">512-489-4653</a>
       </header>
     <div ref={topRef} className="app-root">
@@ -3125,13 +3159,6 @@ function App(){
       <div className={"splash-screen"+(loc||done?" out":"")}>
         <div className="splash-logo">GOLD EAGLE SERVICES</div>
         <div className="splash-sub">AUSTIN TX  |  512-489-4653  |  GOLDEAGLESERVICES.COM</div>
-        <div className="trust-line">
-          <span><strong>★ 4.9</strong> on Google</span>
-          <span className="trust-dot">·</span>
-          <span>Licensed &amp; Insured</span>
-          <span className="trust-dot">·</span>
-          <span>TACLA #119235C</span>
-        </div>
         <p style={{fontFamily:"var(--fb)",fontSize:"17px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:560,lineHeight:1.7,margin:"8px 0 4px"}}>
           Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.
         </p>
@@ -3236,7 +3263,7 @@ function App(){
           <div className="done-canvas-sweep"/>
         </div>
         <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"380px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
-          <div className="done-wrap" style={{justifyContent:"flex-start",padding:"14px 14px 10px",overflowY:"auto"}}>
+          <div className="done-wrap" style={{justifyContent:"center",padding:"14px 14px 10px",overflowY:"auto"}}>
             {/* Collapsed to one line once pricing is engaged - the full
                 header+grid below is what was pushing the sizing questions'
                 own Back/Next off the bottom of this panel. The review is
@@ -3255,7 +3282,7 @@ function App(){
                 <div style={{fontSize:11,color:"var(--mut)"}}>Review your selections below</div>
               </div>
             </div>
-            <div style={{width:"100%",marginBottom:12,border:"1px solid rgba(215,183,64,.15)",borderRadius:2,display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))"}}>
+            <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":"")} style={{width:"100%",marginBottom:12,border:"1px solid rgba(215,183,64,.15)",borderRadius:2,display:"grid"}}>
               {[
                 {step:"location",label:"Location",val:answers.location==="attic"?"Attic horizontal":answers.location==="closet"?"Upflow closet":null},
                 {step:"indoor_type",label:"Indoor unit",val:answers.indoor_type==="furnace"?"Gas furnace":answers.indoor_type==="ah"?"Air handler":null},
@@ -3411,13 +3438,6 @@ function App(){
               })()}
             </div>}
 
-            <div className="trust-line" style={{marginBottom:8,fontSize:11}}>
-              <span><strong>★ 4.9</strong> on Google</span>
-              <span className="trust-dot">·</span>
-              <span>Licensed &amp; Insured</span>
-              <span className="trust-dot">·</span>
-              <span>TACLA #119235C</span>
-            </div>
             {/* ── QUICK ACTIONS - one compact button grid instead of five
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
