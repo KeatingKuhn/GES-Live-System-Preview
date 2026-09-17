@@ -672,6 +672,25 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
   </g>;
   const [heatMode,setHeatMode]=React.useState(false);
   const [heatSubMode,setHeatSubMode]=React.useState('hp'); // 'hp' or 'furnace' for dual fuel
+  // The attic diagram's viewBox width adapts to the frame's actual aspect
+  // ratio so it fills wide frames instead of "meet"-scaling to height and
+  // leaving dead space on both sides. VH (and everything inches-scaled off
+  // it) stays fixed - only the horizontal canvas grows, same as adding more
+  // open attic/wall space either side of the same-sized equipment.
+  const wrapRef=useRef(null);
+  const [frameBox,setFrameBox]=useState(null);
+  React.useEffect(()=>{
+    const el=wrapRef.current;
+    if(!el||typeof ResizeObserver==='undefined')return;
+    const measure=()=>{
+      const r=el.getBoundingClientRect();
+      if(r.width>0&&r.height>0)setFrameBox({w:r.width,h:r.height});
+    };
+    measure();
+    const ro=new ResizeObserver(measure);
+    ro.observe(el);
+    return ()=>ro.disconnect();
+  },[]);
   const G='rgba(215,183,64,';
   const B='rgba(35,137,224,';
   const W='rgba(255,255,255,';
@@ -1674,7 +1693,14 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
     // this layout), not stacked above the condenser, so the space that an
     // earlier pass trimmed as "dead" is genuinely back in use.
     const ZOOM=hasCond?1:0.7;
-    const VW=Math.round(1280*ZOOM), VH=Math.round(580*ZOOM);
+    const VH=Math.round(580*ZOOM);
+    const BASE_VW=Math.round(1280*ZOOM);
+    // Widen the viewBox to match the frame's aspect ratio (capped at 1.6x
+    // the base design width so an ultrawide monitor doesn't stretch the
+    // outside/condenser zone into something absurd) - never narrower than
+    // the base width, which the fixed-inch component sizes below assume.
+    const FRAME_ASPECT_VW=frameBox&&frameBox.h>0?Math.round(VH*(frameBox.w/frameBox.h)):BASE_VW;
+    const VW=Math.max(BASE_VW,Math.min(FRAME_ASPECT_VW,Math.round(BASE_VW*1.6)));
 
     // 2/3 house when condenser selected, full width otherwise
     const HOUSE_W=hasCond ? Math.round(VW*(2/3)) : VW-12;
@@ -1754,7 +1780,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
     const COND_Y=VH-28-10-COND_H;
 
     return(
-      <div style={{position:'absolute',inset:0}}>
+      <div ref={wrapRef} style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:toggleUiTop,right:8,zIndex:10}}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <Defs/>
@@ -3308,7 +3334,7 @@ function App(){
             <span>📞 Schedule Visit</span>
           </a>}
         </div>
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"280px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"200px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           <div className={"done-wrap"+(isAtticMode?" done-wrap-attic":"")} style={{padding:"14px 14px 10px",overflowY:"auto"}}>
             {/* Collapsed to one line once pricing is engaged - the full
                 header+grid below is what was pushing the sizing questions'
