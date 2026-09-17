@@ -848,8 +848,14 @@ function Canvas({a, stepIdx, activeSteps}){
     const fanRx=w*0.40;  // keep well inside width
     const fanRy=h*0.28;  // keep well inside height
     const spd=active?0.9:0;
+    // Pixel-based transform-origin, not percentage+fill-box - fill-box
+    // support for a <g> of stroke-only paths is inconsistent, and where
+    // it falls through, the percentage resolves against the whole SVG
+    // canvas instead of the blade group's own box, sending the blades
+    // spinning around the scene's center instead of the fan's (visually
+    // "flying out of" the condenser). Same fix already used by BlowerWheel.
     const spinStyle=active?{
-      transformOrigin:'50% 50%',transformBox:'fill-box',
+      transformOrigin:cx+'px '+cy+'px',
       animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
     }:{};
     const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
