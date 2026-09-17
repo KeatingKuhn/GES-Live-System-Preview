@@ -636,6 +636,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const evapActive=!heatMode||(isDualFuel?(heatSubMode==='hp'):!hasFurnace);
   const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):!hasFurnace));
   const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
+  // Air handlers (heat pump only, no gas backup) only have one heat setting
+  // in this preview - 28°F - so treat that single mode as the cold-weather
+  // case where the heat pump alone can't keep up and aux/emergency electric
+  // heat strips kick in alongside the compressor.
+  const auxHeatActive=!hasFurnace&&heatMode;
 
   // Refrigerant colors - physically correct
   const evapC  = refReversed ? '#ef4444' : '#2389e0'; // evap: red=HP heat, blue=cool
@@ -885,7 +890,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   }
 
   // Air handler horizontal - blower LEFT | A-coil RIGHT
-  function AirHandlerH({x,y,w,h,active}){
+  function AirHandlerH({x,y,w,h,active,auxHeat}){
     const mid=x+w/2;
     return <g>
       <rect x={x} y={y} width={w} height={h} rx="4"
@@ -904,6 +909,22 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       <rect x={mid+2} y={y+8} width={w/2-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
       <ACoilH x={mid+8} y={y+12} w={w/2-18} h={h-22} active={active}/>
       <text x={mid+w/4} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.5)')} fontSize="8" fontFamily="monospace">A-COIL</text>
+      {/* Heat kit - electric resistance strips right downstream of the coil.
+          Glows alongside the compressor when the heat pump alone can't hold
+          the setpoint and aux/emergency heat kicks in. */}
+      <rect x={x+w-13} y={y+10} width={9} height={h-20} rx="2"
+        fill={auxHeat?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
+        stroke={auxHeat?"rgba(249,115,22,.6)":(G+'.14)')} strokeWidth="0.8"/>
+      {Array.from({length:4},(_,i)=>{
+        const segH=(h-26)/4;
+        const by=y+13+i*segH;
+        return <g key={i}>
+          <rect x={x+w-11} y={by} width={5} height={Math.max(1,segH-2)} rx="1"
+            fill={auxHeat?"#1a0805":"#0a0a0f"}/>
+          {auxHeat&&<ellipse cx={x+w-8.5} cy={by+segH/2-1} rx={4.5} ry={Math.max(1,segH/2-1)}
+            fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
+        </g>;
+      })}
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
 
     </g>;
@@ -1256,35 +1277,55 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       <line x1={sidingX} y1={0} x2={sidingX} y2={groundY}
         stroke="rgba(180,175,160,.08)" strokeWidth="0.5"/>
 
-      {/* ── LINE-SET - exits wall, drops to condenser bottom ── */}
-      {/* Wall sleeve / penetration */}
-      <rect x={sidingX+1} y={lineY1-6} width={wallThick-2} height={lineY2-lineY1+12} rx="2"
-        fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
-      <text x={sidingX+wallThick/2} y={lineY2+16} textAnchor="middle"
-        fill="rgba(150,110,40,.5)" fontSize="6" fontFamily="monospace">LINESET</text>
-      {/* Foam sleeve on pipes - from wall to condenser */}
-      <path d={`M${sidingX+wallThick} ${lineY1} L${condX+condW*0.35} ${lineY1} L${condX+condW*0.35} ${condY+condH}`}
-        fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round"/>
-      {/* Liquid line - full bold red/blue */}
-      <path d={`M${sidingX+wallThick} ${lineY1} L${condX+condW*0.35} ${lineY1} L${condX+condW*0.35} ${condY+condH}`}
-        fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse"/>
-      {/* Suction line - full bold, offset */}
-      <path d={`M${sidingX+wallThick} ${lineY2} L${condX+condW*0.42} ${lineY2} L${condX+condW*0.42} ${condY+condH}`}
-        fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
-      {/* Animated flow dots -- both pipes */}
-      {active&&Array.from({length:6},(_,i)=>{
-        const isLine1=i<3;
-        const pColor=isLine1?line1C:line2C;
-        const destX=isLine1?condX+condW*0.35:condX+condW*0.42;
-        const lY=isLine1?lineY1:lineY2;
-        const toCondenser=isLine1?!refReversed:refReversed;
-        const p=toCondenser
-          ?`M${sidingX+wallThick} ${lY} L${destX} ${lY} L${destX} ${condY+condH}`
-          :`M${destX} ${condY+condH} L${destX} ${lY} L${sidingX+wallThick} ${lY}`;
-        return <circle key={i} r="3" fill={pColor} opacity="0.82" filter="url(#glow-sm)">
-          <animateMotion dur={(2.2+(i%3)*0.5)+'s'} repeatCount="indefinite" begin={(i*0.7)+'s'} path={p}/>
-        </circle>;
-      })}
+      {/* ── LINE-SET - runs down inside the wall cavity from where it enters
+           near the indoor unit, then exits low into the condenser's side.
+           A real lineset is hidden in the wall for that whole drop and
+           only shows up low, next to the unit it's feeding - not crossing
+           the roofline and dropping down the outside face into the top. ── */}
+      {(()=>{
+        const wallMidX=sidingX+wallThick/2;
+        const px1=wallMidX-3, px2=wallMidX+3;
+        // Low exit point on the condenser's near side - most of its real
+        // height, but enough above the base to clearly read as "the side."
+        const exitY1=condY+condH*0.62;
+        const exitY2=condY+condH*0.74;
+        return <>
+          {/* Wall penetration - top, where the indoor-side pipe enters the cavity */}
+          <rect x={sidingX+1} y={lineY1-6} width={wallThick-2} height={lineY2-lineY1+12} rx="2"
+            fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
+          {/* Wall penetration - low, where it exits toward the condenser */}
+          <rect x={sidingX+1} y={exitY1-6} width={wallThick-2} height={exitY2-exitY1+12} rx="2"
+            fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
+          <text x={sidingX+wallThick/2} y={exitY2+16} textAnchor="middle"
+            fill="rgba(150,110,40,.5)" fontSize="6" fontFamily="monospace">LINESET</text>
+          {/* Foam sleeve on pipes - down inside the wall, then into the condenser */}
+          <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
+            fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d={`M${px2} ${lineY2} L${px2} ${exitY2} L${condX} ${exitY2}`}
+            fill="none" stroke="rgba(30,30,50,.55)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
+          {/* Liquid line - full bold red/blue */}
+          <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
+            fill="none" stroke={line1C} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="line-pulse"/>
+          {/* Suction line - full bold, offset */}
+          <path d={`M${px2} ${lineY2} L${px2} ${exitY2} L${condX} ${exitY2}`}
+            fill="none" stroke={line2C} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
+          {/* Animated flow dots -- both pipes */}
+          {active&&Array.from({length:6},(_,i)=>{
+            const isLine1=i<3;
+            const pColor=isLine1?line1C:line2C;
+            const wx=isLine1?px1:px2;
+            const topY=isLine1?lineY1:lineY2;
+            const botY=isLine1?exitY1:exitY2;
+            const toCondenser=isLine1?!refReversed:refReversed;
+            const p=toCondenser
+              ?`M${wx} ${topY} L${wx} ${botY} L${condX} ${botY}`
+              :`M${condX} ${botY} L${wx} ${botY} L${wx} ${topY}`;
+            return <circle key={i} r="3" fill={pColor} opacity="0.82" filter="url(#glow-sm)">
+              <animateMotion dur={(2.2+(i%3)*0.5)+'s'} repeatCount="indefinite" begin={(i*0.7)+'s'} path={p}/>
+            </circle>;
+          })}
+        </>;
+      })()}
 
       {/* ── DISCONNECT BOX - prominent, on outside wall face ── */}
       {(()=>{
@@ -1813,12 +1854,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
           {/* Air handler */}
           {hasCoil&&!hasFurnace&&<g className="snap" key={'ah'+a.cond_tier} filter="url(#shadow)">
-            <AirHandlerH x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} active={evapActive}/>
+            <AirHandlerH x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} active={evapActive} auxHeat={auxHeatActive}/>
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+13} textAnchor="middle"
               fill={evapActive?evapC:(G+'.55)')} fontSize="9" fontFamily="monospace">AIR HANDLER</text>
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+24} textAnchor="middle"
               fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="7.5" fontFamily="monospace">
-              {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
+              {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}{auxHeatActive?" + AUX HEAT":""}
             </text>
           </g>}
           {hasCoil&&<EditZone stepId="indoor_type"
@@ -2143,9 +2184,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const VW=1000, VH=820;
     const SCALE=7.8;
     const UNIT_W=Math.round(20*SCALE);   // ~156px
+    // Real dimensions: a 3-ton furnace runs ~33in, its A-coil adds ~24in on
+    // top (57in combined) - only ~3in taller than a standalone air handler
+    // at ~54in. Keep those proportions instead of an arbitrarily shrunk AH.
     const FURN_H=Math.round(33*SCALE);
     const COIL_H=Math.round(24*SCALE);
-    const AH_H=Math.round(48*SCALE);   // slightly shorter so it fits
+    const AH_H=Math.round(54*SCALE);
 
     // 2/3 house when condenser, full width otherwise
     const HOUSE_W=hasCond?Math.round(VW*(2/3)):VW-12;
@@ -2430,6 +2474,22 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.24+UNIT_W*0.32+12} textAnchor="middle"
                       fill={G+'.55)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
                     <ACoilV x={UNIT_X+8} y={ACOIL_Y+ACOIL_H*0.52+8} w={UNIT_W-16} h={ACOIL_H*0.46-16} active={active}/>
+                    {/* Heat kit - electric resistance strips between the blower
+                        and the coil. Glows alongside the compressor when aux/
+                        emergency heat kicks in - the norm well below freezing. */}
+                    <rect x={UNIT_X+12} y={ACOIL_Y+ACOIL_H*0.5-11} width={UNIT_W-24} height={9} rx="2"
+                      fill={auxHeatActive?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
+                      stroke={auxHeatActive?"rgba(249,115,22,.6)":(G+'.14)')} strokeWidth="0.8"/>
+                    {Array.from({length:4},(_,i)=>{
+                      const segW=(UNIT_W-38)/4;
+                      const bx=UNIT_X+15+i*segW;
+                      return <g key={i}>
+                        <rect x={bx} y={ACOIL_Y+ACOIL_H*0.5-9} width={Math.max(1,segW-2)} height={5} rx="1"
+                          fill={auxHeatActive?"#1a0805":"#0a0a0f"}/>
+                        {auxHeatActive&&<ellipse cx={bx+segW/2-1} cy={ACOIL_Y+ACOIL_H*0.5-6.5} rx={Math.max(1,segW/2-1)} ry={4.5}
+                          fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
+                      </g>;
+                    })}
                   </>
                 }
                 {hasCond&&!hasFurnace&&<>
@@ -2448,7 +2508,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 </text>
                 <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H+APR_H+27} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
-                  {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
+                  {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}{auxHeatActive?" + AUX HEAT":""}
                 </text>
               </>;
             })()}
@@ -3103,7 +3163,7 @@ function App(){
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
           <div className="done-canvas-sweep"/>
         </div>
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"auto",maxHeight:pricingFlow?"600px":"380px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"380px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           <div className="done-wrap" style={{justifyContent:"flex-start",padding:"14px 14px 10px",overflowY:"auto"}}>
             {/* Collapsed to one line once pricing is engaged - the full
                 header+grid below is what was pushing the sizing questions'
@@ -3179,7 +3239,7 @@ function App(){
                   {subId==='systems'&&<>
                     <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
                     <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>This is typically the number of thermostats you have, or the number of outdoor condenser units.</div>
-                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:6}}>
                       {[{v:'1',label:'Just 1 - this one'},{v:'2',label:'2 systems'},{v:'3+',label:'3 or more'}].map(o=>(
                         <button key={o.v} className={"opt"+(pricingAnswers.systemsCount===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,systemsCount:o.v}))}>
                           <div className="opt-inner"><div className="opt-body"><span className="opt-label">{o.label}</span></div></div>
@@ -3202,7 +3262,7 @@ function App(){
                           setPricingAnswers(p=>({...p, sqftInput:val, ...(rec?{tonnageChoice:rec.v}:{})}));
                         }}
                         style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:"8px 10px",fontSize:12,fontFamily:"var(--fm)",marginBottom:10,outline:"none"}}/>
-                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
                         {TONNAGE_OPTIONS.map(o=>(
                           <button key={o.v} className={"opt"+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
                             <div className="opt-inner"><div className="opt-body">
