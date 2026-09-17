@@ -101,6 +101,20 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
    is the only alignment that stays correct regardless of content height. */
 .done-wrap.done-wrap-attic{justify-content:flex-start}
 
+/* The pricing sizing sub-steps' question/options split into a fixed
+   420px-wide left column only makes sense once the attic panel is
+   actually wide - on a phone-width viewport that fixed column pushes the
+   options clean off-screen. Same fix as the review-grid override above:
+   a class the inline atticMode style can't out-specificity, so this
+   media query actually wins back below the sidebar's own mobile
+   breakpoint. */
+@media(max-width:860px){
+  .pricing-substep-row{flex-direction:column!important;gap:8px!important}
+  .pricing-substep-left{flex:1 1 auto!important}
+  .pricing-opts-systems{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}
+  .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
+}
+
 /* ANIMATIONS */
 .snap{animation:snap .45s cubic-bezier(.34,1.46,.64,1) both}
 @keyframes snap{from{opacity:0;transform:translateY(-14px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -183,6 +197,12 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .opt.sel .opt-label{color:var(--gl)}
 .opt-desc{font-size:var(--fs-opt-desc);color:var(--dim);line-height:1.5;display:block}
 .opt.sel .opt-desc{color:rgba(240,214,78,.6)}
+/* Tighter padding for the pricing sizing steps' option cards on the attic
+   layout's short, wide panel - every px here is one this panel doesn't
+   have to give up to a scrollbar. */
+.opt-compact .opt-inner{padding:7px 10px}
+.opt-compact .opt-label{margin-bottom:0;line-height:1.15}
+.opt-compact .opt-desc{line-height:1.25}
 .opt-badge{display:inline-block;background:var(--gh);color:var(--bk);font-size:var(--fs-opt-badge);font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .opt-check{width:17px;height:17px;border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;margin-top:2px;transition:all .15s}
 .opt.sel .opt-check{border-color:var(--gl);background:var(--gm);color:var(--bk)}
@@ -3500,27 +3520,27 @@ function App(){
                   subId==='sqft'?!!pricingAnswers.tonnageChoice:
                   subId==='ducts'?(pricingAnswers.wantDucts===false||(pricingAnswers.wantDucts===true&&pricingAnswers.ventCount>0)):
                   true;
-                return <div style={{border:"1px solid rgba(215,183,64,.2)",padding:12}}>
-                  <div style={{fontSize:9,color:"rgba(215,183,64,.5)",letterSpacing:".1em",marginBottom:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
-
-                  {subId==='systems'&&<>
-                    <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
-                    <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>This is typically the number of thermostats you have, or the number of outdoor condenser units.</div>
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:6}}>
-                      {[{v:'1',label:'Just 1 - this one'},{v:'2',label:'2 systems'},{v:'3+',label:'3 or more'}].map(o=>(
-                        <button key={o.v} className={"opt"+(pricingAnswers.systemsCount===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,systemsCount:o.v}))}>
-                          <div className="opt-inner"><div className="opt-body"><span className="opt-label">{o.label}</span></div></div>
-                        </button>
-                      ))}
-                    </div>
-                  </>}
-
-                  {subId==='sqft'&&(()=>{
-                    const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
-                    const recommended=nearestTonnageOption(sqftNum);
-                    return <>
-                      <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
-                      <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:8}}>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers - not the whole home.'} Not sure? Enter your sq ft below for a suggested starting point.</div>
+                // Attic mode's panel is a short, very wide bar (not the tall
+                // narrow sidebar this was designed for originally) - stacking
+                // question, description, options and nav vertically no
+                // longer fits its height without scrolling. Splitting into
+                // a question/description column plus an options column
+                // uses the width that's actually available instead, and
+                // keeps every sizing step scroll-free; only the final
+                // estimate (genuinely more content) still scrolls.
+                const left=(
+                  <div className={isAtticMode?"pricing-substep-left":undefined} style={{flex:isAtticMode?"0 0 420px":"1 1 auto"}}>
+                    {subId==='systems'&&<>
+                      <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
+                      <div style={{fontSize:10.5,color:"var(--mut)",lineHeight:isAtticMode?1.3:1.5}}>This is typically the number of thermostats you have, or the number of outdoor condenser units.</div>
+                    </>}
+                    {subId==='sqft'&&<>
+                      <div style={{fontSize:13,fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
+                      <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5}}>
+                        {isAtticMode
+                          ?"Pick the tonnage for your home's sq ft, or enter it below for a suggestion."
+                          :<>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers - not the whole home.'} Not sure? Enter your sq ft for a suggested starting point.</>}
+                      </div>
                       <input type="number" min="200" max="10000" placeholder="Sq ft (optional)"
                         value={pricingAnswers.sqftInput||''}
                         onChange={e=>{
@@ -3528,40 +3548,62 @@ function App(){
                           const rec=nearestTonnageOption(parseInt(val)||0);
                           setPricingAnswers(p=>({...p, sqftInput:val, ...(rec?{tonnageChoice:rec.v}:{})}));
                         }}
-                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:"8px 10px",fontSize:12,fontFamily:"var(--fm)",marginBottom:10,outline:"none"}}/>
-                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
-                        {TONNAGE_OPTIONS.map(o=>(
-                          <button key={o.v} className={"opt"+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
-                            <div className="opt-inner"><div className="opt-body">
-                              <span className="opt-label">{o.label}{recommended&&recommended.v===o.v&&<span className="opt-badge">SUGGESTED</span>}</span>
-                              <span className="opt-desc">Typical for {o.sqftLabel} homes</span>
-                            </div></div>
+                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:isAtticMode?"3px 10px":"8px 10px",fontSize:isAtticMode?11:12,fontFamily:"var(--fm)",outline:"none",boxSizing:"border-box"}}/>
+                    </>}
+                    {subId==='ducts'&&<div style={{fontSize:13,fontWeight:600,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>}
+                  </div>
+                );
+                const right=(
+                  <div style={{flex:1,minWidth:0}}>
+                    {subId==='systems'&&
+                      <div className={isAtticMode?"pricing-opts-systems":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?"repeat(3,1fr)":"repeat(auto-fit,minmax(150px,1fr))",gap:6}}>
+                        {[{v:'1',label:'Just 1 - this one'},{v:'2',label:'2 systems'},{v:'3+',label:'3 or more'}].map(o=>(
+                          <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.systemsCount===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,systemsCount:o.v}))}>
+                            <div className="opt-inner"><div className="opt-body"><span className="opt-label">{o.label}</span></div></div>
                           </button>
                         ))}
                       </div>
-                    </>;
-                  })()}
-
-                  {subId==='ducts'&&<>
-                    <div style={{fontSize:13,fontWeight:600,marginBottom:8,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>
-                    <div style={{display:"flex",gap:8,marginBottom:pricingAnswers.wantDucts?10:0}}>
-                      <button className={"opt"+(pricingAnswers.wantDucts===true?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:true}))}>
+                    }
+                    {subId==='sqft'&&(()=>{
+                      const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
+                      const recommended=nearestTonnageOption(sqftNum);
+                      return <div className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?"repeat(7,1fr)":"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
+                        {TONNAGE_OPTIONS.map(o=>(
+                          <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
+                            <div className="opt-inner"><div className="opt-body">
+                              <span className="opt-label">{o.label}{recommended&&recommended.v===o.v&&<span className="opt-badge">SUGGESTED</span>}</span>
+                              <span className="opt-desc">{isAtticMode?o.sqftLabel:`Typical for ${o.sqftLabel} homes`}</span>
+                            </div></div>
+                          </button>
+                        ))}
+                      </div>;
+                    })()}
+                    {subId==='ducts'&&<div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                      <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===true?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:true}))}>
                         <div className="opt-inner"><div className="opt-body"><span className="opt-label">Yes</span></div></div>
                       </button>
-                      <button className={"opt"+(pricingAnswers.wantDucts===false?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:false,ventCount:undefined}))}>
+                      <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===false?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:false,ventCount:undefined}))}>
                         <div className="opt-inner"><div className="opt-body"><span className="opt-label">No / Skip</span></div></div>
                       </button>
-                    </div>
-                    {pricingAnswers.wantDucts&&<div>
-                      <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:6}}>How many vents/registers does this system serve?</div>
-                      <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,parseInt(e.target.value)||0)}))}
-                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:"9px 12px",fontFamily:"var(--fm)",fontSize:14,boxSizing:"border-box"}}/>
+                      {pricingAnswers.wantDucts&&<div style={{flex:1}}>
+                        <div style={{fontSize:9.5,color:"var(--mut)",marginBottom:4}}>How many vents/registers?</div>
+                        <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,parseInt(e.target.value)||0)}))}
+                          style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:"9px 12px",fontFamily:"var(--fm)",fontSize:14,boxSizing:"border-box"}}/>
+                      </div>}
                     </div>}
-                  </>}
+                  </div>
+                );
+                return <div style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
+                  <div style={{fontSize:9,color:"rgba(215,183,64,.5)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
 
-                  <div style={{display:"flex",gap:8,marginTop:12}}>
-                    <button className="btn-back" style={{flex:"0 0 auto"}} onClick={goSubBack}>‹ Back</button>
-                    <button className="btn-next" style={{flex:1}} disabled={!canSubNext} onClick={goSubNext}>
+                  <div className={isAtticMode?"pricing-substep-row":undefined} style={{display:"flex",flexDirection:isAtticMode?"row":"column",gap:isAtticMode?20:8,alignItems:"flex-start"}}>
+                    {left}
+                    {right}
+                  </div>
+
+                  <div style={{display:"flex",gap:8,marginTop:isAtticMode?8:12}}>
+                    <button className="btn-back" style={{flex:"0 0 auto",...(isAtticMode?{padding:"6px 16px"}:{})}} onClick={goSubBack}>‹ Back</button>
+                    <button className="btn-next" style={{flex:1,...(isAtticMode?{padding:"7px 16px"}:{})}} disabled={!canSubNext} onClick={goSubNext}>
                       {pricingSubStep===subSteps.length-1?"Get My Estimate":"Next"}
                     </button>
                   </div>
