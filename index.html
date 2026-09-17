@@ -80,6 +80,29 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   .done-review-grid.attic-mode-grid{grid-template-columns:repeat(5,1fr)}
 }
 
+/* Attic mode's "system is built" header lives over the canvas's dead
+   letterboxed space on desktop (see the canvas-frame overlay in the
+   done-screen JSX) but that space doesn't exist once the canvas drops to
+   a short mobile strip - keep the original in-sidebar header there instead
+   of stacking both. */
+.done-header-desktop-only{display:none}
+.done-header-mobile-only{display:flex}
+@media(min-width:1025px){
+  .done-header-desktop-only{display:flex}
+  .done-header-mobile-only{display:none}
+}
+
+/* Centering the review panel's content (instead of top-anchoring it) only
+   looks right when it actually fits the panel's fixed height - true on
+   desktop where the grid is 5-and-5, not on mobile where it collapses to
+   one column and runs taller than the panel. Centering content that
+   overflows pushes part of it above the scrollable area where it can't be
+   reached, so mobile keeps the safe top-anchored default. */
+.done-wrap.done-wrap-attic{justify-content:flex-start}
+@media(min-width:1025px){
+  .done-wrap.done-wrap-attic{justify-content:center}
+}
+
 /* ANIMATIONS */
 .snap{animation:snap .45s cubic-bezier(.34,1.46,.64,1) both}
 @keyframes snap{from{opacity:0;transform:translateY(-14px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -2915,7 +2938,7 @@ function App(){
   // snaps straight back to done, only pausing on a step the edit actually
   // invalidated (e.g. a thermostat pick that no longer fits the new tier).
   const [quickEdit,setQuickEdit]=useState(false);
-  // Post-build pricing: null=not asked, 'asking'=Yes/No prompt, 'sizing'=sub-questions, 'result'=estimate shown
+  // Post-build pricing: null=not asked, 'sizing'=sub-questions, 'result'=estimate shown
   const [pricingFlow,setPricingFlow]=useState(null);
   const [pricingSubStep,setPricingSubStep]=useState(0);
   const [pricingAnswers,setPricingAnswers]=useState({});
@@ -3261,21 +3284,42 @@ function App(){
         <div className="canvas-frame done-canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
           <div className="done-canvas-sweep"/>
+          {/* Attic layout's diagram never fills the full frame width (it
+              keeps its own aspect ratio) - the dead space it leaves on the
+              left is real screen room, so the "system is built" header
+              lives here instead of costing the sidebar a row underneath. */}
+          {isAtticMode&&(pricingFlow?
+            <div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:10,background:"rgba(11,13,20,.7)",padding:"6px 10px"}}>
+              <span style={{fontSize:12,color:"rgba(255,255,255,.75)"}}>✓ Your system is built</span>
+              <button onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
+            </div>
+            :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:10}}>
+              <div className="done-icon" style={{margin:0,width:36,height:36,fontSize:16,flexShrink:0}}>✓</div>
+              <div>
+                <div className="done-title" style={{fontSize:16,marginBottom:1}}>Your System is Built</div>
+                <div style={{fontSize:11,color:"var(--mut)"}}>Review your selections below</div>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"380px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
-          <div className="done-wrap" style={{justifyContent:"center",padding:"14px 14px 10px",overflowY:"auto"}}>
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"340px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+          <div className={"done-wrap"+(isAtticMode?" done-wrap-attic":"")} style={{padding:"14px 14px 10px",overflowY:"auto"}}>
             {/* Collapsed to one line once pricing is engaged - the full
                 header+grid below is what was pushing the sizing questions'
                 own Back/Next off the bottom of this panel. The review is
                 one click away again ("Edit selections"), and every pricing
-                sub-step still shows the same "‹ Back" affordance. */}
+                sub-step still shows the same "‹ Back" affordance. Attic mode
+                shows this header over the canvas on desktop instead (see
+                above) - on a mobile-width attic screen the canvas is a short
+                strip with no dead space to hold it, so it falls back to
+                showing here, same as closet mode always does. */}
             {pricingFlow?
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
+              <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
                 <span style={{fontSize:12,color:"rgba(255,255,255,.7)"}}>✓ Your system is built</span>
                 <button onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
               </div>
             :<>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
+            <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
               <div className="done-icon" style={{margin:0,width:36,height:36,fontSize:16,flexShrink:0}}>✓</div>
               <div>
                 <div className="done-title" style={{fontSize:16,marginBottom:1}}>Your System is Built</div>
@@ -3308,14 +3352,6 @@ function App(){
                  actually engaged; the entry point lives in the button grid
                  below instead of its own full-width row ── */}
             {pricingFlow!==null&&<div style={{width:"100%",marginBottom:12}}>
-              {pricingFlow==='asking'&&<div style={{border:"1px solid rgba(215,183,64,.25)",background:"rgba(215,183,64,.05)",padding:12,textAlign:"center"}}>
-                <div style={{fontSize:12,color:"rgba(255,255,255,.75)",marginBottom:10,lineHeight:1.5}}>Want an estimated price for the system you just built?</div>
-                <div style={{display:"flex",gap:8}}>
-                  <button className="btn-next" style={{flex:1}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>Yes, show me</button>
-                  <button className="btn-back" style={{flex:1,justifyContent:"center"}} onClick={()=>setPricingFlow(null)}>No thanks</button>
-                </div>
-              </div>}
-
               {pricingFlow==='sizing'&&(()=>{
                 const subSteps=['systems','sqft','ducts'];
                 const subId=subSteps[pricingSubStep];
@@ -3325,7 +3361,7 @@ function App(){
                 };
                 const goSubBack=()=>{
                   if(pricingSubStep>0)setPricingSubStep(s=>s-1);
-                  else setPricingFlow('asking');
+                  else setPricingFlow(null);
                 };
                 const canSubNext=
                   subId==='systems'?!!pricingAnswers.systemsCount:
@@ -3441,8 +3477,8 @@ function App(){
             {/* ── QUICK ACTIONS - one compact button grid instead of five
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
+            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:8,padding:"14px",fontSize:14}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>💰 Get Pricing</button>}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              {pricingFlow===null&&<button className="btn-next" style={{margin:0,width:"100%"}} onClick={()=>setPricingFlow('asking')}>💰 Get Pricing</button>}
               <a href="tel:5124894653" className="done-cta" style={{margin:0}}>
                 <span style={{display:"block"}}>📞 Schedule Visit</span>
                 <span style={{display:"block",fontSize:"11px",opacity:.85,marginTop:2}}>512-489-4653</span>
