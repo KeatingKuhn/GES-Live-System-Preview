@@ -94,6 +94,11 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .sidebar::-webkit-scrollbar-thumb,.done-wrap::-webkit-scrollbar-thumb{background:rgba(215,183,64,.35);border-radius:4px}
 .sidebar::-webkit-scrollbar-track,.done-wrap::-webkit-scrollbar-track{background:transparent}
 
+/* QUICK EDIT - editing one answer from the finished build, not restarting
+   the wizard. Sits above the normal step header in both layouts. */
+.quickedit-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 12px;background:rgba(240,214,78,.08);border-bottom:1px solid rgba(215,183,64,.3);font-family:var(--fm);font-size:11px;color:var(--gl);flex-shrink:0}
+.quickedit-banner button{background:none;border:none;color:rgba(215,183,64,.75);font-family:var(--fm);font-size:10.5px;cursor:pointer;text-decoration:underline;padding:0;letter-spacing:.02em}
+
 /* STEP HEADER */
 .step-hdr{padding:16px 18px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:10}
 .step-eyebrow{font-family:var(--fm);font-size:var(--fs-step-eyebrow);color:var(--gm);letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px;display:flex;align-items:center;gap:8px}
@@ -631,16 +636,21 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const isSpray=a.insulation==='spray';
   const isComm=a.cond_tier==='high_ge18';
   const isDualFuel=hasFurnace&&(a.system_for==='hp');
+  // Mid efficiency is sold as a low-ambient heat pump - it's built to keep
+  // working normally well below freezing. A standard heat pump (fed min,
+  // high efficiency) can't, and locks its compressor out at that point,
+  // leaving aux/emergency electric heat to carry the full load alone.
+  const isLowAmbientHP=a.cond_tier==='mid_ge15';
   const furnaceHeatActive=heatMode&&hasFurnace&&(!isDualFuel||heatSubMode==='furnace');
   const furnaceActive=furnaceHeatActive;
-  const evapActive=!heatMode||(isDualFuel?(heatSubMode==='hp'):!hasFurnace);
-  const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):!hasFurnace));
-  const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
   // Air handlers (heat pump only, no gas backup) only have one heat setting
   // in this preview - 28°F - so treat that single mode as the cold-weather
-  // case where the heat pump alone can't keep up and aux/emergency electric
-  // heat strips kick in alongside the compressor.
-  const auxHeatActive=!hasFurnace&&heatMode;
+  // case a standard heat pump can't handle on its own.
+  const hpLockedOut=!hasFurnace&&heatMode&&!isLowAmbientHP;
+  const evapActive=!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut));
+  const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut)));
+  const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
+  const auxHeatActive=hpLockedOut;
 
   // Refrigerant colors - physically correct
   const evapC  = refReversed ? '#ef4444' : '#2389e0'; // evap: red=HP heat, blue=cool
@@ -1278,17 +1288,19 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         stroke="rgba(180,175,160,.08)" strokeWidth="0.5"/>
 
       {/* ── LINE-SET - runs down inside the wall cavity from where it enters
-           near the indoor unit, then exits low into the condenser's side.
-           A real lineset is hidden in the wall for that whole drop and
-           only shows up low, next to the unit it's feeding - not crossing
-           the roofline and dropping down the outside face into the top. ── */}
+           near the indoor unit, then exits right above the concrete pad
+           into the condenser's side. A real lineset is hidden in the wall
+           for that whole drop and only shows up low, next to the unit it's
+           feeding - not crossing the roofline and dropping down the
+           outside face into the top. ── */}
       {(()=>{
         const wallMidX=sidingX+wallThick/2;
         const px1=wallMidX-3, px2=wallMidX+3;
-        // Low exit point on the condenser's near side - most of its real
-        // height, but enough above the base to clearly read as "the side."
-        const exitY1=condY+condH*0.62;
-        const exitY2=condY+condH*0.74;
+        // Right above the pad - just clearing the SEER badge that spans the
+        // condenser's full width near its base, so the entry reads as low
+        // on the cabinet without cutting through that label.
+        const exitY1=condY+condH*0.78;
+        const exitY2=condY+condH*0.86;
         return <>
           {/* Wall penetration - top, where the indoor-side pipe enters the cavity */}
           <rect x={sidingX+1} y={lineY1-6} width={wallThick-2} height={lineY2-lineY1+12} rx="2"
@@ -1858,8 +1870,8 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+13} textAnchor="middle"
               fill={evapActive?evapC:(G+'.55)')} fontSize="9" fontFamily="monospace">AIR HANDLER</text>
             <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+24} textAnchor="middle"
-              fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="7.5" fontFamily="monospace">
-              {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}{auxHeatActive?" + AUX HEAT":""}
+              fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):(auxHeatActive?'rgba(249,115,22,.65)':'rgba(255,255,255,.14)')} fontSize="7.5" fontFamily="monospace">
+              {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
             </text>
           </g>}
           {hasCoil&&<EditZone stepId="indoor_type"
@@ -2507,8 +2519,8 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   {hasFurnace?"A-COIL":"AIR HANDLER"}
                 </text>
                 <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H+APR_H+27} textAnchor="middle"
-                  fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
-                  {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}{auxHeatActive?" + AUX HEAT":""}
+                  fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):(auxHeatActive?'rgba(249,115,22,.65)':'rgba(255,255,255,.14)')} fontSize="6.5" fontFamily="monospace">
+                  {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
                 </text>
               </>;
             })()}
@@ -2853,6 +2865,12 @@ function App(){
   const [answers,setAnswers]=useState(defaultAnswers);
   const [stepIdx,setStepIdx]=useState(0);
   const [done,setDone]=useState(false);
+  // Quick-edit: jumping in from the finished build to change one answer
+  // shouldn't mean re-clicking Next through every step after it too - once
+  // set, goNext auto-skips any step that already has a valid answer and
+  // snaps straight back to done, only pausing on a step the edit actually
+  // invalidated (e.g. a thermostat pick that no longer fits the new tier).
+  const [quickEdit,setQuickEdit]=useState(false);
   // Post-build pricing: null=not asked, 'asking'=Yes/No prompt, 'sizing'=sub-questions, 'result'=estimate shown
   const [pricingFlow,setPricingFlow]=useState(null);
   const [pricingSubStep,setPricingSubStep]=useState(0);
@@ -2892,7 +2910,7 @@ function App(){
   // an inert picture that only ever changes through the grid below it.
   const jumpToStep=useCallback(id=>{
     const i=activeSteps.findIndex(s=>s.id===id);
-    if(i>=0){setDone(false);setStepIdx(i);}
+    if(i>=0){setDone(false);setStepIdx(i);setQuickEdit(true);}
   },[activeSteps]);
   const sel=id=>answers[id];
   const msel=id=>Array.isArray(answers[id])?answers[id]:[];
@@ -2905,9 +2923,14 @@ function App(){
     if(k==='cond_tier'){
       const thermostatStillValid=v==='high_ge18'?p.thermostat==='proprietary':p.thermostat!=='proprietary';
       if(!thermostatStillValid) delete next.thermostat;
-      // Mid efficiency forces dual fuel - it's the only option, so set it
-      // directly instead of showing a single-card step for the user to click.
-      if(v==='mid_ge15') next.system_for='hp';
+      // Mid efficiency forces dual fuel for furnace systems - it's the only
+      // option, so set it directly instead of showing a single-card step.
+      // Air handlers have no furnace to pair with, so the concept doesn't
+      // apply there at all. Any other tier needs its own explicit pick -
+      // clear a leftover value (forced or not) so the step shows fresh
+      // instead of quietly keeping whatever the old tier left behind.
+      if(v==='mid_ge15'&&p.indoor_type==='furnace') next.system_for='hp';
+      else delete next.system_for;
     }
     return next;
   });
@@ -2919,13 +2942,37 @@ function App(){
     return!!answers[cur.id];
   },[cur,answers]);
 
-  const goNext=()=>{if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}else{setDone(true);scrollTop();trackBuildCompleted(answers);}};
+  // A step already counts as settled if it's optional/multi (skipping is a
+  // valid answer) or already holds a real value - used only by quick-edit's
+  // skip-ahead below, so an edit that invalidates a later step (say, a
+  // thermostat pick that no longer fits the new tier - setA already clears
+  // those) still stops there instead of silently skipping past it.
+  const stepSatisfied=step=>step.optional||step.multi||(answers[step.id]!==undefined&&answers[step.id]!==null&&answers[step.id]!=='');
+  // Whether clicking Next right now would snap straight back to the build
+  // (every remaining step already has a valid answer) - drives the button
+  // label so quick-editing one thing doesn't look like it kicked off the
+  // whole wizard again.
+  const quickEditWillFinish=useMemo(()=>{
+    if(!quickEdit)return false;
+    for(let i=stepIdx+1;i<activeSteps.length;i++){if(!stepSatisfied(activeSteps[i]))return false;}
+    return true;
+  },[quickEdit,stepIdx,activeSteps,answers]);
+  const goNext=()=>{
+    if(quickEdit){
+      let i=stepIdx+1;
+      while(i<activeSteps.length&&stepSatisfied(activeSteps[i]))i++;
+      if(i>=activeSteps.length){setQuickEdit(false);setDone(true);scrollTop();trackBuildCompleted(answers);}
+      else{setStepIdx(i);scrollTop();}
+      return;
+    }
+    if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}else{setDone(true);scrollTop();trackBuildCompleted(answers);}
+  };
   const goBack=()=>{
     if(stepIdx>0){setStepIdx(s=>s-1);scrollTop();}
   };
   const skip=()=>{if(cur.multi)setA(cur.id,[]);goNext();};
   const restart=()=>{
-    clearSavedBuild();setAnswers(defaultAnswers());setStepIdx(0);setDone(false);
+    clearSavedBuild();setAnswers(defaultAnswers());setStepIdx(0);setDone(false);setQuickEdit(false);
     setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});
   };
   const resumeBuild=()=>{
@@ -3099,6 +3146,10 @@ function App(){
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
         </div>
         <div className="attic-bar">
+          {quickEdit&&<div className="quickedit-banner">
+            <span>✎ Editing this answer only</span>
+            <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ Cancel, back to build</button>
+          </div>}
           <div className="attic-bar-top">
             <span className="attic-step-label">
               {cur ? <><span className="chapter-tag">{CHAPTERS[curChapter]}</span>{" · STEP "+stepIdx+(totalKnown?" OF "+totalSteps:"")+" · "+cur.q.toUpperCase()}</> : ""}
@@ -3119,7 +3170,7 @@ function App(){
             </div>
             <div className="attic-next-col">
               <button className="btn-next" style={{width:"100%",padding:"11px 6px"}} onClick={goNext} disabled={!canNext}>
-                {stepIdx===activeSteps.length-1?"Finish →":"Next →"}
+                {quickEdit?(quickEditWillFinish?"Save & Return →":"Next →"):(stepIdx===activeSteps.length-1?"Finish →":"Next →")}
               </button>
             </div>
           </div>
@@ -3132,6 +3183,10 @@ function App(){
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
         </div>
         <div className="sidebar">
+          {quickEdit&&<div className="quickedit-banner">
+            <span>✎ Editing this answer only</span>
+            <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ Cancel, back to build</button>
+          </div>}
           <div className="step-hdr">
             <div className="step-eyebrow">
               <span>{cur&&<span className="chapter-tag">{CHAPTERS[curChapter]}</span>} Step {stepIdx}{totalKnown?` of ${totalSteps}`:''}</span>
@@ -3147,7 +3202,7 @@ function App(){
             {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
             {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
             <button className="btn-next" onClick={goNext} disabled={!canNext}>
-              {stepIdx===activeSteps.length-1?"See Full Build":"Next"}
+              {quickEdit?(quickEditWillFinish?"Save & Return":"Next"):(stepIdx===activeSteps.length-1?"See Full Build":"Next")}
             </button>
           </div>
         </div>
@@ -3199,7 +3254,7 @@ function App(){
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"7px 34px 7px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
                   <span style={{color:"rgba(215,183,64,.6)",fontFamily:"monospace",fontSize:"9px",letterSpacing:".03em"}}>{item.label}</span>
                   <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fb)",fontSize:"11px",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
-                  <button onClick={()=>{const i2=activeSteps.findIndex(s=>s.id===item.step);if(i2>=0){setDone(false);setStepIdx(i2);}}} style={{position:"absolute",top:6,right:6,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"8.5px",padding:"2px 5px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                  <button onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:6,right:6,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"8.5px",padding:"2px 5px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                 </div>
               ):null)}
             </div>
