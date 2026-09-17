@@ -1841,11 +1841,14 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const RL_START_X=hasFurnace?ACOIL_X-4:AH_X+Math.round(AH_W*0.8);
     const RL_ROOF_Y=EAVE_Y+14;
 
-    // Real-world condenser sizes @ 3.2px/inch, fixed regardless of canvas
-    // width - these used to be rescaled to fill 62% of the outside zone,
-    // which meant widening the screen widened the condenser itself. Now a
-    // wider canvas just shows more open yard around the same-sized unit.
-    const PX_C=3.2;
+    // Real-world condenser sizes, fixed regardless of canvas width - these
+    // used to be rescaled to fill 62% of the outside zone, which meant
+    // widening the screen widened the condenser itself. Now a wider
+    // canvas just shows more open yard around the same-sized unit. Uses
+    // the same px/inch as the furnace/coil (SCALE_PX) so the condenser
+    // reads at the same real-world scale as the rest of the equipment -
+    // 3.2 made it noticeably smaller than everything else.
+    const PX_C=SCALE_PX;
     const COND_SIZES={
       fedmin:   {w:Math.round(30*PX_C), h:Math.round(28*PX_C)},
       mid_ge15: {w:Math.round(36*PX_C), h:Math.round(22*PX_C)},
