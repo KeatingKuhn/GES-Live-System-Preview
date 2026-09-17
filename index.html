@@ -92,16 +92,14 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   .done-header-mobile-only{display:none}
 }
 
-/* Centering the review panel's content (instead of top-anchoring it) only
-   looks right when it actually fits the panel's fixed height - true on
-   desktop where the grid is 5-and-5, not on mobile where it collapses to
-   one column and runs taller than the panel. Centering content that
-   overflows pushes part of it above the scrollable area where it can't be
-   reached, so mobile keeps the safe top-anchored default. */
+/* Top-anchored, not centered: the panel's fixed height is now tight
+   enough that most states (the review grid) nearly fill it exactly, but
+   taller states (a pricing sizing step, the full price breakdown) run
+   well past it. Centering an overflowing flex column pushes its top
+   content above the scrollable area where it's not reachable - that's
+   what made the total price vanish on the estimate screen. Top-anchoring
+   is the only alignment that stays correct regardless of content height. */
 .done-wrap.done-wrap-attic{justify-content:flex-start}
-@media(min-width:1025px){
-  .done-wrap.done-wrap-attic{justify-content:center}
-}
 
 /* ANIMATIONS */
 .snap{animation:snap .45s cubic-bezier(.34,1.46,.64,1) both}
@@ -1351,6 +1349,17 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
       <text x={wallX+zoneW/2} y={groundY+18} textAnchor="middle"
         fill="rgba(110,95,55,.45)" fontSize="7.5" fontFamily="monospace">GROUND LEVEL</text>
 
+      {/* ── SNOW - furnace/aux-heat cold-snap mode only. Fades in/out
+           instead of popping, so switching modes reads as a season
+           passing rather than an instant background swap. ── */}
+      <g style={{opacity:(heatMode&&(!isDualFuel||heatSubMode==='furnace'))?1:0,transition:'opacity .8s ease'}}>
+        <rect x={wallX} y={groundY-3} width={zoneW} height={6} fill="rgba(240,246,255,.5)"/>
+        {Array.from({length:12},(_,i)=>(
+          <ellipse key={'snow'+i} cx={wallX+(i+0.5)*(zoneW/12)} cy={groundY-2+((i%3)-1)} rx={zoneW/12*0.55} ry="3.2"
+            fill="rgba(240,246,255,.38)"/>
+        ))}
+      </g>
+
       {/* ── CONCRETE PAD - under condenser ── */}
       <rect x={condX-10} y={padY} width={condW+20} height={14} rx="2"
         fill="rgba(165,160,148,.22)" stroke="rgba(190,185,168,.28)" strokeWidth="1"/>
@@ -1644,6 +1653,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
         <span>❄</span>
         <span>COOL MODE</span>
         <span style={{fontSize:'13px',fontWeight:700,opacity:!heatMode?1:0.3}}>96°</span>
+        <span style={{fontSize:'7.5px',letterSpacing:'.04em',opacity:!heatMode?.75:0.3}}>OUTSIDE TEMP</span>
       </button>
       <div style={{height:'1px',background:'rgba(215,183,64,.22)'}}/>
       {isDualFuel
@@ -1656,6 +1666,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
             <span>🔥</span>
             <span>HEAT PUMP</span>
             <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.3}}>52°</span>
+            <span style={{fontSize:'7.5px',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.3}}>OUTSIDE TEMP</span>
           </button>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('furnace');}} style={{
             padding:'8px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'11px',letterSpacing:'.08em',
@@ -1665,6 +1676,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
             <span>🔥</span>
             <span>FURNACE</span>
             <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.3}}>28°</span>
+            <span style={{fontSize:'7.5px',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.3}}>OUTSIDE TEMP</span>
           </button>
         </>
         :<button onClick={()=>setHeatMode(true)} style={{
@@ -1675,6 +1687,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
           <span>🔥</span>
           <span>HEAT MODE</span>
           <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode?1:0.3}}>28°</span>
+          <span style={{fontSize:'7.5px',letterSpacing:'.04em',opacity:heatMode?.75:0.3}}>OUTSIDE TEMP</span>
         </button>}
       </div>
     </div>
@@ -1739,11 +1752,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
     const AH_X=UNIT_X;
     const unitRightEdge=hasFurnace?ACOIL_X+ACOIL_W:AH_X+AH_W;
     const SUP_X=unitRightEdge+4;
-    // Once the condenser's outside zone appears, the house shrinks to 2/3
-    // width but the plenum stayed a fixed size - leaving a big empty gap
-    // between the plenum and the outside wall. Stretch it to close most of
-    // that gap instead (never shrinks it below the original fixed size).
-    if(hasCond)SUP_PLEN_W=Math.max(SUP_PLEN_W,HOUSE_W-SUP_X-24);
+    // Plenum stays this fixed real-world size (~6ft run) regardless of how
+    // wide the canvas gets - it used to stretch to close the gap to the
+    // outside wall, but that meant widening the screen widened the plenum
+    // itself. A wider canvas now just means more open attic space between
+    // the plenum and the wall, same as more open yard on the condenser's side.
     const SUP_PLEN_Y=UNIT_Y;
 
     // Air handler: biased well into the coil's right half (not just past
@@ -1752,25 +1765,19 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
     const RL_START_X=hasFurnace?ACOIL_X-4:AH_X+Math.round(AH_W*0.8);
     const RL_ROOF_Y=EAVE_Y+14;
 
-    // Real-world condenser sizes @ 3.2px/inch
-    // Outside zone is 1/3 of VW. Condenser takes up majority of that zone.
+    // Real-world condenser sizes @ 3.2px/inch, fixed regardless of canvas
+    // width - these used to be rescaled to fill 62% of the outside zone,
+    // which meant widening the screen widened the condenser itself. Now a
+    // wider canvas just shows more open yard around the same-sized unit.
     const PX_C=3.2;
     const COND_SIZES={
-      fedmin:   {w:Math.round(22*PX_C), h:Math.round(28*PX_C)},
+      fedmin:   {w:Math.round(30*PX_C), h:Math.round(28*PX_C)},
       mid_ge15: {w:Math.round(36*PX_C), h:Math.round(22*PX_C)},
-      // Real high-eff/variable-speed cabinets run tall (~50in), but next to
-      // fedmin's 28in and mid's 22in that read as a jarring size jump rather
-      // than a believable "biggest tier" - eased back to 40in.
-      high_ge18:{w:Math.round(36*PX_C), h:Math.round(40*PX_C)},
+      high_ge18:{w:Math.round(40*PX_C), h:Math.round(40*PX_C)},
     };
     const CS=COND_SIZES[a.cond_tier]||COND_SIZES.fedmin;
-    // Scale by the widest tier so cabinets keep their real relative size -
-    // fedmin (narrowest+shortest) should render smaller than high_ge18, not stretched to match it.
-    const ZONE_COND_W=OUTSIDE_W>0?Math.round(OUTSIDE_W*0.62):1;
-    const MAX_COND_W=Math.max(...Object.values(COND_SIZES).map(s=>s.w));
-    const COND_SCALE=ZONE_COND_W/(MAX_COND_W||1);
-    const COND_W=Math.max(1,Math.round(CS.w*COND_SCALE));
-    const COND_H=Math.max(1,Math.round(CS.h*COND_SCALE));
+    const COND_W=CS.w;
+    const COND_H=CS.h;
     const EXT_WALL_X=HOUSE_W;
     const WALL_THICK=18;
     const DISC_ZONE=52;  // space for disconnect on wall face
@@ -1791,6 +1798,36 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
           {/* Outside zone (right of wall) - darker, sky-like */}
           {hasCond&&<rect x={EXT_WALL_X} y="0" width={OUTSIDE_W} height={VH} fill="#080a10"/>}
 
+          {/* ── SUN - cool mode only, tucked in the sky corner above the
+               roofline (the roof's lowest point is always the eave, so this
+               corner has clearance regardless of house width). Pushed right
+               of x=0 to clear the "system is built" HTML overlay that sits
+               top-left of this same frame. Fades in/out like the snow
+               below, rather than popping instantly. ── */}
+          <g style={{opacity:!heatMode?1:0,transition:'opacity .8s ease'}}>
+            <circle cx="225" cy="16" r="8" fill="#ffd76b"/>
+            {Array.from({length:8},(_,i)=>{
+              const ang=i*Math.PI/4;
+              return <line key={'ray'+i}
+                x1={225+Math.cos(ang)*11} y1={16+Math.sin(ang)*11}
+                x2={225+Math.cos(ang)*15} y2={16+Math.sin(ang)*15}
+                stroke="#ffd76b" strokeWidth="2" strokeLinecap="round"/>;
+            })}
+          </g>
+
+          {/* ── CLOUD + RAIN - dual-fuel heat pump mode (52°, mild enough
+               the compressor still runs) sits in the same sky slot as the
+               sun/snow - overcast rather than sunny or snowed-in. ── */}
+          <g style={{opacity:(heatMode&&isDualFuel&&heatSubMode==='hp')?1:0,transition:'opacity .8s ease'}}>
+            <ellipse cx="216" cy="18" rx="10" ry="7" fill="#8a94a3"/>
+            <ellipse cx="229" cy="13" rx="12" ry="8.5" fill="#9aa3b0"/>
+            <ellipse cx="242" cy="18" rx="9" ry="6.5" fill="#8a94a3"/>
+            {Array.from({length:4},(_,i)=>(
+              <line key={'rain'+i} x1={214+i*9} y1="27" x2={211+i*9} y2="35"
+                stroke="#7ab8e0" strokeWidth="1.5" strokeLinecap="round"/>
+            ))}
+          </g>
+
           {/* Attic interior (above deck, inside house) */}
           <rect x="0" y={EAVE_Y} width={HOUSE_W} height={DECK_Y-EAVE_Y} fill="#10121c"/>
 
@@ -1809,9 +1846,6 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
           {/* Roof deck fill (very subtle) */}
           <polygon points={`0,${EAVE_Y} ${RIDGE_X},${RIDGE_Y} ${HOUSE_W},${EAVE_Y}`}
             fill="rgba(10,10,16,.6)" stroke="none"/>
-          {/* Fascia line at eave */}
-          <line x1="0" y1={EAVE_Y} x2={HOUSE_W} y2={EAVE_Y}
-            stroke="rgba(180,170,145,.18)" strokeWidth="3"/>
 
           {/* ── INSULATION - only shown after selection ── */}
           {a.insulation&&(isSpray
