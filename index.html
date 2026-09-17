@@ -73,6 +73,13 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 /* SIDEBAR */
 .sidebar{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;width:320px;flex-shrink:0;height:100%}
 @media(max-width:860px){.sidebar{border-left:none;border-top:1px solid var(--border);max-height:none}}
+/* Always-visible, on-theme scrollbar - a default OS scrollbar (especially
+   the overlay style that only appears while actively dragging) is too easy
+   to miss as a "there's more below" cue on a panel with no other affordance. */
+.sidebar,.done-wrap{scrollbar-width:thin;scrollbar-color:rgba(215,183,64,.4) transparent}
+.sidebar::-webkit-scrollbar,.done-wrap::-webkit-scrollbar{width:8px}
+.sidebar::-webkit-scrollbar-thumb,.done-wrap::-webkit-scrollbar-thumb{background:rgba(215,183,64,.35);border-radius:4px}
+.sidebar::-webkit-scrollbar-track,.done-wrap::-webkit-scrollbar-track{background:transparent}
 
 /* STEP HEADER */
 .step-hdr{padding:16px 18px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:10}
@@ -1414,8 +1421,16 @@ function Canvas({a, stepIdx, activeSteps}){
     </marker>
   </defs>;
 
+  // Not a real thermostat control - lets a homeowner see the diagram react
+  // (refrigerant flow direction, which equipment lights up as active) without
+  // waiting for actual weather. Callout label + title attr both explain that,
+  // since a first-time visitor has no other reason to guess it's clickable.
   const ToggleUI=({style})=>(
-    <div style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden',...style}}>
+    <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3,...style}}>
+      <span style={{fontFamily:'monospace',fontSize:'9px',letterSpacing:'.06em',color:'rgba(215,183,64,.55)'}}>
+        ▸ preview how your system runs
+      </span>
+      <div title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden'}}>
       <button onClick={()=>setHeatMode(false)} style={{
         padding:'8px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'11px',letterSpacing:'.08em',
         background:!heatMode?'rgba(35,137,224,.18)':'transparent',
@@ -1456,6 +1471,7 @@ function Canvas({a, stepIdx, activeSteps}){
           <span>HEAT MODE</span>
           <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode?1:0.3}}>28°</span>
         </button>}
+      </div>
     </div>
   );
 
@@ -2707,6 +2723,15 @@ function App(){
   const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
 
   const activeSteps=useMemo(()=>STEPS.filter(s=>!s.showIf||s.showIf(answers)),[answers]);
+  // Before indoor_type is answered, insulation/system_for's showIf can't
+  // resolve yet, so the real total is unknowable - defaulting to "furnace"
+  // (the longer path) keeps the very first step's total stable instead of
+  // growing by 2 the instant the user picks Furnace (a shrink if they pick
+  // Air handler instead reads as pleasant, not as "the survey got longer").
+  const totalSteps=useMemo(()=>answers.indoor_type
+    ?activeSteps.length-1
+    :STEPS.filter(s=>!s.showIf||s.showIf({...answers,indoor_type:'furnace'})).length-1
+  ,[answers,activeSteps]);
   const cur=activeSteps[stepIdx];
   const pct=Math.round(((stepIdx+1)/activeSteps.length)*100);
 
@@ -2768,11 +2793,11 @@ function App(){
   const INFO_TEXT={
     location:"Your indoor unit location sets the whole system layout. Attic is the most common in Austin -- the unit sits horizontally above the living space. Closet is upflow -- the unit stands vertically in a hallway or utility closet. Both work great; closet installs are slightly easier to service.",
     indoor_type:"A furnace uses natural gas for heat and pairs with AC for cooling. An air handler is all-electric -- it works only with a heat pump for both heating and cooling. If you have a gas line, a furnace is usually the better value. No gas line? Air handler + heat pump is the way to go.",
-    insulation:"Attic insulation type determines which furnace you can install. Fiberglass or blown insulation means your attic is vented -- a standard 80% AFUE furnace with a metal B-vent flue works fine. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
+    insulation:"Attic insulation type determines which furnace you can install. Fiberglass or blown insulation means your attic is vented -- a standard 80% AFUE furnace works fine (AFUE = Annual Fuel Utilization Efficiency, the % of gas that becomes heat instead of exhaust) with a metal B-vent flue. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
     plenum:"The supply plenum is the box that connects your indoor unit to all your ductwork. Think of it as the distribution hub -- conditioned air flows from the unit into the plenum, then out through the ducts to every room. If your existing plenum is damaged, leaking, or over 15 years old, replacing it improves efficiency and airflow.",
     thermostat:"A basic programmable thermostat is reliable and accurate -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
     purif:"The enhanced filtration cabinet ships standard on every install and already captures dust, pollen, and allergens far better than a standard 1 inch filter. A UV light keeps the evaporator coil clean for longevity and efficiency. An ionizer neutralizes airborne particles, odors, and VOCs throughout the home. A surge protector mounts on the disconnect box and shields your condenser from voltage spikes -- one lightning strike can destroy a compressor.",
-    cond_tier:"The condenser is the outdoor unit. Federal Minimum meets current energy code -- solid and reliable, lowest upfront cost. Mid Efficiency is our best-value tier -- variable speed, noticeably lower monthly bills, better humidity control. High Efficiency is our top inverter-driven tier -- eligible for local energy rebates and the best humidity performance available.",
+    cond_tier:"The condenser is the outdoor unit. SEER2 (Seasonal Energy Efficiency Ratio) measures cooling output per unit of electricity used -- higher means lower electric bills for the same cooling. Federal Minimum meets current energy code -- solid and reliable, lowest upfront cost. Mid Efficiency is our best-value tier -- variable speed, noticeably lower monthly bills, better humidity control. High Efficiency is our top inverter-driven tier -- eligible for local energy rebates and the best humidity performance available.",
     system_for:"With a gas furnace you have two options. Dual fuel (heat pump + furnace) means the heat pump handles cooling in summer and heating in mild weather -- the gas furnace only fires when it gets genuinely cold below about 35 degrees. Most efficient combo. Straight cool means your AC only cools and the furnace handles all heating year-round.",
     dehu:"Austin humidity makes your home feel significantly warmer than the thermostat reads. A whole-home dehumidifier connects directly to your HVAC system and runs automatically -- no buckets, no maintenance. Recommended for any home that feels muggy even when the AC is running.",
     extras:"A condensate pump is needed when gravity drainage is not available -- it pumps condensate water up and out to a drain or exterior wall, and is required in many closet installs. An ERV brings fresh filtered outdoor air into the home while exhausting stale air, recovering most of the heating/cooling energy from the outgoing air in the process.",
@@ -2894,7 +2919,7 @@ function App(){
         <div className="attic-bar">
           <div className="attic-bar-top">
             <span className="attic-step-label">
-              {cur ? "STEP "+stepIdx+" OF "+(activeSteps.length-1)+" · "+cur.q.toUpperCase() : ""}
+              {cur ? "STEP "+stepIdx+" OF "+totalSteps+" · "+cur.q.toUpperCase() : ""}
             </span>
             {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
             {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
@@ -2926,7 +2951,7 @@ function App(){
         <div className="sidebar">
           <div className="step-hdr">
             <div className="step-eyebrow">
-              <span>Step {stepIdx} of {activeSteps.length-1}</span>
+              <span>Step {stepIdx} of {totalSteps}</span>
               {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
             </div>
             <div className="step-q">{cur?cur.q:""}</div>
@@ -2953,8 +2978,19 @@ function App(){
         <div className="canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
         </div>
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"auto",maxHeight:"380px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"auto",maxHeight:pricingFlow?"600px":"380px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           <div className="done-wrap" style={{justifyContent:"flex-start",padding:"14px 14px 10px",overflowY:"auto"}}>
+            {/* Collapsed to one line once pricing is engaged - the full
+                header+grid below is what was pushing the sizing questions'
+                own Back/Next off the bottom of this panel. The review is
+                one click away again ("Edit selections"), and every pricing
+                sub-step still shows the same "‹ Back" affordance. */}
+            {pricingFlow?
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
+                <span style={{fontSize:12,color:"rgba(255,255,255,.7)"}}>✓ Your system is built</span>
+                <button onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
+              </div>
+            :<>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
               <div className="done-icon" style={{margin:0,width:36,height:36,fontSize:16,flexShrink:0}}>✓</div>
               <div>
@@ -2982,6 +3018,7 @@ function App(){
                 </div>
               ):null)}
             </div>
+            </>}
 
             {/* ── PRICING GATE / SIZING / RESULT - only takes up room once
                  actually engaged; the entry point lives in the button grid
