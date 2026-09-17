@@ -848,33 +848,39 @@ function Canvas({a, stepIdx, activeSteps}){
     const fanRx=w*0.40;  // keep well inside width
     const fanRy=h*0.28;  // keep well inside height
     const spd=active?0.9:0;
-    // Pixel-based transform-origin, not percentage+fill-box - fill-box
-    // support for a <g> of stroke-only paths is inconsistent, and where
-    // it falls through, the percentage resolves against the whole SVG
-    // canvas instead of the blade group's own box, sending the blades
-    // spinning around the scene's center instead of the fan's (visually
-    // "flying out of" the condenser). Same fix already used by BlowerWheel.
     const spinStyle=active?{
-      transformOrigin:cx+'px '+cy+'px',
+      transformOrigin:'0px 0px',
       animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
     }:{};
     const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
+    // Blades are laid out on a true circle (radius fanRx) and rotated as
+    // one, THEN flattened into the cap's side-perspective ellipse with a
+    // static scaleY - not the other way round. Rotating points that were
+    // already squashed onto an ellipse (unequal x/y radii) with a plain
+    // CSS rotate() doesn't preserve the ellipse - a blade tip near the
+    // ellipse's long axis swings, at the same radius, to where the SHORT
+    // axis is, poking far out past the shallow cap (reads as blades
+    // flying out of the condenser). Rotating a genuine circle has no such
+    // distortion; squashing it afterwards is a fixed, non-animating step.
+    const squash=fanRy/fanRx;
     return <>
       <ellipse cx={cx} cy={cy} rx={fanRx} ry={fanRy}
         fill={active?"rgba(10,11,14,.95)":"rgba(8,9,12,.9)"}
         stroke="rgba(30,32,38,.6)" strokeWidth="0.7"/>
-      <g style={spinStyle}>
-        {Array.from({length:4},(_,i)=>{
-          const ang=i*(Math.PI/2);
-          const bx1=cx+fanRx*0.15*Math.cos(ang);
-          const by1=cy+fanRy*0.15*Math.sin(ang);
-          const bx2=cx+fanRx*0.82*Math.cos(ang+0.55);
-          const by2=cy+fanRy*0.82*Math.sin(ang+0.55);
-          const cpx=cx+fanRx*0.65*Math.cos(ang+0.28);
-          const cpy=cy+fanRy*0.65*Math.sin(ang+0.28);
-          return <path key={i} d={'M'+bx1+' '+by1+' Q'+cpx+' '+cpy+' '+bx2+' '+by2}
-            fill="none" stroke={bC} strokeWidth="4" strokeLinecap="round" opacity="0.9"/>;
-        })}
+      <g transform={'translate('+cx+' '+cy+') scale(1,'+squash+')'}>
+        <g style={spinStyle}>
+          {Array.from({length:4},(_,i)=>{
+            const ang=i*(Math.PI/2);
+            const bx1=fanRx*0.15*Math.cos(ang);
+            const by1=fanRx*0.15*Math.sin(ang);
+            const bx2=fanRx*0.82*Math.cos(ang+0.55);
+            const by2=fanRx*0.82*Math.sin(ang+0.55);
+            const cpx=fanRx*0.65*Math.cos(ang+0.28);
+            const cpy=fanRx*0.65*Math.sin(ang+0.28);
+            return <path key={i} d={'M'+bx1+' '+by1+' Q'+cpx+' '+cpy+' '+bx2+' '+by2}
+              fill="none" stroke={bC} strokeWidth="4" strokeLinecap="round" opacity="0.9"/>;
+          })}
+        </g>
       </g>
       <ellipse cx={cx} cy={cy} rx={fanRx*0.1} ry={fanRy*0.12}
         fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
