@@ -48,6 +48,13 @@
   }
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* Every interactive element in this file sets outline:none (to drop the
+   default focus ring that clashed with the custom .sel/hover states) with
+   no replacement anywhere - keyboard navigation had zero visual sign of
+   which control had focus. :focus-visible only fires for keyboard focus,
+   never a mouse/touch click, so this restores that without adding a ring
+   around every option card someone taps or clicks. */
+button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
 body{background:var(--bk);color:var(--wh);font-family:var(--fb);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.025) 0px,rgba(0,0,0,.025) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:9999}
 
