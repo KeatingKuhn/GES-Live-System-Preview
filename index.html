@@ -58,6 +58,16 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
    touches diagram geometry. */
 .canvas-frame{background-image:linear-gradient(rgba(215,183,64,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(215,183,64,.05) 1px,transparent 1px);background-size:44px 44px}
 
+/* DONE SCREEN - attic (wide/short diagram) keeps the review panel as a
+   horizontal bar below so the canvas keeps full width; closet (tall/narrow
+   diagram) keeps it as a side column so the canvas keeps full height. The
+   sidebar's fixed 320px width doesn't shrink (flex-shrink:0), so on a
+   narrow viewport a row layout squeezes the canvas to 0 - the mobile
+   media query below overrides this to column for both. */
+.done-screen{display:flex;overflow:hidden}
+.done-screen.attic-mode{flex-direction:column}
+.done-screen.closet-mode{flex-direction:row}
+
 /* ANIMATIONS */
 .snap{animation:snap .45s cubic-bezier(.34,1.46,.64,1) both}
 @keyframes snap{from{opacity:0;transform:translateY(-14px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -267,8 +277,13 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   .opt{flex:1;min-width:calc(50% - 6px);max-width:100%}
   .nav-row{position:sticky;bottom:0}
 
-  /* Done screen */
-  div[style*="position:absolute"][style*="inset:0"]{flex-direction:column}
+  /* Done screen - stack canvas above the review panel on narrow viewports
+     regardless of layout. Matches the ".done-screen.attic-mode/.closet-mode"
+     specificity above (two classes) so this actually wins in the cascade -
+     an inline style would always beat any stylesheet rule here, which is
+     why this used to be a no-op attribute-selector hack for the closet
+     layout - flexDirection is no longer set inline at all. */
+  .done-screen.attic-mode,.done-screen.closet-mode{flex-direction:column}
 }
 
 @media(max-width:600px){
@@ -3215,7 +3230,7 @@ function App(){
            (tall/narrow diagram) keeps it as a side column so the canvas
            keeps full height. Mirrors the same tradeoff each layout already
            makes during the wizard steps (.attic-layout vs .closet-layout). ── */}
-      {done&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:isAtticMode?"column":"row",overflow:"hidden",zIndex:10}}>
+      {done&&<div className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
         <div className="canvas-frame done-canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
           <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
           <div className="done-canvas-sweep"/>
