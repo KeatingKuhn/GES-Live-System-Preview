@@ -275,7 +275,9 @@ const STEPS=[
     hint:'The enhanced filtration cabinet ships standard on every install already. Add any of these on top of that.',optional:true, multi:true},
   {id:'system_for',  q:'Heat pump or straight cool?',
     hint:'Heat pump both heats and cools. Straight cool = AC only, furnace does all heating.', optional:false,
-    showIf:a=>a.indoor_type==='furnace'},
+    // Mid efficiency only comes as dual fuel - nothing to actually choose,
+    // so skip the step entirely instead of showing a single-card question.
+    showIf:a=>a.indoor_type==='furnace'&&a.cond_tier!=='mid_ge15'},
   {id:'dehu',        q:'Add a whole-home dehumidifier?',
     hint:"Austin's humidity makes your home feel 7°F warmer. Runs automatically with your system.", optional:false},
   {id:'extras',      q:'Any final add-ons?',
@@ -764,7 +766,7 @@ function Canvas({a, stepIdx, activeSteps}){
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
         spd={active?1.6:0.5} active={active||!heatMode}/>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="8" fontFamily="monospace">BLOWER</text>
       {Array.from({length:6},(_,i)=>{
         const gy=y+10+i*(h-18)/6;
         return <path key={i}
@@ -784,7 +786,7 @@ function Canvas({a, stepIdx, activeSteps}){
           </>}
         </g>;
       })}
-      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(G+'.5)')} fontSize="6.5" fontFamily="monospace">HEAT EXCH.</text>
+      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(G+'.5)')} fontSize="8" fontFamily="monospace">HEAT EXCH.</text>
       {(()=>{
         const pW=is90?5:7;
         const pC=is90?"#bfdbfe":"#c0c0c0";
@@ -831,10 +833,10 @@ function Canvas({a, stepIdx, activeSteps}){
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
         spd={active?1.5:0.45} active={active||!heatMode}/>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="6.5" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="8" fontFamily="monospace">BLOWER</text>
       <rect x={mid+2} y={y+8} width={w/2-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
       <ACoilH x={mid+8} y={y+12} w={w/2-18} h={h-22} active={active}/>
-      <text x={mid+w/4} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.5)')} fontSize="6.5" fontFamily="monospace">A-COIL</text>
+      <text x={mid+w/4} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.5)')} fontSize="8" fontFamily="monospace">A-COIL</text>
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
 
     </g>;
@@ -1482,7 +1484,10 @@ function Canvas({a, stepIdx, activeSteps}){
     // keeps that full-bleed width fit but at a smaller absolute canvas,
     // so the same fixed-size equipment renders bigger AND eats a bigger
     // share of the frame - a real zoom, not a crop. Left at 1x once a
-    // condenser exists since its own margins are already tight.
+    // condenser exists - shrinking VH there pushes the fixed-offset
+    // condenser (measured up from VH) into the thermostat sitting above
+    // it (measured down from the roofline); the outside zone's own dead
+    // margin is closed separately below via ZONE_COND_W instead.
     const ZOOM=hasCond?1:0.7;
     const VW=Math.round(1280*ZOOM), VH=Math.round(495*ZOOM);
 
@@ -1666,7 +1671,7 @@ function Canvas({a, stepIdx, activeSteps}){
               return <ellipse key={i} cx={bx} cy={by} rx={6+(i%4)*2.5} ry={5+(i%3)*1.5} fill="rgba(255,182,193,.1)"/>;
             })}
             <text x={RET_X+RET_PLEN_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
-              fill="rgba(255,182,193,.52)" fontSize="7" fontFamily="monospace"
+              fill="rgba(255,182,193,.52)" fontSize="9" fontFamily="monospace"
               transform={`rotate(-90,${RET_X+RET_PLEN_W/2},${UNIT_Y+UNIT_H/2})`}>RETURN PLENUM</text>
             {Array.from({length:8},(_,i)=>(
               <line key={i} x1={RET_X+2} y1={UNIT_Y+12+i*(UNIT_H-24)/8}
@@ -1688,17 +1693,17 @@ function Canvas({a, stepIdx, activeSteps}){
                 stroke="#22c55e" strokeWidth="0.55" opacity="0.52"/>
             ))}
             <text x={APR_X+APR_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
-              fill="#22c55e" fontSize="7" fontFamily="monospace"
+              fill="#22c55e" fontSize="8.5" fontFamily="monospace"
               transform={`rotate(-90,${APR_X+APR_W/2},${UNIT_Y+UNIT_H/2})`}>FILTRATION</text>
           </g>}
 
           {/* Furnace */}
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu'+a.stage+a.furnace_eff} filter="url(#shadow)">
             <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive}/>
-            <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.78)':(G+'.55)')} fontSize="7.5" fontFamily="monospace">FURNACE</text>
-            <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="6.5" fontFamily="monospace">
+            <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+13} textAnchor="middle"
+              fill={furnaceActive?'rgba(249,115,22,.78)':(G+'.55)')} fontSize="9" fontFamily="monospace">FURNACE</text>
+            <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+24} textAnchor="middle"
+              fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="7.5" fontFamily="monospace">
               {furnaceActive?"GAS HEATING ACTIVE":"STANDBY"}
             </text>
           </g>}
@@ -1720,10 +1725,10 @@ function Canvas({a, stepIdx, activeSteps}){
                 {/* Label moved above the coil - the space below is now clear
                     for the supply ducts to drop straight down with nothing
                     in their way */}
-                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-14} textAnchor="middle"
-                  fill={active?evapC:(G+'.55)')} fontSize="7.5" fontFamily="monospace">A-COIL</text>
-                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-4} textAnchor="middle"
-                  fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
+                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-16} textAnchor="middle"
+                  fill={active?evapC:(G+'.55)')} fontSize="9" fontFamily="monospace">A-COIL</text>
+                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-5} textAnchor="middle"
+                  fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="7.5" fontFamily="monospace">
                   {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
                 </text>
               </>;
@@ -1733,10 +1738,10 @@ function Canvas({a, stepIdx, activeSteps}){
           {/* Air handler */}
           {hasCoil&&!hasFurnace&&<g className="snap" key={'ah'+a.cond_tier} filter="url(#shadow)">
             <AirHandlerH x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} active={evapActive}/>
-            <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+12} textAnchor="middle"
-              fill={evapActive?evapC:(G+'.55)')} fontSize="7.5" fontFamily="monospace">AIR HANDLER</text>
-            <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+22} textAnchor="middle"
-              fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="6.5" fontFamily="monospace">
+            <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+13} textAnchor="middle"
+              fill={evapActive?evapC:(G+'.55)')} fontSize="9" fontFamily="monospace">AIR HANDLER</text>
+            <text x={AH_X+AH_W/2} y={UNIT_Y+UNIT_H+24} textAnchor="middle"
+              fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="7.5" fontFamily="monospace">
               {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
             </text>
           </g>}
@@ -1764,11 +1769,11 @@ function Canvas({a, stepIdx, activeSteps}){
                   ))
                 )}
                 <text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+3} textAnchor="middle"
-                  fill={isExisting?(G+'.55)'):(G+'.52)')} fontSize="7.5" fontFamily="monospace">
+                  fill={isExisting?(G+'.55)'):(G+'.52)')} fontSize="9" fontFamily="monospace">
                   {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
                 </text>
-                {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+14} textAnchor="middle"
-                  fill={G+'.32)'} fontSize="6.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
+                {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+16} textAnchor="middle"
+                  fill={G+'.32)'} fontSize="7.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
                 {[SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.28), SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.72)].map((ay,i)=>(
                   <g key={"af"+i}>
                     <line x1={SUP_X+8} y1={ay} x2={SUP_X+SUP_PLEN_W-8} y2={ay}
@@ -2716,7 +2721,9 @@ function App(){
     if(k==='cond_tier'){
       const thermostatStillValid=v==='high_ge18'?p.thermostat==='proprietary':p.thermostat!=='proprietary';
       if(!thermostatStillValid) delete next.thermostat;
-      if(v==='mid_ge15'&&p.system_for==='sc') delete next.system_for;
+      // Mid efficiency forces dual fuel - it's the only option, so set it
+      // directly instead of showing a single-card step for the user to click.
+      if(v==='mid_ge15') next.system_for='hp';
     }
     return next;
   });
