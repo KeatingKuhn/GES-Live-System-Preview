@@ -2723,15 +2723,12 @@ function App(){
   const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
 
   const activeSteps=useMemo(()=>STEPS.filter(s=>!s.showIf||s.showIf(answers)),[answers]);
-  // Before indoor_type is answered, insulation/system_for's showIf can't
-  // resolve yet, so the real total is unknowable - defaulting to "furnace"
-  // (the longer path) keeps the very first step's total stable instead of
-  // growing by 2 the instant the user picks Furnace (a shrink if they pick
-  // Air handler instead reads as pleasant, not as "the survey got longer").
-  const totalSteps=useMemo(()=>answers.indoor_type
-    ?activeSteps.length-1
-    :STEPS.filter(s=>!s.showIf||s.showIf({...answers,indoor_type:'furnace'})).length-1
-  ,[answers,activeSteps]);
+  const totalSteps=activeSteps.length-1;
+  // insulation/system_for's showIf depends on indoor_type, so the total is
+  // only a guess until that's answered - rather than show a number that's
+  // about to change (7 -> 9 the instant Furnace is picked), just don't
+  // claim one yet. It reappears, accurate, from the very next step on.
+  const totalKnown=!!answers.indoor_type;
   const cur=activeSteps[stepIdx];
   const pct=Math.round(((stepIdx+1)/activeSteps.length)*100);
 
@@ -2919,7 +2916,7 @@ function App(){
         <div className="attic-bar">
           <div className="attic-bar-top">
             <span className="attic-step-label">
-              {cur ? "STEP "+stepIdx+" OF "+totalSteps+" · "+cur.q.toUpperCase() : ""}
+              {cur ? "STEP "+stepIdx+(totalKnown?" OF "+totalSteps:"")+" · "+cur.q.toUpperCase() : ""}
             </span>
             {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
             {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
@@ -2951,7 +2948,7 @@ function App(){
         <div className="sidebar">
           <div className="step-hdr">
             <div className="step-eyebrow">
-              <span>Step {stepIdx} of {totalSteps}</span>
+              <span>Step {stepIdx}{totalKnown?` of ${totalSteps}`:''}</span>
               {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
             </div>
             <div className="step-q">{cur?cur.q:""}</div>
