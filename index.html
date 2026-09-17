@@ -211,6 +211,8 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .site-header-rule{width:100%;height:1px;background:rgba(255,255,255,.35);margin:3px 0}
 .site-header-sub{font-family:'Poppins',sans-serif;font-weight:400;font-size:8px;color:rgba(255,255,255,.8);letter-spacing:.18em}
 .site-header-phone{display:none;color:rgba(255,255,255,.7);text-decoration:none;font-family:'Poppins',sans-serif;font-size:13px;white-space:nowrap;flex-shrink:0}
+.site-header-schedule{display:flex;align-items:center;gap:5px;background:var(--gh);color:var(--bk);text-decoration:none;font-family:var(--ft);font-weight:700;font-size:10px;letter-spacing:.03em;padding:7px 10px;flex-shrink:0;white-space:nowrap}
+@media(min-width:641px){.site-header-schedule{font-size:12px;padding:9px 16px}}
 /* Sits between the logo and phone number - the trust signals (rating,
    license, TACLA #) used to repeat on the splash and done screens; living
    here once means they're always visible without cluttering either. */
@@ -657,7 +659,7 @@ function CountUp({value,duration=900,format}){
 }
 
 // ─── CANVAS ─────────────────────────────────────────────────────
-function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
+function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // Clickable overlay on a finished diagram piece - only wired up on the
   // done screen (onEditStep is undefined during the wizard itself, where
   // jumping mid-flow doesn't make sense). Hover state is a stroke on a
@@ -1360,6 +1362,40 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
         ))}
       </g>
 
+      {/* ── SUN - cool mode. Sits over the condenser (the actual "outside"
+           reference point) rather than the attic roof, since that's the
+           piece of equipment that's genuinely outdoors. Anchored to the
+           zone's own left edge rather than the condenser's position (which
+           can sit close to the zone's right edge in the closet layout,
+           behind the fixed top-right mode-preview toggle) and its own
+           height rather than a fixed pixel value, so it clears the
+           "OUTSIDE" label above it in both layouts. Fades in/out instead
+           of popping, same as the snow above. ── */}
+      <g style={{opacity:!heatMode?1:0,transition:'opacity .8s ease'}}>
+        <circle cx={wallX+zoneW*0.25} cy={zoneH*0.075+18} r="9" fill="#ffd76b"/>
+        {Array.from({length:8},(_,i)=>{
+          const ang=i*Math.PI/4;
+          const sx=wallX+zoneW*0.25, sy=zoneH*0.075+18;
+          return <line key={'ray'+i}
+            x1={sx+Math.cos(ang)*12} y1={sy+Math.sin(ang)*12}
+            x2={sx+Math.cos(ang)*17} y2={sy+Math.sin(ang)*17}
+            stroke="#ffd76b" strokeWidth="2" strokeLinecap="round"/>;
+        })}
+      </g>
+
+      {/* ── CLOUD + RAIN - dual-fuel heat pump mode (52°, mild enough the
+           compressor still runs) - overcast rather than sunny or snowed in,
+           same slot and reasoning as the sun above. ── */}
+      <g style={{opacity:(heatMode&&isDualFuel&&heatSubMode==='hp')?1:0,transition:'opacity .8s ease'}}>
+        <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#8a94a3"/>
+        <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#9aa3b0"/>
+        <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#8a94a3"/>
+        {Array.from({length:4},(_,i)=>(
+          <line key={'rain'+i} x1={wallX+zoneW*0.25-11+i*9} y1={zoneH*0.075+29} x2={wallX+zoneW*0.25-14+i*9} y2={zoneH*0.075+37}
+            stroke="#7ab8e0" strokeWidth="1.5" strokeLinecap="round"/>
+        ))}
+      </g>
+
       {/* ── CONCRETE PAD - under condenser ── */}
       <rect x={condX-10} y={padY} width={condW+20} height={14} rx="2"
         fill="rgba(165,160,148,.22)" stroke="rgba(190,185,168,.28)" strokeWidth="1"/>
@@ -1700,19 +1736,34 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
   // Condenser: true side-wall view, lineset exits wall at condenser bottom.
   // ══════════════════════════════════════════════════════════
   if(isAttic){
-    // The living-space band below the deck line is back to its original
-    // 120 units - the thermostat now lives there (front and center under
-    // the unit, since there's no other believable indoor spot for it in
-    // this layout), not stacked above the condenser, so the space that an
-    // earlier pass trimmed as "dead" is genuinely back in use.
+    // The living-space band below the deck line still has to fit the
+    // thermostat (it sits in this band, to the right of the return duct)
+    // plus the return grille.
+    const LIVING_SPACE=120;
     const ZOOM=hasCond?1:0.7;
-    const VH=Math.round(580*ZOOM);
+    const BASE_VH=Math.round(510*ZOOM);
     const BASE_VW=Math.round(1280*ZOOM);
+    const BASE_ASPECT=BASE_VW/BASE_VH;
+    // Widening the frame used to only add empty canvas around the
+    // same-size equipment - matching the viewBox to the frame's aspect
+    // ratio kills the letterboxing gutters, but the on-screen scale of
+    // everything is still governed by frameHeight/VH alone, which a wider
+    // (not taller) window never changes. To make widening actually zoom
+    // in, shrink VH itself as the frame's aspect grows past the design's
+    // native ~2.2:1 - equipment stays the same fixed real-world size, so
+    // it fills more of a smaller VH. The room this borrows from is the
+    // generous headroom above the equipment in the attic band (ATTIC_H is
+    // ~3x taller than the tallest unit needs) - DECK_Y stays VH-LIVING_SPACE,
+    // so the living-space band keeps its full height regardless of how
+    // far this zooms in.
+    const frameAspect=frameBox&&frameBox.h>0?frameBox.w/frameBox.h:BASE_ASPECT;
+    const ZOOM_T=Math.max(0,Math.min(1,(frameAspect-BASE_ASPECT)/(BASE_ASPECT*0.6)));
+    const VH=Math.round(BASE_VH*(1-ZOOM_T*0.19));
     // Widen the viewBox to match the frame's aspect ratio (capped at 1.6x
     // the base design width so an ultrawide monitor doesn't stretch the
     // outside/condenser zone into something absurd) - never narrower than
     // the base width, which the fixed-inch component sizes below assume.
-    const FRAME_ASPECT_VW=frameBox&&frameBox.h>0?Math.round(VH*(frameBox.w/frameBox.h)):BASE_VW;
+    const FRAME_ASPECT_VW=frameBox&&frameBox.h>0?Math.round(VH*frameAspect):BASE_VW;
     const VW=Math.max(BASE_VW,Math.min(FRAME_ASPECT_VW,Math.round(BASE_VW*1.6)));
 
     // 2/3 house when condenser selected, full width otherwise
@@ -1725,7 +1776,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
     const RIDGE_Y=12;
     const RIDGE_X=HOUSE_W/2;
 
-    const DECK_Y=VH-120;
+    const DECK_Y=VH-LIVING_SPACE;
     const ATTIC_H=DECK_Y-EAVE_Y;
 
     const SCALE_PX=6.2;
@@ -1745,6 +1796,9 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
     const totalW=RET_PLEN_W+(APR_W?APR_W+2:0)+FURN_W+(hasFurnace?ACOIL_W+4:AH_W)+SUP_PLEN_W;
     const MARGIN_L=hasCond?30:Math.max(20,Math.round((HOUSE_W-totalW)/2));
     const RET_X=MARGIN_L;
+    // Return plenum stays directly against the filter rack/furnace - the
+    // thermostat lives in the living-space band below instead, so it never
+    // gets inserted into this chain and pushes this adjacency apart.
     const APR_X=RET_X+RET_PLEN_W+(APR_W?2:0);
     const UNIT_X=APR_X+APR_W+(APR_W?2:0);
     const FURN_X=UNIT_X;
@@ -1788,45 +1842,19 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
 
     return(
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
-        {hasCoil&&<ToggleUI style={{position:'absolute',top:toggleUiTop,right:8,zIndex:10}}/>}
+        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <Defs/>
 
           {/* Full canvas background */}
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
 
-          {/* Outside zone (right of wall) - darker, sky-like */}
-          {hasCond&&<rect x={EXT_WALL_X} y="0" width={OUTSIDE_W} height={VH} fill="#080a10"/>}
-
-          {/* ── SUN - cool mode only, tucked in the sky corner above the
-               roofline (the roof's lowest point is always the eave, so this
-               corner has clearance regardless of house width). Pushed right
-               of x=0 to clear the "system is built" HTML overlay that sits
-               top-left of this same frame. Fades in/out like the snow
-               below, rather than popping instantly. ── */}
-          <g style={{opacity:!heatMode?1:0,transition:'opacity .8s ease'}}>
-            <circle cx="225" cy="16" r="8" fill="#ffd76b"/>
-            {Array.from({length:8},(_,i)=>{
-              const ang=i*Math.PI/4;
-              return <line key={'ray'+i}
-                x1={225+Math.cos(ang)*11} y1={16+Math.sin(ang)*11}
-                x2={225+Math.cos(ang)*15} y2={16+Math.sin(ang)*15}
-                stroke="#ffd76b" strokeWidth="2" strokeLinecap="round"/>;
-            })}
-          </g>
-
-          {/* ── CLOUD + RAIN - dual-fuel heat pump mode (52°, mild enough
-               the compressor still runs) sits in the same sky slot as the
-               sun/snow - overcast rather than sunny or snowed-in. ── */}
-          <g style={{opacity:(heatMode&&isDualFuel&&heatSubMode==='hp')?1:0,transition:'opacity .8s ease'}}>
-            <ellipse cx="216" cy="18" rx="10" ry="7" fill="#8a94a3"/>
-            <ellipse cx="229" cy="13" rx="12" ry="8.5" fill="#9aa3b0"/>
-            <ellipse cx="242" cy="18" rx="9" ry="6.5" fill="#8a94a3"/>
-            {Array.from({length:4},(_,i)=>(
-              <line key={'rain'+i} x1={214+i*9} y1="27" x2={211+i*9} y2="35"
-                stroke="#7ab8e0" strokeWidth="1.5" strokeLinecap="round"/>
-            ))}
-          </g>
+          {/* Outside zone (right of wall) - brightens on a sunny (cool
+               mode) day to read as daylight outside, rather than a fixed
+               dark panel regardless of weather. Fades like the sun/cloud/
+               snow rendered inside OutsideZone itself. */}
+          {hasCond&&<rect x={EXT_WALL_X} y="0" width={OUTSIDE_W} height={VH}
+            style={{fill:!heatMode?'#28314a':'#080a10',transition:'fill .8s ease'}}/>}
 
           {/* Attic interior (above deck, inside house) */}
           <rect x="0" y={EAVE_Y} width={HOUSE_W} height={DECK_Y-EAVE_Y} fill="#10121c"/>
@@ -2161,18 +2189,15 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
           {hasCond&&<EditZone stepId="cond_tier"
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
 
-          {/* ── THERMOSTAT - front and center below the unit, mounted in the
-               living space below the deck line like a real wall thermostat
-               would be (not up in the attic with the ductwork). There's no
-               believable indoor wall for it otherwise in this layout, so
-               this reads better than stacking it above the condenser
-               outside, which only ever made sense as leftover space to
-               fill. Biased off dead-center just enough to clear the
-               condensate drain's vertical run at coilCX. ── */}
+          {/* ── THERMOSTAT - down in the living space below the deck line
+               (like a real wall thermostat would be), positioned under the
+               return duct rather than centered under the furnace/coil -
+               keeps it clear of the supply vents' drops without needing
+               any extra width inserted into the return/filter/furnace run
+               above, which has to stay contiguous. ── */}
           {hasTstat&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
             {(()=>{
-              const centerX=hasFurnace?(FURN_X+ACOIL_X+ACOIL_W)/2:AH_X+AH_W*0.35;
-              const TX=centerX-45, TY=DECK_Y+12;
+              const TX=RET_X+RET_PLEN_W+8, TY=DECK_Y+12;
               const isProprietary=a.thermostat==='proprietary';
               const isWifi=a.thermostat==='wifi'||isProprietary;
               return isWifi
@@ -2205,8 +2230,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
                 </>;
             })()}
             <EditZone stepId="thermostat"
-              x={(hasFurnace?(FURN_X+ACOIL_X+ACOIL_W)/2:AH_X+AH_W*0.35)-47}
-              y={DECK_Y+10} w={94} h={98}/>
+              x={RET_X+RET_PLEN_W+6} y={DECK_Y+10} w={94} h={98}/>
           </g>}
 
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
@@ -2390,8 +2414,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <Defs/>
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
-          {/* Outside zone */}
-          {hasCond&&<rect x={HOUSE_W} y="0" width={VW-HOUSE_W} height={VH} fill="#080a10"/>}
+          {/* Outside zone - brightens on a sunny (cool mode) day, same as
+              the attic layout's outside zone. */}
+          {hasCond&&<rect x={HOUSE_W} y="0" width={VW-HOUSE_W} height={VH}
+            style={{fill:!heatMode?'#28314a':'#080a10',transition:'fill .8s ease'}}/>}
           {/* Full attic space above deck */}
           <rect x="0" y="0" width={hasCond?HOUSE_W:VW} height={DECK_Y} fill="#10121c"/>
           {/* Closet below deck */}
@@ -3207,6 +3233,7 @@ function App(){
           <span>TACLA #119235C</span>
         </div>
         <a href="tel:5124894653" className="site-header-phone">512-489-4653</a>
+        <a href="tel:5124894653" className="site-header-schedule">📞 Schedule Visit</a>
       </header>
     <div ref={topRef} className="app-root">
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
@@ -3342,7 +3369,7 @@ function App(){
            makes during the wizard steps (.attic-layout vs .closet-layout). ── */}
       {done&&<div className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
         <div className="canvas-frame done-canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
-          <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep} toggleUiTop={isAtticMode?44:8}/>
+          <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
           <div className="done-canvas-sweep"/>
           {/* Attic layout's diagram never fills the full frame width (it
               keeps its own aspect ratio) - the dead space it leaves on the
@@ -3361,12 +3388,6 @@ function App(){
               </div>
             </div>
           )}
-          {/* Schedule Visit sits top-right of the canvas, above the mode
-              preview toggle - the toggle shifts down (toggleUiTop) to make
-              room instead of the two overlapping. */}
-          {isAtticMode&&<a href="tel:5124894653" className="done-header-desktop-only" style={{position:"absolute",top:8,right:8,zIndex:10,alignItems:"center",gap:6,background:"var(--gh)",color:"var(--bk)",textDecoration:"none",padding:"6px 12px",fontFamily:"var(--ft)",fontWeight:700,fontSize:11,letterSpacing:".02em"}}>
-            <span>📞 Schedule Visit</span>
-          </a>}
         </div>
         <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"200px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           <div className={"done-wrap"+(isAtticMode?" done-wrap-attic":"")} style={{padding:"14px 14px 10px",overflowY:"auto"}}>
@@ -3544,15 +3565,10 @@ function App(){
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
             {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:8,padding:"14px",fontSize:14}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>💰 Get Pricing</button>}
-            {/* Schedule Visit lives as a canvas overlay in attic mode (see
-                above) instead of a grid cell here - one less row to fit,
-                which is what actually lets the review panel shrink. Closet
-                mode has no such overlay room, so it keeps its own cell. */}
+            {/* Schedule Visit lives in the persistent site header next to
+                the phone number now, not here - one less row to fit, which
+                is what actually lets the review panel shrink. */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              {!isAtticMode&&<a href="tel:5124894653" className="done-cta" style={{margin:0}}>
-                <span style={{display:"block"}}>📞 Schedule Visit</span>
-                <span style={{display:"block",fontSize:"11px",opacity:.85,marginTop:2}}>512-489-4653</span>
-              </a>}
               <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
               <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
               <button className="btn-back" style={{width:"100%",padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
