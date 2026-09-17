@@ -659,7 +659,7 @@ function CountUp({value,duration=900,format}){
 }
 
 // ─── CANVAS ─────────────────────────────────────────────────────
-function Canvas({a, stepIdx, activeSteps, onEditStep}){
+function Canvas({a, stepIdx, activeSteps, onEditStep, toggleUiTop=8}){
   // Clickable overlay on a finished diagram piece - only wired up on the
   // done screen (onEditStep is undefined during the wizard itself, where
   // jumping mid-flow doesn't make sense). Hover state is a stroke on a
@@ -1755,7 +1755,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
     return(
       <div style={{position:'absolute',inset:0}}>
-        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}}/>}
+        {hasCoil&&<ToggleUI style={{position:'absolute',top:toggleUiTop,right:8,zIndex:10}}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <Defs/>
 
@@ -3282,27 +3282,33 @@ function App(){
            makes during the wizard steps (.attic-layout vs .closet-layout). ── */}
       {done&&<div className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
         <div className="canvas-frame done-canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
-          <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
+          <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep} toggleUiTop={isAtticMode?44:8}/>
           <div className="done-canvas-sweep"/>
           {/* Attic layout's diagram never fills the full frame width (it
               keeps its own aspect ratio) - the dead space it leaves on the
               left is real screen room, so the "system is built" header
               lives here instead of costing the sidebar a row underneath. */}
           {isAtticMode&&(pricingFlow?
-            <div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:10,background:"rgba(11,13,20,.7)",padding:"6px 10px"}}>
-              <span style={{fontSize:12,color:"rgba(255,255,255,.75)"}}>✓ Your system is built</span>
+            <div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.7)",padding:"5px 9px"}}>
+              <span style={{fontSize:11,color:"rgba(255,255,255,.75)"}}>✓ Your system is built</span>
               <button onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
             </div>
-            :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:10}}>
-              <div className="done-icon" style={{margin:0,width:36,height:36,fontSize:16,flexShrink:0}}>✓</div>
+            :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.55)",padding:"5px 9px 5px 6px"}}>
+              <div className="done-icon" style={{margin:0,width:24,height:24,fontSize:12,flexShrink:0}}>✓</div>
               <div>
-                <div className="done-title" style={{fontSize:16,marginBottom:1}}>Your System is Built</div>
-                <div style={{fontSize:11,color:"var(--mut)"}}>Review your selections below</div>
+                <div className="done-title" style={{fontSize:12,marginBottom:0}}>Your System is Built</div>
+                <div style={{fontSize:9,color:"var(--mut)"}}>Review your selections below</div>
               </div>
             </div>
           )}
+          {/* Schedule Visit sits top-right of the canvas, above the mode
+              preview toggle - the toggle shifts down (toggleUiTop) to make
+              room instead of the two overlapping. */}
+          {isAtticMode&&<a href="tel:5124894653" className="done-header-desktop-only" style={{position:"absolute",top:8,right:8,zIndex:10,alignItems:"center",gap:6,background:"var(--gh)",color:"var(--bk)",textDecoration:"none",padding:"6px 12px",fontFamily:"var(--ft)",fontWeight:700,fontSize:11,letterSpacing:".02em"}}>
+            <span>📞 Schedule Visit</span>
+          </a>}
         </div>
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"340px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"280px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           <div className={"done-wrap"+(isAtticMode?" done-wrap-attic":"")} style={{padding:"14px 14px 10px",overflowY:"auto"}}>
             {/* Collapsed to one line once pricing is engaged - the full
                 header+grid below is what was pushing the sizing questions'
@@ -3478,17 +3484,19 @@ function App(){
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
             {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:8,padding:"14px",fontSize:14}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>💰 Get Pricing</button>}
+            {/* Schedule Visit lives as a canvas overlay in attic mode (see
+                above) instead of a grid cell here - one less row to fit,
+                which is what actually lets the review panel shrink. Closet
+                mode has no such overlay room, so it keeps its own cell. */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              <a href="tel:5124894653" className="done-cta" style={{margin:0}}>
+              {!isAtticMode&&<a href="tel:5124894653" className="done-cta" style={{margin:0}}>
                 <span style={{display:"block"}}>📞 Schedule Visit</span>
                 <span style={{display:"block",fontSize:"11px",opacity:.85,marginTop:2}}>512-489-4653</span>
-              </a>
+              </a>}
               <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
               <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
-            </div>
-            <div style={{display:"flex",gap:8,width:"100%"}}>
-              <button className="btn-back" style={{flex:1,padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
-              <button className="done-restart" style={{flex:1,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.18)",color:"rgba(255,255,255,.6)",fontFamily:"var(--fb)",fontSize:"12px",cursor:"pointer",padding:"10px",outline:"none",borderRadius:0}} onClick={restart}>Start Over</button>
+              <button className="btn-back" style={{width:"100%",padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
+              <button className="done-restart" style={{width:"100%",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.18)",color:"rgba(255,255,255,.6)",fontFamily:"var(--fb)",fontSize:"12px",cursor:"pointer",padding:"10px",outline:"none",borderRadius:0}} onClick={restart}>Start Over</button>
             </div>
           </div>
         </div>
