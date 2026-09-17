@@ -116,8 +116,6 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 @keyframes rainFall{0%{transform:translateY(-6px);opacity:0}20%{opacity:.85}80%{opacity:.85}100%{transform:translateY(20px);opacity:0}}
 .snow-flake{animation:snowFall 3.4s linear infinite}
 @keyframes snowFall{0%{transform:translate(0,-6px);opacity:0}12%{opacity:.9}88%{opacity:.9}100%{transform:translate(10px,26px);opacity:0}}
-.steam-wisp{animation:steamRise 2.6s ease-in infinite}
-@keyframes steamRise{0%{transform:translateY(0) scaleX(1);opacity:0}20%{opacity:.5}70%{opacity:.25}100%{transform:translateY(-22px) scaleX(1.4);opacity:0}}
 /* Selecting an option is the single most-repeated gesture in the whole
    build - give it a tactile settle instead of an instant flat color swap. */
 @keyframes selectPop{0%{transform:scale(1)}40%{transform:scale(1.035)}70%{transform:scale(.985)}100%{transform:scale(1)}}
@@ -1364,11 +1362,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <ellipse key={'snow'+i} cx={wallX+(i+0.5)*(zoneW/12)} cy={groundY-2+((i%3)-1)} rx={zoneW/12*0.55} ry="3.2"
             fill="rgba(240,246,255,.38)"/>
         ))}
-        {Array.from({length:9},(_,i)=>(
-          <circle key={'flake'+i} className="snow-flake"
-            cx={wallX+zoneW*0.08+(i*zoneW*0.85/9)} cy={zoneH*0.16+(i%4)*14} r={i%3===0?2.2:1.5}
-            fill="rgba(255,255,255,.85)" style={{animationDelay:(i*0.35)+'s',transformOrigin:'center'}}/>
-        ))}
+        {Array.from({length:32},(_,i)=>{
+          const col=i%8, row=Math.floor(i/8);
+          return <circle key={'flake'+i} className="snow-flake"
+            cx={wallX+zoneW*0.05+col*(zoneW*0.9/7)} cy={zoneH*0.14+row*((groundY-zoneH*0.14-16)/3)} r={i%3===0?2.2:1.5}
+            fill="rgba(255,255,255,.85)" style={{animationDelay:(i*0.22)+'s',transformOrigin:'center'}}/>;
+        })}
       </g>
 
       {/* ── SUN - cool mode. Sits over the condenser (the actual "outside"
@@ -1392,17 +1391,6 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         })}
       </g>
 
-      {/* ── HEAT SHIMMER - 96° cool-mode day, steam-like wisps rising off
-           the hot condenser cabinet. Same fade-with-mode treatment as the
-           sun/cloud/snow above. ── */}
-      <g style={{opacity:!heatMode?1:0,transition:'opacity .8s ease'}}>
-        {Array.from({length:3},(_,i)=>(
-          <path key={'wisp'+i} className="steam-wisp"
-            d={`M${condX+condW*(0.25+i*0.25)} ${condY} q-4,-10 0,-18 q4,-8 0,-16`}
-            fill="none" stroke="rgba(255,255,255,.45)" strokeWidth="1.6" strokeLinecap="round"
-            style={{animationDelay:(i*0.7)+'s'}}/>
-        ))}
-      </g>
 
       {/* ── CLOUD + RAIN - dual-fuel heat pump mode (52°, mild enough the
            compressor still runs) - overcast rather than sunny or snowed in,
@@ -1416,13 +1404,14 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <line key={'rain'+i} x1={wallX+zoneW*0.25-11+i*9} y1={zoneH*0.075+29} x2={wallX+zoneW*0.25-14+i*9} y2={zoneH*0.075+37}
             stroke="#7ab8e0" strokeWidth="1.5" strokeLinecap="round"/>
         ))}
-        {Array.from({length:9},(_,i)=>(
-          <line key={'drop'+i} className="rain-drop"
-            x1={wallX+zoneW*0.08+(i*zoneW*0.85/9)} y1={zoneH*0.16+(i%4)*14}
-            x2={wallX+zoneW*0.08+(i*zoneW*0.85/9)-2} y2={zoneH*0.16+(i%4)*14+7}
+        {Array.from({length:34},(_,i)=>{
+          const col=i%8, row=Math.floor(i/8);
+          const px=wallX+zoneW*0.05+col*(zoneW*0.9/7), py=zoneH*0.14+row*((groundY-zoneH*0.14-16)/3.2);
+          return <line key={'drop'+i} className="rain-drop"
+            x1={px} y1={py} x2={px-2} y2={py+7}
             stroke="#7ab8e0" strokeWidth="1.3" strokeLinecap="round"
-            style={{animationDelay:(i*0.11)+'s'}}/>
-        ))}
+            style={{animationDelay:(i*0.06)+'s'}}/>;
+        })}
       </g>
 
       {/* ── CONCRETE PAD - under condenser ── */}
@@ -1778,22 +1767,24 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // ratio kills the letterboxing gutters, but the on-screen scale of
     // everything is still governed by frameHeight/VH alone, which a wider
     // (not taller) window never changes. To make widening actually zoom
-    // in, shrink VH itself as the frame's aspect grows past the design's
-    // native ~2.2:1 - equipment stays the same fixed real-world size, so
-    // it fills more of a smaller VH. The room this borrows from is the
-    // generous headroom above the equipment in the attic band (ATTIC_H is
-    // ~3x taller than the tallest unit needs) - DECK_Y stays VH-LIVING_SPACE,
-    // so the living-space band keeps its full height regardless of how
-    // far this zooms in.
+    // in a little, shrink VH itself as the frame's aspect grows past the
+    // design's native ~2.2:1 - equipment stays the same fixed real-world
+    // size, so it fills more of a smaller VH. The room this borrows from
+    // is the generous headroom above the equipment in the attic band
+    // (ATTIC_H is ~3x taller than the tallest unit needs) - DECK_Y stays
+    // VH-LIVING_SPACE, so the living-space band keeps its full height.
+    // Both the zoom and the width-matching are capped well short of a
+    // full fill on a very wide screen now - taken further, the house
+    // interior's fixed-size equipment ends up scattered across a mostly
+    // empty middle instead of reading as a single grouped diagram. Past
+    // the cap, xMaxYMid below leaves the leftover room as a margin on the
+    // left rather than growing the gap between the equipment and the
+    // outside wall any further.
     const frameAspect=frameBox&&frameBox.h>0?frameBox.w/frameBox.h:BASE_ASPECT;
     const ZOOM_T=Math.max(0,Math.min(1,(frameAspect-BASE_ASPECT)/(BASE_ASPECT*0.6)));
-    const VH=Math.round(BASE_VH*(1-ZOOM_T*0.19));
-    // Widen the viewBox to match the frame's aspect ratio (capped at 1.6x
-    // the base design width so an ultrawide monitor doesn't stretch the
-    // outside/condenser zone into something absurd) - never narrower than
-    // the base width, which the fixed-inch component sizes below assume.
+    const VH=Math.round(BASE_VH*(1-ZOOM_T*0.1));
     const FRAME_ASPECT_VW=frameBox&&frameBox.h>0?Math.round(VH*frameAspect):BASE_VW;
-    const VW=Math.max(BASE_VW,Math.min(FRAME_ASPECT_VW,Math.round(BASE_VW*1.6)));
+    const VW=Math.max(BASE_VW,Math.min(FRAME_ASPECT_VW,Math.round(BASE_VW*1.2)));
 
     // 2/3 house when condenser selected, full width otherwise
     const HOUSE_W=hasCond ? Math.round(VW*(2/3)) : VW-12;
@@ -1872,7 +1863,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     return(
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}}/>}
-        <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
+        <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMaxYMid meet" className="canvas-svg" aria-hidden="true">
           <Defs/>
 
           {/* Full canvas background */}
@@ -1922,7 +1913,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   fill="rgba(234,238,246,.16)" stroke="rgba(234,238,246,.22)" strokeWidth=".5"
                   transform={`rotate(${ang},${sx},${sy+7})`}/>;
               })}
-              <text x="8" y={EAVE_Y+14} fill="rgba(232,236,246,.5)" fontSize="7.5" fontFamily="monospace">SPRAY FOAM - SEALED ATTIC</text>
+              <text x={RIDGE_X} y={RIDGE_Y+24} textAnchor="middle" fill="rgba(232,236,246,.5)" fontSize="7.5" fontFamily="monospace">SPRAY FOAM - SEALED ATTIC</text>
             </g>
             :<g>
               <rect x="0" y={DECK_Y-22} width={HOUSE_W} height={24} fill="rgba(255,130,170,.18)" stroke="rgba(255,140,180,.08)" strokeWidth="0.5"/>
@@ -1930,7 +1921,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-7} rx={11} ry={8}
                   fill="rgba(255,182,193,.17)" stroke="rgba(255,182,193,.2)" strokeWidth=".45"/>
               ))}
-              <text x="8" y={EAVE_Y+14} fill="rgba(255,182,193,.55)" fontSize="7.5" fontFamily="monospace">FIBERGLASS INSULATION</text>
+              <text x={RIDGE_X} y={RIDGE_Y+24} textAnchor="middle" fill="rgba(255,182,193,.55)" fontSize="7.5" fontFamily="monospace">FIBERGLASS INSULATION</text>
             </g>
           )}
 
