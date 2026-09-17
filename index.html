@@ -1814,9 +1814,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     let SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?240:a.plenum==='none'?130:0;
     const SUP_PLEN_H=UNIT_H;
 
-    // Center system in house zone when no condenser
+    // Center the equipment run in the house zone - used to pin it to a
+    // fixed 30px margin whenever a condenser was selected, leaving all the
+    // leftover width as one gap between the plenum and the outside wall.
+    // Centering (same formula already used with no condenser) splits that
+    // gap evenly on both sides instead.
     const totalW=RET_PLEN_W+(APR_W?APR_W+2:0)+FURN_W+(hasFurnace?ACOIL_W+4:AH_W)+SUP_PLEN_W;
-    const MARGIN_L=hasCond?30:Math.max(20,Math.round((HOUSE_W-totalW)/2));
+    const MARGIN_L=Math.max(20,Math.round((HOUSE_W-totalW)/2));
     const RET_X=MARGIN_L;
     // Return plenum stays directly against the filter rack/furnace - the
     // thermostat lives in the living-space band below instead, so it never
