@@ -279,11 +279,11 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
    header used to occupy (64px mobile / 84px desktop) - adjust to match
    the real site header's actual height if it differs. */
 .site-header-spacer{position:fixed;top:0;left:0;right:0;height:64px;z-index:50;background:var(--bk);border-bottom:1px solid rgba(215,183,64,.2);box-sizing:border-box}
-@media(min-width:641px){.site-header-spacer{height:84px}}
+@media(min-width:641px){.site-header-spacer{height:42px}}
 
 /* ── ADAPTIVE LAYOUT ── */
 .app-root{position:fixed;top:64px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
-@media(min-width:641px){.app-root{top:84px}}
+@media(min-width:641px){.app-root{top:42px}}
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
 .splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
