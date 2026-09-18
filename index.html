@@ -233,6 +233,11 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .opt-badge{display:inline-block;background:var(--gh);color:var(--bk);font-size:var(--fs-opt-badge);font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .opt-check{width:21px;height:21px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;margin-top:2px;transition:all .15s}
 .opt.sel .opt-check{border-color:var(--gl);background:var(--gm);color:var(--bk)}
+/* A single-select step's indicator gets the "radio" class in the JSX
+   (mirrors .attic-chk.radio on the attic layout) but nothing here ever
+   made it round - every closet-mode option looked like a checkbox
+   regardless of whether picking it replaced or added to the answer. */
+.opt-check.radio{border-radius:50%}
 
 /* NAV */
 .nav-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--panel);position:sticky;bottom:0}
@@ -287,7 +292,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
 .splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
-.splash-sub{font-family:var(--fm);font-size:13px;color:rgba(215,183,64,.65);letter-spacing:.22em;margin-top:-8px}
+.splash-sub{font-family:var(--fm);font-size:13px;color:rgba(215,183,64,.65);letter-spacing:.22em;margin-top:-8px;text-align:center}
 .trust-line{font-family:var(--fb);font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.02em;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .trust-line strong{color:rgba(215,183,64,.75);font-weight:600}
 .trust-dot{color:rgba(255,255,255,.2)}
@@ -313,7 +318,13 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .attic-opt-label{font-family:var(--ft);font-size:var(--fs-attic-label);font-weight:600;color:var(--wh);line-height:1.25}
 .attic-opt.sel .attic-opt-label{color:var(--gl)}
 .attic-opt-desc{font-size:var(--fs-attic-desc);color:var(--dim);line-height:1.4;flex:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
-.attic-step-label{font-family:var(--fm);font-size:var(--fs-attic-steplabel);color:rgba(215,183,64,.72);letter-spacing:.1em;flex:1;transition:font-size .2s}
+/* Fixed-height row (.attic-bar-top, 22px) with no overflow:hidden of its
+   own - a step whose question is long enough to wrap this to 2 lines
+   doesn't get pushed to a taller row, it visually spills down and
+   overlaps the step title and Back button painted right below it. This
+   is worse than losing the tail of a redundant label: the full question
+   is already shown as its own heading right underneath. */
+.attic-step-label{font-family:var(--fm);font-size:var(--fs-attic-steplabel);color:rgba(215,183,64,.72);letter-spacing:.1em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:font-size .2s}
 .attic-opt-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:2px}
 .attic-chk{width:18px;height:18px;border:1.5px solid rgba(215,183,64,.35);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent}
 .attic-opt.sel .attic-chk{border-color:var(--gl);background:var(--gm);color:var(--bk)}
@@ -3248,6 +3259,16 @@ function App(){
 
   const [showInfo,setShowInfo]=React.useState(false);
   React.useEffect(()=>setShowInfo(false),[stepIdx]);
+  // On the mobile attic layout, .attic-bar-body is its own scrollable
+  // region below the fixed-height eyebrow row (.attic-bar-top, which
+  // isn't part of that scroll area). A step with enough option text to
+  // need scrolling there leaves it scrolled down; advancing to the next
+  // step never reset that, so the new step rendered shifted up under the
+  // eyebrow row and back button, overlapping both. scrollTop() above
+  // only resets the outer page scroll, not this nested one.
+  React.useEffect(()=>{
+    document.querySelector('.attic-bar-body')?.scrollTo(0,0);
+  },[stepIdx]);
 
   const INFO_TEXT={
     location:"Your indoor unit location sets the whole system layout. Attic is the most common in Austin -- the unit sits horizontally above the living space. Closet is upflow -- the unit stands vertically in a hallway or utility closet. Both work great; closet installs are slightly easier to service.",
@@ -3534,7 +3555,7 @@ function App(){
                 // noticeably larger without ever needing to scroll.
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:isAtticMode?2:3,padding:isAtticMode?"5px 34px 5px 10px":"8px 44px 8px 12px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
                   <span style={{color:"rgba(215,183,64,.6)",fontFamily:"monospace",fontSize:isAtticMode?"9px":"11px",letterSpacing:".03em"}}>{item.label}</span>
-                  <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fb)",fontSize:isAtticMode?"11px":"14px",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
+                  <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fb)",fontSize:isAtticMode?"11px":"14px",lineHeight:1.3,...(isAtticMode?{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}:{overflow:"visible",whiteSpace:"normal"})}} title={item.val}>{item.val}</span>
                   <button onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:isAtticMode?6:10,right:isAtticMode?6:10,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:isAtticMode?"8.5px":"10px",padding:isAtticMode?"2px 5px":"3px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                 </div>
               ):null)}
@@ -3708,8 +3729,8 @@ function App(){
                 the phone number now, not here - one less row to fit, which
                 is what actually lets the review panel shrink. */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
-              <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"10px",padding:"8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
+              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"12px",padding:"8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
+              <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"12px",padding:"8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
               <button className="btn-back" style={{width:"100%",padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
               <button className="done-restart" style={{width:"100%",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.18)",color:"rgba(255,255,255,.6)",fontFamily:"var(--fb)",fontSize:"12px",cursor:"pointer",padding:"10px",outline:"none",borderRadius:0}} onClick={restart}>Start Over</button>
             </div>
