@@ -650,6 +650,14 @@ function ervCfmKey(sqft){
 const roundTo25=price=>Math.round(price/25)*25;
 function systemTypeKey(answers){
   if(answers.indoor_type==='ah')return'heat_pump_ah';
+  // Mid efficiency has no straight_cool pricing at all - furnace + mid_ge15
+  // is always dual fuel (the wizard hides the question and forces this),
+  // so honor that directly here too rather than trusting system_for to
+  // always have been kept in sync through every path that can reach this
+  // combination - the one time it wasn't (indoor_type edited from air
+  // handler to furnace after mid_ge15 was already picked) silently broke
+  // the estimate instead of showing a wrong-but-plausible number.
+  if(answers.cond_tier==='mid_ge15')return'dual_fuel';
   return answers.system_for==='hp'?'dual_fuel':'straight_cool';
 }
 // Fires a "build completed" conversion event through whatever site-wide GA4 /
@@ -2794,7 +2802,17 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   fill={active?evapC:(G+'.35)')} fontSize="7" fontFamily="monospace">
                   {hasFurnace?"A-COIL":"AIR HANDLER"}
                 </text>
-                <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H+APR_H+27} textAnchor="middle"
+                {/* ACOIL_H means two different things here: a small coil-only
+                    height for furnace systems (this status line sits below
+                    it, in the gap before the furnace box), or the entire
+                    air handler's height when there's no furnace box at all.
+                    Reusing the furnace offset for that case put this well
+                    past the filtration cabinet below the unit, into
+                    whatever happened to be drawn next (the return air
+                    chase) - anchor to the AH box's own top instead, in the
+                    empty space below its "AIR HANDLER" title and above the
+                    blower graphic. */}
+                <text x={UNIT_X+UNIT_W/2} y={hasFurnace?(ACOIL_Y+ACOIL_H+APR_H+27):(ACOIL_Y+20)} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):(auxHeatActive?'rgba(249,115,22,.65)':'rgba(255,255,255,.14)')} fontSize="7.5" fontFamily="monospace">
                   {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
                 </text>
@@ -3211,6 +3229,19 @@ function App(){
       // instead of quietly keeping whatever the old tier left behind.
       if(v==='mid_ge15'&&p.indoor_type==='furnace') next.system_for='hp';
       else delete next.system_for;
+    }
+    // Same forced-dual-fuel rule as above, from the other direction: editing
+    // indoor_type from air handler to furnace while cond_tier is already
+    // mid_ge15 hits the same "only one option" case, but the system_for
+    // step stays hidden either way (its showIf excludes mid_ge15
+    // entirely) - so without this, system_for is left undefined and
+    // calcEstimate has no mid_ge15.straight_cool pricing to fall back on,
+    // silently breaking the estimate. Air handlers have no furnace to
+    // pair with, so clear a leftover value there instead of leaving a
+    // stale "Heat source" row in the review grid.
+    if(k==='indoor_type'){
+      if(v==='furnace'&&p.cond_tier==='mid_ge15') next.system_for='hp';
+      else if(v==='ah') delete next.system_for;
     }
     return next;
   });
