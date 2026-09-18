@@ -2506,20 +2506,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // ══════════════════════════════════════════════════════════
   if(isCloset){
     const BASE_VW=1000, VH=820;
-    // The house side's stack is fixed real-world equipment that never
-    // needs extra room, so it stays anchored to BASE_VW's 3/5 share.
-    // VW itself, though, used to be a flat 1000 regardless of the actual
-    // container shape - on a wide screen (this whole layout is much
-    // taller/narrower than the attic one, 1000:820 vs 1280:510) the
-    // default "meet" scaling then fits by height and pillarboxes hard,
-    // wasting most of the width as empty side gutters instead of giving
-    // it to the outside zone. Matching VW to the frame's aspect (same
-    // approach as the attic canvas's FRAME_ASPECT_VW) kills the gutters
-    // and hands all the reclaimed width straight to OUTSIDE_ZONE_W below,
-    // since HOUSE_W stays pinned to its fixed share of BASE_VW - the
-    // condenser scene gets the room the user asked for without the house
-    // stack changing size at all. Capped at 1.4x so an ultrawide screen
-    // doesn't blow the condenser up disproportionately.
+    // VW used to be a flat 1000 regardless of the actual container shape -
+    // on a wide screen (this whole layout is much taller/narrower than the
+    // attic one, 1000:820 vs 1280:510) the default "meet" scaling then fits
+    // by height and pillarboxes hard, wasting most of the width as empty
+    // side gutters. Matching VW to the frame's aspect (same approach as the
+    // attic canvas's FRAME_ASPECT_VW) kills the gutters. Capped at 1.4x so
+    // an ultrawide screen doesn't run away with it.
     const BASE_ASPECT=BASE_VW/VH;
     const frameAspect=frameBox&&frameBox.h>0?frameBox.w/frameBox.h:BASE_ASPECT;
     const FRAME_ASPECT_VW=frameBox&&frameBox.h>0?Math.round(VH*frameAspect):BASE_VW;
@@ -2533,13 +2526,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const COIL_H=Math.round(24*SCALE);
     const AH_H=Math.round(54*SCALE);
 
-    // 3/5 of BASE_VW when condenser, full width otherwise. Was 2/3:1/3 -
-    // the house side's equipment stack is a fixed real-world size that
-    // never needs the extra room, while the outside zone holds the
-    // condenser (scaled to fill most of whatever width it's given below)
-    // - so a narrower, fixed house share directly means a bigger, less
-    // cramped condenser instead of both sides growing together.
-    const HOUSE_W=hasCond?Math.round(BASE_VW*(3/5)):VW-12;
+    // 3/5 house when condenser, full width otherwise - same 3:2 split as
+    // before, but now taken as a share of the dynamic VW so both the house
+    // (more attic/room around the same fixed-size equipment) and the
+    // outside zone (more yard around the same fixed-size condenser) grow
+    // together on a wider frame, instead of every reclaimed pixel going
+    // to just one side.
+    const HOUSE_W=hasCond?Math.round(VW*(3/5)):VW-12;
     const OUTSIDE_ZONE_W=hasCond?VW-HOUSE_W:0;
 
     // Center unit in house zone before condenser, shift left after
