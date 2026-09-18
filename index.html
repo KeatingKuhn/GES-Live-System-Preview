@@ -802,7 +802,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       fill={G+'.06)'} stroke={G+'.95)'} strokeWidth="2.5" filter="url(#glow-sm)"/>
   </g>;
   const [heatMode,setHeatMode]=React.useState(false);
-  const [heatSubMode,setHeatSubMode]=React.useState('hp'); // 'hp' or 'furnace' for dual fuel
+  const [heatSubMode,setHeatSubMode]=React.useState('hp'); // 'hp'/'furnace' for dual fuel, 'hp'/'aux' for a heat-pump-only air handler
   // The attic diagram's viewBox width adapts to the frame's actual aspect
   // ratio so it fills wide frames instead of "meet"-scaling to height and
   // leaving dead space on both sides. VH (and everything inches-scaled off
@@ -852,10 +852,14 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const isLowAmbientHP=a.cond_tier==='mid_ge15';
   const furnaceHeatActive=heatMode&&hasFurnace&&(!isDualFuel||heatSubMode==='furnace');
   const furnaceActive=furnaceHeatActive;
-  // Air handlers (heat pump only, no gas backup) only have one heat setting
-  // in this preview - 28°F - so treat that single mode as the cold-weather
-  // case a standard heat pump can't handle on its own.
-  const hpLockedOut=!hasFurnace&&heatMode&&!isLowAmbientHP;
+  // Air handlers (heat pump only, no gas backup) get the same HEAT
+  // PUMP/AUX HEAT split dual fuel gets for HEAT PUMP/FURNACE - only
+  // reached when the user actually clicks into the cold/aux sub-mode,
+  // same as dual fuel's furnace sub-mode isn't the default either. A
+  // standard heat pump (fed min, high efficiency) locks its compressor
+  // out down there, leaving aux/emergency electric heat to carry the
+  // full load alone; low-ambient (mid tier) doesn't lock out at all.
+  const hpLockedOut=!hasFurnace&&heatMode&&!isLowAmbientHP&&heatSubMode==='aux';
   const evapActive=!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut));
   const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut)));
   const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
@@ -872,8 +876,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // comfortable at a higher temp), and a lower indoor reading as the
   // outdoor temp drops and the system has to work harder to hold it - full
   // heat pump performance at 52°F outdoor, straining (aux heat/furnace
-  // takeover) at 28°F.
-  const thermostatTemp=!heatMode?(hasDehu?76:74):((isDualFuel&&heatSubMode==='hp')?70:67);
+  // takeover) at 28°F. Same split for a heat-pump-only air handler as for
+  // dual fuel; a straight-cool system (furnace-only heating, no heat pump
+  // at all) has no "efficient" state to show, so it always reads 67°.
+  const thermostatTemp=!heatMode?(hasDehu?76:74):(((isDualFuel||!hasFurnace)&&heatSubMode==='hp')?70:67);
 
   // Refrigerant colors - physically correct
   const evapC  = refReversed ? '#ef4444' : '#2389e0'; // evap: red=HP heat, blue=cool
@@ -1859,6 +1865,29 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <span>FURNACE</span>
             <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.3}}>28°</span>
             <span style={{fontSize:'7.5px',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.3}}>OUTSIDE TEMP</span>
+          </button>
+        </>
+        :!hasFurnace
+        ?<>
+          <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
+            padding:'8px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'11px',letterSpacing:'.08em',
+            background:heatMode&&heatSubMode==='hp'?'rgba(35,137,224,.18)':'transparent',
+            color:heatMode&&heatSubMode==='hp'?'#5ba8f5':'rgba(255,255,255,.26)',outline:'none',transition:'all .2s',
+            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
+            <span>🔥</span>
+            <span>HEAT PUMP</span>
+            <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.3}}>52°</span>
+            <span style={{fontSize:'7.5px',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.3}}>OUTSIDE TEMP</span>
+          </button>
+          <button onClick={()=>{setHeatMode(true);setHeatSubMode('aux');}} style={{
+            padding:'8px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'11px',letterSpacing:'.08em',
+            background:heatMode&&heatSubMode==='aux'?'rgba(249,115,22,.18)':'transparent',
+            color:heatMode&&heatSubMode==='aux'?'#f97316':'rgba(255,255,255,.26)',outline:'none',transition:'all .2s',
+            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
+            <span>🔥</span>
+            <span>AUX HEAT</span>
+            <span style={{fontSize:'13px',fontWeight:700,opacity:heatMode&&heatSubMode==='aux'?1:0.3}}>28°</span>
+            <span style={{fontSize:'7.5px',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.3}}>OUTSIDE TEMP</span>
           </button>
         </>
         :<button onClick={()=>setHeatMode(true)} style={{
