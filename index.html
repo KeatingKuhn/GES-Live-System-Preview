@@ -268,14 +268,22 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .done-cta{display:block;width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px;font-family:var(--ft);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:8px;text-decoration:none;text-align:center}
 .done-restart{background:transparent;border:none;color:rgba(255,255,255,.4);font-family:var(--fb);font-size:11px;cursor:pointer;text-decoration:underline;outline:none}
 
+/* ── SITE HEADER SPACER ── */
+/* Blank reserved band at the top - no text/branding (that part was
+   correctly dropped as a duplicate of the splash headline below it).
+   This tool sits in an iframe under the real site's own sticky/fixed
+   header on the live page - without this gap, that real header
+   overlaps and hides the tool's own topmost content once the page is
+   scrolled, since the iframe has no way to know the outer header is
+   there and otherwise starts filling from y=0. Same height the old
+   header used to occupy (64px mobile / 84px desktop) - adjust to match
+   the real site header's actual height if it differs. */
+.site-header-spacer{position:fixed;top:0;left:0;right:0;height:64px;z-index:50;background:var(--bk);border-bottom:1px solid rgba(215,183,64,.2);box-sizing:border-box}
+@media(min-width:641px){.site-header-spacer{height:84px}}
+
 /* ── ADAPTIVE LAYOUT ── */
-/* No site header bar - dropped entirely. It only ever said "Build Your
-   Own System" in small white text, sitting directly above the splash
-   screen's identical headline in big gold letters below it - pure
-   duplication. The real site's own header (in the iframe wrapper on the
-   live page) covers logo/nav/phone/CTA, so this tool starts flush at the
-   very top with no reserved band above it. */
-.app-root{position:fixed;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
+.app-root{position:fixed;top:64px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
+@media(min-width:641px){.app-root{top:84px}}
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
 .splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
@@ -3416,7 +3424,8 @@ function App(){
     </button>;
   };
 
-    return(
+    return(<>
+      <div className="site-header-spacer no-print"/>
     <div ref={topRef} className="app-root">
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
       {resumePending&&<div style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
@@ -3796,7 +3805,7 @@ function App(){
         </div>
       </div>}
     </div>
-  );
+  </>);
 }
 
 
