@@ -424,6 +424,36 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   .attic-bar-top .btn-skip{display:none}
   .step-hint{display:none}
 }
+
+/* PRINT - "Save / Print" only ever fires from the done screen's review/
+   pricing panel, but that panel is built to be a fixed-height, internally
+   scrolling box inside a position:fixed app shell - correct for an
+   on-screen single-viewport app, but it meant window.print() only ever
+   captured whatever currently fit inside that scroll box. Anything below
+   the fold (the tail of a long line-item list, or the entire "Additional
+   Considerations" panel on a build with enough add-ons) was silently
+   absent from the printed page, not just visually clipped - there was no
+   second page it flowed onto. Un-fixing the chain of position:fixed/
+   absolute/overflow:hidden ancestors down to the sidebar lets its real
+   content height flow into the printed document and paginate normally.
+   The live diagram and every button that only makes sense on-screen
+   (nav, EDIT, mode toggles, Get Pricing, Financing, Start Over) are
+   dropped - nobody needs a page of clipped SVG or dead buttons, and the
+   numbers are what a customer actually wants on paper. */
+@media print{
+  html,body{height:auto!important}
+  .site-header,.app-root,.done-screen,.sidebar,.done-wrap{
+    display:block!important;position:static!important;overflow:visible!important;
+    height:auto!important;max-height:none!important;width:100%!important;
+  }
+  .splash-screen,.attic-layout,.closet-layout,.canvas-frame{display:none!important}
+  .sidebar{border:none!important}
+  .done-wrap{animation:none!important}
+  .btn-back,.btn-next,.btn-skip,.info-btn,.done-restart,.no-print{display:none!important}
+  body,.done-wrap{color:#000!important;background:#fff!important}
+  .done-wrap *{color:#000!important;border-color:#999!important}
+  .done-title,.opt-label{color:#000!important}
+}
 </style>
 </head>
 <body>
@@ -3546,7 +3576,7 @@ function App(){
           {isAtticMode&&(pricingFlow?
             <div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.7)",padding:"5px 9px"}}>
               <span style={{fontSize:11,color:"rgba(255,255,255,.75)"}}>✓ Your system is built</span>
-              <button onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
+              <button className="no-print" onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
             </div>
             :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.55)",padding:"5px 9px 5px 6px"}}>
               <div className="done-icon" style={{margin:0,width:24,height:24,fontSize:12,flexShrink:0}}>✓</div>
@@ -3571,7 +3601,7 @@ function App(){
             {pricingFlow?
               <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
                 <span style={{fontSize:12,color:"rgba(255,255,255,.7)"}}>✓ Your system is built</span>
-                <button onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
+                <button className="no-print" onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
               </div>
             :<>
             <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
@@ -3603,7 +3633,7 @@ function App(){
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:isAtticMode?2:3,padding:isAtticMode?"5px 34px 5px 10px":"8px 44px 8px 12px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
                   <span style={{color:"rgba(215,183,64,.6)",fontFamily:"monospace",fontSize:isAtticMode?"9px":"11px",letterSpacing:".03em"}}>{item.label}</span>
                   <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fb)",fontSize:isAtticMode?"11px":"14px",lineHeight:1.3,...(isAtticMode?{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}:{overflow:"visible",whiteSpace:"normal"})}} title={item.val}>{item.val}</span>
-                  <button onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:isAtticMode?6:10,right:isAtticMode?6:10,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:isAtticMode?"8.5px":"10px",padding:isAtticMode?"2px 5px":"3px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                  <button className="no-print" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:isAtticMode?6:10,right:isAtticMode?6:10,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:isAtticMode?"8.5px":"10px",padding:isAtticMode?"2px 5px":"3px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                 </div>
               ):null)}
             </div>
@@ -3775,7 +3805,7 @@ function App(){
             {/* Schedule Visit lives in the persistent site header next to
                 the phone number now, not here - one less row to fit, which
                 is what actually lets the review panel shrink. */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
+            <div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
               <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"12px",padding:"8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
               <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"12px",padding:"8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
               <button className="btn-back" style={{width:"100%",padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
