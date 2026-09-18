@@ -2565,22 +2565,23 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const LS_Y1=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.30):ACOIL_Y+Math.round(ACOIL_H*0.88);
     const LS_Y2=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.48):ACOIL_Y+Math.round(ACOIL_H*0.92);
 
-    // Condenser - same real-world proportions, scaled to fill ~70% of outside zone
-    const PX=3.2;
+    // Condenser - real-world size, fixed regardless of canvas/zone width.
+    // This used to rescale to fill 80% of the outside zone, which meant
+    // widening the zone (see the OUTSIDE_ZONE_W fix above) widened the
+    // condenser right along with it - the exact bug the attic canvas
+    // already hit and fixed the same way (see its COND_SIZES). A wider
+    // zone now just shows more open yard around the same-sized unit.
+    // Same px/inch as the furnace/coil stack above (SCALE) so it reads at
+    // the same real-world scale as the rest of the equipment.
+    const PX_C=SCALE;
     const CU_SIZES={
-      fedmin:   {w:Math.round(22*PX), h:Math.round(28*PX)},
-      mid_ge15: {w:Math.round(36*PX), h:Math.round(22*PX)},
-      // Eased back from a real ~50in - see attic canvas's COND_SIZES for why.
-      high_ge18:{w:Math.round(36*PX), h:Math.round(40*PX)},
-      premium:  {w:Math.round(36*PX), h:Math.round(40*PX)},
+      fedmin:   {w:Math.round(30*PX_C), h:Math.round(28*PX_C)},
+      mid_ge15: {w:Math.round(36*PX_C), h:Math.round(22*PX_C)},
+      high_ge18:{w:Math.round(40*PX_C), h:Math.round(40*PX_C)},
     };
     const CU=CU_SIZES[a.cond_tier]||CU_SIZES.fedmin;
-    // Scale by the widest tier so cabinets keep their real relative size (see attic canvas for why)
-    const ZONE_COND_W=Math.round(OUTSIDE_ZONE_W*0.80);
-    const MAX_CU_W=Math.max(...Object.values(CU_SIZES).map(s=>s.w));
-    const C_SCALE=hasCond&&OUTSIDE_ZONE_W>0?(ZONE_COND_W/(MAX_CU_W||1)):1;
-    const COND_W=Math.round(CU.w*C_SCALE);
-    const COND_H=Math.round(CU.h*C_SCALE);
+    const COND_W=CU.w;
+    const COND_H=CU.h;
     const EXT_WALL_X=HOUSE_W;
     const WALL_THICK=18;
     const DISC_ZONE=52;
