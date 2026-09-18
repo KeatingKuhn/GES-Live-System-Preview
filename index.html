@@ -268,20 +268,14 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .done-cta{display:block;width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px;font-family:var(--ft);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:8px;text-decoration:none;text-align:center}
 .done-restart{background:transparent;border:none;color:rgba(255,255,255,.4);font-family:var(--fb);font-size:11px;cursor:pointer;text-decoration:underline;outline:none}
 
-/* ── SITE HEADER — minimal in-tool title bar. The real Gold Eagle branding
-   (logo, phone, Schedule Visit CTA) lives in the actual site's own header,
-   which sits above this in an iframe on the live page - repeating it here
-   would just double it up, so this is only the tool's own name. ── */
-.site-header{position:fixed;top:0;left:0;right:0;height:64px;z-index:50;display:flex;align-items:center;justify-content:center;padding:0 14px;background:#0d0d0d;border-bottom:1px solid rgba(215,183,64,.2);box-sizing:border-box}
-.site-header-title{font-family:var(--ft);font-weight:600;font-size:15px;color:rgba(255,255,255,.85);letter-spacing:.04em}
-@media(min-width:641px){
-  .site-header{height:84px;padding:0 24px}
-  .site-header-title{font-size:19px}
-}
-
 /* ── ADAPTIVE LAYOUT ── */
-.app-root{position:fixed;top:64px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
-@media(min-width:641px){.app-root{top:84px}}
+/* No site header bar - dropped entirely. It only ever said "Build Your
+   Own System" in small white text, sitting directly above the splash
+   screen's identical headline in big gold letters below it - pure
+   duplication. The real site's own header (in the iframe wrapper on the
+   live page) covers logo/nav/phone/CTA, so this tool starts flush at the
+   very top with no reserved band above it. */
+.app-root{position:fixed;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
 .splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
@@ -423,7 +417,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
    numbers are what a customer actually wants on paper. */
 @media print{
   html,body{height:auto!important}
-  .site-header,.app-root,.done-screen,.sidebar,.done-wrap{
+  .app-root,.done-screen,.sidebar,.done-wrap{
     display:block!important;position:static!important;overflow:visible!important;
     height:auto!important;max-height:none!important;width:100%!important;
   }
@@ -3422,13 +3416,7 @@ function App(){
     </button>;
   };
 
-    return(<>
-      {/* ── SITE HEADER — minimal title only. This tool lives in an iframe on
-           a real goldeagleservices.com page, which already has the actual
-           site header (logo/nav/phone/CTA) above it - no need to repeat it. ── */}
-      <header className="site-header">
-        <span className="site-header-title">Build Your Own System</span>
-      </header>
+    return(
     <div ref={topRef} className="app-root">
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
       {resumePending&&<div style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
@@ -3468,14 +3456,12 @@ function App(){
         <p style={{fontFamily:"var(--fm)",fontSize:"13px",color:"rgba(215,183,64,.55)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>SELECT YOUR SYSTEM LOCATION TO BEGIN</p>
         <div className="splash-cards">
           <div className="splash-card" onClick={()=>{setA("location","attic");setStepIdx(1);}}>
-            <div style={{fontSize:36,lineHeight:1,flexShrink:0}}>A</div>
             <div style={{display:"flex",flexDirection:"column",gap:4}}>
               <div className="splash-card-title">Attic Horizontal</div>
               <div className="splash-card-desc">Unit lays on its side above the ceiling - most common in Austin. Air flows horizontally through ducts in the attic.</div>
             </div>
           </div>
           <div className="splash-card" onClick={()=>{setA("location","closet");setStepIdx(1);}}>
-            <div style={{fontSize:36,lineHeight:1,flexShrink:0}}>C</div>
             <div style={{display:"flex",flexDirection:"column",gap:4}}>
               <div className="splash-card-title">Closet Upflow</div>
               <div className="splash-card-desc">Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.</div>
@@ -3810,7 +3796,7 @@ function App(){
         </div>
       </div>}
     </div>
-  </>);
+  );
 }
 
 
