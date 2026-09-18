@@ -1895,9 +1895,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // full fill on a very wide screen now - taken further, the house
     // interior's fixed-size equipment ends up scattered across a mostly
     // empty middle instead of reading as a single grouped diagram. Past
-    // the cap, xMaxYMid below leaves the leftover room as a margin on the
-    // left rather than growing the gap between the equipment and the
-    // outside wall any further.
+    // the cap, xMidYMid below splits the leftover room evenly on both
+    // sides instead of growing the gap between the equipment and the
+    // outside wall any further - an off-center diagram reads as broken,
+    // while a small even margin on each side doesn't.
     const frameAspect=frameBox&&frameBox.h>0?frameBox.w/frameBox.h:BASE_ASPECT;
     const ZOOM_T=Math.max(0,Math.min(1,(frameAspect-BASE_ASPECT)/(BASE_ASPECT*0.6)));
     const VH=Math.round(BASE_VH*(1-ZOOM_T*0.1));
@@ -1988,7 +1989,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     return(
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}}/>}
-        <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMaxYMid meet" className="canvas-svg" aria-hidden="true">
+        <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid meet" className="canvas-svg" aria-hidden="true">
           <Defs/>
 
           {/* Full canvas background */}
