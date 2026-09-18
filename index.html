@@ -55,8 +55,17 @@
    never a mouse/touch click, so this restores that without adding a ring
    around every option card someone taps or clicks. */
 button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
-body{background:var(--bk);color:var(--wh);font-family:var(--fb);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.025) 0px,rgba(0,0,0,.025) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:9999}
+/* html/body get a definite height (not just min-height) and body is the
+   positioning context, so the app shell below can use position:absolute
+   instead of position:fixed. Fixed positioning inside an iframe is a
+   long-documented iOS Safari bug (elements can un-stick or jump during
+   scroll of the OUTER page, since Safari handles fixed-position layers
+   inside a nested browsing context differently) - this tool never needs
+   to scroll past its own box regardless, so absolute gives the identical
+   on-screen result without that failure mode. */
+html,body{height:100%}
+body{position:relative;background:var(--bk);color:var(--wh);font-family:var(--fb);overflow:hidden;-webkit-font-smoothing:antialiased}
+body::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.025) 0px,rgba(0,0,0,.025) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:9999}
 
 /* PROGRESS - segmented by chapter (an "act" of the build), not one bare bar */
 .prog-chapters{display:flex;gap:3px;height:4px;padding:0 2px}
@@ -277,11 +286,11 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
    scrolled, since the iframe has no way to know the outer header is
    there and otherwise starts filling from y=0 - adjust to match the
    real site header's actual height if it differs. */
-.site-header-spacer{position:fixed;top:0;left:0;right:0;height:43px;z-index:50;background:var(--bk);border-bottom:1px solid rgba(215,183,64,.2);box-sizing:border-box}
+.site-header-spacer{position:absolute;top:0;left:0;right:0;height:43px;z-index:50;background:var(--bk);border-bottom:1px solid rgba(215,183,64,.2);box-sizing:border-box}
 @media(min-width:641px){.site-header-spacer{height:42px}}
 
 /* ── ADAPTIVE LAYOUT ── */
-.app-root{position:fixed;top:43px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
+.app-root{position:absolute;top:43px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
 @media(min-width:641px){.app-root{top:42px}}
 /* Shrinks everything inside app-root as if the browser itself were
    zoomed to 75% - matches what looked right when tested that way.
@@ -427,21 +436,22 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 
 /* PRINT - "Save / Print" only ever fires from the done screen's review/
    pricing panel, but that panel is built to be a fixed-height, internally
-   scrolling box inside a position:fixed app shell - correct for an
-   on-screen single-viewport app, but it meant window.print() only ever
-   captured whatever currently fit inside that scroll box. Anything below
-   the fold (the tail of a long line-item list, or the entire "Additional
-   Considerations" panel on a build with enough add-ons) was silently
-   absent from the printed page, not just visually clipped - there was no
-   second page it flowed onto. Un-fixing the chain of position:fixed/
-   absolute/overflow:hidden ancestors down to the sidebar lets its real
-   content height flow into the printed document and paginate normally.
+   scrolling box inside a fully-positioned (absolute/fixed) app shell -
+   correct for an on-screen single-viewport app, but it meant
+   window.print() only ever captured whatever currently fit inside that
+   scroll box. Anything below the fold (the tail of a long line-item
+   list, or the entire "Additional Considerations" panel on a build with
+   enough add-ons) was silently absent from the printed page, not just
+   visually clipped - there was no second page it flowed onto. Un-fixing
+   the chain of positioned/overflow:hidden ancestors down to the sidebar
+   lets its real content height flow into the printed document and
+   paginate normally.
    The live diagram and every button that only makes sense on-screen
    (nav, EDIT, mode toggles, Get Pricing, Financing, Start Over) are
    dropped - nobody needs a page of clipped SVG or dead buttons, and the
    numbers are what a customer actually wants on paper. */
 @media print{
-  html,body{height:auto!important}
+  html,body{height:auto!important;overflow:visible!important}
   .app-root,.app-root-zoom,.done-screen,.sidebar,.done-wrap{
     display:block!important;position:static!important;overflow:visible!important;
     height:auto!important;max-height:none!important;width:100%!important;
@@ -889,7 +899,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       <circle cx={cx} cy={cy} r={r+4} fill="rgba(0,0,0,.5)" stroke={G+'.15)'} strokeWidth="0.8"/>
       <circle cx={cx} cy={cy} r={r} fill="#050505" stroke={G+'.3)'} strokeWidth="0.9"/>
       {active
-        ?<g className="spin" style={{transformOrigin:cx+'px '+cy+'px',animationDuration:(1.0/spd)+'s'}}>{blades}</g>
+        ?<g className="spin" style={{transformBox:'fill-box',transformOrigin:'center',animationDuration:(1.0/spd)+'s'}}>{blades}</g>
         :<g>{blades}</g>}
       <circle cx={cx} cy={cy} r={r*0.27} fill="#090909" stroke={G+'.34)'} strokeWidth="0.9"/>
       <circle cx={cx} cy={cy} r={r*0.1} fill="#111" stroke={G+'.42)'} strokeWidth="0.6"/>
@@ -1159,7 +1169,8 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const fanRy=h*0.28;  // keep well inside height
     const spd=active?0.9:0;
     const spinStyle=active?{
-      transformOrigin:'0px 0px',
+      transformBox:'fill-box',
+      transformOrigin:'center',
       animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
     }:{};
     const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
