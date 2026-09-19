@@ -2786,8 +2786,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {hasPlenum&&hasCoil&&<EditZone stepId="plenum"
             x={UNIT_X-2} y={PLEN_TOP-2} w={PLEN_W+4} h={PLEN_TOTAL+4} rx={5}/>}
 
-          {/* Upflow supply ducts - exit plenum sides, run long, drop to ceiling grille */}
-          {hasPlenum&&hasCoil&&a.plenum!=='none'&&<g className="fadein" key="upflow-ducts" style={{animationDelay:'.2s'}}>
+          {/* Upflow supply ducts - exit plenum sides, run long, drop to ceiling grille.
+              Ducts route off the plenum whether the plenum itself is new or
+              existing ("Keep existing" only changes the plenum box's own
+              styling above, not whether the home has downstream ductwork) -
+              same as the attic layout's equivalent block just below, which
+              never had this extra a.plenum!=='none' condition. */}
+          {hasPlenum&&hasCoil&&<g className="fadein" key="upflow-ducts" style={{animationDelay:'.2s'}}>
             {(()=>{
               const DW=13; // duct thickness
               const DC=G+'.30)';
@@ -3716,8 +3721,20 @@ function App(){
             </div>
             <div className="step-q">{cur?cur.q:""}</div>
             {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
-            {reactionText&&<div key={reactionText} className="reaction-line">✓ {reactionText}</div>}
           </div>
+          {/* Deliberately OUTSIDE .step-hdr (unlike the attic layout's
+              equivalent, where reaction-line lives inside .attic-info with
+              no such issue). .step-hdr is position:sticky with its own
+              z-index:10 + solid background so it stays visible while a
+              long option list scrolls underneath it - when reaction-line
+              used to live inside it, picking an answer grew the sticky
+              header by a line, which extended how much of the option list
+              below it that solid sticky box covered, hiding the top
+              options right after the exact moment a homeowner most wants
+              to glance down at the rest of the choices. Sitting after
+              .step-hdr instead, it only pushes .opts down slightly in
+              normal flow - .opts already scrolls independently. */}
+          {reactionText&&<div key={reactionText} className="reaction-line" style={{padding:"4px 18px 0"}}>✓ {reactionText}</div>}
           <div className={"info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
             {infoText&&<div className="info-expand"><div className="info-body">{infoText}</div></div>}
           </div></div>
