@@ -34,7 +34,7 @@
   --fs-opt-compact-label:13px;--fs-opt-compact-desc:11.5px;
   --fs-attic-label:14px;--fs-attic-desc:12px;--fs-attic-steplabel:12px;
   --fs-step-eyebrow:10.5px;--fs-step-q:17px;--fs-step-hint:12.5px;
-  --fs-info-btn:10.5px;--fs-info-body:13px;
+  --fs-info-btn:14px;--fs-info-body:13px;
   --fs-btn-back:13.5px;--fs-btn-next:14.5px;--fs-btn-skip:12.5px;
 }
 @media(min-width:1025px){
@@ -43,7 +43,7 @@
     --fs-opt-compact-label:15.5px;--fs-opt-compact-desc:13.5px;
     --fs-attic-label:17px;--fs-attic-desc:14px;--fs-attic-steplabel:15px;
     --fs-step-eyebrow:12.5px;--fs-step-q:20px;--fs-step-hint:14.5px;
-    --fs-info-btn:12.5px;--fs-info-body:14.5px;
+    --fs-info-btn:16px;--fs-info-body:14.5px;
     --fs-btn-back:15.5px;--fs-btn-next:16.5px;--fs-btn-skip:14px;
   }
 }
@@ -208,8 +208,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.22) 47%,rgba(240,214,78,.4) 50%,rgba(255,255,255,.22) 53%,transparent 65%);
   background-size:280% 100%;background-position:160% 0;animation:powerSweep 1s cubic-bezier(.4,0,.2,1) both}
 @keyframes powerSweep{0%{background-position:160% 0;opacity:0}12%{opacity:1}100%{background-position:-60% 0;opacity:0}}
-.info-btn{width:20px;height:20px;flex-shrink:0;border-radius:50%;border:1px solid rgba(215,183,64,.35);background:transparent;color:rgba(215,183,64,.7);font-family:var(--fm);font-size:var(--fs-info-btn);cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.info-btn:hover{border-color:var(--gl);color:var(--gl)}
+.info-btn{width:28px;height:28px;flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.info-btn:hover{border-color:var(--gl);color:var(--gl);background:rgba(215,183,64,.18)}
 .info-expand{padding:0 18px 10px;flex-shrink:0}
 .info-body{font-size:var(--fs-info-body);color:rgba(255,255,255,.68);line-height:1.6}
 
@@ -333,7 +333,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
 .attic-canvas-area{flex:1;min-height:0;position:relative;overflow:hidden}
 .attic-bar{height:230px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
-.attic-bar-top{height:22px;flex-shrink:0;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:10px}
+/* Back/Next live here (not stacked inside .attic-info below) specifically
+   so they're never subject to .attic-info's overflow:hidden - a long
+   question+hint+reaction stack used to push Back past the fixed-height
+   panel and clip it. Putting real nav buttons on this row means it can no
+   longer stay a fixed 22px; it sizes to its content instead. */
+.attic-bar-top{min-height:42px;flex-shrink:0;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:6px 12px;gap:8px}
+.attic-bar-top .btn-back{padding:7px 14px;flex:0 0 auto}
+.attic-bar-top .btn-next{flex:0 0 auto;width:auto;padding:8px 20px}
 .attic-bar-body{flex:1;display:flex;min-height:0;overflow:hidden}
 .attic-info{width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:13px 18px;display:flex;flex-direction:column;gap:4px;overflow:hidden}
 .attic-scroll{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:stretch;gap:8px;padding:8px 12px;scrollbar-width:none}
@@ -345,18 +352,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .attic-opt-label{font-family:var(--ft);font-size:var(--fs-attic-label);font-weight:600;color:var(--wh);line-height:1.25}
 .attic-opt.sel .attic-opt-label{color:var(--gl)}
 .attic-opt-desc{font-size:var(--fs-attic-desc);color:var(--dim);line-height:1.4;flex:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
-/* Fixed-height row (.attic-bar-top, 22px) with no overflow:hidden of its
-   own - a step whose question is long enough to wrap this to 2 lines
-   doesn't get pushed to a taller row, it visually spills down and
-   overlaps the step title and Back button painted right below it. This
-   is worse than losing the tail of a redundant label: the full question
-   is already shown as its own heading right underneath. */
+/* .attic-bar-top now sizes to content (not a fixed row) and shares space
+   with Back/Info/Skip/Next, so a step whose question is long enough to
+   wrap this label to 2 lines shouldn't be allowed to keep growing - the
+   full question is already shown as its own heading right underneath. */
 .attic-step-label{font-family:var(--fm);font-size:var(--fs-attic-steplabel);color:rgba(215,183,64,.72);letter-spacing:.1em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:font-size .2s}
 .attic-opt-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:2px}
 .attic-chk{width:18px;height:18px;border:1.5px solid rgba(215,183,64,.35);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent}
 .attic-opt.sel .attic-chk{border-color:var(--gl);background:var(--gm);color:var(--bk)}
 .attic-chk.radio{border-radius:50%}
-.attic-next-col{width:130px;flex-shrink:0;border-left:1px solid var(--border);display:flex;align-items:center;justify-content:center;padding:0 12px}
 /* Closet: canvas left, sidebar right (unchanged) */
 .closet-layout{position:absolute;inset:0;display:flex;flex-direction:row;transition:opacity .35s,transform .35s}
 .closet-layout.out{opacity:0;pointer-events:none;transform:translateX(8px)}
@@ -404,11 +408,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .attic-layout{flex-direction:column}
   .attic-canvas-area{flex:none;height:52vh;min-height:220px}
   .attic-bar{height:auto;flex:1;min-height:0;overflow-y:auto}
+  /* Back/Skip/Info/Next stay reachable without scrolling a long option
+     list on a phone-height viewport - sticking this row is what replaces
+     the old dedicated full-width bottom Next bar. */
+  .attic-bar-top{position:sticky;top:0;z-index:2;background:var(--panel)}
   .attic-bar-body{flex-direction:column;overflow-y:auto;overflow-x:hidden}
   .attic-info{width:100%;border-right:none;border-bottom:1px solid var(--border);padding:10px 14px;flex-shrink:0}
   .attic-scroll{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;height:auto;flex:none;padding:8px 10px;gap:6px}
   .attic-opt{flex:1;min-width:calc(50% - 8px);max-width:100%;width:auto}
-  .attic-next-col{width:100%;border-left:none;border-top:1px solid var(--border);height:44px;padding:0 10px;flex-shrink:0}
 
   /* Closet layout: canvas top 55%, sidebar below */
   .closet-layout{flex-direction:column}
@@ -527,55 +534,55 @@ function getOpts(stepId, answers){
       {v:'closet',label:'Closet',desc:'Upflow unit - hallway or utility closet'},
     ];
     case 'indoor_type':return[
-      {v:'furnace',label:'Furnace',     desc:'Gas heat + AC - most popular in Austin. Burns natural gas for heat, uses AC for cooling. Lowest operating cost when gas rates are low.'},
-      {v:'ah',     label:'Air handler', desc:'All-electric heat pump system. No gas line needed. Heats and cools using refrigerant - very efficient in Austin winters, higher electric bills in extreme cold.'},
+      {v:'furnace',label:'Furnace',     desc:'Gas heat + AC. Most popular in Austin - lowest operating cost when gas rates are low.'},
+      {v:'ah',     label:'Air handler', desc:'All-electric heat pump. No gas line needed - efficient in Austin winters, costs more in extreme cold.'},
     ];
     case 'insulation':return[
-      {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Standard vented attic. Works with an 80% AFUE furnace and a metal B-vent flue pipe through the roof. Most homes in Austin have this.'},
-      {v:'spray',     label:'Spray foam',               desc:'Sealed / conditioned attic. Requires a 90% AFUE condensing furnace - flue is a PVC pipe, not metal. Higher efficiency, cooler attic.'},
+      {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Standard vented attic - pairs with an 80% AFUE furnace. Most homes in Austin have this.'},
+      {v:'spray',     label:'Spray foam',               desc:'Sealed attic - requires a 90% AFUE furnace with a PVC flue. Higher efficiency, cooler attic.'},
     ];
     case 'plenum':return[
-      {v:'ductboard',label:'Ductboard plenum',  desc:'Fiberglass duct board - standard choice, good insulation value, fits most attic installs. Typical lifespan 10–15 years.'},
-      {v:'metal',    label:'Sheet metal plenum',desc:'Galvanized sheet metal, externally insulated - more durable, lasts 25+ years, better for indoor air quality.'},
-      {v:'none',     label:'Keep existing',     desc:'Your current plenum is in good condition. We will connect to it directly - saves on material and labor.'},
+      {v:'ductboard',label:'Ductboard plenum',  desc:'Standard choice, good insulation value. Typical lifespan 10–15 years.'},
+      {v:'metal',    label:'Sheet metal plenum',desc:'More durable, lasts 25+ years, better for indoor air quality.'},
+      {v:'none',     label:'Keep existing',     desc:'Good condition already - we connect directly, saving on material and labor.'},
     ];
     case 'thermostat':
       if(answers.cond_tier==='high_ge18')return[
-        {v:'proprietary',label:'Proprietary Communicating Thermostat', desc:'Required at this efficiency tier - talks directly to the furnace/air handler and condenser over a dedicated communicating protocol for the most precise comfort, staging, and diagnostics.'},
+        {v:'proprietary',label:'Proprietary Communicating Thermostat', desc:'Required at this tier - talks directly to the system for the most precise comfort, staging, and diagnostics.'},
       ];
       return[
-      {v:'basic',label:'Basic Programmable', desc:'Reliable, accurate, no app or subscription required. Set your schedule and it runs. Best choice if you prefer simple controls.'},
-      {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, set schedules, get energy reports. Learns your habits over time. Saves 10–15% on energy bills on average.',badge:true},
+      {v:'basic',label:'Basic Programmable', desc:'Reliable, no app or subscription required. Set your schedule and it runs.'},
+      {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, learns your habits. Saves 10–15% on energy bills on average.',badge:true},
     ];
     case 'purif':return[
       // Enhanced Filtration Cabinet isn't listed - it's automatic on every
       // system (see defaultAnswers), not a real choice to present.
-      {v:'uv',       label:'UV Light System',    desc:'UV-C bulb mounted inside the air handler keeps the evaporator coil clean for longevity and efficiency. Eliminates musty odors at the source.'},
-      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Emits charged ions throughout your duct system that neutralize airborne particles, odors, VOCs, and smoke. Works while the system runs.'},
-      {v:'surge',    label:'Surge Protector',    desc:'Mounts on the disconnect box. Protects the compressor from voltage spikes and lightning. One strike can destroy a $2,000+ compressor - this costs a fraction of that.'},
+      {v:'uv',       label:'UV Light System',    desc:'Keeps the evaporator coil clean for longevity and efficiency. Eliminates musty odors at the source.'},
+      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Neutralizes airborne particles, odors, VOCs, and smoke throughout your ducts.'},
+      {v:'surge',    label:'Surge Protector',    desc:'Protects the compressor from voltage spikes and lightning. One strike can destroy a $2,000+ compressor.'},
     ];
     case 'system_for':
       if(answers.cond_tier==='mid_ge15')return[
-        {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Mid-efficiency is only available as dual fuel: heat pump cools in summer and heats efficiently down to ~35°F, gas furnace takes over below that.'},
+        {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Mid-efficiency is dual fuel only: heat pump cools and heats down to ~35°F, gas furnace takes over below that.'},
       ];
       return[
-      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Best of both: heat pump cools in summer and heats efficiently down to ~35°F. Below that the gas furnace takes over. Lowest combined energy bill.'},
-      {v:'sc', label:'Straight Cool',        desc:'AC cools only. Your gas furnace handles all heating year-round. Simpler system, lower upfront cost. Good if heating efficiency is not a priority.'},
+      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Heat pump handles most of the year, down to ~35°F. Furnace takes over below that. Lowest combined energy bill.'},
+      {v:'sc', label:'Straight Cool',        desc:'AC cools only - furnace handles all heating year-round. Simpler system, lower upfront cost.'},
     ];
     case 'cond_tier':{
       return[
-        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. Reliable single-stage system, lowest upfront cost. Good choice for rentals or budget installs.'},
-        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed system. Noticeably lower electric bills, better humidity control, quieter operation. Best overall value for most homes.'},
-        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier. Eligible for local energy rebates. Best humidity control, whisper-quiet, lowest monthly bills.'},
+        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. Lowest upfront cost - good for rentals or budget installs.'},
+        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed. Noticeably lower electric bills, better humidity control, quieter. Best overall value.'},
+        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier, eligible for local rebates. Best humidity control, whisper-quiet.'},
       ];
     }
     case 'dehu':return[
-      {v:'yes',label:'Yes - add it',  desc:'Whole-home dehumidifier sized to your square footage. Runs automatically with the HVAC system - no buckets, no maintenance. Makes your home feel 5–7°F cooler at the same thermostat setting.'},
-      {v:'no', label:'No thanks',     desc:'Skip for now. Can always be added later as a standalone unit if humidity becomes an issue.'},
+      {v:'yes',label:'Yes - add it',  desc:'Sized to your square footage, runs automatically - no buckets, no maintenance. Feels 5–7°F cooler at the same setting.'},
+      {v:'no', label:'No thanks',     desc:'Skip for now - can always be added later if humidity becomes an issue.'},
     ];
     case 'extras':return[
-      {v:'condensate',label:'Condensate Pump',        desc:"Needed when there is no gravity drain nearby. Pumps condensate water up and out to a drain or exterior wall. Required in many closet installs."},
-      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings fresh filtered outdoor air into the home while exhausting stale air. Recovers ~70% of the heating/cooling energy from the outgoing air. Attic mounted - if it needs a new roof penetration, we recommend having a roofer involved.'},
+      {v:'condensate',label:'Condensate Pump',        desc:"Needed when there's no gravity drain nearby. Required in many closet installs."},
+      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings in fresh filtered outdoor air while exhausting stale air, recovering ~70% of the heating/cooling energy.'},
     ];
     default:return[];
   }
@@ -3413,7 +3420,19 @@ function App(){
   const opts=useMemo(()=>cur?getOpts(cur.id,answers):[], [cur,answers]);
 
   const [showInfo,setShowInfo]=React.useState(false);
-  React.useEffect(()=>setShowInfo(false),[stepIdx]);
+  // Auto-open the info panel the first time someone lands on step 1, so
+  // the info button gets discovered instead of ignored - only once per
+  // page load, so navigating back to step 1 later doesn't force it open
+  // again over a user who's already closed it.
+  const autoInfoShown=React.useRef(false);
+  React.useEffect(()=>{
+    if(stepIdx===1&&!autoInfoShown.current){
+      autoInfoShown.current=true;
+      setShowInfo(true);
+    }else{
+      setShowInfo(false);
+    }
+  },[stepIdx]);
   // On the mobile attic layout, .attic-bar-body is its own scrollable
   // region below the fixed-height eyebrow row (.attic-bar-top, which
   // isn't part of that scroll area). A step with enough option text to
@@ -3563,7 +3582,11 @@ function App(){
               {cur ? <><span className="chapter-tag">{CHAPTERS[curChapter]}</span>{" · STEP "+stepIdx+(totalKnown?" OF "+totalSteps:"")+" · "+cur.q.toUpperCase()}</> : ""}
             </span>
             {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
+            {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
             {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
+            <button className="btn-next" onClick={goNext} disabled={!canNext}>
+              {quickEdit?(quickEditWillFinish?"Save & Return →":"Next →"):(stepIdx===activeSteps.length-1?"Finish →":"Next →")}
+            </button>
           </div>
           {showInfo&&infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)",flexShrink:0}}>{infoText}</div>}
           <div className="attic-bar-body">
@@ -3571,15 +3594,9 @@ function App(){
               <div className="step-q" style={{marginBottom:2}}>{cur?cur.q:""}</div>
               {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
               {reactionText&&<div key={reactionText} className="reaction-line">✓ {reactionText}</div>}
-              {stepIdx>0&&<button className="btn-back" style={{marginTop:8,alignSelf:"flex-start"}} onClick={goBack}>‹ Back</button>}
             </div>
             <div className="attic-scroll">
               {opts.map(opt=>makeOpt(opt,true))}
-            </div>
-            <div className="attic-next-col">
-              <button className="btn-next" style={{width:"100%",padding:"11px 6px"}} onClick={goNext} disabled={!canNext}>
-                {quickEdit?(quickEditWillFinish?"Save & Return →":"Next →"):(stepIdx===activeSteps.length-1?"Finish →":"Next →")}
-              </button>
             </div>
           </div>
         </div>
