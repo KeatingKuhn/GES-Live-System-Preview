@@ -676,8 +676,17 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         const rodCY=y+h/2;
         return <UVRod x={rodCX} y={rodCY-rodLen2/2} len={rodLen2} vertical={true}/>;
       })()}
-      <rect x={peakX-16} y={y+h+6} width={8} height={12} rx="1.5" fill={active?(evapC+'2a'):'rgba(22,22,44,.7)'} stroke={evapC} strokeWidth="0.9"/>
-      <rect x={peakX+8} y={y+h+6} width={8} height={12} rx="1.5" fill={active?(evapC2+'2a'):'rgba(22,22,44,.7)'} stroke={evapC2} strokeWidth="0.9"/>
+      {/* Liquid + suction stub-outs - the actual lineset connection, at
+          the coil's base/header on the RIGHT side of its cabinet (not the
+          peak, which is the internal distributor drawn above - real
+          lineset never taps into that). Both tubes exit side by side from
+          one point so they read as one connection, not two unrelated
+          ones. Positioned in fractions of this box's own (y,h) so callers
+          that compute the external lineset's Y from the same fractions
+          always land exactly here, even if the coil's size/position
+          changes. */}
+      <rect x={x+w-6} y={y+h*0.80-3} width={16} height={6} rx="1.5" fill={active?(evapC+'2a'):'rgba(22,22,44,.7)'} stroke={evapC} strokeWidth="0.9"/>
+      <rect x={x+w-6} y={y+h*0.88-3} width={16} height={6} rx="1.5" fill={active?(evapC2+'2a'):'rgba(22,22,44,.7)'} stroke={evapC2} strokeWidth="0.9"/>
     </g>;
   }
 
@@ -1619,10 +1628,16 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // the plenum and the wall, same as more open yard on the condenser's side.
     const SUP_PLEN_Y=UNIT_Y;
 
-    // Air handler: biased well into the coil's right half (not just past
-    // center) so it clears the AIR HANDLER label now sitting above the
-    // unit, dead center - same reasoning as the thermostat's offset below.
-    const RL_START_X=hasFurnace?ACOIL_X-4:AH_X+Math.round(AH_W*0.8);
+    // Lineset riser lands on the A-coil's own connector stub (see ACoilH -
+    // drawn at its peak, the box's right edge) rather than an independent
+    // guess at the unit's X. For a furnace pairing that's the coil box's
+    // right edge; for a standalone air handler, ACoilH is embedded in the
+    // LEFT 50% of the cabinet (the return-air side, per the aux-heat-kit
+    // restructure - see AirHandlerH) so the stub sits there too, not
+    // further right into the blower/aux-heat sections. This used to be a
+    // flat AH_W*0.8 that landed inside the blower fan once the coil moved
+    // left - now it can't drift out of step with the coil again.
+    const RL_START_X=hasFurnace?(ACOIL_X+ACOIL_W-13):(AH_X+Math.round(AH_W*0.5)-15);
     const RL_ROOF_Y=EAVE_Y+14;
 
     // Real-world condenser sizes, fixed regardless of canvas width - these
@@ -2207,8 +2222,21 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const APR_H=hasAprilaire?28:0;
     const APR_Y=hasFurnace?FURN_Y+FURN_H:ACOIL_Y+ACOIL_H;
     const CHASE_Y=APR_Y+APR_H+2;
-    const LS_Y1=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.30):ACOIL_Y+Math.round(ACOIL_H*0.88);
-    const LS_Y2=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.48):ACOIL_Y+Math.round(ACOIL_H*0.92);
+    // Coil sub-box actually passed to ACoilV below: the full coil height
+    // for a furnace-paired A-coil, or just the bottom 38% of the air
+    // handler cabinet for a standalone coil (return-air side, per the
+    // aux-heat-kit restructure that put the coil there). Hoisted so the
+    // ACoilV call and the lineset's exit point below both derive from the
+    // same box instead of two guesses that can drift apart.
+    const COIL_BOX_Y=hasFurnace?ACOIL_Y+14:ACOIL_Y+ACOIL_H*0.58;
+    const COIL_BOX_H=hasFurnace?ACOIL_H-28:ACOIL_H*0.38;
+    // Lineset connects at the coil's base/header, 80%/88% down its own
+    // box - exactly where ACoilV draws the liquid/suction stub-outs, on
+    // the right side of the cabinet (see ACoilV) - not an independent
+    // fraction of ACOIL_H, so this can't end up pointing at empty space
+    // (or the furnace) again if the coil is resized or moved.
+    const LS_Y1=Math.round(COIL_BOX_Y+COIL_BOX_H*0.80);
+    const LS_Y2=Math.round(COIL_BOX_Y+COIL_BOX_H*0.88);
 
     // Condenser - real-world size, fixed regardless of canvas/zone width.
     // This used to rescale to fill 80% of the outside zone, which meant
@@ -2462,7 +2490,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={9} rx="5"
                   fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#gold)"} opacity=".65"/>
                 {hasFurnace
-                  ?<ACoilV x={UNIT_X+8} y={ACOIL_Y+14} w={UNIT_W-16} h={ACOIL_H-28} active={active}/>
+                  ?<ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}/>
                   :<>
                     {/* Sized by real proportion (A-coil 50% / blower 35% /
                         aux heat kit 15%) and ordered by airflow: A-coil is
@@ -2504,15 +2532,15 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                       fill={G+'.55)'} fontSize="10" fontFamily="monospace">BLOWER</text>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.50} textAnchor="middle"
                       fill={G+'.4)'} fontSize="7.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
-                    <ACoilV x={UNIT_X+8} y={ACOIL_Y+ACOIL_H*0.58} w={UNIT_W-16} h={ACOIL_H*0.38} active={active}/>
+                    <ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}/>
                   </>
                 }
                 {hasCond&&!hasFurnace&&<>
-                  <path d={`M${UNIT_X+UNIT_W} ${ACOIL_Y+ACOIL_H*0.88} L${UNIT_X+UNIT_W+28} ${ACOIL_Y+ACOIL_H*0.88}`}
+                  <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${UNIT_X+UNIT_W+28} ${LS_Y1}`}
                     fill="none" stroke={active?evapC:'rgba(32,32,52,.5)'} strokeWidth="2.8" strokeLinecap="round" className="draw"/>
-                  <path d={`M${UNIT_X+UNIT_W} ${ACOIL_Y+ACOIL_H*0.92} L${UNIT_X+UNIT_W+28} ${ACOIL_Y+ACOIL_H*0.92}`}
+                  <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${UNIT_X+UNIT_W+28} ${LS_Y2}`}
                     fill="none" stroke={active?evapC2:'rgba(32,32,52,.4)'} strokeWidth="2.8" strokeLinecap="round" className="draw" style={{animationDelay:'.08s'}}/>
-                  {active&&<text x={UNIT_X+UNIT_W+14} y={ACOIL_Y+ACOIL_H*0.88-8}
+                  {active&&<text x={UNIT_X+UNIT_W+14} y={LS_Y1-8}
                     textAnchor="middle" fill={evapC} fontSize="10.5" fontFamily="monospace">
                     {refReversed?'←':'→'}
                   </text>}
