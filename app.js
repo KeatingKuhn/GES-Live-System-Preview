@@ -693,18 +693,21 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   }
 
   // Air handler horizontal - blower LEFT | A-coil RIGHT
-  // Air handler splits into three equal labeled sections - blower, A-coil,
-  // and its own AUX HEAT KIT box (electric resistance strips) - instead of
-  // the kit being an unlabeled sliver squeezed against the coil's edge.
-  // Present on every air-handler build regardless of efficiency tier: the
-  // low-ambient mid tier is rated to keep the compressor running well
-  // below where this kicks in for the other two tiers, so the kit is
-  // still physically installed there as backup, it just almost never
-  // glows. Glows alongside the compressor whenever the heat pump alone
-  // can't hold the setpoint and aux/emergency heat kicks in (auxHeat).
+  // Air handler splits into three labeled sections, sized by real
+  // proportion (A-coil 50% / blower 35% / aux heat kit 15%) and ordered by
+  // airflow: A-coil is always closest to the return plenum (the left edge
+  // here, where return/filtration feed in), then blower, then the aux heat
+  // kit downstream of the blower discharge - matching where a real heat
+  // strip kit sits in the supply plenum. Present on every air-handler
+  // build regardless of efficiency tier: the low-ambient mid tier is rated
+  // to keep the compressor running well below where this kicks in for the
+  // other two tiers, so the kit is still physically installed there as
+  // backup, it just almost never glows. Glows alongside the compressor
+  // whenever the heat pump alone can't hold the setpoint and aux/emergency
+  // heat kicks in (auxHeat).
   function AirHandlerH({x,y,w,h,active,auxHeat}){
-    const third=w/3;
-    const c1=x+third, c2=x+third*2;
+    const coilW=w*0.50, blowerW=w*0.35, auxW=w*0.15;
+    const c1=x+coilW, c2=x+coilW+blowerW;
     return <g>
       <rect x={x} y={y} width={w} height={h} rx="4"
         fill={active?"#050c1a":"#090909"}
@@ -717,26 +720,27 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
           stroke={G+'.32)'} strokeWidth="3" strokeLinecap="round"/>
       ))}
-      <BlowerWheel cx={x+third/2} cy={y+h/2+2} r={Math.min(third*0.38,h*0.36)}
+      <rect x={x+3} y={y+8} width={coilW-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
+      <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}/>
+      <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.5)')} fontSize="10.5" fontFamily="monospace">A-COIL</text>
+      <BlowerWheel cx={c1+blowerW/2} cy={y+h/2+2} r={Math.min(blowerW*0.36,h*0.36)}
         spd={blowerActive?1.5:0.45} active={blowerActive}/>
-      <text x={x+third/2} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="10.5" fontFamily="monospace">BLOWER</text>
-      <rect x={c1+3} y={y+8} width={third-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
-      <ACoilH x={c1+9} y={y+12} w={third-17} h={h-22} active={active}/>
-      <text x={c1+third/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.5)')} fontSize="10.5" fontFamily="monospace">A-COIL</text>
-      <rect x={c2+3} y={y+8} width={third-6} height={h-14} rx="2"
+      <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="10.5" fontFamily="monospace">BLOWER</text>
+      <rect x={c2+3} y={y+8} width={auxW-6} height={h-14} rx="2"
         fill={auxHeat?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
         stroke={auxHeat?"rgba(249,115,22,.6)":(G+'.14)')} strokeWidth="0.8"/>
-      {Array.from({length:4},(_,i)=>{
-        const segW=(third-20)/4;
-        const bx=c2+9+i*(third-16)/4;
+      {Array.from({length:3},(_,i)=>{
+        const segW=(auxW-16)/3;
+        const bx=c2+7+i*(auxW-10)/3;
         return <g key={i}>
-          <rect x={bx} y={y+h*0.32} width={Math.max(1,segW)} height={h*0.4} rx="1"
+          <rect x={bx} y={y+h*0.3} width={Math.max(1,segW)} height={h*0.34} rx="1"
             fill={auxHeat?"#1a0805":"#0a0a0f"} stroke={auxHeat?"rgba(249,115,22,.4)":"rgba(48,20,5,.2)"} strokeWidth="0.5"/>
-          {auxHeat&&<ellipse cx={bx+segW/2} cy={y+h*0.32} rx={segW/2} ry={4}
+          {auxHeat&&<ellipse cx={bx+segW/2} cy={y+h*0.3} rx={segW/2} ry={3.5}
             fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
         </g>;
       })}
-      <text x={c2+third/2} y={y+h-4} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="9" fontFamily="monospace">AUX HEAT KIT</text>
+      <text x={c2+auxW/2} y={y+h*0.82} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="7.5" fontFamily="monospace">AUX HEAT</text>
+      <text x={c2+auxW/2} y={y+h*0.82+9} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="8" fontFamily="monospace">KIT</text>
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
 
     </g>;
@@ -2336,42 +2340,45 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 {hasFurnace
                   ?<ACoilV x={UNIT_X+8} y={ACOIL_Y+14} w={UNIT_W-16} h={ACOIL_H-28} active={active}/>
                   :<>
-                    <line x1={UNIT_X} y1={ACOIL_Y+ACOIL_H*0.36} x2={UNIT_X+UNIT_W} y2={ACOIL_Y+ACOIL_H*0.36}
+                    {/* Sized by real proportion (A-coil 50% / blower 35% /
+                        aux heat kit 15%) and ordered by airflow: A-coil is
+                        always closest to the return plenum - the bottom
+                        here, where the filtration cabinet and return chase
+                        feed in from below - then blower, then the aux heat
+                        kit above the blower, matching where a real heat
+                        strip kit sits in the supply plenum just before the
+                        air exits upward to the ductwork. Present on every
+                        air-handler build regardless of efficiency tier: the
+                        low-ambient mid tier is rated to keep the compressor
+                        running well below where this kicks in for the
+                        other two tiers, so the kit is still physically
+                        installed there as backup, it just almost never
+                        glows. */}
+                    <line x1={UNIT_X} y1={ACOIL_Y+ACOIL_H*0.215} x2={UNIT_X+UNIT_W} y2={ACOIL_Y+ACOIL_H*0.215}
                       stroke={G+'.18)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-                    <line x1={UNIT_X} y1={ACOIL_Y+ACOIL_H*0.66} x2={UNIT_X+UNIT_W} y2={ACOIL_Y+ACOIL_H*0.66}
+                    <line x1={UNIT_X} y1={ACOIL_Y+ACOIL_H*0.53} x2={UNIT_X+UNIT_W} y2={ACOIL_Y+ACOIL_H*0.53}
                       stroke={G+'.18)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-                    <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.19}
-                      r={Math.min(UNIT_W*0.30,ACOIL_H*0.15)}
-                      spd={blowerActive?1.4:0.4} active={blowerActive}/>
-                    <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.33} textAnchor="middle"
-                      fill={G+'.55)'} fontSize="10" fontFamily="monospace">BLOWER</text>
-                    {/* Aux heat kit - its own labeled band between the blower
-                        and the coil (not an unlabeled sliver squeezed against
-                        the coil's edge) - electric resistance strips that glow
-                        alongside the compressor when the heat pump alone can't
-                        hold the setpoint and aux/emergency heat kicks in.
-                        Present on every air-handler build regardless of
-                        efficiency tier: the low-ambient mid tier is rated to
-                        keep the compressor running well below where this
-                        kicks in for the other two tiers, so the kit is still
-                        physically installed there as backup, it just almost
-                        never glows. */}
-                    <rect x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.40} width={UNIT_W-28} height={ACOIL_H*0.16} rx="2"
+                    <rect x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.095} width={UNIT_W-28} height={ACOIL_H*0.075} rx="2"
                       fill={auxHeatActive?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
                       stroke={auxHeatActive?"rgba(249,115,22,.6)":(G+'.14)')} strokeWidth="0.8"/>
                     {Array.from({length:4},(_,i)=>{
                       const segW=(UNIT_W-52)/4;
                       const bx=UNIT_X+22+i*(UNIT_W-36)/4;
                       return <g key={i}>
-                        <rect x={bx} y={ACOIL_Y+ACOIL_H*0.43} width={Math.max(1,segW)} height={ACOIL_H*0.10} rx="1"
+                        <rect x={bx} y={ACOIL_Y+ACOIL_H*0.115} width={Math.max(1,segW)} height={ACOIL_H*0.045} rx="1"
                           fill={auxHeatActive?"#1a0805":"#0a0a0f"} stroke={auxHeatActive?"rgba(249,115,22,.4)":"rgba(48,20,5,.2)"} strokeWidth="0.5"/>
-                        {auxHeatActive&&<ellipse cx={bx+segW/2} cy={ACOIL_Y+ACOIL_H*0.43} rx={segW/2} ry={4}
+                        {auxHeatActive&&<ellipse cx={bx+segW/2} cy={ACOIL_Y+ACOIL_H*0.115} rx={segW/2} ry={3}
                           fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
                       </g>;
                     })}
-                    <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.63} textAnchor="middle"
+                    <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.195} textAnchor="middle"
                       fill={auxHeatActive?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="9.5" fontFamily="monospace">AUX HEAT KIT</text>
-                    <ACoilV x={UNIT_X+8} y={ACOIL_Y+ACOIL_H*0.70} w={UNIT_W-16} h={ACOIL_H*0.28} active={active}/>
+                    <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.35}
+                      r={Math.min(UNIT_W*0.26,ACOIL_H*0.12)}
+                      spd={blowerActive?1.4:0.4} active={blowerActive}/>
+                    <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.50} textAnchor="middle"
+                      fill={G+'.55)'} fontSize="10" fontFamily="monospace">BLOWER</text>
+                    <ACoilV x={UNIT_X+8} y={ACOIL_Y+ACOIL_H*0.58} w={UNIT_W-16} h={ACOIL_H*0.38} active={active}/>
                   </>
                 }
                 {hasCond&&!hasFurnace&&<>
