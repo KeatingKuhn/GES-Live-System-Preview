@@ -292,24 +292,30 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 /* ── ADAPTIVE LAYOUT ── */
 .app-root{position:absolute;top:43px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
 @media(min-width:641px){.app-root{top:42px}}
-/* Shrinks everything inside app-root as if the browser itself were
-   zoomed to 75% - matches what looked right when tested that way.
-   transform (not zoom) because zoom actually recomputes descendants'
-   layout at the scaled size - it re-ran every px-based calc through
-   the 0.75 factor and rounding, which was enough to tip a fixed
-   200px-tall panel with zero scroll slack (built and tested that way
-   deliberately elsewhere in this file) into a 1px scrollbar. transform
-   only rescales the already-computed pixels at paint time, so nothing
-   underneath ever computes anything different - same reason it's a
-   plain wrapper around app-root's real content instead of applying to
-   app-root itself: app-root's own top/right/bottom/left are resolved in
-   real, unscaled viewport pixels, so its box is exactly the true
-   available space either way; scaling THIS wrapper up by 1/0.75 first
-   and back down by 0.75 nets out to exactly that same box, just with
-   everything inside it drawn smaller. Desktop only, same reasoning as
-   the spacer above about mobile's vh-based sizing not needing this. */
-.app-root-zoom{position:relative;width:100%;height:100%}
-@media(min-width:641px){.app-root-zoom{width:133.3334%;height:133.3334%;transform:scale(.75);transform-origin:top left}}
+/* Shrinks just the live diagram to fit its frame better on desktop,
+   the way it looked right when tested at 75% browser zoom - wraps only
+   the <Canvas> inside each canvas-frame (attic/closet wizard, done
+   screen), NOT the wizard text/buttons around it, which stayed the
+   normal size that was already tuned for readability; scaling those
+   down too was making all the site's actual text small right along
+   with the diagram, which is not what was wanted. transform (not zoom)
+   because zoom actually recomputes descendants' layout at the scaled
+   size - it re-ran every px-based calc through the 0.75 factor and
+   rounding, which was enough to tip a fixed 200px-tall panel with zero
+   scroll slack (built and tested that way deliberately elsewhere in
+   this file) into a 1px scrollbar. transform only rescales the
+   already-computed pixels at paint time, so nothing underneath ever
+   computes anything different - same reason this is a plain wrapper
+   around the Canvas instead of a style directly on its own root: that
+   root measures its own box via getBoundingClientRect to size its
+   SVG viewBox, and needs to see the box it's ACTUALLY being drawn into
+   post-scale, not the pre-scale one. Scaling this wrapper up by 1/0.75
+   first and back down by 0.75 nets out to exactly the canvas-frame's
+   real box, just with the diagram itself drawn smaller inside it.
+   Desktop only, same reasoning as the spacer above about mobile's
+   vh-based sizing not needing this. */
+.canvas-zoom{position:relative;width:100%;height:100%}
+@media(min-width:641px){.canvas-zoom{width:133.3334%;height:133.3334%;transform:scale(.75);transform-origin:top left}}
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
 .splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
@@ -452,7 +458,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    numbers are what a customer actually wants on paper. */
 @media print{
   html,body{height:auto!important;overflow:visible!important}
-  .app-root,.app-root-zoom,.done-screen,.sidebar,.done-wrap{
+  .app-root,.done-screen,.sidebar,.done-wrap{
     display:block!important;position:static!important;overflow:visible!important;
     height:auto!important;max-height:none!important;width:100%!important;
     transform:none!important;
@@ -3485,7 +3491,6 @@ function App(){
     return(<>
       <div className="site-header-spacer no-print"/>
     <div ref={topRef} className="app-root">
-    <div className="app-root-zoom">
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
       {resumePending&&<div style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
         <div className="splash-logo" style={{fontSize:"clamp(28px,6vw,44px)"}}>WELCOME BACK</div>
@@ -3544,7 +3549,9 @@ function App(){
       {/* ── ATTIC LAYOUT - canvas full width, step bar on bottom ── */}
       <div className={"attic-layout"+(!isAtticMode||done?" out":"")}>
         <div className="attic-canvas-area canvas-frame">
-          <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
+          <div className="canvas-zoom">
+            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
+          </div>
         </div>
         <div className="attic-bar">
           {quickEdit&&<div className="quickedit-banner">
@@ -3581,7 +3588,9 @@ function App(){
       {/* ── CLOSET LAYOUT - canvas left, sidebar right ── */}
       <div className={"closet-layout"+(!isClosetMode||done?" out":"")}>
         <div className="closet-canvas-area canvas-frame">
-          <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
+          <div className="canvas-zoom">
+            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
+          </div>
         </div>
         <div className="sidebar">
           {quickEdit&&<div className="quickedit-banner">
@@ -3616,7 +3625,9 @@ function App(){
            makes during the wizard steps (.attic-layout vs .closet-layout). ── */}
       {done&&<div className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
         <div className="canvas-frame done-canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
-          <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
+          <div className="canvas-zoom">
+            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
+          </div>
           <div className="done-canvas-sweep"/>
           {/* Attic layout's diagram never fills the full frame width (it
               keeps its own aspect ratio) - the dead space it leaves on the
@@ -3863,7 +3874,6 @@ function App(){
           </div>
         </div>
       </div>}
-    </div>
     </div>
   </>);
 }
