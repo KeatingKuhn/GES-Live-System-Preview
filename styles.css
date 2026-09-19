@@ -1,0 +1,465 @@
+:root{
+  --gl:#f0d64e;--gm:#d7b740;--gd:#ab8024;
+  --bk:#121212;--panel:#181818;--surf:#1e1e1e;--border:#2c2c2c;
+  --wh:#fff;--dim:rgba(255,255,255,.78);--mut:rgba(255,255,255,.68);
+  --gh:linear-gradient(90deg,#f0d64e,#d7b740,#ab8024);
+  --gd2:linear-gradient(135deg,#f0d64e,#d7b740,#ab8024);
+  --blue:#2389e0;--green:#22c55e;--orange:#f97316;--purple:#8b5cf6;
+  --ft:'Lora',Georgia,serif;--fm:'Share Tech Mono',monospace;--fb:'Trebuchet MS',sans-serif;
+
+  /* Type scale - mobile/tablet default. Desktop (>=1025px) overrides below.
+     Sized up a notch across the board for a general-audience site where a
+     lot of visitors are closer to 40-50 than 20. --fs-opt-compact-label/
+     desc are a deliberate exception, held at the ORIGINAL --fs-opt-label/
+     desc values instead of following them up - .opt-compact (the sizing
+     sub-steps' option grid) is pinned to the attic panel's fixed 200px
+     height with zero spare room, proven to fit exactly at those original
+     sizes, so it can't follow the general bump without overflowing. */
+  --fs-opt-label:14px;--fs-opt-desc:12.5px;--fs-opt-badge:9.5px;
+  --fs-opt-compact-label:13px;--fs-opt-compact-desc:11.5px;
+  --fs-attic-label:14px;--fs-attic-desc:12px;--fs-attic-steplabel:12px;
+  --fs-step-eyebrow:10.5px;--fs-step-q:17px;--fs-step-hint:12.5px;
+  --fs-info-btn:14px;--fs-info-body:13px;
+  --fs-btn-back:13.5px;--fs-btn-next:14.5px;--fs-btn-skip:12.5px;
+}
+@media(min-width:1025px){
+  :root{
+    --fs-opt-label:17px;--fs-opt-desc:14.5px;--fs-opt-badge:10.5px;
+    --fs-opt-compact-label:15.5px;--fs-opt-compact-desc:13.5px;
+    --fs-attic-label:17px;--fs-attic-desc:14px;--fs-attic-steplabel:15px;
+    --fs-step-eyebrow:12.5px;--fs-step-q:20px;--fs-step-hint:14.5px;
+    --fs-info-btn:16px;--fs-info-body:14.5px;
+    --fs-btn-back:15.5px;--fs-btn-next:16.5px;--fs-btn-skip:14px;
+  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* Every interactive element in this file sets outline:none (to drop the
+   default focus ring that clashed with the custom .sel/hover states) with
+   no replacement anywhere - keyboard navigation had zero visual sign of
+   which control had focus. :focus-visible only fires for keyboard focus,
+   never a mouse/touch click, so this restores that without adding a ring
+   around every option card someone taps or clicks. */
+button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
+/* html/body get a definite height (not just min-height) and body is the
+   positioning context, so the app shell below can use position:absolute
+   instead of position:fixed. Fixed positioning inside an iframe is a
+   long-documented iOS Safari bug (elements can un-stick or jump during
+   scroll of the OUTER page, since Safari handles fixed-position layers
+   inside a nested browsing context differently) - this tool never needs
+   to scroll past its own box regardless, so absolute gives the identical
+   on-screen result without that failure mode. */
+html,body{height:100%}
+body{position:relative;background:var(--bk);color:var(--wh);font-family:var(--fb);overflow:hidden;-webkit-font-smoothing:antialiased}
+body::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.025) 0px,rgba(0,0,0,.025) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:9999}
+
+/* PROGRESS - segmented by chapter (an "act" of the build), not one bare bar */
+.prog-chapters{display:flex;gap:3px;height:4px;padding:0 2px}
+.prog-chapter{flex:1;background:rgba(215,183,64,.1);border-radius:2px;overflow:hidden}
+.prog-chapter-fill{height:100%;background:var(--gh);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.prog-chapter.done .prog-chapter-fill{background:linear-gradient(90deg,var(--gm),var(--gl))}
+.chapter-tag{color:var(--gh);font-weight:700}
+
+/* CANVAS */
+.canvas-svg{width:100%;height:100%;position:absolute;inset:0}
+/* Subtle blueprint grid behind the diagram - on wide screens the artwork's
+   viewBox (fixed aspect ratio) doesn't fill a tall container, so this fills
+   the letterboxed space with texture instead of a flat dead void. Purely
+   decorative, sits behind the SVG (z-index unset, painted first), never
+   touches diagram geometry. */
+.canvas-frame{background-image:linear-gradient(rgba(215,183,64,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(215,183,64,.05) 1px,transparent 1px);background-size:44px 44px}
+
+/* DONE SCREEN - attic (wide/short diagram) keeps the review panel as a
+   horizontal bar below so the canvas keeps full width; closet (tall/narrow
+   diagram) keeps it as a side column so the canvas keeps full height. The
+   sidebar's fixed 320px width doesn't shrink (flex-shrink:0), so on a
+   narrow viewport a row layout squeezes the canvas to 0 - the mobile
+   media query below overrides this to column for both. */
+.done-screen{display:flex;overflow:hidden}
+.done-screen.attic-mode{flex-direction:column}
+.done-screen.closet-mode{flex-direction:row}
+
+/* Review-selections grid: auto-fill by default (right for the closet
+   sidebar's narrow 320px column, and for any narrow viewport). The attic
+   sidebar goes full-width on desktop though, wide enough for 7 columns of
+   10 items - 7-then-3 looks unbalanced, so lock it to 5 columns (5-and-5)
+   once it's actually that wide. Has to be a class, not the inline style
+   it replaces - an inline style always beats a stylesheet rule, so this
+   media query couldn't win otherwise. */
+.done-review-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+@media(min-width:1025px){
+  .done-review-grid.attic-mode-grid{grid-template-columns:repeat(5,1fr)}
+}
+
+/* Attic mode's "system is built" header lives over the canvas's dead
+   letterboxed space on desktop (see the canvas-frame overlay in the
+   done-screen JSX) but that space doesn't exist once the canvas drops to
+   a short mobile strip - keep the original in-sidebar header there instead
+   of stacking both. */
+.done-header-desktop-only{display:none}
+.done-header-mobile-only{display:flex}
+@media(min-width:1025px){
+  .done-header-desktop-only{display:flex}
+  .done-header-mobile-only{display:none}
+}
+
+/* Attic-only: stretch to full width and left-align text instead of the
+   base rule's centered column, since the wide/short attic panel reads
+   as a stack of full-width cards, not a narrow centered column. The
+   top-anchoring itself (justify-content) is now on the shared base rule
+   above, not here - it isn't specific to attic's fixed-height panel. */
+.done-wrap.done-wrap-attic{align-items:stretch;text-align:left}
+
+/* The pricing sizing sub-steps' question/options split into a fixed
+   420px-wide left column only makes sense once the attic panel is
+   actually wide - on a phone-width viewport that fixed column pushes the
+   options clean off-screen. Same fix as the review-grid override above:
+   a class the inline atticMode style can't out-specificity, so this
+   media query actually wins back below the sidebar's own mobile
+   breakpoint. */
+@media(max-width:860px){
+  .pricing-substep-row{flex-direction:column!important;gap:8px!important}
+  .pricing-substep-left{flex:1 1 auto!important}
+  .pricing-opts-systems{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}
+  .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
+  .pricing-result-row{flex-direction:column!important}
+}
+
+/* ANIMATIONS */
+.snap{animation:snap .45s cubic-bezier(.34,1.46,.64,1) both}
+@keyframes snap{from{opacity:0;transform:translateY(-14px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
+.fadein{animation:fadein .3s ease both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.draw{stroke-dasharray:300;stroke-dashoffset:300;animation:draw .7s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.spin{animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.airflow{stroke-dasharray:10 6;animation:airflow 2s linear infinite}
+@keyframes airflow{to{stroke-dashoffset:-32}}
+.rain-drop{animation:rainFall 1s linear infinite}
+@keyframes rainFall{0%{transform:translateY(-6px);opacity:0}20%{opacity:.85}80%{opacity:.85}100%{transform:translateY(20px);opacity:0}}
+.snow-flake{animation:snowFall 3.4s linear infinite}
+@keyframes snowFall{0%{transform:translate(0,-6px);opacity:0}12%{opacity:.9}88%{opacity:.9}100%{transform:translate(10px,26px);opacity:0}}
+/* Selecting an option is the single most-repeated gesture in the whole
+   build - give it a tactile settle instead of an instant flat color swap. */
+@keyframes selectPop{0%{transform:scale(1)}40%{transform:scale(1.035)}70%{transform:scale(.985)}100%{transform:scale(1)}}
+@keyframes selectFlash{0%{background-color:rgba(240,214,78,.4)}100%{background-color:rgba(240,214,78,.05)}}
+.glow-pulse{animation:gpulse 2.5s ease-in-out infinite}
+@keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
+.line-pulse{animation:gpulse 2.2s ease-in-out infinite}
+/* Done-screen diagram is clickable - hover reveals which piece each
+   component maps back to, so "edit this" doesn't require finding it in a list. */
+.edit-zone{cursor:pointer}
+.edit-zone rect:first-child{pointer-events:all}
+.edit-zone-ring{opacity:0;transition:opacity .15s ease-out;pointer-events:none}
+.edit-zone:hover .edit-zone-ring{opacity:1}
+
+/* SIDEBAR - overflow-y:auto, not hidden: the wizard sidebar (unlike the
+   done-screen one, which gets an inline overflowY:auto override) had no
+   scroll at all here, so a step with a lot of option text - or the info
+   panel expanded on top of it - silently clipped whatever didn't fit,
+   with the sticky nav row squeezed over the cut-off content instead of
+   pinned below a scrollable one. Only mobile ever got this fixed. */
+.sidebar{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;width:320px;flex-shrink:0;height:100%}
+@media(max-width:860px){.sidebar{border-left:none;border-top:1px solid var(--border);max-height:none}}
+/* Always-visible, on-theme scrollbar - a default OS scrollbar (especially
+   the overlay style that only appears while actively dragging) is too easy
+   to miss as a "there's more below" cue on a panel with no other affordance. */
+.sidebar,.done-wrap{scrollbar-width:thin;scrollbar-color:rgba(215,183,64,.4) transparent}
+.sidebar::-webkit-scrollbar,.done-wrap::-webkit-scrollbar{width:8px}
+.sidebar::-webkit-scrollbar-thumb,.done-wrap::-webkit-scrollbar-thumb{background:rgba(215,183,64,.35);border-radius:4px}
+.sidebar::-webkit-scrollbar-track,.done-wrap::-webkit-scrollbar-track{background:transparent}
+
+/* QUICK EDIT - editing one answer from the finished build, not restarting
+   the wizard. Sits above the normal step header in both layouts. */
+.quickedit-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 12px;background:rgba(240,214,78,.08);border-bottom:1px solid rgba(215,183,64,.3);font-family:var(--fm);font-size:11px;color:var(--gl);flex-shrink:0}
+.quickedit-banner button{background:none;border:none;color:rgba(215,183,64,.75);font-family:var(--fm);font-size:10.5px;cursor:pointer;text-decoration:underline;padding:0;letter-spacing:.02em}
+
+/* STEP HEADER */
+.step-hdr{padding:16px 18px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:10}
+.step-eyebrow{font-family:var(--fm);font-size:var(--fs-step-eyebrow);color:var(--gm);letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.step-eyebrow::after{content:'';flex:1;height:1px;background:rgba(215,183,64,.15)}
+.step-q{font-family:var(--ft);font-size:var(--fs-step-q);font-weight:600;color:var(--wh);line-height:1.3;margin-bottom:3px;text-align:center}
+.step-hint{font-size:var(--fs-step-hint);color:var(--mut);line-height:1.5;text-align:center}
+.reaction-line{font-size:var(--fs-step-hint);color:var(--gl);line-height:1.5;text-align:center;margin-top:4px;font-weight:600;animation:reactionIn .35s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes reactionIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+/* Done-screen "power on" reveal - nine small decisions lead here, and it's
+   the one moment worth a real flourish instead of the same fade every
+   other step gets. A brightness flash on the frame plus a diagonal light
+   sweep over it, both one-shot on mount (this whole block only exists in
+   the DOM once done=true, so there's no need to re-trigger manually). */
+.done-canvas-frame{animation:canvasPowerOn .7s ease-out both}
+@keyframes canvasPowerOn{0%{filter:brightness(1.7) saturate(1.35)}100%{filter:brightness(1) saturate(1)}}
+.done-canvas-sweep{position:absolute;inset:0;pointer-events:none;z-index:6;
+  background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.22) 47%,rgba(240,214,78,.4) 50%,rgba(255,255,255,.22) 53%,transparent 65%);
+  background-size:280% 100%;background-position:160% 0;animation:powerSweep 1s cubic-bezier(.4,0,.2,1) both}
+@keyframes powerSweep{0%{background-position:160% 0;opacity:0}12%{opacity:1}100%{background-position:-60% 0;opacity:0}}
+.info-btn{width:28px;height:28px;flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.info-btn:hover{border-color:var(--gl);color:var(--gl);background:rgba(215,183,64,.18)}
+.info-expand{padding:0 18px 10px;flex-shrink:0}
+.info-body{font-size:var(--fs-info-body);color:rgba(255,255,255,.68);line-height:1.6}
+
+/* OPTIONS - .opt used to be flex:1, splitting the sidebar's full height
+   equally across however many cards a step has. With only 1-2 short
+   options in a tall closet sidebar that stretched each card to 300px+
+   of mostly empty padding below its text - the vertical version of the
+   same "dead box" bug fixed on the attic layout's horizontal option
+   row. Sizing to content plus centering the leftover space keeps cards
+   sized to what they actually say; overflow:hidden below still clips
+   the rare step whose combined text is taller than the sidebar (same
+   as the old flex:1 did when a card would have had to shrink below its
+   content to fit), so this is never worse, only better once there's
+   room to spare. */
+.opts{padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:6px;flex:1;min-height:0}
+.opt{background:var(--surf);border:1px solid var(--border);cursor:pointer;text-align:left;outline:none;-webkit-appearance:none;transition:border-color .15s,background .15s;position:relative;overflow:hidden;flex:0 1 auto;display:flex;align-items:stretch}
+.opt:hover{border-color:rgba(215,183,64,.35);background:#1a1a1a}
+.opt.sel{border-color:var(--gl);background:rgba(240,214,78,.05);animation:selectPop .32s cubic-bezier(.34,1.56,.64,1),selectFlash .55s ease-out}
+.opt.sel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
+.opt.disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+.opt-inner{display:flex;align-items:flex-start;gap:10px;padding:11px 13px 11px 16px;width:100%;min-height:0}
+.opt-body{flex:1;min-width:0}
+.opt-label{font-family:var(--ft);font-size:var(--fs-opt-label);font-weight:600;color:var(--wh);display:block;margin-bottom:2px;line-height:1.3;white-space:normal}
+.opt.sel .opt-label{color:var(--gl)}
+.opt-desc{font-size:var(--fs-opt-desc);color:var(--dim);line-height:1.5;display:block}
+.opt.sel .opt-desc{color:rgba(240,214,78,.6)}
+/* Tighter padding for the pricing sizing steps' option cards on the attic
+   layout's short, wide panel - every px here is one this panel doesn't
+   have to give up to a scrollbar. */
+.opt-compact .opt-inner{padding:7px 10px}
+.opt-compact .opt-label{margin-bottom:0;line-height:1.15;font-size:var(--fs-opt-compact-label)}
+.opt-compact .opt-desc{line-height:1.25;font-size:var(--fs-opt-compact-desc)}
+.opt-badge{display:inline-block;background:var(--gh);color:var(--bk);font-size:var(--fs-opt-badge);font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.opt-check{width:21px;height:21px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;margin-top:2px;transition:all .15s}
+.opt.sel .opt-check{border-color:var(--gl);background:var(--gm);color:var(--bk)}
+/* A single-select step's indicator gets the "radio" class in the JSX
+   (mirrors .attic-chk.radio on the attic layout) but nothing here ever
+   made it round - every closet-mode option looked like a checkbox
+   regardless of whether picking it replaced or added to the answer. */
+.opt-check.radio{border-radius:50%}
+
+/* NAV */
+.nav-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--panel);position:sticky;bottom:0}
+.btn-back{flex:0 0 auto;background:transparent;border:1px solid var(--border);color:var(--mut);padding:11px 18px;font-family:var(--fb);font-size:var(--fs-btn-back);cursor:pointer;transition:border-color .2s,color .2s;outline:none}
+.btn-back:hover{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.55)}
+.btn-next{flex:1;background:var(--gh);border:none;color:var(--bk);padding:12px 18px;font-family:var(--ft);font-size:var(--fs-btn-next);font-weight:700;cursor:pointer;letter-spacing:.04em;transition:opacity .2s,transform .12s;outline:none}
+.btn-next:hover:not(:disabled){opacity:.85;transform:translateY(-1px)}
+.btn-next:disabled{opacity:.22;cursor:not-allowed;transform:none}
+.btn-skip{background:transparent;border:none;color:rgba(255,255,255,.55);font-family:var(--fb);font-size:var(--fs-btn-skip);cursor:pointer;text-decoration:underline;outline:none;padding:4px;white-space:nowrap}
+.btn-skip:hover{color:rgba(255,255,255,.75)}
+
+/* DONE - justify-content:flex-start, not center: a centered flex column
+   that overflows its container pushes its TOP content above the
+   scrollable area, where overflow:auto's scrollbar can't reach it (a
+   browser quirk with centered flex/grid overflow - it only ever exposes
+   the bottom overflow). That's exactly what made "AS LOW AS $X/mo" -
+   the very first thing in the pricing estimate - vanish above the
+   visible closet sidebar on a build with enough line items to make the
+   card taller than the panel. Previously fixed for the attic layout's
+   done-wrap-attic variant only; the same overflow risk applies to any
+   layout, so it belongs on the shared base rule instead. */
+.done-wrap{padding:24px 18px;text-align:center;animation:snap .35s ease both;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.done-icon{width:54px;height:54px;background:var(--gh);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--bk);font-weight:700}
+.done-title{font-family:var(--ft);font-size:19px;font-weight:700;color:var(--wh);margin-bottom:6px}
+.done-cta{display:block;width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px;font-family:var(--ft);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:8px;text-decoration:none;text-align:center}
+.done-restart{background:transparent;border:none;color:rgba(255,255,255,.4);font-family:var(--fb);font-size:11px;cursor:pointer;text-decoration:underline;outline:none}
+
+/* ── SITE HEADER SPACER ── */
+/* Blank reserved band at the top - no text/branding (that part was
+   correctly dropped as a duplicate of the splash headline below it).
+   This tool sits in an iframe under the real site's own sticky/fixed
+   header on the live page - without this gap, that real header
+   overlaps and hides the tool's own topmost content once the page is
+   scrolled, since the iframe has no way to know the outer header is
+   there and otherwise starts filling from y=0 - adjust to match the
+   real site header's actual height if it differs. */
+.site-header-spacer{position:absolute;top:0;left:0;right:0;height:43px;z-index:50;background:var(--bk);border-bottom:1px solid rgba(215,183,64,.2);box-sizing:border-box}
+@media(min-width:641px){.site-header-spacer{height:42px}}
+
+/* ── ADAPTIVE LAYOUT ── */
+.app-root{position:absolute;top:43px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
+@media(min-width:641px){.app-root{top:42px}}
+/* Shrinks just the live diagram to fit its frame better on desktop,
+   the way it looked right when tested at 75% browser zoom - wraps only
+   the <Canvas> inside each canvas-frame (attic/closet wizard, done
+   screen), NOT the wizard text/buttons around it, which stayed the
+   normal size that was already tuned for readability; scaling those
+   down too was making all the site's actual text small right along
+   with the diagram, which is not what was wanted. transform (not zoom)
+   because zoom actually recomputes descendants' layout at the scaled
+   size - it re-ran every px-based calc through the 0.75 factor and
+   rounding, which was enough to tip a fixed 200px-tall panel with zero
+   scroll slack (built and tested that way deliberately elsewhere in
+   this file) into a 1px scrollbar. transform only rescales the
+   already-computed pixels at paint time, so nothing underneath ever
+   computes anything different - same reason this is a plain wrapper
+   around the Canvas instead of a style directly on its own root: that
+   root measures its own box via getBoundingClientRect to size its
+   SVG viewBox, and needs to see the box it's ACTUALLY being drawn into
+   post-scale, not the pre-scale one. Scaling this wrapper up by 1/0.75
+   first and back down by 0.75 nets out to exactly the canvas-frame's
+   real box, just with the diagram itself drawn smaller inside it.
+   Desktop only, same reasoning as the spacer above about mobile's
+   vh-based sizing not needing this. */
+.canvas-zoom{position:relative;width:100%;height:100%}
+@media(min-width:641px){.canvas-zoom{width:133.3334%;height:133.3334%;transform:scale(.75);transform-origin:top left}}
+.splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
+.splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
+.splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
+.splash-sub{font-family:var(--fm);font-size:13px;color:rgba(215,183,64,.65);letter-spacing:.22em;margin-top:-8px;text-align:center}
+.trust-line{font-family:var(--fb);font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.02em;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.trust-line strong{color:rgba(215,183,64,.75);font-weight:600}
+.trust-dot{color:rgba(255,255,255,.2)}
+.splash-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.splash-card{width:360px;padding:28px 32px;background:rgba(215,183,64,.04);border:1px solid rgba(215,183,64,.15);cursor:pointer;transition:all .18s;display:flex;justify-content:center}
+.splash-card:hover{background:rgba(215,183,64,.09);border-color:rgba(215,183,64,.4);transform:translateY(-2px)}
+.splash-card-title{font-family:var(--ft);font-size:23px;font-weight:700;color:var(--wh)}
+.splash-card-desc{font-family:var(--fb);font-size:14.5px;color:var(--mut);text-align:center;line-height:1.6}
+/* Attic: canvas fills all, step bar on bottom */
+.attic-layout{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
+.attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
+.attic-canvas-area{flex:1;min-height:0;position:relative;overflow:hidden}
+.attic-bar{height:230px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
+/* Back/Next live here (not stacked inside .attic-info below) specifically
+   so they're never subject to .attic-info's overflow:hidden - a long
+   question+hint+reaction stack used to push Back past the fixed-height
+   panel and clip it. Putting real nav buttons on this row means it can no
+   longer stay a fixed 22px; it sizes to its content instead. */
+.attic-bar-top{min-height:42px;flex-shrink:0;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:6px 12px;gap:8px}
+.attic-bar-top .btn-back{padding:7px 14px;flex:0 0 auto}
+.attic-bar-top .btn-next{flex:0 0 auto;width:auto;padding:8px 20px}
+.attic-bar-body{flex:1;display:flex;min-height:0;overflow:hidden}
+.attic-info{width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:13px 18px;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.attic-scroll{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:stretch;gap:8px;padding:8px 12px;scrollbar-width:none}
+.attic-scroll::-webkit-scrollbar{display:none}
+.attic-opt{flex:1;min-width:130px;max-width:280px;background:var(--surf);border:1px solid var(--border);cursor:pointer;padding:9px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;transition:all .14s;outline:none;-webkit-appearance:none;position:relative;overflow:hidden}
+.attic-opt:hover{border-color:rgba(215,183,64,.3);background:#1a1a1a}
+.attic-opt.sel{border-color:var(--gl);background:rgba(240,214,78,.05);animation:selectPop .32s cubic-bezier(.34,1.56,.64,1),selectFlash .55s ease-out}
+.attic-opt.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
+.attic-opt-label{font-family:var(--ft);font-size:var(--fs-attic-label);font-weight:600;color:var(--wh);line-height:1.25}
+.attic-opt.sel .attic-opt-label{color:var(--gl)}
+.attic-opt-desc{font-size:var(--fs-attic-desc);color:var(--dim);line-height:1.4;flex:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
+/* .attic-bar-top now sizes to content (not a fixed row) and shares space
+   with Back/Info/Skip/Next, so a step whose question is long enough to
+   wrap this label to 2 lines shouldn't be allowed to keep growing - the
+   full question is already shown as its own heading right underneath. */
+.attic-step-label{font-family:var(--fm);font-size:var(--fs-attic-steplabel);color:rgba(215,183,64,.72);letter-spacing:.1em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:font-size .2s}
+.attic-opt-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:2px}
+.attic-chk{width:18px;height:18px;border:1.5px solid rgba(215,183,64,.35);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent}
+.attic-opt.sel .attic-chk{border-color:var(--gl);background:var(--gm);color:var(--bk)}
+.attic-chk.radio{border-radius:50%}
+/* Closet: canvas left, sidebar right (unchanged) */
+.closet-layout{position:absolute;inset:0;display:flex;flex-direction:row;transition:opacity .35s,transform .35s}
+.closet-layout.out{opacity:0;pointer-events:none;transform:translateX(8px)}
+.closet-canvas-area{flex:1;min-width:0;position:relative;overflow:hidden}
+
+/* Option cards stay capped at 280px even when there's acres of row left
+   over past 2-3 of them - widen the cap and center the row so leftover
+   space reads as breathing room, not a dead gap next to the Next button.
+   This was previously gated to min-width:1600px only, which left the
+   dead gap on every ordinary 1025-1599px desktop/laptop width (the most
+   common case) - starting it at the same 1025px breakpoint the rest of
+   desktop-only styling uses fixes that without touching mobile/tablet.
+   No overflow risk even on 3-option steps at the narrow end: .attic-opt
+   is flex:1 (grow AND shrink) down to its 130px min-width, so 320px is
+   only ever a cap, never a forced size. */
+@media(min-width:1025px){
+  .attic-scroll{justify-content:center}
+  .attic-opt{max-width:320px}
+}
+@media(min-width:1600px){
+  .attic-opt{max-width:360px}
+  .attic-info{width:340px}
+}
+@media(min-width:2000px){
+  .attic-opt{max-width:440px}
+  .attic-info{width:380px}
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE & TABLET RESPONSIVE (≤768px phone, ≤1024px tablet)
+   Strategy: attic → vertical stack (canvas top, steps bottom scrollable)
+             closet → vertical stack (canvas top, sidebar below)
+             splash → single column tall cards
+   Desktop layout is UNTOUCHED above 1024px.
+   ═══════════════════════════════════════════════ */
+
+@media(max-width:1024px){
+  /* Splash: single column, stack cards vertically */
+  .splash-cards{flex-direction:column;align-items:center;gap:12px}
+  .splash-card{width:min(90vw,420px);padding:20px 22px}
+  .splash-logo{font-size:clamp(28px,7vw,52px)}
+  .splash-sub{font-size:11px;letter-spacing:.14em}
+
+  /* Attic layout: canvas top 55%, bar bottom 45% scrollable */
+  .attic-layout{flex-direction:column}
+  .attic-canvas-area{flex:none;height:52vh;min-height:220px}
+  .attic-bar{height:auto;flex:1;min-height:0;overflow-y:auto}
+  /* Back/Skip/Info/Next stay reachable without scrolling a long option
+     list on a phone-height viewport - sticking this row is what replaces
+     the old dedicated full-width bottom Next bar. */
+  .attic-bar-top{position:sticky;top:0;z-index:2;background:var(--panel)}
+  .attic-bar-body{flex-direction:column;overflow-y:auto;overflow-x:hidden}
+  .attic-info{width:100%;border-right:none;border-bottom:1px solid var(--border);padding:10px 14px;flex-shrink:0}
+  .attic-scroll{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;height:auto;flex:none;padding:8px 10px;gap:6px}
+  .attic-opt{flex:1;min-width:calc(50% - 8px);max-width:100%;width:auto}
+
+  /* Closet layout: canvas top 55%, sidebar below */
+  .closet-layout{flex-direction:column}
+  .closet-canvas-area{flex:none;height:52vh;min-height:220px}
+  .sidebar{width:100%;height:auto;flex-shrink:0;border-left:none;border-top:1px solid var(--border);overflow-y:auto;max-height:45vh}
+  .opts{flex-direction:row;flex-wrap:wrap;overflow-y:auto;flex:none}
+  .opt{flex:1;min-width:calc(50% - 6px);max-width:100%}
+  .nav-row{position:sticky;bottom:0}
+
+  /* Done screen - stack canvas above the review panel on narrow viewports
+     regardless of layout. Matches the ".done-screen.attic-mode/.closet-mode"
+     specificity above (two classes) so this actually wins in the cascade -
+     an inline style would always beat any stylesheet rule here, which is
+     why this used to be a no-op attribute-selector hack for the closet
+     layout - flexDirection is no longer set inline at all. */
+  .done-screen.attic-mode,.done-screen.closet-mode{flex-direction:column}
+}
+
+@media(max-width:600px){
+  /* Phone: smaller canvas, single-column options */
+  .attic-canvas-area{height:45vh}
+  .closet-canvas-area{height:45vh}
+  .sidebar{max-height:50vh}
+  .opt{min-width:100%;max-width:100%}
+  .attic-opt{min-width:100%;max-width:100%}
+  .splash-logo{font-size:clamp(22px,8vw,38px)}
+  .splash-card{padding:16px 18px}
+  .attic-bar-top .btn-skip{display:none}
+  .step-hint{display:none}
+}
+
+/* PRINT - "Save / Print" only ever fires from the done screen's review/
+   pricing panel, but that panel is built to be a fixed-height, internally
+   scrolling box inside a fully-positioned (absolute/fixed) app shell -
+   correct for an on-screen single-viewport app, but it meant
+   window.print() only ever captured whatever currently fit inside that
+   scroll box. Anything below the fold (the tail of a long line-item
+   list, or the entire "Additional Considerations" panel on a build with
+   enough add-ons) was silently absent from the printed page, not just
+   visually clipped - there was no second page it flowed onto. Un-fixing
+   the chain of positioned/overflow:hidden ancestors down to the sidebar
+   lets its real content height flow into the printed document and
+   paginate normally.
+   The live diagram and every button that only makes sense on-screen
+   (nav, EDIT, mode toggles, Get Pricing, Financing, Start Over) are
+   dropped - nobody needs a page of clipped SVG or dead buttons, and the
+   numbers are what a customer actually wants on paper. */
+@media print{
+  html,body{height:auto!important;overflow:visible!important}
+  .app-root,.done-screen,.sidebar,.done-wrap{
+    display:block!important;position:static!important;overflow:visible!important;
+    height:auto!important;max-height:none!important;width:100%!important;
+    transform:none!important;
+  }
+  .splash-screen,.attic-layout,.closet-layout,.canvas-frame{display:none!important}
+  .sidebar{border:none!important}
+  .done-wrap{animation:none!important}
+  .btn-back,.btn-next,.btn-skip,.info-btn,.done-restart,.no-print{display:none!important}
+  body,.done-wrap{color:#000!important;background:#fff!important}
+  .done-wrap *{color:#000!important;border-color:#999!important}
+  .done-title,.opt-label{color:#000!important}
+}
