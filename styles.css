@@ -163,7 +163,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    background/border/text color and a tiny press scale, never a
    dimension, so it can't perturb either grid's layout or attic's
    zero-scroll-slack panel. */
-.review-edit-btn{background:rgba(215,183,64,.1);border:1px solid rgba(215,183,64,.35);color:rgba(215,183,64,.85);transition:background-color .15s ease,border-color .15s ease,color .15s ease,transform .1s ease}
+.review-edit-btn{background:rgba(215,183,64,.1);border:1px solid rgba(215,183,64,.35);color:rgba(215,183,64,.85);font-family:var(--fm);cursor:pointer;letter-spacing:.05em;transition:background-color .15s ease,border-color .15s ease,color .15s ease,transform .1s ease}
 .review-edit-btn:hover{background:rgba(215,183,64,.22);border-color:rgba(215,183,64,.6);color:var(--gl)}
 .review-edit-btn:active{transform:scale(.93);background:rgba(215,183,64,.3)}
 
@@ -400,7 +400,28 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    Instead" read as barely-there gray text for anyone with reduced contrast
    sensitivity. .62 clears 4.5:1 comfortably while staying visually
    secondary to the gold primary buttons around it. */
-.done-restart{background:transparent;border:none;color:rgba(255,255,255,.62);font-family:var(--fb);font-size:var(--fs-restart);cursor:pointer;text-decoration:underline;outline:none}
+.done-restart{background:transparent;border:none;color:rgba(255,255,255,.62);font-family:var(--fb);font-size:var(--fs-restart);cursor:pointer;text-decoration:underline;outline:none;transition:color .15s}
+.done-restart:hover{color:rgba(255,255,255,.85)}
+
+/* "Edit selections" link - same gold text-button language as
+   .review-edit-btn above (which already covers the review-grid EDIT
+   chips' color/border/background/hover), just for the plain underlined
+   link variant used in the pricing-flow header. */
+.link-btn-gold{background:none;border:none;color:rgba(215,183,64,.85);font-family:var(--fm);letter-spacing:.04em;cursor:pointer;text-decoration:underline;padding:4px 0;transition:color .15s}
+.link-btn-gold:hover{color:var(--gl)}
+
+/* QUICK ACTIONS ROW (Financing / Save-Print / Start Over) - same gap as
+   the EDIT chips above: three buttons with zero hover feedback, sitting
+   right next to Back (.btn-back, which does have one) and Get Pricing
+   (.btn-next, which does too). Colors match what was inline before;
+   hover just intensifies each one's own existing tint instead of
+   introducing a new accent. */
+.quick-financing-btn{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.4);color:rgba(180,180,255,.9);transition:background .15s,border-color .15s,color .15s}
+.quick-financing-btn:hover{background:rgba(99,102,241,.22);border-color:rgba(99,102,241,.7);color:#fff}
+.quick-print-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.68);transition:background .15s,border-color .15s,color .15s}
+.quick-print-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28);color:rgba(255,255,255,.9)}
+.quick-restart-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.68);cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.quick-restart-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.32);color:rgba(255,255,255,.9)}
 
 /* ── SITE HEADER SPACER ── */
 /* Blank reserved band at the top - no text/branding (that part was
@@ -547,7 +568,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .closet-canvas-area{flex:none;height:52vh;min-height:220px}
   .sidebar{width:100%;height:auto;flex-shrink:0;border-left:none;border-top:1px solid var(--border);overflow-y:auto;max-height:45vh}
   .opts{flex-direction:row;flex-wrap:wrap;overflow-y:auto;flex:none}
-  .opt{flex:1;min-width:calc(50% - 6px);max-width:100%}
+  /* Scoped to .opts .opt (the wizard sidebar's own option list), not a
+     bare .opt - the pricing flow's Yes/No/duct-count row on the done
+     screen reuses the same .opt class outside .opts, in a plain 3-item
+     flex row with no wrap. A bare .opt selector here forced each of
+     those into >=50% width too, so 2 buttons already claimed the full
+     row and the third (the vent-count field) got squeezed to a sliver
+     and silently clipped by the sidebar's overflow-x - never visible,
+     never scrollable to. Scoping this to where it's actually meant to
+     apply fixes that without changing the real 2-column wizard grid it
+     was written for. */
+  .opts .opt{flex:1;min-width:calc(50% - 6px);max-width:100%}
   .nav-row{position:sticky;bottom:0}
 
   /* Done screen - stack canvas above the review panel on narrow viewports
@@ -564,7 +595,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .attic-canvas-area{height:45vh}
   .closet-canvas-area{height:45vh}
   .sidebar{max-height:50vh}
-  .opt{min-width:100%;max-width:100%}
+  .opts .opt{min-width:100%;max-width:100%}
   .attic-opt{min-width:100%;max-width:100%}
   .splash-logo{font-size:clamp(22px,8vw,38px)}
   .splash-card{padding:16px 18px}

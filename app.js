@@ -1648,7 +1648,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       <button onClick={()=>setHeatMode(false)} style={{
         padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
         background:!heatMode?'rgba(35,137,224,.18)':'transparent',
-        color:!heatMode?'#5ba8f5':'rgba(255,255,255,.58)',outline:'none',transition:'all .2s',
+        color:!heatMode?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
         display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
         <span>❄</span>
         <span>COOL MODE</span>
@@ -1661,7 +1661,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
             padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='hp'?'rgba(35,137,224,.18)':'transparent',
-            color:heatMode&&heatSubMode==='hp'?'#5ba8f5':'rgba(255,255,255,.58)',outline:'none',transition:'all .2s',
+            color:heatMode&&heatSubMode==='hp'?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span>🔥</span>
             <span>HEAT PUMP</span>
@@ -1671,7 +1671,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('furnace');}} style={{
             padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='furnace'?'rgba(249,115,22,.18)':'transparent',
-            color:heatMode&&heatSubMode==='furnace'?'#f97316':'rgba(255,255,255,.58)',outline:'none',transition:'all .2s',
+            color:heatMode&&heatSubMode==='furnace'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span>🔥</span>
             <span>FURNACE</span>
@@ -1684,7 +1684,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
             padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='hp'?'rgba(35,137,224,.18)':'transparent',
-            color:heatMode&&heatSubMode==='hp'?'#5ba8f5':'rgba(255,255,255,.58)',outline:'none',transition:'all .2s',
+            color:heatMode&&heatSubMode==='hp'?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span>🔥</span>
             <span>HEAT PUMP</span>
@@ -1694,7 +1694,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('aux');}} style={{
             padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='aux'?'rgba(249,115,22,.18)':'transparent',
-            color:heatMode&&heatSubMode==='aux'?'#f97316':'rgba(255,255,255,.58)',outline:'none',transition:'all .2s',
+            color:heatMode&&heatSubMode==='aux'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span>🔥</span>
             <span>AUX HEAT</span>
@@ -1705,7 +1705,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         :<button onClick={()=>setHeatMode(true)} style={{
           padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
           background:heatMode?'rgba(249,115,22,.18)':'transparent',
-          color:heatMode?'#f97316':'rgba(255,255,255,.58)',outline:'none',transition:'all .2s',
+          color:heatMode?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
           display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
           <span>🔥</span>
           <span>HEAT MODE</span>
@@ -3515,7 +3515,7 @@ function App(){
           {isAtticMode&&(pricingFlow?
             <div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.7)",padding:"6px 10px"}}>
               <span style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.8)"}}>✓ Your system is built</span>
-              <button className="no-print" onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.85)",fontFamily:"monospace",fontSize:"var(--fs-pricing-fine)",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:"4px 0"}}>Edit selections</button>
+              <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-pricing-fine)"}}>Edit selections</button>
             </div>
             :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.55)",padding:"6px 10px 6px 7px"}}>
               <div className="done-icon" style={{margin:0,width:28,height:28,fontSize:14,flexShrink:0}}>✓</div>
@@ -3540,7 +3540,7 @@ function App(){
             {pricingFlow?
               <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
                 <span style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-pricing-meta)",color:"rgba(255,255,255,.78)"}}>✓ Your system is built</span>
-                <button className="no-print" onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.85)",fontFamily:"monospace",fontSize:"var(--fs-review-edit)",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:"4px 0"}}>Edit selections</button>
+                <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)"}}>Edit selections</button>
               </div>
             :<>
             <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
@@ -3550,7 +3550,7 @@ function App(){
                 <div style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",color:"var(--mut)"}}>Review your selections below</div>
               </div>
             </div>
-            <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":" closet-mode-grid")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",borderRadius:2,display:"grid"}}>
+            <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":" closet-mode-grid")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",display:"grid"}}>
               {[
                 {step:"location",label:"Location",val:answers.location==="attic"?"Attic horizontal":answers.location==="closet"?"Upflow closet":null},
                 {step:"indoor_type",label:"Indoor unit",val:answers.indoor_type==="furnace"?"Gas furnace":answers.indoor_type==="ah"?"Air handler":null},
@@ -3588,7 +3588,7 @@ function App(){
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
                   <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
                   <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
-                  <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontFamily:"monospace",fontSize:"var(--fs-review-edit)",padding:"3px 6px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                  <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>EDIT</button>
                 </div>
                 :
                 // Closet's cell doesn't reserve a fixed right-hand gutter for
@@ -3602,7 +3602,7 @@ function App(){
                   <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
                   <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6}}>
                     <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal",flex:"1 1 auto",minWidth:0}} title={item.val}>{item.short||item.val}</span>
-                    <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{flex:"0 0 auto",fontFamily:"monospace",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                    <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{flex:"0 0 auto",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px"}}>EDIT</button>
                   </div>
                 </div>
               ):null)}
@@ -3657,7 +3657,7 @@ function App(){
                           const rec=nearestTonnageOption(parseInt(val)||0);
                           setPricingAnswers(p=>({...p, sqftInput:val, ...(rec?{tonnageChoice:rec.v}:{})}));
                         }}
-                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:isAtticMode?"3px 10px":"8px 10px",fontSize:isAtticMode?11:13,fontFamily:"var(--fm)",outline:"none",boxSizing:"border-box"}}/>
+                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:isAtticMode?"3px 10px":"8px 10px",fontSize:isAtticMode?11:13,fontFamily:"var(--fm)",boxSizing:"border-box"}}/>
                     </>}
                     {subId==='ducts'&&<div style={{fontSize:isAtticMode?13:14.5,fontWeight:600,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>}
                   </div>
@@ -3721,7 +3721,7 @@ function App(){
 
               {pricingFlow==='result'&&(()=>{
                 const est=calcEstimate(answers,pricingAnswers);
-                if(!est)return<div style={{fontSize:12.5,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
+                if(!est)return<div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
                 // Attic's wide-short panel doesn't need this stacked
                 // full-width - splitting the price card and the
                 // considerations panel into side-by-side columns cuts the
@@ -3782,16 +3782,19 @@ function App(){
                 sits in the same fixed 200px attic panel as the review grid
                 and the pricing sizing sub-steps below it, so height here is
                 still budgeted carefully even though this exact row isn't
-                the documented zero-slack one. "Start Over"'s text color was
-                overriding .done-restart's own (already-fixed) color back
-                down to the same low-contrast rgba(255,255,255,.6) that
-                class used to have - bumped here too so it doesn't quietly
-                reintroduce that contrast problem via inline style. */}
+                the documented zero-slack one. Financing/Save-Print/Start
+                Over's color+border+background now live in the
+                .quick-financing-btn/.quick-print-btn/.quick-restart-btn
+                classes (was inline, duplicated, and had no :hover at all
+                unlike every other clickable thing on this screen) - text
+                color for Start Over stays the same contrast-safe
+                rgba(255,255,255,.68) the class encodes, it's just no
+                longer re-typed inline every render. */}
             <div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.9)",fontFamily:"monospace",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
-              <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.68)",fontFamily:"monospace",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
+              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"monospace",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
+              <button onClick={()=>window.print()} className="quick-print-btn" style={{width:"100%",fontFamily:"monospace",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
               <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
-              <button className="done-restart" style={{width:"100%",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.18)",color:"rgba(255,255,255,.68)",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",cursor:"pointer",padding:"9px",outline:"none",borderRadius:0}} onClick={restart}>Start Over</button>
+              <button className="quick-restart-btn" style={{width:"100%",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",padding:"9px"}} onClick={restart}>Start Over</button>
             </div>
           </div>
         </div>
