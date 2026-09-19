@@ -9,8 +9,8 @@ const CHAPTERS=['THE BASICS','THE ENGINE','COMFORT','FINAL TOUCHES'];
 const STEPS=[
   {id:'location',    q:'Where is your indoor unit?', chapter:0,
     hint:'This sets the layout of your system visualization.',        optional:false},
-  {id:'indoor_type', q:'Furnace or air handler?', chapter:0,
-    hint:'Furnace = gas heat. Air handler = all-electric heat pump.', optional:false},
+  {id:'indoor_type', q:'What Type of Indoor Unit?', chapter:0,
+    hint:'Furnace or air handler? Furnace = Gas Heat. Air Handler = All-Electric.', optional:false},
   {id:'insulation',  q:'What type of attic insulation do you have?', chapter:0,
     hint:'Fiberglass = 80% furnace. Spray foam = 90% furnace with PVC flue.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
@@ -46,8 +46,8 @@ function getOpts(stepId, answers){
       {v:'closet',label:'Closet',desc:'Upflow unit - hallway or utility closet'},
     ];
     case 'indoor_type':return[
-      {v:'furnace',label:'Furnace',     desc:'Gas heat + AC. Most popular in Austin - lowest operating cost when gas rates are low.'},
-      {v:'ah',     label:'Air handler', desc:'All-electric heat pump. No gas line needed - efficient in Austin winters.'},
+      {v:'furnace',label:'Furnace - Gas Heat',      desc:'Most common in Austin'},
+      {v:'ah',     label:'Air Handler - All Electric', desc:'Auxiliary heat installed'},
     ];
     case 'insulation':return[
       {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Standard vented attic - pairs with an 80% AFUE furnace. Most homes in Austin have this.'},
@@ -3494,7 +3494,7 @@ function App(){
 
   const INFO_TEXT={
     location:"Your indoor unit location sets the whole system layout. Attic is the most common in Austin -- the unit sits horizontally above the living space. Closet is upflow -- the unit stands vertically in a hallway or utility closet. Both work great; closet installs are slightly easier to service.",
-    indoor_type:"A furnace uses natural gas for heat and pairs with AC for cooling. An air handler is all-electric -- it works only with a heat pump for both heating and cooling. If you have a gas line, a furnace is usually the better value. No gas line? Air handler + heat pump is the way to go.",
+    indoor_type:"Not sure which one you have? If you have a gas stove or gas water heater, there's a good chance you already have a furnace -- it burns gas for heat and pairs with AC for cooling. If your home is all-electric, you likely have an air handler instead, paired with a heat pump for both heating and cooling.",
     insulation:"Attic insulation determines which furnace you can install. Fiberglass or blown means your attic is vented -- a standard 80% AFUE furnace works fine with a metal B-vent flue. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
     plenum:"The supply plenum connects your indoor unit to all your ductwork -- conditioned air flows in, then out to every room. If yours is damaged, leaking, or over 15 years old, replacing it improves efficiency and airflow.",
     thermostat:"A basic programmable thermostat is reliable and accurate -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
