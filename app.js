@@ -9,8 +9,8 @@ const CHAPTERS=['THE BASICS','THE ENGINE','COMFORT','FINAL TOUCHES'];
 const STEPS=[
   {id:'location',    q:"Where's your indoor unit?", chapter:0,
     hint:'Sets the layout of your whole system.',        optional:false},
-  {id:'indoor_type', q:'Furnace or air handler?', chapter:0,
-    hint:"Furnace burns gas; handler's electric.", optional:false},
+  {id:'indoor_type', q:'What Type of Indoor Unit?', chapter:0,
+    hint:'Furnace or air handler?\nFurnace = Gas Heat.\nAir Handler = All-Electric.', optional:false},
   {id:'insulation',  q:'Fiberglass or spray foam?', chapter:0,
     hint:'Determines your furnace efficiency.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
@@ -46,8 +46,8 @@ function getOpts(stepId, answers){
       {v:'closet',label:'Closet',desc:'Upflow unit in a hallway or utility closet.'},
     ];
     case 'indoor_type':return[
-      {v:'furnace',label:'Furnace - Gas Heat',      desc:'Burns gas for heat, pairs with AC for cooling.'},
-      {v:'ah',     label:'Air Handler - All Electric', desc:'Pairs with a heat pump for both heating and cooling.'},
+      {v:'furnace',label:'Furnace - Gas Heat',      desc:'Most common in Austin'},
+      {v:'ah',     label:'Air Handler - All Electric', desc:'Auxiliary heat installed'},
     ];
     case 'insulation':return[
       {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Vented attic - pairs with an 80% AFUE furnace. Most Austin homes have this.'},
@@ -3522,7 +3522,13 @@ function App(){
   // to, so the tool reads as a co-pilot responding to you instead of a
   // form reciting the same paragraph regardless of what you clicked.
   const REACTION={
-    indoor_type:{furnace:"Gas heat, the Austin standard.",ah:"All-electric, no gas line needed."},
+    // indoor_type has no entry here on purpose - its hint is forced to 3
+    // lines (see STEPS above), already 2 lines taller than every other
+    // step's. Adding a 4th reaction-line on top of that would overflow
+    // .attic-info's fixed budget (confirmed empirically: -15px natural-
+    // height overflow with a reaction line showing, 0 without) - and the
+    // 3-line hint already spells out both choices, so the reaction line
+    // wouldn't be telling the homeowner anything the hint didn't just say.
     insulation:{fiberglass:"Vented attic, 80% furnace fits.",spray:"Sealed attic, stepping up to 90%."},
     plenum:{ductboard:"Ductboard, a solid standard choice.",metal:"Steel plenum, outlasts the system.",none:"Keeping your plenum saves labor."},
     cond_tier:{fedmin:"Lowest upfront cost, locked in.",mid_ge15:"Our best overall value.",high_ge18:"Our quietest, most efficient tier."},
