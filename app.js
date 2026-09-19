@@ -373,7 +373,15 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const OUTSIDE_SUNNY='#465c8c';     // cool mode - bright daytime sky
   const OUTSIDE_OVERCAST='#212b45'; // dual-fuel HP mode (~52F) - overcast/rain
   const OUTSIDE_COLD='#141c2e';     // furnace/aux cold-snap mode (~28F) - dark, not pure-black
-  const outsideFill=!heatMode?OUTSIDE_SUNNY:(isDualFuel&&heatSubMode==='hp')?OUTSIDE_OVERCAST:OUTSIDE_COLD;
+  // "Mild 52F" mode isn't unique to dual-fuel systems - a heat-pump-only
+  // system (!hasFurnace) also previews a 52F HEAT PUMP state before its
+  // 28F AUX HEAT state, same two-temperature split as dual-fuel's HEAT
+  // PUMP/FURNACE pair. Gating this on isDualFuel alone left heat-pump-only
+  // systems showing the cold-snap look even at 52F - matches the
+  // isDualFuel||!hasFurnace pattern already used below for evapActive/
+  // condenserActive/refReversed/thermostatTemp.
+  const isMildHp=(isDualFuel||!hasFurnace)&&heatSubMode==='hp';
+  const outsideFill=!heatMode?OUTSIDE_SUNNY:isMildHp?OUTSIDE_OVERCAST:OUTSIDE_COLD;
 
   // The interior panels get a deliberate tint keyed to the same mode
   // metaphor - the way a real room's light/warmth answers what's happening
@@ -394,7 +402,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const INT_BASE={attic:'#10121c',living:'#0d0f18',closet:'rgba(9,9,16,.9)'};
   const INT_COOL={attic:'#282e48',living:'#20263c',closet:'rgba(35,40,62,.9)'};
   const INT_WARM={attic:'#14121a',living:'#100e15',closet:'rgba(13,9,14,.9)'};
-  const intFill=(k)=>!heatMode?INT_COOL[k]:(isDualFuel&&heatSubMode==='hp')?INT_BASE[k]:INT_WARM[k];
+  const intFill=(k)=>!heatMode?INT_COOL[k]:isMildHp?INT_BASE[k]:INT_WARM[k];
 
   const loc=a.location;
   const isAttic=!loc||loc==='attic';
@@ -1230,7 +1238,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
            that actually fall the full height of the zone with a gentle
            side-to-side sway, instead of a flat grid barely jittering in
            place. ── */}
-      <g style={{opacity:(heatMode&&(!isDualFuel||heatSubMode==='furnace'))?1:0,transition:'opacity .8s ease'}}>
+      <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity .8s ease'}}>
         {/* Snow cloud, same slot/shape family as the rain cloud below -
              without it the falling flakes had no visible source and read
              as a starfield instead of weather. Paler/flatter than the
@@ -1300,15 +1308,16 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       </g>
 
 
-      {/* ── CLOUD + RAIN - dual-fuel heat pump mode (52°, mild enough the
-           compressor still runs) - overcast rather than sunny or snowed in,
+      {/* ── CLOUD + RAIN - any system's mild 52° heat-pump preview (dual-fuel
+           HEAT PUMP, or a heat-pump-only system's own HEAT PUMP mode before
+           it drops to 28° AUX HEAT) - overcast rather than sunny or snowed in,
            same slot and reasoning as the sun above. Three depth layers of
            streaks (same treatment as the snow above) fall the full height
            of the zone along one consistent wind angle, so it reads as a
            wind-driven sheet of rain rather than a static grid of identical
            ticks. A faint wet sheen and a few splash flashes along the
            ground sell "it's actually landing down here" too. ── */}
-      <g style={{opacity:(heatMode&&isDualFuel&&heatSubMode==='hp')?1:0,transition:'opacity .8s ease'}}>
+      <g style={{opacity:(heatMode&&isMildHp)?1:0,transition:'opacity .8s ease'}}>
         <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#8a94a3"/>
         <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#9aa3b0"/>
         <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#8a94a3"/>
@@ -1765,16 +1774,19 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // the plenum and the wall, same as more open yard on the condenser's side.
     const SUP_PLEN_Y=UNIT_Y;
 
-    // Lineset riser lands on the A-coil's own connector stub (see ACoilH -
-    // drawn at its peak, the box's right edge) rather than an independent
-    // guess at the unit's X. For a furnace pairing that's the coil box's
-    // right edge; for a standalone air handler, ACoilH is embedded in the
-    // LEFT 50% of the cabinet (the return-air side, per the aux-heat-kit
-    // restructure - see AirHandlerH) so the stub sits there too, not
-    // further right into the blower/aux-heat sections. This used to be a
-    // flat AH_W*0.8 that landed inside the blower fan once the coil moved
-    // left - now it can't drift out of step with the coil again.
-    const RL_START_X=hasFurnace?(ACOIL_X+ACOIL_W-13):(AH_X+Math.round(AH_W*0.5)-15);
+    // Lineset riser lands on the A-coil's own header/base, not its peak -
+    // the peak is the internal distributor, real lineset never taps into
+    // that (same reasoning already applied to ACoilV's connector stubs).
+    // For a furnace pairing the coil is drawn peak-right so its base is
+    // the box's own LEFT edge; for a standalone air handler, ACoilH is
+    // embedded in the LEFT 50% of the cabinet (the return-air side, per
+    // the aux-heat-kit restructure - see AirHandlerH) with its own base at
+    // x+9 there too. Landing near the peak instead (the old AH_W*0.5-15)
+    // put the riser directly under the "AIR HANDLER" title/status text
+    // centered above the unit, visually cutting through it as the pipe
+    // rose past that label on its way to the roofline - the base sits far
+    // enough left of that centered label to clear it entirely.
+    const RL_START_X=hasFurnace?(ACOIL_X+8):(AH_X+9);
     const RL_ROOF_Y=EAVE_Y+14;
 
     // Real-world condenser sizes, fixed regardless of canvas width - these
