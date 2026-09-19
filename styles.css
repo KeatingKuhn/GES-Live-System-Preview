@@ -346,7 +346,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .step-eyebrow{font-family:var(--fm);font-size:var(--fs-step-eyebrow);color:var(--gm);letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px;display:flex;align-items:center;gap:8px}
 .step-eyebrow::after{content:'';flex:1;height:1px;background:rgba(215,183,64,.15)}
 .step-q{font-family:var(--ft);font-size:var(--fs-step-q);font-weight:600;color:var(--wh);line-height:1.3;margin-bottom:3px;text-align:center}
-.step-hint{font-size:var(--fs-step-hint);color:var(--mut);line-height:1.5;text-align:center}
+/* white-space:pre-line lets a hint's own \n characters force real line
+   breaks (e.g. the indoor_type step's 3-clause hint) instead of only ever
+   wrapping wherever the container happens to run out of width. */
+.step-hint{font-size:var(--fs-step-hint);color:var(--mut);line-height:1.5;text-align:center;white-space:pre-line}
 .reaction-line{font-size:var(--fs-step-hint);color:var(--gl);line-height:1.5;text-align:center;margin-top:4px;font-weight:600;animation:reactionIn .35s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes reactionIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 /* Done-screen "power on" reveal - nine small decisions lead here, and it's
@@ -385,6 +388,24 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .info-collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease;flex-shrink:0}
 .info-collapse.open{grid-template-rows:1fr}
 .info-collapse-inner{overflow:hidden;min-height:0}
+/* Desktop attic only: fixed open height instead of the shared 1fr
+   (content-hugging) rule above. .attic-bar is a true fixed height there
+   (see the comment on it), so .attic-bar-body's available height - and
+   with it every option card's height, since they stretch to fill it -
+   shrinks by exactly however much .info-collapse grows when opened. Info
+   text length varies step to step (1 line vs 2), so with the shared 1fr
+   rule that shrink amount varied per step too - hovering info made cards
+   visibly different sizes depending on which question you were on, not
+   because of anything about the cards themselves. Pinning this to the
+   longest case (2 lines) means every step reserves the same amount of
+   space and every card ends up the same height regardless of how much
+   text that step's own info happens to have. Closet's sidebar isn't a
+   fixed-height panel - opening info there just pushes .opts down in
+   normal flow, no squeeze to make consistent - so it keeps the
+   content-hugging 1fr behavior undisturbed. */
+@media(min-width:1025px){
+  .attic-info-collapse.open{grid-template-rows:52px}
+}
 .info-expand{padding:0 18px 10px}
 .info-body{font-size:var(--fs-info-body);color:rgba(255,255,255,.68);line-height:1.45}
 
@@ -406,7 +427,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .opt.sel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
 .opt.disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
 .opt-inner{display:flex;align-items:flex-start;gap:10px;padding:11px 13px 11px 16px;width:100%;min-height:0}
-.opt-body{flex:1;min-width:0}
+.opt-body{flex:1;min-width:0;text-align:center}
 .opt-label{font-family:var(--ft);font-size:var(--fs-opt-label);font-weight:600;color:var(--wh);display:block;margin-bottom:2px;line-height:1.3;white-space:normal}
 .opt.sel .opt-label{color:var(--gl)}
 .opt-desc{font-size:var(--fs-opt-desc);color:var(--dim);line-height:1.5;display:block}
@@ -603,7 +624,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .attic-info{width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:8px 18px;display:flex;flex-direction:column;gap:4px;overflow:hidden;justify-content:center}
 .attic-scroll{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:stretch;gap:8px;padding:8px 12px;scrollbar-width:none}
 .attic-scroll::-webkit-scrollbar{display:none}
-.attic-opt{flex:1;min-width:130px;max-width:280px;background:var(--surf);border:1px solid var(--border);cursor:pointer;padding:9px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;transition:all .14s;outline:none;-webkit-appearance:none;position:relative;overflow:hidden}
+.attic-opt{flex:1;min-width:130px;max-width:280px;background:var(--surf);border:1px solid var(--border);cursor:pointer;padding:9px 12px;text-align:center;display:flex;flex-direction:column;gap:2px;transition:all .14s;outline:none;-webkit-appearance:none;position:relative;overflow:hidden}
 .attic-opt:hover{border-color:rgba(215,183,64,.3);background:#1a1a1a}
 .attic-opt.sel{border-color:var(--gl);background:rgba(240,214,78,.05);animation:selectPop .32s cubic-bezier(.34,1.56,.64,1),selectFlash .55s ease-out}
 .attic-opt.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
@@ -622,7 +643,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    wrap this label to 2 lines shouldn't be allowed to keep growing - the
    full question is already shown as its own heading right underneath. */
 .attic-step-label{font-family:var(--fm);font-size:var(--fs-attic-steplabel);color:rgba(215,183,64,.72);letter-spacing:.1em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:font-size .2s}
-.attic-opt-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:2px}
+.attic-opt-foot{display:flex;align-items:center;justify-content:center;margin-top:2px}
 .attic-chk{width:18px;height:18px;border:1.5px solid rgba(215,183,64,.35);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent}
 .attic-opt.sel .attic-chk{border-color:var(--gl);background:var(--gm);color:var(--bk)}
 .attic-chk.radio{border-radius:50%}

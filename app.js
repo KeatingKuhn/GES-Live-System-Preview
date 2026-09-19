@@ -10,12 +10,12 @@ const STEPS=[
   {id:'location',    q:'Where is your indoor unit?', chapter:0,
     hint:'This sets the layout of your system visualization.',        optional:false},
   {id:'indoor_type', q:'What Type of Indoor Unit?', chapter:0,
-    hint:'Furnace or air handler? Furnace = Gas Heat. Air Handler = All-Electric.', optional:false},
+    hint:'Furnace or air handler?\nFurnace = Gas Heat.\nAir Handler = All-Electric.', optional:false},
   {id:'insulation',  q:'What type of attic insulation do you have?', chapter:0,
     hint:'Fiberglass = 80% furnace. Spray foam = 90% furnace with PVC flue.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
   {id:'plenum',      q:'Is a new supply plenum needed?', chapter:1,
-    hint:'This is the plenum - the box that distributes conditioned air from your unit into all your ducts.', optional:false},
+    hint:'The plenum distributes conditioned air from your unit into all your ducts.', optional:false},
   {id:'cond_tier',   q:"Pick your new system's efficiency tier.", chapter:1,
     hint:'Higher efficiency = lower monthly bills and better humidity control.', optional:false},
   {id:'system_for',  q:'Heat pump or straight cool?', chapter:1,
@@ -28,7 +28,7 @@ const STEPS=[
   {id:'purif',       q:'Any add-ons?', chapter:2,
     hint:'The enhanced filtration cabinet ships standard on every install already. Add any of these on top of that.',optional:true, multi:true},
   {id:'dehu',        q:'Add a whole-home dehumidifier?', chapter:2,
-    hint:"Austin's humidity makes your home feel 7°F warmer. Runs automatically with your system.", optional:false},
+    hint:"Austin's humidity makes your home feel 7°F warmer. Runs automatically.", optional:false},
   {id:'extras',      q:'Any final add-ons?', chapter:3,
     hint:'Condensate pump or ERV fresh-air system.', optional:true, multi:true},
 ];
@@ -3660,7 +3660,7 @@ function App(){
               {quickEdit?(quickEditWillFinish?"Save & Return →":"Next →"):(stepIdx===activeSteps.length-1?"Finish →":"Next →")}
             </button>
           </div>
-          <div className={"info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
+          <div className={"info-collapse attic-info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
             {infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)"}}>{infoText}</div>}
           </div></div>
           <div className="attic-bar-body">
