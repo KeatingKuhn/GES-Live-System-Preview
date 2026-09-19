@@ -31,6 +31,14 @@
      panel, and the quick-edit banner. */
   --fs-review-label:10px;--fs-review-val:12px;--fs-review-edit:10px;
   --fs-review-label-lg:13.5px;--fs-review-val-lg:16px;--fs-review-edit-lg:12.5px;
+  /* Middle tier for the closet sidebar's now-2-column review grid: closet
+     isn't the fixed-height/zero-slack panel attic's -compact pair exists
+     for, so this stays clearly bigger than that, but the old -lg pair
+     (sized for a single full-width column with room to spare) was wider
+     than a 2-column cell needs, which just meant more wrapped lines - not
+     more legible, just taller. This is still comfortably above the ~14px
+     option-card label size used everywhere else in the wizard. */
+  --fs-review-label-md:11.5px;--fs-review-val-md:13.5px;--fs-review-edit-md:11px;
   --fs-toggle-eyebrow:10.5px;--fs-toggle-label:12.5px;--fs-toggle-temp:15px;--fs-toggle-caption:9px;
   --fs-pricing-line:13.5px;--fs-pricing-meta:13px;--fs-pricing-fine:12.5px;
   --fs-restart:13px;--fs-quickedit:12.5px;--fs-quickedit-btn:12px;
@@ -46,6 +54,7 @@
     --fs-btn-back:15.5px;--fs-btn-next:16.5px;--fs-btn-skip:14px;
     --fs-review-label:10.5px;--fs-review-val:12.5px;--fs-review-edit:10.5px;
     --fs-review-label-lg:15px;--fs-review-val-lg:17.5px;--fs-review-edit-lg:13.5px;
+    --fs-review-label-md:12.5px;--fs-review-val-md:14.5px;--fs-review-edit-md:12px;
     --fs-toggle-eyebrow:12px;--fs-toggle-label:14.5px;--fs-toggle-temp:17px;--fs-toggle-caption:10.5px;
     --fs-pricing-line:14.5px;--fs-pricing-meta:14px;--fs-pricing-fine:13.5px;
     --fs-restart:14px;--fs-quickedit:13.5px;--fs-quickedit-btn:13px;
@@ -109,6 +118,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 @media(min-width:1025px){
   .done-review-grid.attic-mode-grid{grid-template-columns:repeat(5,1fr)}
 }
+/* Closet's sidebar is a genuinely scrolling column (not fixed-height like
+   attic's bar), so the fix here is cutting how much of it there is to
+   scroll through, not clipping anything. A single 200px-wide column of
+   up to 10 rows was most of what made this screen "scroll a lot" - two
+   columns roughly halves that, and 320px (the sidebar's fixed desktop
+   width, and comfortably true on a phone-width mobile column too) fits
+   two ~150px cells side by side with room for the EDIT button in each. */
+.done-review-grid.closet-mode-grid{grid-template-columns:repeat(2,1fr)}
 
 /* Attic mode's "system is built" header lives over the canvas's dead
    letterboxed space on desktop (see the canvas-frame overlay in the
@@ -155,10 +172,37 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 @keyframes spin{to{transform:rotate(360deg)}}
 .airflow{stroke-dasharray:10 6;animation:airflow 2s linear infinite}
 @keyframes airflow{to{stroke-dashoffset:-32}}
-.rain-drop{animation:rainFall 1s linear infinite}
-@keyframes rainFall{0%{transform:translateY(-6px);opacity:0}20%{opacity:.85}80%{opacity:.85}100%{transform:translateY(20px);opacity:0}}
-.snow-flake{animation:snowFall 3.4s linear infinite}
-@keyframes snowFall{0%{transform:translate(0,-6px);opacity:0}12%{opacity:.9}88%{opacity:.9}100%{transform:translate(10px,26px);opacity:0}}
+/* Rain/snow: each drop/flake carries its own --fx/--fy (total travel, set
+   inline per-element from real zone geometry so the fall actually crosses
+   the whole outside zone instead of a fixed few px) plus --op (its resting
+   opacity, varied per depth layer) and --sway (snow only, side-to-side
+   drift range). One shared keyframe per effect, individualized entirely
+   through those custom properties - see OutsideZone in app.js. */
+.rain-drop{animation:rainFall linear infinite}
+@keyframes rainFall{
+  0%{transform:translate(0,0);opacity:0}
+  8%{opacity:var(--op,.7)}
+  88%{opacity:var(--op,.7)}
+  100%{transform:translate(var(--fx,0),var(--fy,40px));opacity:0}
+}
+.rain-splash{animation:rainSplash linear infinite}
+@keyframes rainSplash{
+  0%{opacity:0;transform:scale(.3) translateY(0)}
+  10%{opacity:0}
+  18%{opacity:var(--op,.7);transform:scale(1) translateY(0)}
+  55%{opacity:0;transform:scale(1.9) translateY(-1.5px)}
+  100%{opacity:0;transform:scale(1.9) translateY(-1.5px)}
+}
+.snow-flake{animation:snowFall linear infinite}
+@keyframes snowFall{
+  0%{transform:translate(0,0);opacity:0}
+  6%{opacity:var(--op,.85)}
+  25%{transform:translate(calc(var(--sway,8px) * -0.7),calc(var(--fy,200px) * 0.25))}
+  50%{transform:translate(var(--sway,8px),calc(var(--fy,200px) * 0.5))}
+  75%{transform:translate(calc(var(--sway,8px) * -0.4),calc(var(--fy,200px) * 0.75))}
+  94%{opacity:var(--op,.85)}
+  100%{transform:translate(0,var(--fy,200px));opacity:0}
+}
 /* Selecting an option is the single most-repeated gesture in the whole
    build - give it a tactile settle instead of an instant flat color swap. */
 @keyframes selectPop{0%{transform:scale(1)}40%{transform:scale(1.035)}70%{transform:scale(.985)}100%{transform:scale(1)}}

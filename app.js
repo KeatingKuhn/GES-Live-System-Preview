@@ -375,17 +375,24 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const OUTSIDE_COLD='#141c2e';     // furnace/aux cold-snap mode (~28F) - dark, not pure-black
   const outsideFill=!heatMode?OUTSIDE_SUNNY:(isDualFuel&&heatSubMode==='hp')?OUTSIDE_OVERCAST:OUTSIDE_COLD;
 
-  // The interior panels get a small, deliberate tint keyed to the same
-  // mode metaphor - the way a real room's light/warmth answers what's
-  // happening outside. Cool mode (AC running) lifts blue a couple of RGB
-  // steps for a crisp feel; furnace/cold-snap mode nudges red up and
-  // blue down for a faint warm glow - "cozy inside vs. freezing outside"
-  // is exactly the story this tool is selling. Deltas are single digits
-  // per channel on purpose (mood, not a palette swap) and every variant
-  // stays well under the darkest outside state above, so the two zones
-  // never compete for attention.
+  // The interior panels get a deliberate tint keyed to the same mode
+  // metaphor - the way a real room's light/warmth answers what's happening
+  // outside. Furnace/cold-snap mode nudges red up and blue down for a
+  // faint warm glow - "cozy inside vs. freezing outside" - and stays a
+  // single-digit-per-channel mood nudge on purpose. Cool mode is the one
+  // state the owner asked to push further: sunny-out should read as
+  // daylight actually spilling into the room, not a barely-there hue
+  // shift, so INT_COOL lifts every channel ~2.5x brighter than the base
+  // (still the same navy hue family, just lit) while staying comfortably
+  // under OUTSIDE_SUNNY so outside still reads brighter than in. Checked
+  // against the gold (rgba(215,183,64,...)) and white component labels
+  // that sit on these panels: contrast against them actually holds
+  // roughly steady vs. the old near-black panel (very transparent
+  // watermark labels like ATTIC/LIVING SPACE track the background as it
+  // lightens; higher-opacity component labels sit on their own darker
+  // sub-fills, not directly on this rect, so they're unaffected).
   const INT_BASE={attic:'#10121c',living:'#0d0f18',closet:'rgba(9,9,16,.9)'};
-  const INT_COOL={attic:'#11141f',living:'#0e1019',closet:'rgba(10,10,18,.9)'};
+  const INT_COOL={attic:'#282e48',living:'#20263c',closet:'rgba(35,40,62,.9)'};
   const INT_WARM={attic:'#14121a',living:'#100e15',closet:'rgba(13,9,14,.9)'};
   const intFill=(k)=>!heatMode?INT_COOL[k]:(isDualFuel&&heatSubMode==='hp')?INT_BASE[k]:INT_WARM[k];
 
@@ -814,8 +821,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
         </g>;
       })}
-      <text x={c2+auxW/2} y={y+h*0.82} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="7.5" fontFamily="monospace">AUX HEAT</text>
-      <text x={c2+auxW/2} y={y+h*0.82+9} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="8" fontFamily="monospace">KIT</text>
+      {/* At 15% of the unit's width this section is too narrow for the
+          full "AUX HEAT KIT" label at a readable size (it used to wrap to
+          two lines at 7.5-8px). "AUX" alone reads at the same 10.5px size
+          as A-COIL/BLOWER - the full meaning is already spelled out right
+          next to the diagram (the AUX HEAT mode toggle) and in the status
+          line under the unit ("AUX HEAT ONLY"), so nothing is lost. */}
+      <text x={c2+auxW/2} y={y+h-4} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="10.5" fontFamily="monospace">AUX</text>
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
 
     </g>;
@@ -1144,6 +1156,14 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     </g>;
   }
 
+  // Deterministic pseudo-random in [0,1) - same seed always gives the same
+  // value, so the rain/snow layout in OutsideZone below is stable across
+  // re-renders instead of reshuffling every time React re-renders the canvas.
+  function rnd(seed){
+    const x=Math.sin(seed*12.9898)*43758.5453;
+    return x-Math.floor(x);
+  }
+
   // Exterior outside zone - side view of wall + condenser on pad
   // wallX = x position of the wall face
   // condenser = {x,y,w,h,tierKey}
@@ -1153,6 +1173,44 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const padY=groundY-10;
     const wallThick=18;   // visible wall cross-section width
     const sidingX=wallX;  // outside face of wall
+
+    // ── RAIN/SNOW FALL GEOMETRY ── shared by both effects below, driven
+    // by the zone's actual height/width instead of fixed pixel constants.
+    // The old version moved every flake/drop the same ~20-26px regardless
+    // of zoneH, which was fine in the ~500px attic zone but barely a
+    // flicker in the ~800px closet-upflow zone. Falling the real fallSpan
+    // (spawn line just under the sun/cloud slot, down to the ground) is
+    // what makes both layouts read as actual weather.
+    const fallTop=zoneH*0.12;
+    const fallBottom=groundY-4;
+    const fallSpan=fallBottom-fallTop;
+    const fallLeft=wallX+zoneW*0.05;
+    const fallWidth=zoneW*0.9;
+    // Consistent wind lean (~12° off vertical) applied to every rain
+    // streak and to its own fall path, so the whole field reads as one
+    // wind-driven sheet of rain rather than drops each going their own way.
+    const WIND_UX=-0.22, WIND_UY=0.976, WIND_RATIO=WIND_UX/WIND_UY;
+    // The closet-upflow zone is ~800px tall vs. the attic zone's ~460px -
+    // the same flake/drop count spread over the taller fall span reads
+    // noticeably thinner, so scale counts up with how much taller than
+    // baseline this zone actually is (never down, so the attic layout is
+    // unaffected).
+    const density=Math.max(1,fallSpan/460);
+    // Three depth layers for both effects - size, opacity and speed all
+    // step up together from far (small/faint/slow-ish) to near (big/
+    // bold/fast), which is what actually reads as depth/parallax instead
+    // of a flat field of identical marks. Counts are the baseline (attic
+    // zone) density - see `density` above for how they scale up.
+    const SNOW_LAYERS=[
+      {key:'sf', count:Math.round(20*density), r:[1.1,1.7],  op:[.42,.58], dur:[6,8.4],   sway:[3,7]},
+      {key:'sm', count:Math.round(16*density), r:[1.9,2.7],  op:[.6,.78],  dur:[4,5.6],   sway:[7,13]},
+      {key:'sn', count:Math.round(8*density),  r:[3.4,4.8],  op:[.88,1],   dur:[2.2,3.2], sway:[14,22]},
+    ];
+    const RAIN_LAYERS=[
+      {key:'rf', count:Math.round(20*density), len:[7,10],   sw:1,   op:[.24,.42], dur:[.6,.85]},
+      {key:'rm', count:Math.round(18*density), len:[11,15],  sw:1.4, op:[.48,.66], dur:[.45,.62]},
+      {key:'rn', count:Math.round(11*density), len:[17,22],  sw:1.9, op:[.72,.92], dur:[.32,.46]},
+    ];
 
     return <g>
       {/* ── GROUND ── */}
@@ -1166,20 +1224,58 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
       {/* ── SNOW - furnace/aux-heat cold-snap mode only. Fades in/out
            instead of popping, so switching modes reads as a season
-           passing rather than an instant background swap. Ground blanket
-           plus actual falling flakes, not just an accumulated drift. ── */}
+           passing rather than an instant background swap. An uneven
+           drifted blanket (snow piles unevenly, and gathers deeper
+           against the condenser pad) plus three depth layers of flakes
+           that actually fall the full height of the zone with a gentle
+           side-to-side sway, instead of a flat grid barely jittering in
+           place. ── */}
       <g style={{opacity:(heatMode&&(!isDualFuel||heatSubMode==='furnace'))?1:0,transition:'opacity .8s ease'}}>
-        <rect x={wallX} y={groundY-3} width={zoneW} height={6} fill="rgba(240,246,255,.5)"/>
-        {Array.from({length:12},(_,i)=>(
-          <ellipse key={'snow'+i} cx={wallX+(i+0.5)*(zoneW/12)} cy={groundY-2+((i%3)-1)} rx={zoneW/12*0.55} ry="3.2"
-            fill="rgba(240,246,255,.38)"/>
+        {/* Snow cloud, same slot/shape family as the rain cloud below -
+             without it the falling flakes had no visible source and read
+             as a starfield instead of weather. Paler/flatter than the
+             rain cloud so the two precipitation states stay distinct at
+             a glance. */}
+        <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#aab4c2"/>
+        <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#bcc5d1"/>
+        <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#aab4c2"/>
+        {(()=>{
+          const segs=9;
+          let d=`M${wallX} ${groundY}`;
+          for(let i=0;i<=segs;i++){
+            const x=wallX+(zoneW*i)/segs;
+            const nearPad=x>condX-14&&x<condX+condW+14;
+            const bump=(nearPad?7:3)+rnd(i*3.1)*(nearPad?6:5);
+            d+=` L${x.toFixed(1)} ${(groundY-bump).toFixed(1)}`;
+          }
+          d+=` L${wallX+zoneW} ${groundY} Z`;
+          return <path d={d} fill="rgba(240,246,255,.4)" stroke="rgba(255,255,255,.18)" strokeWidth="0.6"/>;
+        })()}
+        {Array.from({length:22},(_,i)=>(
+          <circle key={'sparkle'+i} cx={wallX+rnd(i*7.7)*zoneW} cy={groundY-2-rnd(i*4.3)*6}
+            r={rnd(i*9.1)*0.9+0.4} fill="rgba(255,255,255,.55)"/>
         ))}
-        {Array.from({length:32},(_,i)=>{
-          const col=i%8, row=Math.floor(i/8);
-          return <circle key={'flake'+i} className="snow-flake"
-            cx={wallX+zoneW*0.05+col*(zoneW*0.9/7)} cy={zoneH*0.14+row*((groundY-zoneH*0.14-16)/3)} r={i%3===0?2.2:1.5}
-            fill="rgba(255,255,255,.85)" style={{animationDelay:(i*0.22)+'s',transformOrigin:'center'}}/>;
-        })}
+        {SNOW_LAYERS.map(layer=>Array.from({length:layer.count},(_,i)=>{
+          const seed=layer.key.charCodeAt(1)*211+i;
+          const colW=fallWidth/layer.count;
+          const cx=fallLeft+colW*(i+0.5)+(rnd(seed+1)-0.5)*colW*0.7;
+          const cy=fallTop+rnd(seed+2)*fallSpan*0.18;
+          const r=layer.r[0]+rnd(seed+3)*(layer.r[1]-layer.r[0]);
+          const op=layer.op[0]+rnd(seed+4)*(layer.op[1]-layer.op[0]);
+          const dur=layer.dur[0]+rnd(seed+5)*(layer.dur[1]-layer.dur[0]);
+          const sway=(layer.sway[0]+rnd(seed+6)*(layer.sway[1]-layer.sway[0]))*(rnd(seed+7)<0.5?-1:1);
+          const fy=fallBottom-cy+(rnd(seed+8)-0.5)*24;
+          const delay=-(rnd(seed+9)*dur);
+          // A plain dot reads as a fixed star, not something falling - a
+          // slight vertical elongation gives even a single frozen frame an
+          // implied direction of travel, the same trick that makes the
+          // rain streaks below read instantly as rain instead of ticks.
+          return <ellipse key={layer.key+i} className="snow-flake"
+            cx={cx} cy={cy} rx={r*0.72} ry={r*1.4} fill="rgba(255,255,255,.95)"
+            filter={layer.key==='sf'?undefined:'url(#glow-sm)'}
+            style={{'--fy':fy+'px','--sway':sway+'px','--op':op,
+              animationDuration:dur+'s',animationDelay:delay+'s'}}/>;
+        }))}
       </g>
 
       {/* ── SUN - cool mode. Sits over the condenser (the actual "outside"
@@ -1206,23 +1302,53 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
       {/* ── CLOUD + RAIN - dual-fuel heat pump mode (52°, mild enough the
            compressor still runs) - overcast rather than sunny or snowed in,
-           same slot and reasoning as the sun above. Rain falls across the
-           whole zone, not just in a few streaks under the cloud. ── */}
+           same slot and reasoning as the sun above. Three depth layers of
+           streaks (same treatment as the snow above) fall the full height
+           of the zone along one consistent wind angle, so it reads as a
+           wind-driven sheet of rain rather than a static grid of identical
+           ticks. A faint wet sheen and a few splash flashes along the
+           ground sell "it's actually landing down here" too. ── */}
       <g style={{opacity:(heatMode&&isDualFuel&&heatSubMode==='hp')?1:0,transition:'opacity .8s ease'}}>
         <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#8a94a3"/>
         <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#9aa3b0"/>
         <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#8a94a3"/>
-        {Array.from({length:4},(_,i)=>(
-          <line key={'rain'+i} x1={wallX+zoneW*0.25-11+i*9} y1={zoneH*0.075+29} x2={wallX+zoneW*0.25-14+i*9} y2={zoneH*0.075+37}
-            stroke="#7ab8e0" strokeWidth="1.5" strokeLinecap="round"/>
-        ))}
-        {Array.from({length:34},(_,i)=>{
-          const col=i%8, row=Math.floor(i/8);
-          const px=wallX+zoneW*0.05+col*(zoneW*0.9/7), py=zoneH*0.14+row*((groundY-zoneH*0.14-16)/3.2);
-          return <line key={'drop'+i} className="rain-drop"
-            x1={px} y1={py} x2={px-2} y2={py+7}
-            stroke="#7ab8e0" strokeWidth="1.3" strokeLinecap="round"
-            style={{animationDelay:(i*0.06)+'s'}}/>;
+        <rect x={wallX} y={groundY-4} width={zoneW} height={4} fill="rgba(122,184,224,.14)"/>
+        {Array.from({length:5},(_,i)=>{
+          const sx=wallX+rnd(i*5.2+900)*zoneW*0.85;
+          return <line key={'sheen'+i} x1={sx} y1={groundY-1} x2={sx+zoneW*0.09} y2={groundY-1}
+            stroke="rgba(180,215,240,.22)" strokeWidth="1"/>;
+        })}
+        {RAIN_LAYERS.map(layer=>Array.from({length:layer.count},(_,i)=>{
+          const seed=layer.key.charCodeAt(1)*181+i+500;
+          const colW=fallWidth/layer.count;
+          const x=fallLeft+colW*(i+0.5)+(rnd(seed+1)-0.5)*colW*0.8;
+          const y=fallTop+rnd(seed+2)*fallSpan*0.12;
+          const len=layer.len[0]+rnd(seed+3)*(layer.len[1]-layer.len[0]);
+          const op=layer.op[0]+rnd(seed+4)*(layer.op[1]-layer.op[0]);
+          const dur=layer.dur[0]+rnd(seed+5)*(layer.dur[1]-layer.dur[0]);
+          const dx2=len*WIND_UX, dy2=len*WIND_UY;
+          const travel=fallBottom-y;
+          const fy=travel, fx=travel*WIND_RATIO;
+          const delay=-(rnd(seed+6)*dur);
+          return <line key={layer.key+i} className="rain-drop"
+            x1={x} y1={y} x2={x+dx2} y2={y+dy2}
+            stroke="#7ab8e0" strokeWidth={layer.sw} strokeLinecap="round"
+            style={{'--fy':fy+'px','--fx':fx+'px','--op':op,
+              animationDuration:dur+'s',animationDelay:delay+'s'}}/>;
+        }))}
+        {Array.from({length:9},(_,i)=>{
+          const sx=fallLeft+rnd(i*13.3+700)*fallWidth;
+          const dur=0.45+rnd(i*7.1+700)*0.35;
+          const delay=-(rnd(i*3.3+700)*dur);
+          const op=0.35+rnd(i*11.7+700)*0.35;
+          return <g key={'splash'+i} className="rain-splash"
+            style={{'--op':op,animationDuration:dur+'s',animationDelay:delay+'s',
+              transformBox:'fill-box',transformOrigin:'center'}}>
+            <path d={`M${sx-3.5} ${groundY-1} Q${sx-3.5} ${groundY-5} ${sx-1.5} ${groundY-6.5}`}
+              fill="none" stroke="#bfe0f5" strokeWidth="1" strokeLinecap="round"/>
+            <path d={`M${sx+3.5} ${groundY-1} Q${sx+3.5} ${groundY-5} ${sx+1.5} ${groundY-6.5}`}
+              fill="none" stroke="#bfe0f5" strokeWidth="1" strokeLinecap="round"/>
+          </g>;
         })}
       </g>
 
@@ -3346,16 +3472,22 @@ function App(){
                 <div style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",color:"var(--mut)"}}>Review your selections below</div>
               </div>
             </div>
-            <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":"")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",borderRadius:2,display:"grid"}}>
+            <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":" closet-mode-grid")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",borderRadius:2,display:"grid"}}>
               {[
                 {step:"location",label:"Location",val:answers.location==="attic"?"Attic horizontal":answers.location==="closet"?"Upflow closet":null},
                 {step:"indoor_type",label:"Indoor unit",val:answers.indoor_type==="furnace"?"Gas furnace":answers.indoor_type==="ah"?"Air handler":null},
                 answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam - 90% AFUE":"Fiberglass - 80% AFUE"}:null,
                 {step:"plenum",label:"Plenum",val:answers.plenum==="ductboard"?"New ductboard plenum":answers.plenum==="metal"?"New sheet metal plenum":answers.plenum==="none"?"Keep existing plenum":null},
-                {step:"thermostat",label:"Thermostat",val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null},
-                Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Add-ons",val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge protector":v).join(" + ")}:null,
+                {step:"thermostat",label:"Thermostat",
+                  val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null,
+                  short:answers.thermostat==="wifi"?"Wi-Fi smart t-stat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary t-stat":null},
+                Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Add-ons",
+                  val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge protector":v).join(" + "),
+                  short:answers.purif.map(v=>v==="aprilaire"?"Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge Protector":v).join(" + ")}:null,
                 {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum - 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency - 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency - 21 SEER2":null},
-                answers.system_for?{step:"system_for",label:"Heat source",val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only"}:null,
+                answers.system_for?{step:"system_for",label:"Heat source",
+                  val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only",
+                  short:answers.system_for==="hp"?"Dual Fuel (HP + furnace)":"Straight Cool (furnace)"}:null,
                 {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes - whole-home unit":answers.dehu==="no"?"No":null},
                 Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Final add-ons",val:answers.extras.map(v=>v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
               ].filter(Boolean).map((item,i)=>item&&item.val?(
@@ -3365,15 +3497,35 @@ function App(){
                 // sets overflowY:"auto" (see the .sidebar style a few lines
                 // up), so growing this type only ever adds scroll, never
                 // clips - sized here off the --fs-review-* variables (a
-                // smaller "compact" pair for attic's short bar, a larger
-                // pair for closet's tall sidebar, which has room to spare)
-                // instead of the hardcoded 9px/11px/8.5px this used to pin
-                // to, which read as barely-legible fine print and made the
-                // EDIT button a genuinely fiddly tap target.
-                <div key={i} style={{display:"flex",flexDirection:"column",gap:isAtticMode?1:4,padding:isAtticMode?"4px 34px 4px 10px":"9px 50px 9px 12px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
-                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",letterSpacing:".03em"}}>{item.label}</span>
-                  <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:isAtticMode?"var(--fs-review-val)":"var(--fs-review-val-lg)",lineHeight:isAtticMode?1.2:1.35,...(isAtticMode?{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}:{overflow:"visible",whiteSpace:"normal"})}} title={item.val}>{item.val}</span>
-                  <button className="no-print" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:isAtticMode?4:8,right:isAtticMode?4:8,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.35)",color:"rgba(215,183,64,.85)",fontFamily:"monospace",fontSize:isAtticMode?"var(--fs-review-edit)":"var(--fs-review-edit-lg)",padding:isAtticMode?"3px 6px":"6px 10px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                // smaller "compact" pair for attic's short bar, a mid pair
+                // for closet's now-2-column grid, which still scrolls by
+                // design but needs less of it) instead of the hardcoded
+                // 9px/11px/8.5px this used to pin to, which read as
+                // barely-legible fine print and made the EDIT button a
+                // genuinely fiddly tap target. Closet shows a trimmed
+                // "short" wording where one exists (full detail is still
+                // one hover/tap away via the native title tooltip, same
+                // place attic's ellipsis-clipped cells already send it).
+                isAtticMode?
+                <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
+                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
+                  <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
+                  <button className="no-print" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.35)",color:"rgba(215,183,64,.85)",fontFamily:"monospace",fontSize:"var(--fs-review-edit)",padding:"3px 6px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                </div>
+                :
+                // Closet's cell doesn't reserve a fixed right-hand gutter for
+                // an absolutely-positioned EDIT chip (that's what attic does
+                // above) - at 2-column width the chip's real rendered width
+                // didn't match a guessed gutter and ended up sitting on top
+                // of the label text. Putting EDIT in normal flow next to the
+                // value instead means it can never overlap anything: the
+                // value just wraps in whatever width is left beside it.
+                <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",minWidth:0}}>
+                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
+                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6}}>
+                    <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal",flex:"1 1 auto",minWidth:0}} title={item.val}>{item.short||item.val}</span>
+                    <button className="no-print" onClick={()=>jumpToStep(item.step)} style={{flex:"0 0 auto",background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.35)",color:"rgba(215,183,64,.85)",fontFamily:"monospace",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                  </div>
                 </div>
               ):null)}
             </div>
