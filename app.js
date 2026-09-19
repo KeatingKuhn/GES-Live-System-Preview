@@ -915,90 +915,73 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       </>}
 
       {isMini&&<>
-        {/* MID: same square top-discharge cabinet family as the fed-min
-            unit (both tiers are the same manufacturer's platform, real
-            GE NS16/NS18 residential condensers are conventional
-            top-discharge split-system cabinets, not mini-split-style
-            wall units) -- low-ambient variable-speed compressor gets a
-            shorter, wider footprint (see COND_SIZES) and a cool-toned
-            accent trim to read as the step-up model, not a different
-            product family. */}
-        <rect x={x} y={y} width={w} height={h} rx={4}
-          fill={active?"#a8adb8":"#b2b7c1"}
-          stroke={active?"rgba(140,148,165,.9)":"rgba(120,128,145,.8)"} strokeWidth="1.2"/>
-        {/* Dark top cap with CapFan */}
+        {/* MID: real GE NS18H condensers are a front-discharge cabinet - a
+            large round fan grille dominating most of the front face, a
+            narrower service-panel column beside it - not a top-discharge
+            square cabinet like the fed-min/high-eff units. Reverted back
+            to this shape after an earlier pass mistakenly rebuilt it onto
+            the top-discharge template; a real reference photo confirmed
+            this round-front-fan silhouette is correct. */}
+        <rect x={x} y={y} width={w} height={h} rx={6}
+          fill={active?(refReversed?"#131828":"#1c1e22"):"#181a1e"}
+          stroke={active?cc:"rgba(80,85,95,.7)"} strokeWidth={active?1.8:1.4}/>
+        {/* Discharge grille top */}
+        <rect x={x+4} y={y+2} width={w-8} height={Math.round(h*0.1)} rx="2"
+          fill="rgba(0,0,0,.35)" stroke="rgba(70,75,85,.5)" strokeWidth="0.6"/>
+        {Array.from({length:3},(_,i)=>(
+          <rect key={i} x={x+6} y={y+4+i*4} width={w-12} height={2} rx="0.5"
+            fill="rgba(35,38,45,.9)" stroke="rgba(60,65,75,.4)" strokeWidth="0.3"/>
+        ))}
+        {/* Left: large fan area ~68% */}
         {(()=>{
-          const capH=Math.round(h*0.18);
+          const fanAreaW=Math.round(w*0.68);
+          const fanAreaH=h-Math.round(h*0.1)-4;
+          const fanAreaY=y+Math.round(h*0.1)+2;
+          const fCX=x+fanAreaW/2, fCY=fanAreaY+fanAreaH/2;
+          const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.43);
           return <>
-            <rect x={x} y={y} width={w} height={capH} rx={4}
-              fill={active?"#2e323c":"#24272f"} stroke="rgba(18,20,26,.8)" strokeWidth="1"/>
-            <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
-              bladeColor={active?(refReversed?"rgba(100,160,220,.8)":"rgba(220,90,90,.7)"):"rgba(45,48,55,.6)"}
-              slatFill={active?"rgba(40,45,56,.88)":"rgba(32,37,48,.92)"}
-              slatCount={Math.floor((capH-2)*0.7/4)}/>
-            {[[x+5,y+4],[x+w-5,y+4],[x+5,y+capH-4],[x+w-5,y+capH-4]].map(([sx,sy],i)=>(
-              <circle key={i} cx={sx} cy={sy} r={1.8}
-                fill="rgba(50,55,66,.9)" stroke="rgba(80,88,105,.5)" strokeWidth="0.5"/>
-            ))}
+            <rect x={x+2} y={fanAreaY} width={fanAreaW-2} height={fanAreaH} rx="3"
+              fill="rgba(0,0,0,.4)" stroke="rgba(55,60,70,.5)" strokeWidth="0.7"/>
+            {Array.from({length:Math.floor(fanAreaH/5)},(_,row)=>
+              Array.from({length:Math.floor(fanAreaW/5)},(_,col)=>{
+                const gx=x+4+col*5, gy=fanAreaY+2+row*5;
+                const dx=gx-fCX, dy=gy-fCY;
+                if(Math.sqrt(dx*dx+dy*dy)>fR+4) return null;
+                return <rect key={row+'-'+col} x={gx} y={gy} width={1.5} height={1.5} rx="0.3"
+                  fill="rgba(40,45,55,.9)"/>;
+              })
+            )}
+            <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(60,65,78,.7)" strokeWidth="2.5"/>
+            <circle cx={fCX} cy={fCY} r={fR+4} fill="rgba(12,13,16,.6)" stroke="rgba(50,55,65,.5)" strokeWidth="1.2"/>
+            <BlowerWheel cx={fCX} cy={fCY} r={fR} spd={active?1.1:0.3} active={active}/>
+            <circle cx={fCX} cy={fCY} r={fR*0.14} fill="#2a2c32" stroke="rgba(90,95,110,.6)" strokeWidth="0.8"/>
           </>;
         })()}
-        {/* Cool-toned accent band just under the cap -- the one visual
-            cue that separates this from the base-tier cabinet, standing
-            in for a step-up trim color rather than a printed logo. */}
-        <rect x={x} y={y+Math.round(h*0.18)+1} width={w} height={3}
-          fill={active?cc:"rgba(110,120,145,.55)"} opacity={active?0.85:0.6}/>
-        {/* Finer horizontal louver slats on body -- tighter pitch than the
-            base unit, reading as the nicer-finish cabinet */}
+        {/* Right: service panel ~30% */}
         {(()=>{
-          const capH=Math.round(h*0.18)+4;
-          const slotY=y+capH+2, slotH=h-capH-4;
-          const count=Math.floor(slotH/4.2), step=slotH/count;
-          return Array.from({length:count},(_,i)=>(
-            <g key={i}>
-              <rect x={x+2} y={slotY+i*step} width={w-4} height={step-1.3} rx="0.5"
-                fill={active?"rgba(150,158,172,.85)":"rgba(160,168,182,.8)"}/>
-              <rect x={x+2} y={slotY+i*step} width={w-4} height={1.3}
-                fill={active?"rgba(200,206,218,.6)":"rgba(210,216,226,.55)"}/>
-              <rect x={x+2} y={slotY+i*step+step-2} width={w-4} height={1}
-                fill="rgba(95,100,115,.4)"/>
-            </g>
-          ));
+          const panelX=x+Math.round(w*0.7);
+          const panelW=w-Math.round(w*0.7)-2;
+          const panelY=y+Math.round(h*0.1)+4;
+          const panelH=h-Math.round(h*0.1)-8;
+          return <>
+            <rect x={panelX} y={panelY} width={panelW} height={panelH} rx="4"
+              fill={active?"rgba(28,32,40,.8)":"rgba(22,24,30,.7)"} stroke="rgba(55,60,72,.6)" strokeWidth="0.8"/>
+            <rect x={panelX+3} y={panelY+6} width={panelW-6} height={Math.round(panelH*0.55)} rx="3"
+              fill={active?"rgba(20,25,35,.9)":"rgba(16,18,24,.8)"} stroke="rgba(50,55,68,.5)" strokeWidth="0.7"/>
+            <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.7)} r={3.5}
+              fill={active?(cc):"rgba(40,45,55,.6)"} stroke={active?cc:"rgba(55,60,70,.3)"} strokeWidth="0.8"/>
+            {active&&<circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.7)} r={2}
+              fill="#fff" className="glow-pulse"/>}
+            {[0.18,0.88].map((ty,i)=>(
+              <circle key={i} cx={panelX+panelW/2} cy={panelY+panelH*ty} r={1.8}
+                fill="rgba(45,50,60,.9)" stroke="rgba(70,75,90,.5)" strokeWidth="0.5"/>
+            ))}
+            <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.85)} r={5}
+              fill="rgba(30,35,45,.8)" stroke={active?cc:"rgba(70,75,90,.5)"} strokeWidth="0.8"/>
+            <text x={panelX+panelW/2} y={panelY+Math.round(panelH*0.87)} textAnchor="middle"
+              fill={active?cc:"rgba(90,95,110,.7)"} fontSize="10" fontFamily="sans-serif" fontWeight="700">VS</text>
+          </>;
         })()}
-        {[[x+4,y+h-4],[x+w-4,y+h-4]].map(([fx,fy],i)=>(
-          <circle key={i} cx={fx} cy={fy} r={2.5}
-            fill="rgba(90,96,112,.8)" stroke="rgba(60,66,82,.6)" strokeWidth="0.7"/>
-        ))}
-        {/* Compressor outline (inverter-driven) -- visible inside housing */}
-        {(()=>{
-          const capH=Math.round(h*0.18)+4;
-          const bodyH=h-capH;
-          const cW=Math.round(w*0.26), cH=Math.round(bodyH*0.44);
-          const cX=x+w-cW-6, cY=y+capH+bodyH-cH-8;
-          const domeH=Math.round(cH*0.22);
-          return <g>
-            <rect x={cX} y={cY+domeH} width={cW} height={cH-domeH} rx="3"
-              fill="rgba(100,105,120,.2)" stroke={active?cc:"rgba(75,82,98,.4)"}
-              strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
-            <ellipse cx={cX+cW/2} cy={cY+domeH} rx={cW/2} ry={domeH}
-              fill="rgba(110,116,132,.22)" stroke={active?cc:"rgba(75,82,98,.4)"}
-              strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
-            <rect x={cX+cW*0.6} y={cY-5} width={3.5} height={domeH+5} rx="1"
-              fill={active?line1C:"rgba(65,70,85,.5)"} opacity={active?0.65:0.4}/>
-            <rect x={cX-5} y={cY+domeH+Math.round(cH*0.25)} width={7} height={3.5} rx="1"
-              fill={active?line2C:"rgba(65,70,85,.5)"} opacity={active?0.65:0.4}/>
-            {/* Clamped above the SEER badge for the same reason as the
-                fed-min/high-eff compressor labels -- see the note there. */}
-            <text x={cX+cW/2} y={y+h-19} textAnchor="middle"
-              fill={active?cc:"rgba(85,90,105,.5)"} fontSize="8.5" fontFamily="monospace">INV.</text>
-          </g>;
-        })()}
-        {/* Variable-speed tag -- small printed tag, not a lit control
-            panel (this is the outdoor unit; the control board lives
-            inside the cabinet, not on an exposed front-facing display). */}
-        <rect x={x+3} y={y+h-27} width={Math.round(w*0.5)} height={9} rx="1.5"
-          fill="rgba(35,38,46,.6)" opacity="0.9"/>
-        <text x={x+3+Math.round(w*0.5)/2} y={y+h-20} textAnchor="middle"
-          fill={active?cc:"rgba(150,158,172,.8)"} fontSize="7" fontFamily="monospace" fontWeight="700">VARIABLE SPEED</text>
         {/* SEER badge */}
         <rect x={x+3} y={y+h-16} width={w-6} height={13} rx="2"
           fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
