@@ -707,11 +707,40 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // jumping mid-flow doesn't make sense). Hover state is a stroke on a
   // sibling rect rather than a filter, so it can't collide with any of
   // this component's own SVG filter="" attributes elsewhere.
-  const EditZone=({x,y,w,h,stepId,rx})=>onEditStep&&<g className="edit-zone" onClick={()=>onEditStep(stepId)}>
-    <rect x={x} y={y} width={w} height={h} rx={rx||4} fill="transparent" stroke="none"/>
-    <rect className="edit-zone-ring" x={x-3} y={y-3} width={w+6} height={h+6} rx={(rx||4)+3}
-      fill={G+'.06)'} stroke={G+'.95)'} strokeWidth="2.5" filter="url(#glow-sm)"/>
-  </g>;
+  // SVG_SCALE/SVG_VW/SVG_VH are set below once each layout branch knows its
+  // own VW/VH and the frame's actual measured box (see frameBox) - same
+  // "assigned later, read by a closure that only actually runs after this
+  // function returns" pattern already used for G/B/W/O just below. Only one
+  // of the two layout branches ever runs per call, so by the time React
+  // actually invokes EditZone, these hold that branch's real numbers.
+  let SVG_SCALE=1, SVG_VW=0, SVG_VH=0;
+  // Some real-world components (the thermostat, mainly) are small enough
+  // in their own right that a narrow mobile frame's scale-down (the whole
+  // diagram routinely renders at under a third of its native size on a
+  // 375-390px phone) shrinks their EDIT hit area well under any usable tap
+  // target - the thermostat's alone measured ~19x19 on-screen px at 375px
+  // wide before this. This grows any zone that would render smaller than
+  // MIN_EDIT_PX (comfortably above the 24px WCAG 2.5.5 AA minimum) back up
+  // to that floor, in SVG units scaled for the CURRENT render, centered on
+  // its original box so it still sits over the right component - visual
+  // component geometry itself (the rects/shapes drawn elsewhere) is
+  // untouched, only this invisible/hover-ring overlay grows. Clamped to the
+  // canvas bounds so it can never poke off the edge of the SVG.
+  const MIN_EDIT_PX=28;
+  const EditZone=({x,y,w,h,stepId,rx})=>{
+    if(!onEditStep)return null;
+    const minUnits=SVG_SCALE>0?MIN_EDIT_PX/SVG_SCALE:0;
+    let ex=x, ey=y, ew=w, eh=h;
+    if(ew<minUnits){ex-=(minUnits-ew)/2; ew=minUnits;}
+    if(eh<minUnits){ey-=(minUnits-eh)/2; eh=minUnits;}
+    if(SVG_VW){if(ex<0)ex=0; if(ex+ew>SVG_VW)ex=Math.max(0,SVG_VW-ew);}
+    if(SVG_VH){if(ey<0)ey=0; if(ey+eh>SVG_VH)ey=Math.max(0,SVG_VH-eh);}
+    return <g className="edit-zone" onClick={()=>onEditStep(stepId)}>
+      <rect x={ex} y={ey} width={ew} height={eh} rx={rx||4} fill="transparent" stroke="none"/>
+      <rect className="edit-zone-ring" x={ex-3} y={ey-3} width={ew+6} height={eh+6} rx={(rx||4)+3}
+        fill={G+'.06)'} stroke={G+'.95)'} strokeWidth="2.5" filter="url(#glow-sm)"/>
+    </g>;
+  };
   const [heatMode,setHeatMode]=React.useState(false);
   const [heatSubMode,setHeatSubMode]=React.useState('hp'); // 'hp'/'furnace' for dual fuel, 'hp'/'aux' for a heat-pump-only air handler
   // The attic diagram's viewBox width adapts to the frame's actual aspect
@@ -1639,7 +1668,47 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // (refrigerant flow direction, which equipment lights up as active) without
   // waiting for actual weather. Callout label + title attr both explain that,
   // since a first-time visitor has no other reason to guess it's clickable.
-  const ToggleUI=({style})=>(
+  //
+  // On a narrow frame this full stack (eyebrow + 2-3 full-height buttons,
+  // ~150px tall) doesn't fit inside the SVG's own top letterbox gutter -
+  // the closet layout in particular has very little of that gutter to
+  // begin with (its diagram fills most of the frame), so the panel used to
+  // sit directly on top of real equipment (the air handler, roofline/
+  // "OUTSIDE" label) instead of the empty space above it, hiding them
+  // entirely rather than just looking oversized. Below this width it swaps
+  // for a single compact icon+temp pill row instead - same click targets/
+  // state, just a small fraction of the vertical footprint. 900 is a frame-
+  // width (not viewport-width) cutoff wide enough to cover phone and
+  // portrait-tablet frames (measured overlap at 375/390/768) while leaving
+  // real desktop widths (1440+, where the gutter is plenty tall) alone.
+  const compactToggle=frameBox&&frameBox.w>0&&frameBox.w<900;
+  const ToggleUI=({style})=>{
+    if(compactToggle){
+      const modes=isDualFuel?[
+        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'furnace',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='furnace',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}},
+      ]:!hasFurnace?[
+        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'aux',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='aux',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}},
+      ]:[
+        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'heat',icon:'🔥',temp:'28°',active:heatMode,color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>setHeatMode(true)},
+      ];
+      return <div title="Not a control - tap to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',borderRadius:3,overflow:'hidden',...style}}>
+        {modes.map((m,i)=>
+          <button key={m.key} onClick={m.onClick} style={{
+            padding:'5px 7px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
+            fontFamily:'monospace',fontSize:'10px',fontWeight:700,letterSpacing:'.02em',
+            background:m.active?m.bg:'transparent',color:m.active?m.color:'rgba(255,255,255,.55)',
+            outline:'none',transition:'all .2s',display:'flex',alignItems:'center',gap:3,whiteSpace:'nowrap'}}>
+            <span style={{fontSize:9}}>{m.icon}</span><span>{m.temp}</span>
+          </button>
+        )}
+      </div>;
+    }
+    return (
     <div className="fadein" style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3,...style}}>
       <span style={{fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.6)'}}>
         ▸ preview how your system runs
@@ -1714,7 +1783,8 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         </button>}
       </div>
     </div>
-  );
+    );
+  };
 
   // ══════════════════════════════════════════════════════════
   // ATTIC HORIZONTAL
@@ -1757,6 +1827,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const VH=Math.round(BASE_VH*(1-ZOOM_T*0.1));
     const FRAME_ASPECT_VW=frameBox&&frameBox.h>0?Math.round(VH*frameAspect):BASE_VW;
     const VW=Math.max(BASE_VW,Math.min(FRAME_ASPECT_VW,Math.round(BASE_VW*1.2)));
+    // preserveAspectRatio="xMidYMid meet" below always scales by whichever
+    // of width/height is the tighter fit - see EditZone's MIN_EDIT_PX comment.
+    SVG_SCALE=frameBox&&frameBox.h>0?Math.min(frameBox.w/VW,frameBox.h/VH):1;
+    SVG_VW=VW; SVG_VH=VH;
 
     // 2/3 house when condenser selected, full width otherwise
     const HOUSE_W=hasCond ? Math.round(VW*(2/3)) : VW-12;
@@ -2365,6 +2439,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const frameAspect=frameBox&&frameBox.h>0?frameBox.w/frameBox.h:BASE_ASPECT;
     const FRAME_ASPECT_VW=frameBox&&frameBox.h>0?Math.round(VH*frameAspect):BASE_VW;
     const VW=Math.max(BASE_VW,Math.min(FRAME_ASPECT_VW,Math.round(BASE_VW*1.4)));
+    // preserveAspectRatio="xMidYMid meet" below always scales by whichever
+    // of width/height is the tighter fit - see EditZone's MIN_EDIT_PX comment.
+    SVG_SCALE=frameBox&&frameBox.h>0?Math.min(frameBox.w/VW,frameBox.h/VH):1;
+    SVG_VW=VW; SVG_VH=VH;
     const SCALE=7.8;
     const UNIT_W=Math.round(20*SCALE);   // ~156px
     // Real dimensions: a 3-ton furnace runs ~33in, its A-coil adds ~24in on
