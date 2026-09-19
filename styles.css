@@ -96,6 +96,23 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    decorative, sits behind the SVG (z-index unset, painted first), never
    touches diagram geometry. */
 .canvas-frame{background-image:linear-gradient(rgba(215,183,64,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(215,183,64,.05) 1px,transparent 1px);background-size:44px 44px}
+/* LIVE STATE TRANSITIONS - the thermostat-mode preview toggle (and any
+   wizard answer that changes which equipment is drawn active) swaps a
+   shape's fill/stroke/opacity attribute on every React re-render of the
+   SAME element (no key change, no remount) - e.g. CONDENSER · ACTIVE vs
+   STANDBY, ABSORBING/REJECTING HEAT vs STANDBY, the disconnect's status
+   dot, a coil's glow. Without this, that swap was an instant attribute
+   snap. Scoped to just the diagram's shape elements and just these three
+   paint properties, so it only ever smooths an existing color/opacity
+   change - it can't affect layout (nothing here is a layout property) and
+   it never fires on first paint (a freshly-mounted element, e.g. behind
+   .snap/.fadein's own entrance animation, has no prior value to
+   transition from), so those entrance flourishes are untouched. Where a
+   shape already carries its own keyframe `animation` for the same
+   property (.spin, .airflow, .rain-drop, .glow-pulse's own pulse below),
+   the animation simply takes precedence while it runs, per spec - no
+   conflict either way. */
+.canvas-svg :is(rect,circle,ellipse,path,line,polygon,text){transition:fill .22s ease,stroke .22s ease,opacity .22s ease}
 
 /* DONE SCREEN - attic (wide/short diagram) keeps the review panel as a
    horizontal bar below so the canvas keeps full width; closet (tall/narrow
@@ -103,9 +120,19 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    sidebar's fixed 320px width doesn't shrink (flex-shrink:0), so on a
    narrow viewport a row layout squeezes the canvas to 0 - the mobile
    media query below overrides this to column for both. */
-.done-screen{display:flex;overflow:hidden}
+.done-screen{display:flex;overflow:hidden;transition:opacity .22s ease,transform .22s ease}
 .done-screen.attic-mode{flex-direction:column}
 .done-screen.closet-mode{flex-direction:row}
+/* Clicking an EDIT chip drops `done` back to false to jump into the
+   wizard - previously an instant unmount with nothing for a CSS
+   transition to animate. App.js now keeps this screen mounted for one
+   extra beat (see doneVisible/done-leaving in app.js) and adds this class
+   for that beat, so it fades/settles out while .attic-layout/.closet-
+   layout's own existing opacity transition fades the wizard in
+   underneath - a crossfade instead of a hard cut. Never touches the
+   done-screen's own entrance (canvasPowerOn/done-wrap's snap), which
+   still fires exactly as before on the way IN. */
+.done-screen.done-leaving{opacity:0;transform:scale(.985) translateY(4px);pointer-events:none}
 
 /* Review-selections grid: auto-fill by default (right for the closet
    sidebar's narrow 320px column, and for any narrow viewport). The attic
@@ -126,6 +153,19 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    width, and comfortably true on a phone-width mobile column too) fits
    two ~150px cells side by side with room for the EDIT button in each. */
 .done-review-grid.closet-mode-grid{grid-template-columns:repeat(2,1fr)}
+/* Review grid EDIT chips (both the attic-mode absolutely-positioned chip
+   and the closet-mode inline one) previously had zero hover/press
+   feedback at all - just a static inline-styled button with no CSS class
+   to hang a :hover/:active rule on (and their color/background/border
+   used to be set inline too, which - being inline - would have silently
+   out-ranked any :hover rule added here; moved to this class instead so
+   the states can actually win the cascade). Only ever changes
+   background/border/text color and a tiny press scale, never a
+   dimension, so it can't perturb either grid's layout or attic's
+   zero-scroll-slack panel. */
+.review-edit-btn{background:rgba(215,183,64,.1);border:1px solid rgba(215,183,64,.35);color:rgba(215,183,64,.85);transition:background-color .15s ease,border-color .15s ease,color .15s ease,transform .1s ease}
+.review-edit-btn:hover{background:rgba(215,183,64,.22);border-color:rgba(215,183,64,.6);color:var(--gl)}
+.review-edit-btn:active{transform:scale(.93);background:rgba(215,183,64,.3)}
 
 /* Attic mode's "system is built" header lives over the canvas's dead
    letterboxed space on desktop (see the canvas-frame overlay in the
@@ -207,7 +247,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    build - give it a tactile settle instead of an instant flat color swap. */
 @keyframes selectPop{0%{transform:scale(1)}40%{transform:scale(1.035)}70%{transform:scale(.985)}100%{transform:scale(1)}}
 @keyframes selectFlash{0%{background-color:rgba(240,214,78,.4)}100%{background-color:rgba(240,214,78,.05)}}
-.glow-pulse{animation:gpulse 2.5s ease-in-out infinite}
+/* glowIn plays once on mount (an "active" component's glow dots/highlights
+   are conditionally rendered - active&&<.../> - so toggling the thermostat
+   preview mounts them fresh rather than changing an existing element's
+   opacity) so a newly-active part eases in instead of popping straight to
+   its mid-pulse brightness; gpulse then takes over, delayed to start right
+   where glowIn leaves off (opacity .5) so there's no visible seam between
+   the two. The always-running pulse itself is unchanged. */
+.glow-pulse{animation:glowIn .22s ease-out both,gpulse 2.5s ease-in-out .22s infinite}
+@keyframes glowIn{from{opacity:0}to{opacity:.5}}
 @keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
 .line-pulse{animation:gpulse 2.2s ease-in-out infinite}
 /* Done-screen diagram is clickable - hover reveals which piece each
@@ -267,7 +315,22 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    behavior it had before. */
 .info-btn{width:var(--info-btn-size);height:var(--info-btn-size);flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .info-btn:hover{border-color:var(--gl);color:var(--gl);background:rgba(215,183,64,.18)}
-.info-expand{padding:0 18px 10px;flex-shrink:0}
+/* Info panel open/close - was a plain showInfo&&<div> conditional mount,
+   so it snapped open and vanished instantly on close with no transition
+   to animate (an unmounted element has nothing to transition from). Kept
+   mounted in app.js now and animated instead via the CSS grid 0fr/1fr
+   trick: a grid row that's always exactly the content's natural height
+   when open and exactly 0 when closed, with overflow:hidden on the inner
+   wrapper clipping it in between - so it eases open and closed from
+   EITHER direction, never clips anything once fully open (the row is
+   sized to the real content height, not a guessed max-height that could
+   come up short for a longer INFO_TEXT entry), and never affects layout
+   outside this element (a grid track's own row, nothing else moves except
+   what already had to make room for this content in normal flow). */
+.info-collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease;flex-shrink:0}
+.info-collapse.open{grid-template-rows:1fr}
+.info-collapse-inner{overflow:hidden;min-height:0}
+.info-expand{padding:0 18px 10px}
 .info-body{font-size:var(--fs-info-body);color:rgba(255,255,255,.68);line-height:1.6}
 
 /* OPTIONS - .opt used to be flex:1, splitting the sidebar's full height

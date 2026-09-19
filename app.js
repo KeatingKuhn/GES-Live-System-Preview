@@ -1605,7 +1605,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // waiting for actual weather. Callout label + title attr both explain that,
   // since a first-time visitor has no other reason to guess it's clickable.
   const ToggleUI=({style})=>(
-    <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3,...style}}>
+    <div className="fadein" style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3,...style}}>
       <span style={{fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.6)'}}>
         ▸ preview how your system runs
       </span>
@@ -3060,6 +3060,23 @@ function App(){
   const [answers,setAnswers]=useState(defaultAnswers);
   const [stepIdx,setStepIdx]=useState(0);
   const [done,setDone]=useState(false);
+  // Done-screen exit transition: its own entrance already gets a deliberate
+  // "power on" flourish (canvasPowerOn/done-wrap's snap, below) - but an
+  // EDIT chip flips `done` back to false to jump into the wizard, which
+  // used to unmount the whole done-screen instantly (nothing for a CSS
+  // transition to animate). doneVisible keeps it mounted for one extra
+  // fade-out beat after `done` goes false (see the done-leaving class in
+  // styles.css) so it settles away while the wizard layout fades in under
+  // it, instead of a hard cut. It never delays the way IN - doneVisible
+  // flips true in the same tick `done` does, so the entrance flourish
+  // still fires exactly when it always has.
+  const [doneVisible,setDoneVisible]=useState(false);
+  React.useEffect(()=>{
+    if(done){setDoneVisible(true);return;}
+    if(!doneVisible)return;
+    const t=setTimeout(()=>setDoneVisible(false),220);
+    return ()=>clearTimeout(t);
+  },[done]);
   // Quick-edit: jumping in from the finished build to change one answer
   // shouldn't mean re-clicking Next through every step after it too - once
   // set, goNext auto-skips any step that already has a valid answer and
@@ -3301,7 +3318,7 @@ function App(){
       <div className="site-header-spacer no-print"/>
     <div ref={topRef} className="app-root">
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
-      {resumePending&&<div style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
+      {resumePending&&<div className="fadein" style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
         <div className="splash-logo" style={{fontSize:"clamp(28px,6vw,44px)"}}>WELCOME BACK</div>
         <p style={{fontFamily:"var(--fb)",fontSize:15,color:"rgba(255,255,255,.6)",maxWidth:420,lineHeight:1.6}}>
           {(()=>{
@@ -3363,7 +3380,7 @@ function App(){
           </div>
         </div>
         <div className="attic-bar">
-          {quickEdit&&<div className="quickedit-banner">
+          {quickEdit&&<div className="quickedit-banner fadein">
             <span>✎ Editing this answer only</span>
             <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ Cancel, back to build</button>
           </div>}
@@ -3381,7 +3398,9 @@ function App(){
               {quickEdit?(quickEditWillFinish?"Save & Return →":"Next →"):(stepIdx===activeSteps.length-1?"Finish →":"Next →")}
             </button>
           </div>
-          {showInfo&&infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)",flexShrink:0}}>{infoText}</div>}
+          <div className={"info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
+            {infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)"}}>{infoText}</div>}
+          </div></div>
           <div className="attic-bar-body">
             <div className="attic-info">
               <div className="step-q" style={{marginBottom:2}}>{cur?cur.q:""}</div>
@@ -3403,7 +3422,7 @@ function App(){
           </div>
         </div>
         <div className="sidebar">
-          {quickEdit&&<div className="quickedit-banner">
+          {quickEdit&&<div className="quickedit-banner fadein">
             <span>✎ Editing this answer only</span>
             <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ Cancel, back to build</button>
           </div>}
@@ -3419,7 +3438,9 @@ function App(){
             {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
             {reactionText&&<div key={reactionText} className="reaction-line">✓ {reactionText}</div>}
           </div>
-          {showInfo&&infoText&&<div className="info-expand"><div className="info-body">{infoText}</div></div>}
+          <div className={"info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
+            {infoText&&<div className="info-expand"><div className="info-body">{infoText}</div></div>}
+          </div></div>
           <div className="opts">{opts.map(opt=>makeOpt(opt,false))}</div>
           <div className="nav-row">
             {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
@@ -3436,7 +3457,7 @@ function App(){
            (tall/narrow diagram) keeps it as a side column so the canvas
            keeps full height. Mirrors the same tradeoff each layout already
            makes during the wizard steps (.attic-layout vs .closet-layout). ── */}
-      {done&&<div className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
+      {doneVisible&&<div className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
         <div className="canvas-frame done-canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
           <div className="canvas-zoom">
             <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
@@ -3522,7 +3543,7 @@ function App(){
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
                   <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
                   <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
-                  <button className="no-print" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.35)",color:"rgba(215,183,64,.85)",fontFamily:"monospace",fontSize:"var(--fs-review-edit)",padding:"3px 6px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                  <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontFamily:"monospace",fontSize:"var(--fs-review-edit)",padding:"3px 6px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                 </div>
                 :
                 // Closet's cell doesn't reserve a fixed right-hand gutter for
@@ -3536,7 +3557,7 @@ function App(){
                   <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
                   <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6}}>
                     <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal",flex:"1 1 auto",minWidth:0}} title={item.val}>{item.short||item.val}</span>
-                    <button className="no-print" onClick={()=>jumpToStep(item.step)} style={{flex:"0 0 auto",background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.35)",color:"rgba(215,183,64,.85)",fontFamily:"monospace",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                    <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{flex:"0 0 auto",fontFamily:"monospace",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                   </div>
                 </div>
               ):null)}
