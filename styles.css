@@ -339,7 +339,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .info-collapse.open{grid-template-rows:1fr}
 .info-collapse-inner{overflow:hidden;min-height:0}
 .info-expand{padding:0 18px 10px}
-.info-body{font-size:var(--fs-info-body);color:rgba(255,255,255,.68);line-height:1.6}
+.info-body{font-size:var(--fs-info-body);color:rgba(255,255,255,.68);line-height:1.45}
 
 /* OPTIONS - .opt used to be flex:1, splitting the sidebar's full height
    equally across however many cards a step has. With only 1-2 short
@@ -502,23 +502,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .attic-layout{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
 .attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
 .attic-canvas-area{flex:1;min-height:0;position:relative;overflow:hidden}
-/* min-height (not a hard height) so the bar can grow past its 230px resting
-   size instead of squeezing its contents when something inside needs more
-   room than that - e.g. the info panel (.info-collapse below) opening,
-   whether auto-opened on step 1 or toggled manually on any later step.
-   .attic-bar-body's own flex:1 previously divided a truly fixed 230px
-   between bar-top/info-collapse/body, so opening the info panel (~55px)
-   ate directly into the option cards below it, squeezing 3-line option
-   descriptions (e.g. indoor_type's "Air handler", system_for's "Dual
-   Fuel") down to ~2 lines worth of space - clipped mid-sentence with no
-   ellipsis, silently dropping real information a homeowner needs to make
-   the choice. Letting the bar grow instead borrows the extra height from
-   .attic-canvas-area (flex:1 above it, plenty of room to spare) exactly
-   the way opening .attic-bar-top's Back/Skip/Next row already does (see
-   comment below) instead of clipping. Mobile already overrides this to
-   height:auto (see the max-width:1024px block) so this only changes
-   desktop/tablet-landscape behavior. */
-.attic-bar{min-height:230px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
+/* Fixed height (not min-height) on purpose - the bottom question bar reads
+   as one stable panel across every step of the wizard, so its height
+   shouldn't visibly shift depending on which question is showing or
+   whether the info panel is open. Content (hint text, option descriptions)
+   is trimmed per-step instead to fit inside this fixed box - see the
+   per-step hint/desc text in the STEPS/getOpts definitions in app.js,
+   sized to leave slack here even with the info panel open. Mobile already
+   overrides this to height:auto (see the max-width:1024px block) so this
+   only affects desktop/tablet-landscape behavior. */
+.attic-bar{height:230px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
 /* Back/Next live here (not stacked inside .attic-info below) specifically
    so they're never subject to .attic-info's overflow:hidden - a long
    question+hint+reaction stack used to push Back past the fixed-height
@@ -528,7 +521,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .attic-bar-top .btn-back{padding:7px 14px;flex:0 0 auto}
 .attic-bar-top .btn-next{flex:0 0 auto;width:auto;padding:8px 20px}
 .attic-bar-body{flex:1;display:flex;min-height:0;overflow:hidden}
-.attic-info{width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:13px 18px;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.attic-info{width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:8px 18px;display:flex;flex-direction:column;gap:4px;overflow:hidden;justify-content:center}
 .attic-scroll{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:stretch;gap:8px;padding:8px 12px;scrollbar-width:none}
 .attic-scroll::-webkit-scrollbar{display:none}
 .attic-opt{flex:1;min-width:130px;max-width:280px;background:var(--surf);border:1px solid var(--border);cursor:pointer;padding:9px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;transition:all .14s;outline:none;-webkit-appearance:none;position:relative;overflow:hidden}

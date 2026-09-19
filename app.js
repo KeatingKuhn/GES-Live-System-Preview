@@ -14,7 +14,7 @@ const STEPS=[
   {id:'insulation',  q:'What type of attic insulation do you have?', chapter:0,
     hint:'Fiberglass = 80% furnace. Spray foam = 90% furnace with PVC flue.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
-  {id:'plenum',      q:'Need new ductwork at the unit?', chapter:1,
+  {id:'plenum',      q:'Is a new supply plenum needed?', chapter:1,
     hint:'This is the plenum - the box that distributes conditioned air from your unit into all your ducts.', optional:false},
   {id:'cond_tier',   q:"Pick your new system's efficiency tier.", chapter:1,
     hint:'Higher efficiency = lower monthly bills and better humidity control.', optional:false},
@@ -47,7 +47,7 @@ function getOpts(stepId, answers){
     ];
     case 'indoor_type':return[
       {v:'furnace',label:'Furnace',     desc:'Gas heat + AC. Most popular in Austin - lowest operating cost when gas rates are low.'},
-      {v:'ah',     label:'Air handler', desc:'All-electric heat pump. No gas line needed - efficient in Austin winters, costs more in extreme cold.'},
+      {v:'ah',     label:'Air handler', desc:'All-electric heat pump. No gas line needed - efficient in Austin winters.'},
     ];
     case 'insulation':return[
       {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Standard vented attic - pairs with an 80% AFUE furnace. Most homes in Austin have this.'},
@@ -69,32 +69,32 @@ function getOpts(stepId, answers){
     case 'purif':return[
       // Enhanced Filtration Cabinet isn't listed - it's automatic on every
       // system (see defaultAnswers), not a real choice to present.
-      {v:'uv',       label:'UV Light System',    desc:'Keeps the evaporator coil clean for longevity and efficiency. Eliminates musty odors at the source.'},
-      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Neutralizes airborne particles, odors, VOCs, and smoke throughout your ducts.'},
-      {v:'surge',    label:'Surge Protector',    desc:'Protects the compressor from voltage spikes and lightning. One strike can destroy a $2,000+ compressor.'},
+      {v:'uv',       label:'UV Light System',    desc:'Keeps the evaporator coil clean for longevity and efficiency.'},
+      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Neutralizes airborne particles, odors, and VOCs throughout your ducts.'},
+      {v:'surge',    label:'Surge Protector',    desc:'Protects the compressor from voltage spikes and lightning strikes.'},
     ];
     case 'system_for':
       if(answers.cond_tier==='mid_ge15')return[
         {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Mid-efficiency is dual fuel only: heat pump cools and heats down to ~35°F, gas furnace takes over below that.'},
       ];
       return[
-      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Heat pump handles most of the year, down to ~35°F. Furnace takes over below that. Lowest combined energy bill.'},
+      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Heat pump handles most of the year, down to ~35°F. Furnace takes over below that.'},
       {v:'sc', label:'Straight Cool',        desc:'AC cools only - furnace handles all heating year-round. Simpler system, lower upfront cost.'},
     ];
     case 'cond_tier':{
       return[
-        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. Lowest upfront cost - good for rentals or budget installs.'},
-        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed. Noticeably lower electric bills, better humidity control, quieter. Best overall value.'},
-        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier, eligible for local rebates. Best humidity control, whisper-quiet.'},
+        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. Lowest upfront cost.'},
+        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed. Lower electric bills, better humidity control. Best overall value.'},
+        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier, eligible for local rebates. Best humidity control.'},
       ];
     }
     case 'dehu':return[
-      {v:'yes',label:'Yes - add it',  desc:'Sized to your square footage, runs automatically - no buckets, no maintenance. Feels 5–7°F cooler at the same setting.'},
+      {v:'yes',label:'Yes - add it',  desc:'Sized to your square footage, runs automatically - no buckets, no maintenance.'},
       {v:'no', label:'No thanks',     desc:'Skip for now - can always be added later if humidity becomes an issue.'},
     ];
     case 'extras':return[
       {v:'condensate',label:'Condensate Pump',        desc:"Needed when there's no gravity drain nearby. Required in many closet installs."},
-      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Brings in fresh filtered outdoor air while exhausting stale air, recovering ~70% of the heating/cooling energy.'},
+      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Fresh filtered air in, stale air out, recovering most of the energy.'},
     ];
     default:return[];
   }
@@ -914,7 +914,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const evapActive=!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut));
   const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut)));
   const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
-  const auxHeatActive=hpLockedOut;
+  // For a standard heat pump (hpLockedOut), aux heat is the ONLY thing
+  // running - the compressor's off. For a low-ambient heat pump (mid
+  // efficiency), the compressor never locks out, but the heat strip still
+  // stages on as supplemental heat at a genuinely cold 28F to help carry
+  // the load alongside it - both run together, so this can't just be
+  // hpLockedOut (which mid efficiency never satisfies).
+  const auxHeatActive=!hasFurnace&&heatMode&&heatSubMode==='aux';
   // The indoor blower moves air whenever ANY source is delivering
   // conditioned air - cooling, furnace heat, heat pump heat, or aux/
   // emergency heat alone once the compressor's locked out. It's easy to
@@ -1761,11 +1767,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       return <div title="Not a control - tap to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',borderRadius:3,overflow:'hidden',...style}}>
         {modes.map((m,i)=>
           <button key={m.key} onClick={m.onClick} style={{
-            padding:'5px 7px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
-            fontFamily:'monospace',fontSize:'10px',fontWeight:700,letterSpacing:'.02em',
+            padding:'7px 10px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
+            fontFamily:'monospace',fontSize:'12px',fontWeight:700,letterSpacing:'.02em',
             background:m.active?m.bg:'transparent',color:m.active?m.color:'rgba(255,255,255,.55)',
-            transition:'all .2s',display:'flex',alignItems:'center',gap:3,whiteSpace:'nowrap'}}>
-            <span style={{fontSize:9}}>{m.icon}</span><span>{m.temp}</span>
+            transition:'all .2s',display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}>
+            <span style={{fontSize:11}}>{m.icon}</span><span>{m.temp}</span>
           </button>
         )}
       </div>;
@@ -3471,14 +3477,14 @@ function App(){
   const INFO_TEXT={
     location:"Your indoor unit location sets the whole system layout. Attic is the most common in Austin -- the unit sits horizontally above the living space. Closet is upflow -- the unit stands vertically in a hallway or utility closet. Both work great; closet installs are slightly easier to service.",
     indoor_type:"A furnace uses natural gas for heat and pairs with AC for cooling. An air handler is all-electric -- it works only with a heat pump for both heating and cooling. If you have a gas line, a furnace is usually the better value. No gas line? Air handler + heat pump is the way to go.",
-    insulation:"Attic insulation type determines which furnace you can install. Fiberglass or blown insulation means your attic is vented -- a standard 80% AFUE furnace works fine (AFUE = Annual Fuel Utilization Efficiency, the % of gas that becomes heat instead of exhaust) with a metal B-vent flue. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
-    plenum:"The supply plenum is the box that connects your indoor unit to all your ductwork. Think of it as the distribution hub -- conditioned air flows from the unit into the plenum, then out through the ducts to every room. If your existing plenum is damaged, leaking, or over 15 years old, replacing it improves efficiency and airflow.",
+    insulation:"Attic insulation determines which furnace you can install. Fiberglass or blown means your attic is vented -- a standard 80% AFUE furnace works fine with a metal B-vent flue. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
+    plenum:"The supply plenum connects your indoor unit to all your ductwork -- conditioned air flows in, then out to every room. If yours is damaged, leaking, or over 15 years old, replacing it improves efficiency and airflow.",
     thermostat:"A basic programmable thermostat is reliable and accurate -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
-    purif:"The enhanced filtration cabinet ships standard on every install and already captures dust, pollen, and allergens far better than a standard 1 inch filter. A UV light keeps the evaporator coil clean for longevity and efficiency. An ionizer neutralizes airborne particles, odors, and VOCs throughout the home. A surge protector mounts on the disconnect box and shields your condenser from voltage spikes -- one lightning strike can destroy a compressor.",
-    cond_tier:"The condenser is the outdoor unit. SEER2 (Seasonal Energy Efficiency Ratio) measures cooling output per unit of electricity used -- higher means lower electric bills for the same cooling. Federal Minimum meets current energy code -- solid and reliable, lowest upfront cost. Mid Efficiency is our best-value tier -- variable speed, noticeably lower monthly bills, better humidity control. High Efficiency is our top inverter-driven tier -- eligible for local energy rebates and the best humidity performance available.",
-    system_for:"With a gas furnace you have two options. Dual fuel (heat pump + furnace) means the heat pump handles cooling in summer and heating in mild weather -- the gas furnace only fires when it gets genuinely cold below about 35 degrees. Most efficient combo. Straight cool means your AC only cools and the furnace handles all heating year-round.",
-    dehu:"Austin humidity makes your home feel significantly warmer than the thermostat reads. A whole-home dehumidifier connects directly to your HVAC system and runs automatically -- no buckets, no maintenance. Recommended for any home that feels muggy even when the AC is running.",
-    extras:"A condensate pump is needed when gravity drainage is not available -- it pumps condensate water up and out to a drain or exterior wall, and is required in many closet installs. An ERV brings fresh filtered outdoor air into the home while exhausting stale air, recovering most of the heating/cooling energy from the outgoing air in the process.",
+    purif:"The enhanced filtration cabinet ships standard on every install and already captures dust, pollen, and allergens far better than a standard 1 inch filter. A UV light keeps the coil clean for efficiency. An ionizer neutralizes particles, odors, and VOCs. A surge protector shields your condenser from voltage spikes -- one lightning strike can destroy a compressor.",
+    cond_tier:"The condenser is the outdoor unit. SEER2 measures cooling output per unit of electricity -- higher means lower bills. Federal Minimum meets current energy code, lowest cost. Mid Efficiency is our best-value tier -- variable speed, lower bills, better humidity control. High Efficiency is our top tier -- eligible for rebates, best humidity performance.",
+    system_for:"With a gas furnace you have two options. Dual fuel (heat pump + furnace) means the heat pump handles cooling and mild-weather heating -- the gas furnace only fires below about 35 degrees. Most efficient combo. Straight cool means your AC only cools and the furnace handles all heating year-round.",
+    dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A dehumidifier connects to your system and runs automatically -- no buckets, no maintenance.",
+    extras:"A condensate pump is needed when gravity drainage isn't available -- it pumps water up and out to a drain or exterior wall, required in many closet installs. An ERV brings in fresh filtered outdoor air while exhausting stale air, recovering most of the energy in the process.",
   };
   const infoText=cur&&INFO_TEXT[cur.id];
 
