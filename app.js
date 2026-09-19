@@ -318,6 +318,388 @@ function CountUp({value,duration=900,format}){
   return format?format(display):display;
 }
 
+// Deterministic pseudo-random in [0,1) - same seed always gives the same
+// value, so the rain/snow layout in OutsideZone below is stable across
+// re-renders instead of reshuffling every time React re-renders the canvas.
+function rnd(seed){
+  const x=Math.sin(seed*12.9898)*43758.5453;
+  return x-Math.floor(x);
+}
+
+// Exterior outside zone - side view of wall + condenser on pad
+// wallX = x position of the wall face
+// condenserEl = the already-built <Condenser/> element (Condenser itself
+// stays defined inside Canvas since it draws HVAC-specific visuals)
+// Shows: wall cross-section, line-set penetration, disconnect, surge, pad, condenser
+//
+// Defined at module scope (unlike the other diagram sub-components, which
+// stay nested inside Canvas) specifically so its identity is stable across
+// Canvas re-renders. A component declared *inside* another component's
+// function body is a brand-new function reference every time the outer
+// component renders, which makes React tear down and remount its entire
+// subtree - discarding all hook state, including any useMemo cache - on
+// every single Canvas render instead of just updating props. That defeats
+// memoization before it can do anything, so the rain/snow layout below
+// (many elements, each with several rnd()-derived numbers and inline
+// styles) would still be recomputed from scratch every render even with
+// useMemo. Hoisting OutsideZone out here keeps its component identity
+// stable, so React updates it in place and the useMemo below actually
+// skips recomputation when only unrelated wizard state changed.
+function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, lineY2, active,
+  heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl}){
+  const groundY=zoneH-28;
+  const padY=groundY-10;
+  const wallThick=18;   // visible wall cross-section width
+  const sidingX=wallX;  // outside face of wall
+
+  // ── SNOW FIELD ── drift blanket + sparkles + three depth layers of
+  // falling flakes. Depends only on the zone's actual geometry (never on
+  // heatMode/isMildHp - those only drive this wrapper <g>'s opacity below,
+  // for a smooth season-change fade), so switching weather modes, or any
+  // other wizard-answer change that leaves this zone's size and
+  // condenser-pad position alone, skips regenerating every flake's
+  // rnd()-derived position, size, opacity, duration, sway and delay.
+  const snowField=useMemo(()=>{
+    const fallTop=zoneH*0.12;
+    const fallBottom=groundY-4;
+    const fallSpan=fallBottom-fallTop;
+    const fallLeft=wallX+zoneW*0.05;
+    const fallWidth=zoneW*0.9;
+    // The closet-upflow zone is ~800px tall vs. the attic zone's ~460px -
+    // the same flake count spread over the taller fall span reads
+    // noticeably thinner, so scale counts up with how much taller than
+    // baseline this zone actually is (never down, so the attic layout is
+    // unaffected).
+    const density=Math.max(1,fallSpan/460);
+    // Three depth layers - size, opacity and speed all step up together
+    // from far (small/faint/slow-ish) to near (big/bold/fast), which is
+    // what actually reads as depth/parallax instead of a flat field of
+    // identical marks. Counts are the baseline (attic zone) density.
+    const SNOW_LAYERS=[
+      {key:'sf', count:Math.round(20*density), r:[1.1,1.7],  op:[.42,.58], dur:[6,8.4],   sway:[3,7]},
+      {key:'sm', count:Math.round(16*density), r:[1.9,2.7],  op:[.6,.78],  dur:[4,5.6],   sway:[7,13]},
+      {key:'sn', count:Math.round(8*density),  r:[3.4,4.8],  op:[.88,1],   dur:[2.2,3.2], sway:[14,22]},
+    ];
+    const driftPath=(()=>{
+      const segs=9;
+      let d=`M${wallX} ${groundY}`;
+      for(let i=0;i<=segs;i++){
+        const x=wallX+(zoneW*i)/segs;
+        const nearPad=x>condX-14&&x<condX+condW+14;
+        const bump=(nearPad?7:3)+rnd(i*3.1)*(nearPad?6:5);
+        d+=` L${x.toFixed(1)} ${(groundY-bump).toFixed(1)}`;
+      }
+      d+=` L${wallX+zoneW} ${groundY} Z`;
+      return <path d={d} fill="rgba(240,246,255,.4)" stroke="rgba(255,255,255,.18)" strokeWidth="0.6"/>;
+    })();
+    const sparkles=Array.from({length:22},(_,i)=>(
+      <circle key={'sparkle'+i} cx={wallX+rnd(i*7.7)*zoneW} cy={groundY-2-rnd(i*4.3)*6}
+        r={rnd(i*9.1)*0.9+0.4} fill="rgba(255,255,255,.55)"/>
+    ));
+    const flakes=SNOW_LAYERS.map(layer=>Array.from({length:layer.count},(_,i)=>{
+      const seed=layer.key.charCodeAt(1)*211+i;
+      const colW=fallWidth/layer.count;
+      const cx=fallLeft+colW*(i+0.5)+(rnd(seed+1)-0.5)*colW*0.7;
+      const cy=fallTop+rnd(seed+2)*fallSpan*0.18;
+      const r=layer.r[0]+rnd(seed+3)*(layer.r[1]-layer.r[0]);
+      const op=layer.op[0]+rnd(seed+4)*(layer.op[1]-layer.op[0]);
+      const dur=layer.dur[0]+rnd(seed+5)*(layer.dur[1]-layer.dur[0]);
+      const sway=(layer.sway[0]+rnd(seed+6)*(layer.sway[1]-layer.sway[0]))*(rnd(seed+7)<0.5?-1:1);
+      const fy=fallBottom-cy+(rnd(seed+8)-0.5)*24;
+      const delay=-(rnd(seed+9)*dur);
+      // A plain dot reads as a fixed star, not something falling - a
+      // slight vertical elongation gives even a single frozen frame an
+      // implied direction of travel, the same trick that makes the
+      // rain streaks below read instantly as rain instead of ticks.
+      return <ellipse key={layer.key+i} className="snow-flake"
+        cx={cx} cy={cy} rx={r*0.72} ry={r*1.4} fill="rgba(255,255,255,.95)"
+        filter={layer.key==='sf'?undefined:'url(#glow-sm)'}
+        style={{'--fy':fy+'px','--sway':sway+'px','--op':op,
+          animationDuration:dur+'s',animationDelay:delay+'s'}}/>;
+    }));
+    return <>{driftPath}{sparkles}{flakes}</>;
+  },[wallX,zoneW,zoneH,condX,condW,groundY]);
+
+  // ── RAIN FIELD ── wet sheen + three depth layers of wind-leaned streaks
+  // + splash flashes. Same reasoning as snowField above: geometry-only
+  // deps, independent of heatMode/isMildHp.
+  const rainField=useMemo(()=>{
+    const fallTop=zoneH*0.12;
+    const fallBottom=groundY-4;
+    const fallSpan=fallBottom-fallTop;
+    const fallLeft=wallX+zoneW*0.05;
+    const fallWidth=zoneW*0.9;
+    // Consistent wind lean (~12° off vertical) applied to every rain
+    // streak and to its own fall path, so the whole field reads as one
+    // wind-driven sheet of rain rather than drops each going their own way.
+    const WIND_UX=-0.22, WIND_UY=0.976, WIND_RATIO=WIND_UX/WIND_UY;
+    const density=Math.max(1,fallSpan/460);
+    const RAIN_LAYERS=[
+      {key:'rf', count:Math.round(20*density), len:[7,10],   sw:1,   op:[.24,.42], dur:[.6,.85]},
+      {key:'rm', count:Math.round(18*density), len:[11,15],  sw:1.4, op:[.48,.66], dur:[.45,.62]},
+      {key:'rn', count:Math.round(11*density), len:[17,22],  sw:1.9, op:[.72,.92], dur:[.32,.46]},
+    ];
+    const sheen=Array.from({length:5},(_,i)=>{
+      const sx=wallX+rnd(i*5.2+900)*zoneW*0.85;
+      return <line key={'sheen'+i} x1={sx} y1={groundY-1} x2={sx+zoneW*0.09} y2={groundY-1}
+        stroke="rgba(180,215,240,.22)" strokeWidth="1"/>;
+    });
+    const drops=RAIN_LAYERS.map(layer=>Array.from({length:layer.count},(_,i)=>{
+      const seed=layer.key.charCodeAt(1)*181+i+500;
+      const colW=fallWidth/layer.count;
+      const x=fallLeft+colW*(i+0.5)+(rnd(seed+1)-0.5)*colW*0.8;
+      const y=fallTop+rnd(seed+2)*fallSpan*0.12;
+      const len=layer.len[0]+rnd(seed+3)*(layer.len[1]-layer.len[0]);
+      const op=layer.op[0]+rnd(seed+4)*(layer.op[1]-layer.op[0]);
+      const dur=layer.dur[0]+rnd(seed+5)*(layer.dur[1]-layer.dur[0]);
+      const dx2=len*WIND_UX, dy2=len*WIND_UY;
+      const travel=fallBottom-y;
+      const fy=travel, fx=travel*WIND_RATIO;
+      const delay=-(rnd(seed+6)*dur);
+      return <line key={layer.key+i} className="rain-drop"
+        x1={x} y1={y} x2={x+dx2} y2={y+dy2}
+        stroke="#7ab8e0" strokeWidth={layer.sw} strokeLinecap="round"
+        style={{'--fy':fy+'px','--fx':fx+'px','--op':op,
+          animationDuration:dur+'s',animationDelay:delay+'s'}}/>;
+    }));
+    const splashes=Array.from({length:9},(_,i)=>{
+      const sx=fallLeft+rnd(i*13.3+700)*fallWidth;
+      const dur=0.45+rnd(i*7.1+700)*0.35;
+      const delay=-(rnd(i*3.3+700)*dur);
+      const op=0.35+rnd(i*11.7+700)*0.35;
+      return <g key={'splash'+i} className="rain-splash"
+        style={{'--op':op,animationDuration:dur+'s',animationDelay:delay+'s',
+          transformBox:'fill-box',transformOrigin:'center'}}>
+        <path d={`M${sx-3.5} ${groundY-1} Q${sx-3.5} ${groundY-5} ${sx-1.5} ${groundY-6.5}`}
+          fill="none" stroke="#bfe0f5" strokeWidth="1" strokeLinecap="round"/>
+        <path d={`M${sx+3.5} ${groundY-1} Q${sx+3.5} ${groundY-5} ${sx+1.5} ${groundY-6.5}`}
+          fill="none" stroke="#bfe0f5" strokeWidth="1" strokeLinecap="round"/>
+      </g>;
+    });
+    return <>{sheen}{drops}{splashes}</>;
+  },[wallX,zoneW,zoneH,groundY]);
+
+  return <g>
+    {/* ── GROUND ── */}
+    <rect x={wallX} y={groundY} width={zoneW} height={zoneH-groundY} fill="#0c0b08" stroke="none"/>
+    {Array.from({length:10},(_,i)=>(
+      <line key={i} x1={wallX+i*(zoneW/10)} y1={groundY} x2={wallX+i*(zoneW/10)+10} y2={groundY+8}
+        stroke="rgba(90,80,45,.2)" strokeWidth="0.7"/>
+    ))}
+    <text x={wallX+zoneW/2} y={groundY+18} textAnchor="middle"
+      fill="rgba(110,95,55,.45)" fontSize="10" fontFamily="monospace">GROUND LEVEL</text>
+
+    {/* ── SNOW - furnace/aux-heat cold-snap mode only. Fades in/out
+         instead of popping, so switching modes reads as a season
+         passing rather than an instant background swap. An uneven
+         drifted blanket (snow piles unevenly, and gathers deeper
+         against the condenser pad) plus three depth layers of flakes
+         that actually fall the full height of the zone with a gentle
+         side-to-side sway, instead of a flat grid barely jittering in
+         place. ── */}
+    <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity .8s ease'}}>
+      {/* Snow cloud, same slot/shape family as the rain cloud below -
+           without it the falling flakes had no visible source and read
+           as a starfield instead of weather. Paler/flatter than the
+           rain cloud so the two precipitation states stay distinct at
+           a glance. */}
+      <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#aab4c2"/>
+      <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#bcc5d1"/>
+      <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#aab4c2"/>
+      {snowField}
+    </g>
+
+    {/* ── SUN - cool mode. Sits over the condenser (the actual "outside"
+         reference point) rather than the attic roof, since that's the
+         piece of equipment that's genuinely outdoors. Anchored to the
+         zone's own left edge rather than the condenser's position (which
+         can sit close to the zone's right edge in the closet layout,
+         behind the fixed top-right mode-preview toggle) and its own
+         height rather than a fixed pixel value, so it clears the
+         "OUTSIDE" label above it in both layouts. Fades in/out instead
+         of popping, same as the snow above. ── */}
+    <g style={{opacity:!heatMode?1:0,transition:'opacity .8s ease'}}>
+      <circle cx={wallX+zoneW*0.25} cy={zoneH*0.075+18} r="9" fill="#ffd76b"/>
+      {Array.from({length:8},(_,i)=>{
+        const ang=i*Math.PI/4;
+        const sx=wallX+zoneW*0.25, sy=zoneH*0.075+18;
+        return <line key={'ray'+i}
+          x1={sx+Math.cos(ang)*12} y1={sy+Math.sin(ang)*12}
+          x2={sx+Math.cos(ang)*17} y2={sy+Math.sin(ang)*17}
+          stroke="#ffd76b" strokeWidth="2" strokeLinecap="round"/>;
+      })}
+    </g>
+
+
+    {/* ── CLOUD + RAIN - any system's mild 52° heat-pump preview (dual-fuel
+         HEAT PUMP, or a heat-pump-only system's own HEAT PUMP mode before
+         it drops to 28° AUX HEAT) - overcast rather than sunny or snowed in,
+         same slot and reasoning as the sun above. Three depth layers of
+         streaks (same treatment as the snow above) fall the full height
+         of the zone along one consistent wind angle, so it reads as a
+         wind-driven sheet of rain rather than a static grid of identical
+         ticks. A faint wet sheen and a few splash flashes along the
+         ground sell "it's actually landing down here" too. ── */}
+    <g style={{opacity:(heatMode&&isMildHp)?1:0,transition:'opacity .8s ease'}}>
+      <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#8a94a3"/>
+      <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#9aa3b0"/>
+      <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#8a94a3"/>
+      <rect x={wallX} y={groundY-4} width={zoneW} height={4} fill="rgba(122,184,224,.14)"/>
+      {rainField}
+    </g>
+
+    {/* ── CONCRETE PAD - under condenser ── */}
+    <rect x={condX-10} y={padY} width={condW+20} height={14} rx="2"
+      fill="rgba(165,160,148,.22)" stroke="rgba(190,185,168,.28)" strokeWidth="1"/>
+    {Array.from({length:5},(_,i)=>(
+      <line key={i} x1={condX+i*(condW+20)/5-10} y1={padY+2}
+        x2={condX+i*(condW+20)/5-10} y2={padY+12}
+        stroke="rgba(190,185,168,.1)" strokeWidth="0.5"/>
+    ))}
+    <text x={condX+condW/2} y={padY+10} textAnchor="middle"
+      fill="rgba(170,160,140,.4)" fontSize="10" fontFamily="monospace">CONCRETE PAD</text>
+
+    {/* ── WALL CROSS-SECTION ── proper side view of exterior wall */}
+    {/* Wall body */}
+    <rect x={sidingX} y={0} width={wallThick} height={groundY}
+      fill="#1a1d26" stroke="rgba(120,118,140,.35)" strokeWidth="1"/>
+    {/* Siding horizontal courses */}
+    {Array.from({length:Math.floor(groundY/10)},(_,i)=>(
+      <rect key={i} x={sidingX} y={i*10} width={wallThick} height={9}
+        fill={i%2===0?"rgba(22,22,28,.8)":"rgba(18,18,24,.8)"}
+        stroke="rgba(80,80,100,.12)" strokeWidth="0.3"/>
+    ))}
+    {/* Wall face highlight */}
+    <line x1={sidingX+wallThick} y1={0} x2={sidingX+wallThick} y2={groundY}
+      stroke="rgba(200,195,175,.22)" strokeWidth="1.5"/>
+    {/* Inside wall face */}
+    <line x1={sidingX} y1={0} x2={sidingX} y2={groundY}
+      stroke="rgba(180,175,160,.08)" strokeWidth="0.5"/>
+
+    {/* ── LINE-SET - runs down inside the wall cavity from where it enters
+         near the indoor unit, then exits right above the concrete pad
+         into the condenser's side. A real lineset is hidden in the wall
+         for that whole drop and only shows up low, next to the unit it's
+         feeding - not crossing the roofline and dropping down the
+         outside face into the top. ── */}
+    {(()=>{
+      const wallMidX=sidingX+wallThick/2;
+      const px1=wallMidX-3, px2=wallMidX+3;
+      // Right above the pad - just clearing the SEER badge that spans the
+      // condenser's full width near its base, so the entry reads as low
+      // on the cabinet without cutting through that label.
+      const exitY1=condY+condH*0.78;
+      const exitY2=condY+condH*0.86;
+      return <>
+        {/* Wall penetration - top, where the indoor-side pipe enters the cavity */}
+        <rect x={sidingX+1} y={lineY1-6} width={wallThick-2} height={lineY2-lineY1+12} rx="2"
+          fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
+        {/* Wall penetration - low, where it exits toward the condenser */}
+        <rect x={sidingX+1} y={exitY1-6} width={wallThick-2} height={exitY2-exitY1+12} rx="2"
+          fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
+        <text x={sidingX+wallThick/2} y={exitY2+16} textAnchor="middle"
+          fill="rgba(150,110,40,.5)" fontSize="9.5" fontFamily="monospace">LINESET</text>
+        {/* Foam sleeve on pipes - down inside the wall, then into the condenser */}
+        <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
+          fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d={`M${px2} ${lineY2} L${px2} ${exitY2} L${condX} ${exitY2}`}
+          fill="none" stroke="rgba(30,30,50,.55)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* Liquid line - full bold red/blue */}
+        <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
+          fill="none" stroke={line1C} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="line-pulse"/>
+        {/* Suction line - full bold, offset */}
+        <path d={`M${px2} ${lineY2} L${px2} ${exitY2} L${condX} ${exitY2}`}
+          fill="none" stroke={line2C} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
+        {/* Animated flow dots -- both pipes */}
+        {active&&Array.from({length:6},(_,i)=>{
+          const isLine1=i<3;
+          const pColor=isLine1?line1C:line2C;
+          const wx=isLine1?px1:px2;
+          const topY=isLine1?lineY1:lineY2;
+          const botY=isLine1?exitY1:exitY2;
+          const toCondenser=isLine1?!refReversed:refReversed;
+          const p=toCondenser
+            ?`M${wx} ${topY} L${wx} ${botY} L${condX} ${botY}`
+            :`M${condX} ${botY} L${wx} ${botY} L${wx} ${topY}`;
+          return <circle key={i} r="3" fill={pColor} opacity="0.82" filter="url(#glow-sm)">
+            <animateMotion dur={(2.2+(i%3)*0.5)+'s'} repeatCount="indefinite" begin={(i*0.7)+'s'} path={p}/>
+          </circle>;
+        })}
+      </>;
+    })()}
+
+    {/* ── DISCONNECT BOX - prominent, on outside wall face ── */}
+    {(()=>{
+      const DX=sidingX+wallThick+4;
+      const DY=Math.round(groundY*0.62)-34; // slightly lower than center
+      const DW=44, DH=68;
+      return <>
+        {/* Box body */}
+        <rect x={DX} y={DY} width={DW} height={DH} rx="4"
+          fill="#0c0d10" stroke={G+'.65)'} strokeWidth="2"/>
+        {/* Inner inset shadow */}
+        <rect x={DX+2} y={DY+2} width={DW-4} height={DH-4} rx="3"
+          fill="none" stroke="rgba(0,0,0,.6)" strokeWidth="1"/>
+        {/* Label plate */}
+        <rect x={DX+3} y={DY+4} width={DW-6} height={14} rx="2"
+          fill={G+'.14)'} stroke={G+'.32)'} strokeWidth="0.8"/>
+        <text x={DX+DW/2} y={DY+14} textAnchor="middle"
+          fill={G+'.82)'} fontSize="10.5" fontFamily="monospace" fontWeight="700">DISC.</text>
+        {/* Switch housing */}
+        <rect x={DX+5} y={DY+22} width={DW-10} height={32} rx="3"
+          fill={active?"rgba(239,68,68,.18)":"rgba(35,38,62,.75)"}
+          stroke={active?condC:(G+'.32)')} strokeWidth="1.1"/>
+        {/* Handle lever */}
+        <rect x={DX+11} y={DY+26} width={DW-22} height={20} rx="2.5"
+          fill={active?"rgba(239,68,68,.55)":"rgba(55,58,90,.7)"}
+          stroke={active?condC:(G+'.24)')} strokeWidth="1"/>
+        {/* Handle center line */}
+        <line x1={DX+DW/2} y1={DY+28} x2={DX+DW/2} y2={DY+44}
+          stroke={active?condC:(G+'.18)')} strokeWidth="1" strokeDasharray="2 2"/>
+        {/* Status dot */}
+        <circle cx={DX+DW/2} cy={DY+57} r="5"
+          fill={active?"rgba(34,197,94,.6)":"rgba(50,50,80,.6)"}
+          stroke={active?"#22c55e":(G+'.2)')} strokeWidth="1"/>
+        {active&&<circle cx={DX+DW/2} cy={DY+57} r="2.5"
+          fill="#22c55e" className="glow-pulse"/>}
+        {/* Conduit to unit */}
+        <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
+          stroke="rgba(22,22,42,.7)" strokeWidth="8" strokeLinecap="round"/>
+        <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
+          stroke={G+'.48)'} strokeWidth="4" strokeLinecap="round"/>
+        {/* Surge protector - bigger, below disconnect */}
+        {isSurge&&<g className="fadein">
+          <rect x={DX} y={DY+DH+6} width={DW} height={52} rx="4"
+            fill="#160700" stroke="#f97316" strokeWidth="1.8"/>
+          <rect x={DX+2} y={DY+DH+8} width={DW-4} height={DH-4} rx="3"
+            fill="none" stroke="rgba(249,115,22,.15)" strokeWidth="0.7"/>
+          {/* Label */}
+          <rect x={DX+4} y={DY+DH+10} width={DW-8} height={13} rx="2"
+            fill="rgba(249,115,22,.12)" stroke="#f97316" strokeWidth="0.7"/>
+          <text x={DX+DW/2} y={DY+DH+20} textAnchor="middle"
+            fill="#f97316" fontSize="10.5" fontFamily="monospace" fontWeight="700">SURGE</text>
+          {/* Lightning bolt */}
+          <text x={DX+DW/2} y={DY+DH+40} textAnchor="middle"
+            fill="#f97316" fontSize="20.5">⚡</text>
+          <text x={DX+DW/2} y={DY+DH+54} textAnchor="middle"
+            fill="rgba(249,115,22,.6)" fontSize="10" fontFamily="monospace">PROTECTOR</text>
+        </g>}
+      </>;
+    })()}
+
+    {/* ── CONDENSER UNIT ── */}
+    {condenserEl}
+    <text x={wallX+zoneW-8} y={condY-9} textAnchor="end"
+      fill={active?condC:(G+'.55)')} fontSize="10.5" fontFamily="monospace">
+      {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
+    </text>
+
+    {/* OUTSIDE label */}
+    <text x={wallX+zoneW/2} y={12} textAnchor="middle"
+      fill={W+'.2)'} fontSize="9.5" fontFamily="monospace" letterSpacing="1.2">OUTSIDE</text>
+  </g>;
+}
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // Clickable overlay on a finished diagram piece - only wired up on the
@@ -1164,355 +1546,8 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     </g>;
   }
 
-  // Deterministic pseudo-random in [0,1) - same seed always gives the same
-  // value, so the rain/snow layout in OutsideZone below is stable across
-  // re-renders instead of reshuffling every time React re-renders the canvas.
-  function rnd(seed){
-    const x=Math.sin(seed*12.9898)*43758.5453;
-    return x-Math.floor(x);
-  }
-
-  // Exterior outside zone - side view of wall + condenser on pad
-  // wallX = x position of the wall face
-  // condenser = {x,y,w,h,tierKey}
-  // Shows: wall cross-section, line-set penetration, disconnect, surge, pad, condenser
-  function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, lineY2, tierKey, active}){
-    const groundY=zoneH-28;
-    const padY=groundY-10;
-    const wallThick=18;   // visible wall cross-section width
-    const sidingX=wallX;  // outside face of wall
-
-    // ── RAIN/SNOW FALL GEOMETRY ── shared by both effects below, driven
-    // by the zone's actual height/width instead of fixed pixel constants.
-    // The old version moved every flake/drop the same ~20-26px regardless
-    // of zoneH, which was fine in the ~500px attic zone but barely a
-    // flicker in the ~800px closet-upflow zone. Falling the real fallSpan
-    // (spawn line just under the sun/cloud slot, down to the ground) is
-    // what makes both layouts read as actual weather.
-    const fallTop=zoneH*0.12;
-    const fallBottom=groundY-4;
-    const fallSpan=fallBottom-fallTop;
-    const fallLeft=wallX+zoneW*0.05;
-    const fallWidth=zoneW*0.9;
-    // Consistent wind lean (~12° off vertical) applied to every rain
-    // streak and to its own fall path, so the whole field reads as one
-    // wind-driven sheet of rain rather than drops each going their own way.
-    const WIND_UX=-0.22, WIND_UY=0.976, WIND_RATIO=WIND_UX/WIND_UY;
-    // The closet-upflow zone is ~800px tall vs. the attic zone's ~460px -
-    // the same flake/drop count spread over the taller fall span reads
-    // noticeably thinner, so scale counts up with how much taller than
-    // baseline this zone actually is (never down, so the attic layout is
-    // unaffected).
-    const density=Math.max(1,fallSpan/460);
-    // Three depth layers for both effects - size, opacity and speed all
-    // step up together from far (small/faint/slow-ish) to near (big/
-    // bold/fast), which is what actually reads as depth/parallax instead
-    // of a flat field of identical marks. Counts are the baseline (attic
-    // zone) density - see `density` above for how they scale up.
-    const SNOW_LAYERS=[
-      {key:'sf', count:Math.round(20*density), r:[1.1,1.7],  op:[.42,.58], dur:[6,8.4],   sway:[3,7]},
-      {key:'sm', count:Math.round(16*density), r:[1.9,2.7],  op:[.6,.78],  dur:[4,5.6],   sway:[7,13]},
-      {key:'sn', count:Math.round(8*density),  r:[3.4,4.8],  op:[.88,1],   dur:[2.2,3.2], sway:[14,22]},
-    ];
-    const RAIN_LAYERS=[
-      {key:'rf', count:Math.round(20*density), len:[7,10],   sw:1,   op:[.24,.42], dur:[.6,.85]},
-      {key:'rm', count:Math.round(18*density), len:[11,15],  sw:1.4, op:[.48,.66], dur:[.45,.62]},
-      {key:'rn', count:Math.round(11*density), len:[17,22],  sw:1.9, op:[.72,.92], dur:[.32,.46]},
-    ];
-
-    return <g>
-      {/* ── GROUND ── */}
-      <rect x={wallX} y={groundY} width={zoneW} height={zoneH-groundY} fill="#0c0b08" stroke="none"/>
-      {Array.from({length:10},(_,i)=>(
-        <line key={i} x1={wallX+i*(zoneW/10)} y1={groundY} x2={wallX+i*(zoneW/10)+10} y2={groundY+8}
-          stroke="rgba(90,80,45,.2)" strokeWidth="0.7"/>
-      ))}
-      <text x={wallX+zoneW/2} y={groundY+18} textAnchor="middle"
-        fill="rgba(110,95,55,.45)" fontSize="10" fontFamily="monospace">GROUND LEVEL</text>
-
-      {/* ── SNOW - furnace/aux-heat cold-snap mode only. Fades in/out
-           instead of popping, so switching modes reads as a season
-           passing rather than an instant background swap. An uneven
-           drifted blanket (snow piles unevenly, and gathers deeper
-           against the condenser pad) plus three depth layers of flakes
-           that actually fall the full height of the zone with a gentle
-           side-to-side sway, instead of a flat grid barely jittering in
-           place. ── */}
-      <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity .8s ease'}}>
-        {/* Snow cloud, same slot/shape family as the rain cloud below -
-             without it the falling flakes had no visible source and read
-             as a starfield instead of weather. Paler/flatter than the
-             rain cloud so the two precipitation states stay distinct at
-             a glance. */}
-        <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#aab4c2"/>
-        <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#bcc5d1"/>
-        <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#aab4c2"/>
-        {(()=>{
-          const segs=9;
-          let d=`M${wallX} ${groundY}`;
-          for(let i=0;i<=segs;i++){
-            const x=wallX+(zoneW*i)/segs;
-            const nearPad=x>condX-14&&x<condX+condW+14;
-            const bump=(nearPad?7:3)+rnd(i*3.1)*(nearPad?6:5);
-            d+=` L${x.toFixed(1)} ${(groundY-bump).toFixed(1)}`;
-          }
-          d+=` L${wallX+zoneW} ${groundY} Z`;
-          return <path d={d} fill="rgba(240,246,255,.4)" stroke="rgba(255,255,255,.18)" strokeWidth="0.6"/>;
-        })()}
-        {Array.from({length:22},(_,i)=>(
-          <circle key={'sparkle'+i} cx={wallX+rnd(i*7.7)*zoneW} cy={groundY-2-rnd(i*4.3)*6}
-            r={rnd(i*9.1)*0.9+0.4} fill="rgba(255,255,255,.55)"/>
-        ))}
-        {SNOW_LAYERS.map(layer=>Array.from({length:layer.count},(_,i)=>{
-          const seed=layer.key.charCodeAt(1)*211+i;
-          const colW=fallWidth/layer.count;
-          const cx=fallLeft+colW*(i+0.5)+(rnd(seed+1)-0.5)*colW*0.7;
-          const cy=fallTop+rnd(seed+2)*fallSpan*0.18;
-          const r=layer.r[0]+rnd(seed+3)*(layer.r[1]-layer.r[0]);
-          const op=layer.op[0]+rnd(seed+4)*(layer.op[1]-layer.op[0]);
-          const dur=layer.dur[0]+rnd(seed+5)*(layer.dur[1]-layer.dur[0]);
-          const sway=(layer.sway[0]+rnd(seed+6)*(layer.sway[1]-layer.sway[0]))*(rnd(seed+7)<0.5?-1:1);
-          const fy=fallBottom-cy+(rnd(seed+8)-0.5)*24;
-          const delay=-(rnd(seed+9)*dur);
-          // A plain dot reads as a fixed star, not something falling - a
-          // slight vertical elongation gives even a single frozen frame an
-          // implied direction of travel, the same trick that makes the
-          // rain streaks below read instantly as rain instead of ticks.
-          return <ellipse key={layer.key+i} className="snow-flake"
-            cx={cx} cy={cy} rx={r*0.72} ry={r*1.4} fill="rgba(255,255,255,.95)"
-            filter={layer.key==='sf'?undefined:'url(#glow-sm)'}
-            style={{'--fy':fy+'px','--sway':sway+'px','--op':op,
-              animationDuration:dur+'s',animationDelay:delay+'s'}}/>;
-        }))}
-      </g>
-
-      {/* ── SUN - cool mode. Sits over the condenser (the actual "outside"
-           reference point) rather than the attic roof, since that's the
-           piece of equipment that's genuinely outdoors. Anchored to the
-           zone's own left edge rather than the condenser's position (which
-           can sit close to the zone's right edge in the closet layout,
-           behind the fixed top-right mode-preview toggle) and its own
-           height rather than a fixed pixel value, so it clears the
-           "OUTSIDE" label above it in both layouts. Fades in/out instead
-           of popping, same as the snow above. ── */}
-      <g style={{opacity:!heatMode?1:0,transition:'opacity .8s ease'}}>
-        <circle cx={wallX+zoneW*0.25} cy={zoneH*0.075+18} r="9" fill="#ffd76b"/>
-        {Array.from({length:8},(_,i)=>{
-          const ang=i*Math.PI/4;
-          const sx=wallX+zoneW*0.25, sy=zoneH*0.075+18;
-          return <line key={'ray'+i}
-            x1={sx+Math.cos(ang)*12} y1={sy+Math.sin(ang)*12}
-            x2={sx+Math.cos(ang)*17} y2={sy+Math.sin(ang)*17}
-            stroke="#ffd76b" strokeWidth="2" strokeLinecap="round"/>;
-        })}
-      </g>
-
-
-      {/* ── CLOUD + RAIN - any system's mild 52° heat-pump preview (dual-fuel
-           HEAT PUMP, or a heat-pump-only system's own HEAT PUMP mode before
-           it drops to 28° AUX HEAT) - overcast rather than sunny or snowed in,
-           same slot and reasoning as the sun above. Three depth layers of
-           streaks (same treatment as the snow above) fall the full height
-           of the zone along one consistent wind angle, so it reads as a
-           wind-driven sheet of rain rather than a static grid of identical
-           ticks. A faint wet sheen and a few splash flashes along the
-           ground sell "it's actually landing down here" too. ── */}
-      <g style={{opacity:(heatMode&&isMildHp)?1:0,transition:'opacity .8s ease'}}>
-        <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#8a94a3"/>
-        <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#9aa3b0"/>
-        <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#8a94a3"/>
-        <rect x={wallX} y={groundY-4} width={zoneW} height={4} fill="rgba(122,184,224,.14)"/>
-        {Array.from({length:5},(_,i)=>{
-          const sx=wallX+rnd(i*5.2+900)*zoneW*0.85;
-          return <line key={'sheen'+i} x1={sx} y1={groundY-1} x2={sx+zoneW*0.09} y2={groundY-1}
-            stroke="rgba(180,215,240,.22)" strokeWidth="1"/>;
-        })}
-        {RAIN_LAYERS.map(layer=>Array.from({length:layer.count},(_,i)=>{
-          const seed=layer.key.charCodeAt(1)*181+i+500;
-          const colW=fallWidth/layer.count;
-          const x=fallLeft+colW*(i+0.5)+(rnd(seed+1)-0.5)*colW*0.8;
-          const y=fallTop+rnd(seed+2)*fallSpan*0.12;
-          const len=layer.len[0]+rnd(seed+3)*(layer.len[1]-layer.len[0]);
-          const op=layer.op[0]+rnd(seed+4)*(layer.op[1]-layer.op[0]);
-          const dur=layer.dur[0]+rnd(seed+5)*(layer.dur[1]-layer.dur[0]);
-          const dx2=len*WIND_UX, dy2=len*WIND_UY;
-          const travel=fallBottom-y;
-          const fy=travel, fx=travel*WIND_RATIO;
-          const delay=-(rnd(seed+6)*dur);
-          return <line key={layer.key+i} className="rain-drop"
-            x1={x} y1={y} x2={x+dx2} y2={y+dy2}
-            stroke="#7ab8e0" strokeWidth={layer.sw} strokeLinecap="round"
-            style={{'--fy':fy+'px','--fx':fx+'px','--op':op,
-              animationDuration:dur+'s',animationDelay:delay+'s'}}/>;
-        }))}
-        {Array.from({length:9},(_,i)=>{
-          const sx=fallLeft+rnd(i*13.3+700)*fallWidth;
-          const dur=0.45+rnd(i*7.1+700)*0.35;
-          const delay=-(rnd(i*3.3+700)*dur);
-          const op=0.35+rnd(i*11.7+700)*0.35;
-          return <g key={'splash'+i} className="rain-splash"
-            style={{'--op':op,animationDuration:dur+'s',animationDelay:delay+'s',
-              transformBox:'fill-box',transformOrigin:'center'}}>
-            <path d={`M${sx-3.5} ${groundY-1} Q${sx-3.5} ${groundY-5} ${sx-1.5} ${groundY-6.5}`}
-              fill="none" stroke="#bfe0f5" strokeWidth="1" strokeLinecap="round"/>
-            <path d={`M${sx+3.5} ${groundY-1} Q${sx+3.5} ${groundY-5} ${sx+1.5} ${groundY-6.5}`}
-              fill="none" stroke="#bfe0f5" strokeWidth="1" strokeLinecap="round"/>
-          </g>;
-        })}
-      </g>
-
-      {/* ── CONCRETE PAD - under condenser ── */}
-      <rect x={condX-10} y={padY} width={condW+20} height={14} rx="2"
-        fill="rgba(165,160,148,.22)" stroke="rgba(190,185,168,.28)" strokeWidth="1"/>
-      {Array.from({length:5},(_,i)=>(
-        <line key={i} x1={condX+i*(condW+20)/5-10} y1={padY+2}
-          x2={condX+i*(condW+20)/5-10} y2={padY+12}
-          stroke="rgba(190,185,168,.1)" strokeWidth="0.5"/>
-      ))}
-      <text x={condX+condW/2} y={padY+10} textAnchor="middle"
-        fill="rgba(170,160,140,.4)" fontSize="10" fontFamily="monospace">CONCRETE PAD</text>
-
-      {/* ── WALL CROSS-SECTION ── proper side view of exterior wall */}
-      {/* Wall body */}
-      <rect x={sidingX} y={0} width={wallThick} height={groundY}
-        fill="#1a1d26" stroke="rgba(120,118,140,.35)" strokeWidth="1"/>
-      {/* Siding horizontal courses */}
-      {Array.from({length:Math.floor(groundY/10)},(_,i)=>(
-        <rect key={i} x={sidingX} y={i*10} width={wallThick} height={9}
-          fill={i%2===0?"rgba(22,22,28,.8)":"rgba(18,18,24,.8)"}
-          stroke="rgba(80,80,100,.12)" strokeWidth="0.3"/>
-      ))}
-      {/* Wall face highlight */}
-      <line x1={sidingX+wallThick} y1={0} x2={sidingX+wallThick} y2={groundY}
-        stroke="rgba(200,195,175,.22)" strokeWidth="1.5"/>
-      {/* Inside wall face */}
-      <line x1={sidingX} y1={0} x2={sidingX} y2={groundY}
-        stroke="rgba(180,175,160,.08)" strokeWidth="0.5"/>
-
-      {/* ── LINE-SET - runs down inside the wall cavity from where it enters
-           near the indoor unit, then exits right above the concrete pad
-           into the condenser's side. A real lineset is hidden in the wall
-           for that whole drop and only shows up low, next to the unit it's
-           feeding - not crossing the roofline and dropping down the
-           outside face into the top. ── */}
-      {(()=>{
-        const wallMidX=sidingX+wallThick/2;
-        const px1=wallMidX-3, px2=wallMidX+3;
-        // Right above the pad - just clearing the SEER badge that spans the
-        // condenser's full width near its base, so the entry reads as low
-        // on the cabinet without cutting through that label.
-        const exitY1=condY+condH*0.78;
-        const exitY2=condY+condH*0.86;
-        return <>
-          {/* Wall penetration - top, where the indoor-side pipe enters the cavity */}
-          <rect x={sidingX+1} y={lineY1-6} width={wallThick-2} height={lineY2-lineY1+12} rx="2"
-            fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
-          {/* Wall penetration - low, where it exits toward the condenser */}
-          <rect x={sidingX+1} y={exitY1-6} width={wallThick-2} height={exitY2-exitY1+12} rx="2"
-            fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
-          <text x={sidingX+wallThick/2} y={exitY2+16} textAnchor="middle"
-            fill="rgba(150,110,40,.5)" fontSize="9.5" fontFamily="monospace">LINESET</text>
-          {/* Foam sleeve on pipes - down inside the wall, then into the condenser */}
-          <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
-            fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d={`M${px2} ${lineY2} L${px2} ${exitY2} L${condX} ${exitY2}`}
-            fill="none" stroke="rgba(30,30,50,.55)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
-          {/* Liquid line - full bold red/blue */}
-          <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
-            fill="none" stroke={line1C} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="line-pulse"/>
-          {/* Suction line - full bold, offset */}
-          <path d={`M${px2} ${lineY2} L${px2} ${exitY2} L${condX} ${exitY2}`}
-            fill="none" stroke={line2C} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
-          {/* Animated flow dots -- both pipes */}
-          {active&&Array.from({length:6},(_,i)=>{
-            const isLine1=i<3;
-            const pColor=isLine1?line1C:line2C;
-            const wx=isLine1?px1:px2;
-            const topY=isLine1?lineY1:lineY2;
-            const botY=isLine1?exitY1:exitY2;
-            const toCondenser=isLine1?!refReversed:refReversed;
-            const p=toCondenser
-              ?`M${wx} ${topY} L${wx} ${botY} L${condX} ${botY}`
-              :`M${condX} ${botY} L${wx} ${botY} L${wx} ${topY}`;
-            return <circle key={i} r="3" fill={pColor} opacity="0.82" filter="url(#glow-sm)">
-              <animateMotion dur={(2.2+(i%3)*0.5)+'s'} repeatCount="indefinite" begin={(i*0.7)+'s'} path={p}/>
-            </circle>;
-          })}
-        </>;
-      })()}
-
-      {/* ── DISCONNECT BOX - prominent, on outside wall face ── */}
-      {(()=>{
-        const DX=sidingX+wallThick+4;
-        const DY=Math.round(groundY*0.62)-34; // slightly lower than center
-        const DW=44, DH=68;
-        return <>
-          {/* Box body */}
-          <rect x={DX} y={DY} width={DW} height={DH} rx="4"
-            fill="#0c0d10" stroke={G+'.65)'} strokeWidth="2"/>
-          {/* Inner inset shadow */}
-          <rect x={DX+2} y={DY+2} width={DW-4} height={DH-4} rx="3"
-            fill="none" stroke="rgba(0,0,0,.6)" strokeWidth="1"/>
-          {/* Label plate */}
-          <rect x={DX+3} y={DY+4} width={DW-6} height={14} rx="2"
-            fill={G+'.14)'} stroke={G+'.32)'} strokeWidth="0.8"/>
-          <text x={DX+DW/2} y={DY+14} textAnchor="middle"
-            fill={G+'.82)'} fontSize="10.5" fontFamily="monospace" fontWeight="700">DISC.</text>
-          {/* Switch housing */}
-          <rect x={DX+5} y={DY+22} width={DW-10} height={32} rx="3"
-            fill={active?"rgba(239,68,68,.18)":"rgba(35,38,62,.75)"}
-            stroke={active?condC:(G+'.32)')} strokeWidth="1.1"/>
-          {/* Handle lever */}
-          <rect x={DX+11} y={DY+26} width={DW-22} height={20} rx="2.5"
-            fill={active?"rgba(239,68,68,.55)":"rgba(55,58,90,.7)"}
-            stroke={active?condC:(G+'.24)')} strokeWidth="1"/>
-          {/* Handle center line */}
-          <line x1={DX+DW/2} y1={DY+28} x2={DX+DW/2} y2={DY+44}
-            stroke={active?condC:(G+'.18)')} strokeWidth="1" strokeDasharray="2 2"/>
-          {/* Status dot */}
-          <circle cx={DX+DW/2} cy={DY+57} r="5"
-            fill={active?"rgba(34,197,94,.6)":"rgba(50,50,80,.6)"}
-            stroke={active?"#22c55e":(G+'.2)')} strokeWidth="1"/>
-          {active&&<circle cx={DX+DW/2} cy={DY+57} r="2.5"
-            fill="#22c55e" className="glow-pulse"/>}
-          {/* Conduit to unit */}
-          <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
-            stroke="rgba(22,22,42,.7)" strokeWidth="8" strokeLinecap="round"/>
-          <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
-            stroke={G+'.48)'} strokeWidth="4" strokeLinecap="round"/>
-          {/* Surge protector - bigger, below disconnect */}
-          {isSurge&&<g className="fadein">
-            <rect x={DX} y={DY+DH+6} width={DW} height={52} rx="4"
-              fill="#160700" stroke="#f97316" strokeWidth="1.8"/>
-            <rect x={DX+2} y={DY+DH+8} width={DW-4} height={DH-4} rx="3"
-              fill="none" stroke="rgba(249,115,22,.15)" strokeWidth="0.7"/>
-            {/* Label */}
-            <rect x={DX+4} y={DY+DH+10} width={DW-8} height={13} rx="2"
-              fill="rgba(249,115,22,.12)" stroke="#f97316" strokeWidth="0.7"/>
-            <text x={DX+DW/2} y={DY+DH+20} textAnchor="middle"
-              fill="#f97316" fontSize="10.5" fontFamily="monospace" fontWeight="700">SURGE</text>
-            {/* Lightning bolt */}
-            <text x={DX+DW/2} y={DY+DH+40} textAnchor="middle"
-              fill="#f97316" fontSize="20.5">⚡</text>
-            <text x={DX+DW/2} y={DY+DH+54} textAnchor="middle"
-              fill="rgba(249,115,22,.6)" fontSize="10" fontFamily="monospace">PROTECTOR</text>
-          </g>}
-        </>;
-      })()}
-
-      {/* ── CONDENSER UNIT ── */}
-      <Condenser x={condX} y={condY} w={condW} h={condH}
-        active={active} tierKey={tierKey}/>
-      <text x={wallX+zoneW-8} y={condY-9} textAnchor="end"
-        fill={active?condC:(G+'.55)')} fontSize="10.5" fontFamily="monospace">
-        {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
-      </text>
-
-      {/* OUTSIDE label */}
-      <text x={wallX+zoneW/2} y={12} textAnchor="middle"
-        fill={W+'.2)'} fontSize="9.5" fontFamily="monospace" letterSpacing="1.2">OUTSIDE</text>
-    </g>;
-  }
+  // rnd/OutsideZone now live at module scope, above Canvas - see the
+  // comment there for why.
 
 
   // Condensate pump box - small labeled rect with a fixed 80x24 default,
@@ -2185,7 +2220,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             wallX={EXT_WALL_X} zoneW={OUTSIDE_W} zoneH={VH}
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={RL_ROOF_Y} lineY2={RL_ROOF_Y+9}
-            tierKey={a.cond_tier} active={condenserActive}/>}
+            active={condenserActive}
+            heatMode={heatMode} isMildHp={isMildHp}
+            refReversed={refReversed} isSurge={isSurge} condC={condC}
+            line1C={line1C} line2C={line2C} G={G} W={W}
+            condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
+              active={condenserActive} tierKey={a.cond_tier}/>}/>}
           {hasCond&&<EditZone stepId="cond_tier"
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
 
@@ -2925,7 +2965,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH}
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={LS_Y1} lineY2={LS_Y2}
-            tierKey={a.cond_tier} active={condenserActive}/>}
+            active={condenserActive}
+            heatMode={heatMode} isMildHp={isMildHp}
+            refReversed={refReversed} isSurge={isSurge} condC={condC}
+            line1C={line1C} line2C={line2C} G={G} W={W}
+            condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
+              active={condenserActive} tierKey={a.cond_tier}/>}/>}
           {hasCond&&<EditZone stepId="cond_tier"
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
 
