@@ -290,7 +290,11 @@ function calcEstimate(answers,pricingAnswers){
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
   const linesRounded=lines.map(l=>({...l,display:roundTo25(l.price)}));
-  const display=roundTo25(subtotal);
+  // Sum the already-rounded line items rather than independently rounding
+  // the raw subtotal - roundTo25 isn't linear, so the two can land on
+  // different multiples of 25 and a customer adding up the itemized rows
+  // would get a total that doesn't match the headline price.
+  const display=linesRounded.reduce((s,l)=>s+l.display,0);
   return{lines:linesRounded,subtotal,display,tonnage};
 }
 
@@ -2868,7 +2872,15 @@ function App(){
     // stale "Heat source" row in the review grid.
     if(k==='indoor_type'){
       if(v==='furnace'&&p.cond_tier==='mid_ge15') next.system_for='hp';
-      else if(v==='ah') delete next.system_for;
+      else if(v==='ah'){
+        delete next.system_for;
+        // Air handlers have no furnace/attic-insulation step at all (its
+        // showIf excludes them) - clear a leftover furnace_eff/insulation
+        // pick too, so the review grid doesn't keep showing a stale
+        // "Insulation" row for a system that no longer has a furnace.
+        delete next.insulation;
+        delete next.furnace_eff;
+      }
     }
     return next;
   });
