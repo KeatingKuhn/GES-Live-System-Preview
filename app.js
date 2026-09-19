@@ -2964,7 +2964,9 @@ function App(){
             <span className="attic-step-label">
               {cur ? <><span className="chapter-tag">{CHAPTERS[curChapter]}</span>{" · STEP "+stepIdx+(totalKnown?" OF "+totalSteps:"")+" · "+cur.q.toUpperCase()}</> : ""}
             </span>
-            {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
+            {infoText&&<button className="info-btn" aria-label="More info"
+              onMouseEnter={()=>setShowInfo(true)} onMouseLeave={()=>setShowInfo(false)}
+              onFocus={()=>setShowInfo(true)} onBlur={()=>setShowInfo(false)}>i</button>}
             {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
             {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
             <button className="btn-next" onClick={goNext} disabled={!canNext}>
@@ -3000,7 +3002,9 @@ function App(){
           <div className="step-hdr">
             <div className="step-eyebrow">
               <span>{cur&&<span className="chapter-tag">{CHAPTERS[curChapter]}</span>} Step {stepIdx}{totalKnown?` of ${totalSteps}`:''}</span>
-              {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"x":"i"}</button>}
+              {infoText&&<button className="info-btn" aria-label="More info"
+                onMouseEnter={()=>setShowInfo(true)} onMouseLeave={()=>setShowInfo(false)}
+                onFocus={()=>setShowInfo(true)} onBlur={()=>setShowInfo(false)}>i</button>}
             </div>
             <div className="step-q">{cur?cur.q:""}</div>
             {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
