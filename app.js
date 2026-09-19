@@ -495,20 +495,40 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // above). Kept as its own component specifically so the mid-tier
   // condenser's front fan never gets confused with an indoor blower again.
   function CondenserFan({cx,cy,r,active}){
-    const bC=active?'rgba(215,220,230,.88)':'rgba(90,95,108,.55)';
+    // Real axial blades are a filled, tapered scimitar shape - wide at the
+    // hub, sweeping out to a near-point tip - not a uniform-width stroked
+    // line. A thick round-capped stroke (the old approach) has no taper
+    // and reads as a flailing stick-figure limb instead of a blade. Each
+    // blade here is a closed path: a wide edge at the hub, two curves
+    // sweeping out to a narrow tip, filled solid with a glowing accent
+    // rim when spinning for a cleaner, more high-tech look.
+    const bladeFill=active?'#ccd3e0':'#565c68';
+    const rim=active?'#7fb8ff':'rgba(70,76,90,.6)';
     return <g>
       <circle cx={cx} cy={cy} r={r+3} fill="rgba(0,0,0,.55)" stroke="rgba(60,65,78,.7)" strokeWidth="1.2"/>
-      <g className={active?"spin":undefined} style={active?{transformBox:'fill-box',transformOrigin:'center',animationDuration:'0.9s'}:{}}>
+      {active&&<circle cx={cx} cy={cy} r={r+1} fill="none" stroke={rim} strokeWidth="1" opacity="0.55" filter="url(#glow-sm)"/>}
+      <g className={active?"spin":undefined} style={active?{transformBox:'fill-box',transformOrigin:'center',animationDuration:'0.8s'}:{}}>
         {Array.from({length:3},(_,i)=>{
           const ang=i*(Math.PI*2/3);
-          const bx1=cx+r*0.12*Math.cos(ang), by1=cy+r*0.12*Math.sin(ang);
-          const bx2=cx+r*0.92*Math.cos(ang+0.85), by2=cy+r*0.92*Math.sin(ang+0.85);
-          const cpx=cx+r*0.55*Math.cos(ang+0.38), cpy=cy+r*0.55*Math.sin(ang+0.38);
-          return <path key={i} d={`M${bx1} ${by1} Q${cpx} ${cpy} ${bx2} ${by2}`}
-            fill="none" stroke={bC} strokeWidth={r*0.26} strokeLinecap="round"/>;
+          const sweep=0.95;
+          const hubR=r*0.16, tipR=r*0.95;
+          const ux=Math.cos(ang), uy=Math.sin(ang);
+          const px=-Math.sin(ang), py=Math.cos(ang);
+          const hubW=r*0.19;
+          const hAx=cx+ux*hubR+px*hubW, hAy=cy+uy*hubR+py*hubW;
+          const hBx=cx+ux*hubR-px*hubW, hBy=cy+uy*hubR-py*hubW;
+          const tipAng=ang+sweep;
+          const tX=cx+Math.cos(tipAng)*tipR, tY=cy+Math.sin(tipAng)*tipR;
+          const c1Ang=ang+sweep*0.4, c1R=r*0.64;
+          const c1X=cx+Math.cos(c1Ang)*c1R+px*hubW*0.5, c1Y=cy+Math.sin(c1Ang)*c1R+py*hubW*0.5;
+          const c2Ang=ang+sweep*0.62, c2R=r*0.56;
+          const c2X=cx+Math.cos(c2Ang)*c2R-px*hubW*0.32, c2Y=cy+Math.sin(c2Ang)*c2R-py*hubW*0.32;
+          const d=`M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
+          return <path key={i} d={d} fill={bladeFill} stroke={active?rim:'rgba(20,22,26,.7)'} strokeWidth="0.7" opacity={active?0.95:0.8}/>;
         })}
       </g>
-      <circle cx={cx} cy={cy} r={r*0.16} fill="#1a1c20" stroke="rgba(90,95,110,.6)" strokeWidth="0.8"/>
+      <circle cx={cx} cy={cy} r={r*0.18} fill="#16181c" stroke={active?rim:"rgba(90,95,110,.6)"} strokeWidth="1"/>
+      <circle cx={cx} cy={cy} r={r*0.07} fill={active?rim:"#3a3d44"}/>
     </g>;
   }
 
