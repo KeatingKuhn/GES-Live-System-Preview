@@ -21,6 +21,20 @@
   --fs-step-eyebrow:10.5px;--fs-step-q:17px;--fs-step-hint:12.5px;
   --fs-info-btn:14px;--fs-info-body:13px;
   --fs-btn-back:13.5px;--fs-btn-next:14.5px;--fs-btn-skip:12.5px;
+  /* Added for the accessibility pass below - same mobile/desktop pattern as
+     the block above, for spots that were still hardcoded px (not fixed-
+     height/zero-slack panels, so free to grow): the done-screen review grid
+     (attic's variant is its own fixed 200px panel, see the comment above
+     .done-review-grid in this file - it has overflow:auto though, so a
+     bit more room here just means a bit more scroll, never clipping),
+     the diagram's heat/cool preview toggle, the final price/considerations
+     panel, and the quick-edit banner. */
+  --fs-review-label:10px;--fs-review-val:12px;--fs-review-edit:10px;
+  --fs-review-label-lg:13.5px;--fs-review-val-lg:16px;--fs-review-edit-lg:12.5px;
+  --fs-toggle-eyebrow:10.5px;--fs-toggle-label:12.5px;--fs-toggle-temp:15px;--fs-toggle-caption:9px;
+  --fs-pricing-line:13.5px;--fs-pricing-meta:13px;--fs-pricing-fine:12.5px;
+  --fs-restart:13px;--fs-quickedit:12.5px;--fs-quickedit-btn:12px;
+  --info-btn-size:32px;
 }
 @media(min-width:1025px){
   :root{
@@ -30,6 +44,12 @@
     --fs-step-eyebrow:12.5px;--fs-step-q:20px;--fs-step-hint:14.5px;
     --fs-info-btn:16px;--fs-info-body:14.5px;
     --fs-btn-back:15.5px;--fs-btn-next:16.5px;--fs-btn-skip:14px;
+    --fs-review-label:10.5px;--fs-review-val:12.5px;--fs-review-edit:10.5px;
+    --fs-review-label-lg:15px;--fs-review-val-lg:17.5px;--fs-review-edit-lg:13.5px;
+    --fs-toggle-eyebrow:12px;--fs-toggle-label:14.5px;--fs-toggle-temp:17px;--fs-toggle-caption:10.5px;
+    --fs-pricing-line:14.5px;--fs-pricing-meta:14px;--fs-pricing-fine:13.5px;
+    --fs-restart:14px;--fs-quickedit:13.5px;--fs-quickedit-btn:13px;
+    --info-btn-size:36px;
   }
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -171,8 +191,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 
 /* QUICK EDIT - editing one answer from the finished build, not restarting
    the wizard. Sits above the normal step header in both layouts. */
-.quickedit-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 12px;background:rgba(240,214,78,.08);border-bottom:1px solid rgba(215,183,64,.3);font-family:var(--fm);font-size:11px;color:var(--gl);flex-shrink:0}
-.quickedit-banner button{background:none;border:none;color:rgba(215,183,64,.75);font-family:var(--fm);font-size:10.5px;cursor:pointer;text-decoration:underline;padding:0;letter-spacing:.02em}
+.quickedit-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:rgba(240,214,78,.08);border-bottom:1px solid rgba(215,183,64,.3);font-family:var(--fm);font-size:var(--fs-quickedit);color:var(--gl);flex-shrink:0}
+.quickedit-banner button{background:none;border:none;color:rgba(215,183,64,.75);font-family:var(--fm);font-size:var(--fs-quickedit-btn);cursor:pointer;text-decoration:underline;padding:4px 0;letter-spacing:.02em}
 
 /* STEP HEADER */
 .step-hdr{padding:16px 18px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:10}
@@ -193,7 +213,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.22) 47%,rgba(240,214,78,.4) 50%,rgba(255,255,255,.22) 53%,transparent 65%);
   background-size:280% 100%;background-position:160% 0;animation:powerSweep 1s cubic-bezier(.4,0,.2,1) both}
 @keyframes powerSweep{0%{background-position:160% 0;opacity:0}12%{opacity:1}100%{background-position:-60% 0;opacity:0}}
-.info-btn{width:28px;height:28px;flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
+/* Sized off a variable (not a fixed 28px) so it grows with the rest of the
+   type scale on desktop - a bigger, easier-to-hit tap target, and the "i"
+   glyph inside reads clearly at --fs-info-btn instead of feeling cramped in
+   a small circle. It's also reachable by tap now (see the onTouchEnd/
+   hoverCapable comment on this button in app.js) - a touchscreen has no
+   hover state, so hover-only left phone/tablet users with no way at all to
+   reach this panel's content; desktop keeps the exact no-click hover
+   behavior it had before. */
+.info-btn{width:var(--info-btn-size);height:var(--info-btn-size);flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .info-btn:hover{border-color:var(--gl);color:var(--gl);background:rgba(215,183,64,.18)}
 .info-expand{padding:0 18px 10px;flex-shrink:0}
 .info-body{font-size:var(--fs-info-body);color:rgba(255,255,255,.68);line-height:1.6}
@@ -260,7 +288,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .done-icon{width:54px;height:54px;background:var(--gh);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--bk);font-weight:700}
 .done-title{font-family:var(--ft);font-size:19px;font-weight:700;color:var(--wh);margin-bottom:6px}
 .done-cta{display:block;width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px;font-family:var(--ft);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:8px;text-decoration:none;text-align:center}
-.done-restart{background:transparent;border:none;color:rgba(255,255,255,.4);font-family:var(--fb);font-size:11px;cursor:pointer;text-decoration:underline;outline:none}
+/* Was rgba(255,255,255,.4) - measured well under the 4.5:1 contrast floor
+   against the panel background (~3.8:1), so "Start Over"/"Start Fresh
+   Instead" read as barely-there gray text for anyone with reduced contrast
+   sensitivity. .62 clears 4.5:1 comfortably while staying visually
+   secondary to the gold primary buttons around it. */
+.done-restart{background:transparent;border:none;color:rgba(255,255,255,.62);font-family:var(--fb);font-size:var(--fs-restart);cursor:pointer;text-decoration:underline;outline:none}
 
 /* ── SITE HEADER SPACER ── */
 /* Blank reserved band at the top - no text/branding (that part was
