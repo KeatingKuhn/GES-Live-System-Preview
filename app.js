@@ -361,6 +361,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const isCloset=loc==='closet';
   const hasFurnace=a.indoor_type==='furnace';
   const hasCoil=!!a.indoor_type;
+  // cond_tier is a required step ahead of purif in the wizard, so a.cond_tier
+  // is normally already set by the time stepIdx passes purif - the
+  // stepIdx>_purifIdx half is a defensive fallback for a future edit that
+  // makes cond_tier skippable or reorders the steps, so the outside
+  // zone/condenser doesn't just silently fail to ever appear in that case.
   const _purifIdx=activeSteps?activeSteps.findIndex(s=>s.id==='purif'):-1;
   const hasCond=!!a.cond_tier||(_purifIdx>=0&&stepIdx>_purifIdx);
   const hasPlenum=!!a.plenum;  // true for ductboard, metal, AND none (existing)
@@ -417,7 +422,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const line1C = refReversed ? '#2389e0' : '#ef4444';
   const line2C = refReversed ? '#ef4444' : '#2389e0';
 
-  const TL={fedmin:'14 SEER2',mid_ge15:'18 SEER2',high_ge18:'21 SEER2',premium:'21 SEER2'}[a.cond_tier]||'';
+  const TL={fedmin:'14 SEER2',mid_ge15:'18 SEER2',high_ge18:'21 SEER2'}[a.cond_tier]||'';
 
   // ── SUB-COMPONENTS ──────────────────────────────────────────
 
@@ -751,7 +756,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // Condenser -- three distinct tiers
   function Condenser({x,y,w,h,active,tierKey}){
     const isMini=tierKey==='mid_ge15';
-    const isBig=tierKey==='high_ge18'||tierKey==='premium';
+    const isBig=tierKey==='high_ge18';
     const isFed=tierKey==='fedmin';
     const cc=active?condC:(refReversed?'rgba(18,18,55,.5)':'rgba(55,18,18,.5)');
 
@@ -1231,111 +1236,75 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   }
 
 
-  function SystemInfoPanel({px,py,pw,ph,tierKey,heatMode,active,is90}){
-    if(ph<80) return null;
-    var G2='rgba(215,183,64,'; var W2='rgba(255,255,255,'; var B2='rgba(35,137,224,';
-    var seer=tierKey==='high_ge18'?'21':tierKey==='mid_ge15'?'18':'14';
-    var isHigh=tierKey==='high_ge18'; var isMid=tierKey==='mid_ge15';
-    var savings=isMid?'~$28/mo':isHigh?'~$52/mo':null;
-    var rebate=isHigh?'$300-800':null;
-    var afue=is90?'90% AFUE':'80% AFUE';
-    var season=heatMode?'WINTER':'SUMMER';
-    var condition=heatMode?'28\xb0F':'96\xb0F';
-    var tColor=heatMode?'rgba(147,197,253,.85)':'rgba(253,186,116,.85)';
-    var tBg=heatMode?'rgba(30,58,138,.18)':'rgba(124,45,18,.18)';
-    var tBorder=heatMode?'rgba(147,197,253,.2)':'rgba(253,186,116,.2)';
-    var effColor=isHigh?'#5ba8f5':isMid?(G2+'.9)'):(W2+'.55)');
-    var iX=px+14; var iY=py+38; var iR=7;
-    // Pre-compute icon coords
-    var p0x=iX; var p0y=iY-iR;
-    var p1x=iX; var p1y=iY+iR;
-    var p2x=iX-iR; var p2y=iY;
-    var p3x=iX+iR; var p3y=iY;
-    var d=iR*0.7;
-    var p4x=iX-d; var p4y=iY-d;
-    var p5x=iX+d; var p5y=iY-d;
-    var p6x=iX+d; var p6y=iY+d;
-    var p7x=iX-d; var p7y=iY+d;
-    var r2=iR*0.52;
-    var si=iR*0.55;
-    var sc0x=iX+si; var sc0y=iY;
-    var sc1x=iX; var sc1y=iY+si;
-    var sc2x=iX-si; var sc2y=iY;
-    var sc3x=iX; var sc3y=iY-si;
-    var rc=iR*0.65;
-    var row=function(n){return py+18+n*16;};
-    return <g>
-      <rect x={px} y={py} width={pw} height={ph} rx="4"
-        fill="rgba(8,10,20,.75)" stroke={G2+'.12)'} strokeWidth="0.8"/>
-      <rect x={px} y={py} width={pw} height={12} rx="4" fill={G2+'.07)'} stroke="none"/>
-      <text x={px+pw/2} y={py+9} textAnchor="middle"
-        fill={G2+'.5)'} fontSize="9.5" fontFamily="monospace" letterSpacing=".12em">SYSTEM DATA</text>
-      <rect x={px+4} y={py+14} width={pw-8} height={34} rx="3" fill={tBg} stroke={tBorder} strokeWidth="0.8"/>
-      {heatMode
-        ?<>
-          <line x1={p0x} y1={p0y} x2={p1x} y2={p1y} stroke={tColor} strokeWidth="1.2"/>
-          <line x1={p2x} y1={p2y} x2={p3x} y2={p3y} stroke={tColor} strokeWidth="1.2"/>
-          <line x1={p4x} y1={p4y} x2={p6x} y2={p6y} stroke={tColor} strokeWidth="1.2"/>
-          <line x1={p5x} y1={p5y} x2={p7x} y2={p7y} stroke={tColor} strokeWidth="1.2"/>
-          <circle cx={sc0x} cy={sc0y} r="1.2" fill={tColor}/>
-          <circle cx={sc1x} cy={sc1y} r="1.2" fill={tColor}/>
-          <circle cx={sc2x} cy={sc2y} r="1.2" fill={tColor}/>
-          <circle cx={sc3x} cy={sc3y} r="1.2" fill={tColor}/>
-        </>
-        :<>
-          <circle cx={iX} cy={iY} r={r2} fill={tColor} opacity=".9"/>
-          <line x1={iX} y1={iY-rc} x2={p0x} y2={p0y} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
-          <line x1={iX} y1={iY+rc} x2={p1x} y2={p1y} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
-          <line x1={iX-rc} y1={iY} x2={p2x} y2={p2y} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
-          <line x1={iX+rc} y1={iY} x2={p3x} y2={p3y} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
-          <line x1={iX-rc*0.7} y1={iY-rc*0.7} x2={p4x} y2={p4y} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
-          <line x1={iX+rc*0.7} y1={iY-rc*0.7} x2={p5x} y2={p5y} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
-          <line x1={iX+rc*0.7} y1={iY+rc*0.7} x2={p6x} y2={p6y} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
-          <line x1={iX-rc*0.7} y1={iY+rc*0.7} x2={p7x} y2={p7y} stroke={tColor} strokeWidth="1.4" strokeLinecap="round"/>
-        </>
-      }
-      <text x={px+28} y={py+34} fill={tColor} fontSize="14.5" fontFamily="monospace" fontWeight="700">{condition}</text>
-      <text x={px+28} y={py+44} fill={tColor} opacity=".7" fontSize="10" fontFamily="monospace">{season}</text>
-      <text x={px+pw-6} y={py+44} textAnchor="end" fill={tColor} opacity=".4" fontSize="9.5" fontFamily="monospace">AUSTIN TX</text>
-      <line x1={px+4} y1={py+50} x2={px+pw-4} y2={py+50} stroke={G2+'.08)'} strokeWidth="0.5"/>
-      <text x={px+6} y={row(3)} fill={G2+'.4)'} fontSize="10" fontFamily="monospace">EFFICIENCY</text>
-      <text x={px+pw-6} y={row(3)} textAnchor="end" fill={effColor} fontSize="9.5" fontFamily="monospace" fontWeight="700">{seer} SEER2</text>
-      <line x1={px+4} y1={row(3)+4} x2={px+pw-4} y2={row(3)+4} stroke={G2+'.08)'} strokeWidth="0.5"/>
-      {is90!==null&&<>
-        <text x={px+6} y={row(4)} fill={G2+'.4)'} fontSize="10" fontFamily="monospace">FURNACE</text>
-        <text x={px+pw-6} y={row(4)} textAnchor="end" fill={W2+'.55)'} fontSize="10" fontFamily="monospace">{afue}</text>
-        <line x1={px+4} y1={row(4)+4} x2={px+pw-4} y2={row(4)+4} stroke={G2+'.08)'} strokeWidth="0.5"/>
-      </>}
-      {savings&&<>
-        <text x={px+6} y={row(5)} fill={G2+'.4)'} fontSize="10" fontFamily="monospace">VS FED. MIN</text>
-        <text x={px+pw-6} y={row(5)} textAnchor="end" fill="rgba(34,197,94,.85)" fontSize="10" fontFamily="monospace">{savings}</text>
-        <line x1={px+4} y1={row(5)+4} x2={px+pw-4} y2={row(5)+4} stroke={G2+'.08)'} strokeWidth="0.5"/>
-      </>}
-      {rebate&&<>
-        <rect x={px+4} y={row(6)-9} width={pw-8} height={16} rx="2" fill="rgba(35,137,224,.1)" stroke={B2+'.25)'} strokeWidth="0.7"/>
-        <text x={px+pw/2} y={row(6)+3} textAnchor="middle" fill={B2+'.7)'} fontSize="10" fontFamily="monospace">AE REBATE {rebate}</text>
-      </>}
-      <circle cx={px+9} cy={py+ph-8} r={3}
-        fill={active?"rgba(34,197,94,.6)":"rgba(50,50,80,.5)"}
-        stroke={active?"#22c55e":(G2+'.15)')} strokeWidth="0.7"/>
-      {active&&<circle cx={px+9} cy={py+ph-8} r={1.5} fill="#22c55e" className="glow-pulse"/>}
-      <text x={px+16} y={py+ph-4} fill={active?"rgba(34,197,94,.65)":(G2+'.3)')} fontSize="10" fontFamily="monospace">
-        {active?season:"STANDBY"}
-      </text>
+  // Condensate pump box - small labeled rect with a fixed 80x24 default,
+  // shared by both the attic and closet layouts (each still routes its own
+  // dashed connector line to it, since that routing differs per layout).
+  function CondensatePump({x,y,w=80,h=24}){
+    return <g className="fadein">
+      <rect x={x} y={y} width={w} height={h} rx="3"
+        fill="rgba(35,137,224,.14)" stroke={B+'.58)'} strokeWidth="1.2"/>
+      <text x={x+w/2} y={y+11} textAnchor="middle"
+        fill={B+'.82)'} fontSize="10" fontFamily="monospace">COND. PUMP</text>
+      <text x={x+w/2} y={y+20} textAnchor="middle"
+        fill={B+'.5)'} fontSize="9.5" fontFamily="monospace">condensate</text>
     </g>;
   }
 
-
-  // Condensate pump - small box below evap coil
-  function CondensatePump({x,y,w}){
-    return <g className="fadein">
-      <rect x={x+w*0.18} y={y} width={w*0.64} height={18} rx="2"
-        fill="rgba(35,137,224,.1)" stroke={B+'.48)'} strokeWidth="1.1"/>
-      <text x={x+w/2} y={y+12} textAnchor="middle"
-        fill={B+'.72)'} fontSize="10" fontFamily="monospace">COND. PUMP</text>
-      <line x1={x+w/2} y1={y+16} x2={x+w/2} y2={y+28}
-        stroke={B+'.3)'} strokeWidth="1.2" strokeDasharray="3 2"/>
-    </g>;
+  // Dehu + ERV roof boxes - shared between attic and closet layouts. Each
+  // caller computes its own dehuBX/ervBX/BY/roofY (the two layouts anchor
+  // them off completely different geometry), but the box/pipe/vent
+  // rendering itself was previously duplicated near-verbatim between the
+  // two - this is that rendering, parameterized on just the anchor points.
+  function DehuErvBoxes({dehuBX,ervBX,BY,roofY,hasDehu,hasERV,snap}){
+    if(!hasDehu&&!hasERV) return null;
+    const BW=80,BH=48;
+    const boxes=[];
+    if(hasERV) boxes.push('erv');
+    if(hasDehu) boxes.push('dehu');
+    return <g>{boxes.map((type,i)=>{
+      const BX=type==='dehu'?dehuBX:ervBX;
+      const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
+      const isDehu=type==='dehu';
+      const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
+      return <g key={type} className={snap?"snap":undefined} style={snap?{animationDelay:(0.32+i*0.05)+'s'}:undefined}>
+        {isDehu
+          ?<>
+            <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
+            <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
+            <rect x={r1X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+            <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+          </>
+          :<>
+            {/* ERV -- blue IN + orange OUT through roof. Pipes stop right
+                at the roofline (roofY), not the literal top of the canvas. */}
+            <rect x={pipe1X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
+            <rect x={pipe1X-5} y={roofY-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
+            <text x={pipe1X} y={roofY-6} textAnchor="middle" fill={B+'.6)'} fontSize="10" fontFamily="monospace">IN</text>
+            <rect x={pipe2X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
+            <path d={'M'+(pipe2X-4)+' '+(roofY-2)+' L'+pipe2X+' '+(roofY-9)+' L'+(pipe2X+4)+' '+(roofY-2)} fill="rgba(249,115,22,.4)"/>
+            <text x={pipe2X} y={roofY-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="10" fontFamily="monospace">OUT</text>
+            <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+            <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+          </>
+        }
+        <rect x={BX} y={BY} width={BW} height={BH} rx="4"
+          fill={isDehu?"#05120a":"#0a0a06"}
+          stroke={isDehu?"#22c55e":(G+'.55)')} strokeWidth="1.4"/>
+        <rect x={BX} y={BY} width={BW} height={7} rx="4"
+          fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
+        {isDehu
+          ?<>
+            <text x={BX+BW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="13.5">💧</text>
+            <text x={BX+BW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="10.5" fontFamily="monospace">DEHU</text>
+          </>
+          :<>
+            <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
+            <path d={'M'+(BX+BW-8)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
+            <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="12.5" fontFamily="monospace">ERV</text>
+          </>
+        }
+      </g>;
+    })}</g>;
   }
 
   const Defs=()=><defs>
@@ -1965,66 +1934,16 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           </g>}
 
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
-          {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&<g>
-            {(()=>{
-              const sysX=hasFurnace?FURN_X:AH_X;
-              const BW=80, BH=48;
-              const hasERV=Array.isArray(a.extras)&&a.extras.includes('erv');
-              // Dehu: left of furnace center (clear of flue which is on right side)
-              const dehuBX=sysX+44;
-              // ERV: far left of return plenum
-              const ervBX=Math.max(8, RET_X-BW+80);
-              const BY=UNIT_Y-BH-14;
-              const roofY=EAVE_Y+14;
-              const boxes=[];
-              if(hasERV) boxes.push('erv');
-              if(hasDehu) boxes.push('dehu');
-              return boxes.map((type,i)=>{
-                const BX=type==='dehu'?dehuBX:ervBX;
-                const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
-                const isDehu=type==='dehu';
-                const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
-                return <g key={type}>
-                  {isDehu
-                    ?<>
-                      <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
-                      <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
-                      <rect x={r1X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
-                      <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
-                    </>
-                    :<>
-                      {/* ERV -- blue IN + orange OUT through roof. Pipes
-                          stop right at the roofline (roofY), same as the
-                          dehu vents above, instead of running all the way
-                          up to the top of the canvas. */}
-                      <rect x={pipe1X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill={B+'.3)'} stroke={B+'.55)'} strokeWidth="0.8"/>
-                      <rect x={pipe1X-5} y={roofY-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.6)'} strokeWidth="0.8"/>
-                      <text x={pipe1X} y={roofY-6} textAnchor="middle" fill={B+'.6)'} fontSize="10" fontFamily="monospace">IN</text>
-                      <rect x={pipe2X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.55)" strokeWidth="0.8"/>
-                      <path d={'M'+(pipe2X-4)+' '+(roofY-2)+' L'+pipe2X+' '+(roofY-9)+' L'+(pipe2X+4)+' '+(roofY-2)} fill="rgba(249,115,22,.45)"/>
-                      <text x={pipe2X} y={roofY-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="10" fontFamily="monospace">OUT</text>
-                    </>
-                  }
-                  <rect x={BX} y={BY} width={BW} height={BH} rx="4"
-                    fill={isDehu?"#05120a":"#0a0a06"}
-                    stroke={isDehu?"#22c55e":(G+'.55)')} strokeWidth="1.4"/>
-                  <rect x={BX} y={BY} width={BW} height={7} rx="4"
-                    fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
-                  {isDehu
-                    ?<>
-                      <text x={BX+BW/2} y={BY+BH/2-2} textAnchor="middle" fill="#22c55e" fontSize="13.5">💧</text>
-                      <text x={BX+BW/2} y={BY+BH/2+13} textAnchor="middle" fill="#22c55e" fontSize="11" fontFamily="monospace">DEHU</text>
-                    </>
-                    :<>
-                      <path d={'M'+(BX+10)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.8" markerEnd="url(#arr)"/>
-                      <path d={'M'+(BX+BW-10)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.8" markerEnd="url(#arr)"/>
-                      <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="12.5" fontFamily="monospace">ERV</text>
-                    </>
-                  }
-                </g>;
-              });
-            })()}
-          </g>}
+          {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
+            const sysX=hasFurnace?FURN_X:AH_X;
+            const BW=80;
+            // Dehu: left of furnace center (clear of flue which is on right side)
+            const dehuBX=sysX+44;
+            // ERV: far left of return plenum
+            const ervBX=Math.max(8, RET_X-BW+80);
+            return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} BY={UNIT_Y-48-14} roofY={EAVE_Y+14}
+              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')}/>;
+          })()}
 
           {/* Condensate drain - dashed blue line below coil, pump box if selected */}
           {hasCoil&&<g key="attic-drain">
@@ -2038,12 +1957,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 return <>
                   <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={pY}
                     stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="3 2"/>
-                  <rect x={pX} y={pY} width={pW} height={pH} rx="3"
-                    fill="rgba(35,137,224,.1)" stroke={B+'.5)'} strokeWidth="1.1"/>
-                  <text x={coilCX} y={pY+11} textAnchor="middle"
-                    fill={B+'.75)'} fontSize="10" fontFamily="monospace">COND. PUMP</text>
-                  <text x={coilCX} y={pY+20} textAnchor="middle"
-                    fill={B+'.45)'} fontSize="9.5" fontFamily="monospace">condensate</text>
+                  <CondensatePump x={pX} y={pY} w={pW} h={pH}/>
                 </>;
               } else {
                 return <>
@@ -2600,12 +2514,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 <circle cx={pt3X} cy={pt3Y} r={3} fill={B+'.4)'} stroke={B+'.6)'} strokeWidth="0.8"/>
               </>}
               {hasPump&&<>
-                <rect x={pumpX} y={pumpY} width={80} height={pumpH} rx="3"
-                  fill="rgba(35,137,224,.18)" stroke={B+'.65)'} strokeWidth="1.3"/>
-                <text x={pumpX+40} y={pumpY+11} textAnchor="middle"
-                  fill={B+'.9)'} fontSize="10" fontFamily="monospace">COND. PUMP</text>
-                <text x={pumpX+40} y={pumpY+20} textAnchor="middle"
-                  fill={B+'.55)'} fontSize="10" fontFamily="monospace">condensate</text>
+                <CondensatePump x={pumpX} y={pumpY} w={80} h={pumpH}/>
                 <line x1={pt3X} y1={pt3Y} x2={pumpX+80} y2={pumpY+pumpH/2}
                   stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="4 3"/>
               </>}
@@ -2698,62 +2607,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             const rW=hasCond?HOUSE_W:VW-8;
             const rRise=Math.round(Math.min(rW/2*(3/12),60));
             const rEave=rRise+12; // eave Y - bottom of roofline
-            const BW=80, BH=48;
-            const hasERV=Array.isArray(a.extras)&&a.extras.includes('erv');
-            const BY=rEave+42;
-            const roofY=rEave+4;
+            const BW=80;
             // Dehu anchored far RIGHT of attic, ERV anchored far LEFT - opposite sides
             const dehuX=rW-BW-34;
             const ervX=24; // ERV slightly right
-            const boxes=[];
-            if(hasERV) boxes.push('erv');
-            if(hasDehu) boxes.push('dehu');
-            return <g key="dehu-erv-closet">{boxes.map((type,i)=>{
-              const BX=type==='dehu'?dehuX:ervX;
-              const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
-              const isDehu=type==='dehu';
-              const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
-              return <g key={type} className="snap" style={{animationDelay:(0.32+i*0.05)+'s'}}>
-                {isDehu
-                  ?<>
-                    <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
-                    <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
-                    <rect x={r1X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
-                    <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
-                  </>
-                  :<>
-                    {/* Pipes stop at the roofline (roofY), same fix as the
-                        attic layout's ERV - these used to start at y=0,
-                        the literal top of the canvas, running well above
-                        the roof itself. */}
-                    <rect x={pipe1X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
-                    <rect x={pipe1X-5} y={roofY-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
-                    <text x={pipe1X} y={roofY-6} textAnchor="middle" fill={B+'.6)'} fontSize="10" fontFamily="monospace">IN</text>
-                    <rect x={pipe2X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
-                    <path d={'M'+(pipe2X-4)+' '+(roofY-2)+' L'+pipe2X+' '+(roofY-9)+' L'+(pipe2X+4)+' '+(roofY-2)} fill="rgba(249,115,22,.4)"/>
-                    <text x={pipe2X} y={roofY-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="10" fontFamily="monospace">OUT</text>
-                    <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-                    <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-                  </>
-                }
-                <rect x={BX} y={BY} width={BW} height={BH} rx="4"
-                  fill={isDehu?"#05120a":"#0a0a06"}
-                  stroke={isDehu?"#22c55e":(G+'.55)')} strokeWidth="1.4"/>
-                <rect x={BX} y={BY} width={BW} height={7} rx="4"
-                  fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
-                {isDehu
-                  ?<>
-                    <text x={BX+BW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="13.5">💧</text>
-                    <text x={BX+BW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="10.5" fontFamily="monospace">DEHU</text>
-                  </>
-                  :<>
-                    <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
-                    <path d={'M'+(BX+BW-8)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
-                    <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="12.5" fontFamily="monospace">ERV</text>
-                  </>
-                }
-              </g>;
-            })}</g>;
+            return <DehuErvBoxes dehuBX={dehuX} ervBX={ervX} BY={rEave+42} roofY={rEave+4}
+              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap/>;
           })()}
 
         </svg>
