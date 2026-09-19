@@ -7,28 +7,28 @@ const {useState,useMemo,useRef,useCallback}=React;
 // renders as named, segmented chapters instead of one anonymous sliver.
 const CHAPTERS=['THE BASICS','THE ENGINE','COMFORT','FINAL TOUCHES'];
 const STEPS=[
-  {id:'location',    q:'Where is your indoor unit?', chapter:0,
-    hint:'This sets the layout of your system visualization.',        optional:false},
-  {id:'indoor_type', q:'What Type of Indoor Unit?', chapter:0,
-    hint:'Furnace or air handler?\nFurnace = Gas Heat.\nAir Handler = All-Electric.', optional:false},
-  {id:'insulation',  q:'What type of attic insulation do you have?', chapter:0,
-    hint:'Fiberglass = 80% furnace. Spray foam = 90% furnace with PVC flue.', optional:false,
+  {id:'location',    q:"Where's your indoor unit?", chapter:0,
+    hint:'Sets the layout of your whole system.',        optional:false},
+  {id:'indoor_type', q:'Furnace or air handler?', chapter:0,
+    hint:"Furnace burns gas; handler's electric.", optional:false},
+  {id:'insulation',  q:'Fiberglass or spray foam?', chapter:0,
+    hint:'Determines your furnace efficiency.', optional:false,
     showIf:a=>a.indoor_type==='furnace'},
-  {id:'plenum',      q:'Is a new supply plenum needed?', chapter:1,
-    hint:'The plenum distributes conditioned air from your unit into all your ducts.', optional:false},
-  {id:'cond_tier',   q:"Pick your new system's efficiency tier.", chapter:1,
-    hint:'Higher efficiency = lower monthly bills and better humidity control.', optional:false},
+  {id:'plenum',      q:'New supply plenum needed?', chapter:1,
+    hint:'Feeds conditioned air to your ductwork.', optional:false},
+  {id:'cond_tier',   q:'Pick your efficiency tier.', chapter:1,
+    hint:'Higher efficiency, lower monthly bills.', optional:false},
   {id:'system_for',  q:'Heat pump or straight cool?', chapter:1,
-    hint:'Heat pump both heats and cools. Straight cool = AC only, furnace does all heating.', optional:false,
+    hint:'Heat pump does more; AC only cools.', optional:false,
     // Mid efficiency only comes as dual fuel - nothing to actually choose,
     // so skip the step entirely instead of showing a single-card question.
     showIf:a=>a.indoor_type==='furnace'&&a.cond_tier!=='mid_ge15'},
   {id:'thermostat',  q:'Which thermostat?', chapter:2,
-    hint:'Smart thermostats save 10–15% on energy bills.',            optional:false},
+    hint:'Wi-Fi models save 10–15% on your bill.',            optional:false},
   {id:'purif',       q:'Any add-ons?', chapter:2,
-    hint:'The enhanced filtration cabinet ships standard on every install already. Add any of these on top of that.',optional:true, multi:true},
-  {id:'dehu',        q:'Add a whole-home dehumidifier?', chapter:2,
-    hint:"Austin's humidity makes your home feel 7°F warmer. Runs automatically.", optional:false},
+    hint:'Filtration ships standard; add more here.',optional:true, multi:true},
+  {id:'dehu',        q:'Add a dehumidifier?', chapter:2,
+    hint:"Runs on its own; no buckets to empty.", optional:false},
   {id:'extras',      q:'Any final add-ons?', chapter:3,
     hint:'Condensate pump or ERV fresh-air system.', optional:true, multi:true},
 ];
@@ -42,58 +42,58 @@ function deriveFurnaceEff(insulation){
 function getOpts(stepId, answers){
   switch(stepId){
     case 'location':return[
-      {v:'attic', label:'Attic',          desc:'Horizontal install - most common in Austin'},
-      {v:'closet',label:'Closet',desc:'Upflow unit - hallway or utility closet'},
+      {v:'attic', label:'Attic',          desc:'Horizontal install, the most common setup in Austin attics.'},
+      {v:'closet',label:'Closet',desc:'Upflow unit in a hallway or utility closet.'},
     ];
     case 'indoor_type':return[
-      {v:'furnace',label:'Furnace - Gas Heat',      desc:'Most common in Austin'},
-      {v:'ah',     label:'Air Handler - All Electric', desc:'Auxiliary heat installed'},
+      {v:'furnace',label:'Furnace - Gas Heat',      desc:'Burns gas for heat, pairs with AC for cooling.'},
+      {v:'ah',     label:'Air Handler - All Electric', desc:'Pairs with a heat pump for both heating and cooling.'},
     ];
     case 'insulation':return[
-      {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Standard vented attic - pairs with an 80% AFUE furnace. Most homes in Austin have this.'},
-      {v:'spray',     label:'Spray foam',               desc:'Sealed attic - requires a 90% AFUE furnace with a PVC flue. Higher efficiency, cooler attic.'},
+      {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Vented attic - pairs with an 80% AFUE furnace. Most Austin homes have this.'},
+      {v:'spray',     label:'Spray foam',               desc:'Sealed attic - needs a 90% AFUE furnace with a PVC flue. Cooler, more efficient.'},
     ];
     case 'plenum':return[
-      {v:'ductboard',label:'Ductboard plenum',  desc:'Standard choice, good insulation value. Typical lifespan 10–15 years.'},
+      {v:'ductboard',label:'Ductboard plenum',  desc:'Standard choice, good insulation. Typical lifespan 10–15 years.'},
       {v:'metal',    label:'Sheet metal plenum',desc:'More durable, lasts 25+ years, better for indoor air quality.'},
-      {v:'none',     label:'Keep existing',     desc:'Good condition already - we connect directly, saving on material and labor.'},
+      {v:'none',     label:'Keep existing',     desc:'Good condition already - we connect directly, saving on labor.'},
     ];
     case 'thermostat':
       if(answers.cond_tier==='high_ge18')return[
-        {v:'proprietary',label:'Proprietary Communicating Thermostat', desc:'Required at this tier - talks directly to the system for the most precise comfort, staging, and diagnostics.'},
+        {v:'proprietary',label:'Communicating Thermostat', desc:'Required at this tier for precise staging and full diagnostics.'},
       ];
       return[
-      {v:'basic',label:'Basic Programmable', desc:'Reliable, no app or subscription required. Set your schedule and it runs.'},
-      {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, learns your habits. Saves 10–15% on energy bills on average.',badge:true},
+      {v:'basic',label:'Basic Programmable', desc:'Reliable, no app or subscription. Set your schedule and it runs.'},
+      {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, learns your habits. Saves 10–15% on bills.',badge:true},
     ];
     case 'purif':return[
       // Enhanced Filtration Cabinet isn't listed - it's automatic on every
       // system (see defaultAnswers), not a real choice to present.
-      {v:'uv',       label:'UV Light System',    desc:'Keeps the evaporator coil clean for longevity and efficiency.'},
-      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Neutralizes airborne particles, odors, and VOCs throughout your ducts.'},
-      {v:'surge',    label:'Surge Protector',    desc:'Protects the compressor from voltage spikes and lightning strikes.'},
+      {v:'uv',       label:'UV Light System',    desc:'Keeps the evaporator coil clean for lasting efficiency.'},
+      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Neutralizes airborne particles, odors, and VOCs in your ducts.'},
+      {v:'surge',    label:'Surge Protector',    desc:'Shields the compressor from voltage spikes and lightning.'},
     ];
     case 'system_for':
       if(answers.cond_tier==='mid_ge15')return[
-        {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Mid-efficiency is dual fuel only: heat pump cools and heats down to ~35°F, gas furnace takes over below that.'},
+        {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Mid efficiency is dual fuel only - heat pump to ~35°F, then the furnace takes over.'},
       ];
       return[
-      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Heat pump handles most of the year, down to ~35°F. Furnace takes over below that.'},
-      {v:'sc', label:'Straight Cool',        desc:'AC cools only - furnace handles all heating year-round. Simpler system, lower upfront cost.'},
+      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Heat pump handles most of the year, down to ~35°F. Furnace covers the rest.'},
+      {v:'sc', label:'Straight Cool',        desc:'AC cools only - furnace handles all heating. Simpler, lower upfront cost.'},
     ];
     case 'cond_tier':{
       return[
         {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. Lowest upfront cost.'},
-        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed. Lower electric bills, better humidity control. Best overall value.'},
-        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier, eligible for local rebates. Best humidity control.'},
+        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed. Lower bills and better humidity control.'},
+        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier. Eligible for local rebates.'},
       ];
     }
     case 'dehu':return[
-      {v:'yes',label:'Yes - add it',  desc:'Sized to your square footage, runs automatically - no buckets, no maintenance.'},
-      {v:'no', label:'No thanks',     desc:'Skip for now - can always be added later if humidity becomes an issue.'},
+      {v:'yes',label:'Yes - add it',  desc:'Sized to your square footage, runs automatically. No maintenance.'},
+      {v:'no', label:'No thanks',     desc:'Skip for now - easy to add later if humidity becomes an issue.'},
     ];
     case 'extras':return[
-      {v:'condensate',label:'Condensate Pump',        desc:"Needed when there's no gravity drain nearby. Required in many closet installs."},
+      {v:'condensate',label:'Condensate Pump',        desc:'Needed with no gravity drain nearby. Common in closet installs.'},
       {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Fresh filtered air in, stale air out, recovering most of the energy.'},
     ];
     default:return[];
@@ -3504,16 +3504,16 @@ function App(){
   },[pricingFlow,pricingSubStep]);
 
   const INFO_TEXT={
-    location:"Your indoor unit location sets the whole system layout. Attic is the most common in Austin -- the unit sits horizontally above the living space. Closet is upflow -- the unit stands vertically in a hallway or utility closet. Both work great; closet installs are slightly easier to service.",
-    indoor_type:"Not sure which one you have? If you have a gas stove or gas water heater, there's a good chance you already have a furnace -- it burns gas for heat and pairs with AC for cooling. If your home is all-electric, you likely have an air handler instead, paired with a heat pump for both heating and cooling.",
-    insulation:"Attic insulation determines which furnace you can install. Fiberglass or blown means your attic is vented -- a standard 80% AFUE furnace works fine with a metal B-vent flue. Spray foam means your attic is sealed -- this requires a 90% AFUE condensing furnace with a PVC pipe through the roof deck.",
-    plenum:"The supply plenum connects your indoor unit to all your ductwork -- conditioned air flows in, then out to every room. If yours is damaged, leaking, or over 15 years old, replacing it improves efficiency and airflow.",
-    thermostat:"A basic programmable thermostat is reliable and accurate -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
-    purif:"The enhanced filtration cabinet ships standard on every install and already captures dust, pollen, and allergens far better than a standard 1 inch filter. A UV light keeps the coil clean for efficiency. An ionizer neutralizes particles, odors, and VOCs. A surge protector shields your condenser from voltage spikes -- one lightning strike can destroy a compressor.",
-    cond_tier:"The condenser is the outdoor unit. SEER2 measures cooling output per unit of electricity -- higher means lower bills. Federal Minimum meets current energy code, lowest cost. Mid Efficiency is our best-value tier -- variable speed, lower bills, better humidity control. High Efficiency is our top tier -- eligible for rebates, best humidity performance.",
-    system_for:"With a gas furnace you have two options. Dual fuel (heat pump + furnace) means the heat pump handles cooling and mild-weather heating -- the gas furnace only fires below about 35 degrees. Most efficient combo. Straight cool means your AC only cools and the furnace handles all heating year-round.",
-    dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A dehumidifier connects to your system and runs automatically -- no buckets, no maintenance.",
-    extras:"A condensate pump is needed when gravity drainage isn't available -- it pumps water up and out to a drain or exterior wall, required in many closet installs. An ERV brings in fresh filtered outdoor air while exhausting stale air, recovering most of the energy in the process.",
+    location:"Your indoor unit's location sets the whole system layout. Attic is the most common setup in Austin, with the unit sitting horizontally above the living space. Closet is upflow, standing vertically in a hallway or utility closet. Both work well; closet installs are a bit easier to service.",
+    indoor_type:"Not sure which you have? A gas stove or gas water heater usually means a furnace too, burning gas for heat and pairing with AC for cooling. An all-electric home likely has an air handler instead, paired with a heat pump for both heating and cooling.",
+    insulation:"Attic insulation determines which furnace fits. Fiberglass or blown-in means a vented attic, where a standard 80% AFUE furnace works fine with a metal B-vent flue. Spray foam means a sealed attic, which needs a 90% AFUE condensing furnace with a PVC flue through the roof.",
+    plenum:"The supply plenum connects your indoor unit to your ductwork, so conditioned air can reach every room. If yours is damaged, leaking, or over 15 years old, replacing it improves both efficiency and airflow.",
+    thermostat:"A basic programmable thermostat is reliable -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
+    purif:"The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer clears particles, odors, and VOCs. A surge protector guards the condenser -- one lightning strike can destroy a compressor.",
+    cond_tier:"The condenser is your outdoor unit. SEER2 measures cooling output per unit of electricity, so higher means lower bills. Federal Minimum meets current code at the lowest cost. Mid Efficiency is our best-value tier. High Efficiency is our top tier, with rebate eligibility and the best humidity control.",
+    system_for:"With a gas furnace, you get two options. Dual fuel pairs a heat pump with the furnace -- the heat pump handles cooling and mild-weather heating, and the furnace only fires below about 35 degrees, the most efficient combo we offer. Straight cool means the AC only cools, and the furnace handles all heating.",
+    dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A dehumidifier ties into your ductwork and runs automatically, with no buckets and no upkeep from you.",
+    extras:"A condensate pump handles drainage when there's no nearby gravity drain, which is common in closet installs. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange.",
   };
   const infoText=cur&&INFO_TEXT[cur.id];
 
@@ -3522,13 +3522,13 @@ function App(){
   // to, so the tool reads as a co-pilot responding to you instead of a
   // form reciting the same paragraph regardless of what you clicked.
   const REACTION={
-    indoor_type:{furnace:"Gas heat locked in — the most common setup in Austin.",ah:"All-electric heat pump — no gas line needed."},
-    insulation:{fiberglass:"Standard vented attic — an 80% AFUE furnace is the right fit.",spray:"Sealed attic — stepping up to a 90% condensing furnace."},
-    plenum:{ductboard:"Ductboard plenum — solid, standard choice.",metal:"Sheet metal plenum — built to outlast the system twice over.",none:"Keeping your existing plenum — saves on material and labor."},
-    cond_tier:{fedmin:"Federal Minimum locked in — lowest upfront cost.",mid_ge15:"Mid Efficiency — our best-value pick.",high_ge18:"High Efficiency — the quietest, most efficient tier we offer."},
-    thermostat:{basic:"Basic Programmable — simple and reliable.",wifi:"Wi-Fi Smart — control it from your phone.",proprietary:"Communicating thermostat — required, and it's the best diagnostics we offer."},
-    system_for:{hp:"Dual fuel — the most efficient combo for Austin winters.",sc:"Straight cool — your furnace handles all the heating."},
-    dehu:{yes:"Whole-home dehumidifier added — noticeably drier air.",no:"Skipping it for now — easy to add later if humidity becomes an issue."},
+    indoor_type:{furnace:"Gas heat, the Austin standard.",ah:"All-electric, no gas line needed."},
+    insulation:{fiberglass:"Vented attic, 80% furnace fits.",spray:"Sealed attic, stepping up to 90%."},
+    plenum:{ductboard:"Ductboard, a solid standard choice.",metal:"Steel plenum, outlasts the system.",none:"Keeping your plenum saves labor."},
+    cond_tier:{fedmin:"Lowest upfront cost, locked in.",mid_ge15:"Our best overall value.",high_ge18:"Our quietest, most efficient tier."},
+    thermostat:{basic:"Reliable, no app required.",wifi:"Control it from your phone.",proprietary:"Built for the best diagnostics."},
+    system_for:{hp:"Efficient through Austin winters.",sc:"Furnace handles all the heating."},
+    dehu:{yes:"Added, for noticeably drier air.",no:"Skipping it, easy to add later."},
   };
   const reactionText=cur&&REACTION[cur.id]&&REACTION[cur.id][answers[cur.id]];
 
