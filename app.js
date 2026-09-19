@@ -346,7 +346,7 @@ function rnd(seed){
 // stable, so React updates it in place and the useMemo below actually
 // skips recomputation when only unrelated wizard state changed.
 function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, lineY2, active,
-  heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl}){
+  heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl, tierKey, eaveY}){
   const groundY=zoneH-28;
   const padY=groundY-10;
   const wallThick=18;   // visible wall cross-section width
@@ -432,7 +432,10 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
     // Consistent wind lean (~12° off vertical) applied to every rain
     // streak and to its own fall path, so the whole field reads as one
     // wind-driven sheet of rain rather than drops each going their own way.
-    const WIND_UX=-0.22, WIND_UY=0.976, WIND_RATIO=WIND_UX/WIND_UY;
+    // Positive so the lean is toward increasing x - away from the house
+    // wall at wallX and out into the yard/condenser side. The original
+    // negative value blew streaks toward decreasing x, i.e. into the wall.
+    const WIND_UX=0.22, WIND_UY=0.976, WIND_RATIO=WIND_UX/WIND_UY;
     const density=Math.max(1,fallSpan/460);
     const RAIN_LAYERS=[
       {key:'rf', count:Math.round(20*density), len:[7,10],   sw:1,   op:[.24,.42], dur:[.6,.85]},
@@ -559,21 +562,28 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
     <text x={condX+condW/2} y={padY+10} textAnchor="middle"
       fill="rgba(170,160,140,.4)" fontSize="10" fontFamily="monospace">CONCRETE PAD</text>
 
-    {/* ── WALL CROSS-SECTION ── proper side view of exterior wall */}
+    {/* ── WALL CROSS-SECTION ── proper side view of exterior wall.
+         Starts at the roofline (eaveY), not the top of the canvas - this
+         used to run from y=0 regardless, so it stuck up above the actual
+         roof/attic like a parapet, reading as a hard vertical line
+         splitting the house side from the outside zone all the way to
+         the top of the screen instead of stopping at the real building
+         envelope. eaveY falls back to 0 (old behavior) if a caller ever
+         omits it. */}
     {/* Wall body */}
-    <rect x={sidingX} y={0} width={wallThick} height={groundY}
+    <rect x={sidingX} y={eaveY||0} width={wallThick} height={groundY-(eaveY||0)}
       fill="#1a1d26" stroke="rgba(120,118,140,.35)" strokeWidth="1"/>
     {/* Siding horizontal courses */}
-    {Array.from({length:Math.floor(groundY/10)},(_,i)=>(
-      <rect key={i} x={sidingX} y={i*10} width={wallThick} height={9}
+    {Array.from({length:Math.floor((groundY-(eaveY||0))/10)},(_,i)=>(
+      <rect key={i} x={sidingX} y={(eaveY||0)+i*10} width={wallThick} height={9}
         fill={i%2===0?"rgba(22,22,28,.8)":"rgba(18,18,24,.8)"}
         stroke="rgba(80,80,100,.12)" strokeWidth="0.3"/>
     ))}
     {/* Wall face highlight */}
-    <line x1={sidingX+wallThick} y1={0} x2={sidingX+wallThick} y2={groundY}
+    <line x1={sidingX+wallThick} y1={eaveY||0} x2={sidingX+wallThick} y2={groundY}
       stroke="rgba(200,195,175,.22)" strokeWidth="1.5"/>
     {/* Inside wall face */}
-    <line x1={sidingX} y1={0} x2={sidingX} y2={groundY}
+    <line x1={sidingX} y1={eaveY||0} x2={sidingX} y2={groundY}
       stroke="rgba(180,175,160,.08)" strokeWidth="0.5"/>
 
     {/* ── LINE-SET - runs down inside the wall cavity from where it enters
@@ -662,11 +672,20 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           stroke={active?"#22c55e":(G+'.2)')} strokeWidth="1"/>
         {active&&<circle cx={DX+DW/2} cy={DY+57} r="2.5"
           fill="#22c55e" className="glow-pulse"/>}
-        {/* Conduit to unit */}
-        <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
-          stroke="rgba(22,22,42,.7)" strokeWidth="8" strokeLinecap="round"/>
-        <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
-          stroke={G+'.48)'} strokeWidth="4" strokeLinecap="round"/>
+        {/* Conduit to unit - drawn at the disconnect box's own fixed mid-
+            height, which only actually lands on the condenser cabinet for
+            the taller fedmin/high-efficiency units. Condensers are bottom-
+            anchored (COND_Y=groundLevel-condH), so the mid-efficiency
+            tier's shorter cabinet has its top edge sitting well below this
+            fixed height - the conduit line reached condX but terminated
+            in empty air above the actual box, never visibly connecting to
+            it. Simplest correct fix: skip it for that tier. */}
+        {tierKey!=='mid_ge15'&&<>
+          <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
+            stroke="rgba(22,22,42,.7)" strokeWidth="8" strokeLinecap="round"/>
+          <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
+            stroke={G+'.48)'} strokeWidth="4" strokeLinecap="round"/>
+        </>}
         {/* Surge protector - bigger, below disconnect */}
         {isSurge&&<g className="fadein">
           <rect x={DX} y={DY+DH+6} width={DW} height={52} rx="4"
@@ -689,6 +708,22 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
 
     {/* ── CONDENSER UNIT ── */}
     {condenserEl}
+    {/* Snow drift along the condenser's top edge, same cold-snap mode and
+        uneven-pile language as the ground blanket, so a real dusting on
+        the outdoor unit itself sells the season along with the ground. */}
+    <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity .8s ease'}}>
+      {(()=>{
+        const segs=6;
+        let d=`M${condX} ${condY}`;
+        for(let i=0;i<=segs;i++){
+          const sx=condX+(condW*i)/segs;
+          const bump=3+rnd(i*4.7+300)*4;
+          d+=` L${sx.toFixed(1)} ${(condY-bump).toFixed(1)}`;
+        }
+        d+=` L${condX+condW} ${condY+4} L${condX} ${condY+4} Z`;
+        return <path d={d} fill="rgba(240,246,255,.85)" stroke="rgba(255,255,255,.25)" strokeWidth="0.6"/>;
+      })()}
+    </g>
     <text x={wallX+zoneW-8} y={condY-9} textAnchor="end"
       fill={active?condC:(G+'.55)')} fontSize="10.5" fontFamily="monospace">
       {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
@@ -920,7 +955,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // indoor squirrel-cage blower's many thin radial vanes (BlowerWheel
   // above). Kept as its own component specifically so the mid-tier
   // condenser's front fan never gets confused with an indoor blower again.
-  function CondenserFan({cx,cy,r,active}){
+  function CondenserFan({cx,cy,r,active,fast}){
     // Real axial blades are a filled, tapered scimitar shape - wide at the
     // hub, sweeping out to a near-point tip - not a uniform-width stroked
     // line. A thick round-capped stroke (the old approach) has no taper
@@ -944,7 +979,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           transformBox:'view-box' + an explicit px origin rotates around
           the actual hub coordinate instead, regardless of the blades'
           bounding box. */}
-      <g className={active?"spin":undefined} style={active?{transformBox:'view-box',transformOrigin:cx+'px '+cy+'px',animationDuration:'0.8s'}:{}}>
+      <g className={active?"spin":undefined} style={active?{transformBox:'view-box',transformOrigin:cx+'px '+cy+'px',animationDuration:(fast?'0.45s':'0.8s')}:{}}>
         {Array.from({length:3},(_,i)=>{
           const ang=i*(Math.PI*2/3);
           const sweep=0.95;
@@ -1446,7 +1481,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               })
             )}
             <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(60,65,78,.7)" strokeWidth="2.5"/>
-            <CondenserFan cx={fCX} cy={fCY} r={fR} active={active}/>
+            {/* Real condenser fans ramp up with load - faster at 96° (cool,
+                full compressor load) and 52° (mild heat-pump load) than at
+                28°, where either the compressor is standby (dual-fuel
+                furnace mode) or running its slower low-ambient stage. */}
+            <CondenserFan cx={fCX} cy={fCY} r={fR} active={active} fast={!heatMode||isMildHp}/>
           </>;
         })()}
         {/* Right: service panel ~30% */}
@@ -1948,8 +1987,14 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               to it, reading as a "wall" running the full height of the
               canvas instead of stopping at the actual building envelope
               (the roof/eave line, below which the attic interior tint
-              below takes over). */}
-          {hasCond&&<rect x="0" y="0" width={HOUSE_W} height={EAVE_Y}
+              below takes over). Widened 2px past HOUSE_W so it overlaps
+              into the outside-zone rect below instead of exactly abutting
+              it - two adjacent same-fill SVG rects that only share an
+              edge (no overlap) can still show a faint seam where their
+              anti-aliased edges meet, which read as a thin "parapet" line
+              splitting the two zones even though both sides use the
+              identical outsideFill color. */}
+          {hasCond&&<rect x="0" y="0" width={HOUSE_W+2} height={EAVE_Y}
             style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
 
           {/* Attic interior (above deck, inside house) - subtly tinted by
@@ -2294,7 +2339,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             wallX={EXT_WALL_X} zoneW={OUTSIDE_W} zoneH={VH}
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={RL_ROOF_Y} lineY2={RL_ROOF_Y+9}
-            active={condenserActive}
+            active={condenserActive} tierKey={a.cond_tier} eaveY={EAVE_Y}
             heatMode={heatMode} isMildHp={isMildHp}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W}
@@ -2552,8 +2597,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               wall running the full canvas height. Real sky is continuous
               above both the roof and the condenser pad; only below the
               eave does the building envelope actually separate "inside"
-              from "outside". */}
-          {hasCond&&<rect x="0" y="0" width={HOUSE_W} height={ROOF_EAVE_Y}
+              from "outside". Widened 2px past HOUSE_W to overlap into the
+              outside-zone rect rather than exactly abut it - see the
+              matching comment on the attic-horizontal layout's version of
+              this rect for why (a faint anti-aliasing seam between two
+              same-color adjacent rects otherwise reads as a parapet line). */}
+          {hasCond&&<rect x="0" y="0" width={HOUSE_W+2} height={ROOF_EAVE_Y}
             style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
           {/* Closet below deck */}
           <rect x={UNIT_X-28} y={DECK_Y} width={UNIT_W+56} height={VH-DECK_Y}
@@ -3043,7 +3092,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH}
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={LS_Y1} lineY2={LS_Y2}
-            active={condenserActive}
+            active={condenserActive} tierKey={a.cond_tier} eaveY={ROOF_EAVE_Y}
             heatMode={heatMode} isMildHp={isMildHp}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W}
