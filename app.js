@@ -1764,7 +1764,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             padding:'5px 7px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
             fontFamily:'monospace',fontSize:'10px',fontWeight:700,letterSpacing:'.02em',
             background:m.active?m.bg:'transparent',color:m.active?m.color:'rgba(255,255,255,.55)',
-            outline:'none',transition:'all .2s',display:'flex',alignItems:'center',gap:3,whiteSpace:'nowrap'}}>
+            transition:'all .2s',display:'flex',alignItems:'center',gap:3,whiteSpace:'nowrap'}}>
             <span style={{fontSize:9}}>{m.icon}</span><span>{m.temp}</span>
           </button>
         )}
@@ -3894,7 +3894,19 @@ function App(){
                 return <div style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
                   <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.5)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
 
-                  <div className={isAtticMode?"pricing-substep-row":undefined} style={{display:"flex",flexDirection:isAtticMode?"row":"column",gap:isAtticMode?20:8,alignItems:"flex-start"}}>
+                  {/* alignItems:"flex-start" only makes sense in ROW mode
+                      (attic, wide) where it top-aligns two columns of
+                      differing height. In COLUMN mode - closet (always) and
+                      attic once the <=860px media query below flips this
+                      row to a column - flex-start is a cross-axis (now
+                      HORIZONTAL) rule instead: it shrinks {left}/{right} to
+                      their own content width instead of the container's
+                      full width, since their flex:1 only governs the
+                      vertical main axis once stacked. Short button grids
+                      (systems' 1/2/3+, ducts' Yes/No/vent-count) collapsed
+                      to a narrow single column instead of using the real
+                      available width. */}
+                  <div className={isAtticMode?"pricing-substep-row":undefined} style={{display:"flex",flexDirection:isAtticMode?"row":"column",gap:isAtticMode?20:8,alignItems:isAtticMode?"flex-start":"stretch"}}>
                     {left}
                     {right}
                   </div>

@@ -194,7 +194,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    media query actually wins back below the sidebar's own mobile
    breakpoint. */
 @media(max-width:860px){
-  .pricing-substep-row{flex-direction:column!important;gap:8px!important}
+  /* align-items stays "flex-start" inline (app.js) for attic's wide ROW
+     layout, where it top-aligns two columns of differing height - a
+     correct cross-axis (vertical) rule there. Once this same row flips to
+     a COLUMN here, flex-start becomes a HORIZONTAL cross-axis rule instead:
+     it shrinks {left}/{right} to their own content width rather than the
+     container's full width, which silently squeezed the systems/ducts
+     option grids into a single narrow column instead of using the real
+     available width. */
+  .pricing-substep-row{flex-direction:column!important;gap:8px!important;align-items:stretch!important}
   .pricing-substep-left{flex:1 1 auto!important}
   .pricing-opts-systems{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}
   .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
