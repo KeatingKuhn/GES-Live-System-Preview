@@ -1778,7 +1778,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     }
     return (
     <div className="fadein" style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3,...style}}>
-      <span style={{fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.6)'}}>
+      {/* This label floats directly over the canvas (no backing box, unlike
+          the mode buttons just below it), so its contrast rides on the
+          diagram behind it. Pixel-sampled at .6 alpha against the diagram's
+          near-black sky at the top of the frame: ~4.05-4.14:1, under the
+          4.5:1 minimum. .8 clears that same spot at ~6.2:1. */}
+      <span style={{fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.8)'}}>
         ▸ preview how your system runs
       </span>
       <div title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',flexDirection:'column',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden'}}>
@@ -3575,7 +3580,11 @@ function App(){
         <p style={{fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
           Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.
         </p>
-        <p style={{fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.55)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>SELECT YOUR SYSTEM LOCATION TO BEGIN</p>
+        {/* .55 measured 3.66:1 against the splash screen's #121212
+            background - under the 4.5:1 body-text minimum. .75 clears it
+            at 5.82:1 while staying visibly dimmer than the solid --gl used
+            on the two cards below it. */}
+        <p style={{fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.75)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>SELECT YOUR SYSTEM LOCATION TO BEGIN</p>
         {/* Both cards are plain divs (not <button>) for a free hand over
             layout, so keyboard reachability and semantics don't come for
             free the way they would on a real button - this is the very
@@ -3642,12 +3651,24 @@ function App(){
             {infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)"}}>{infoText}</div>}
           </div></div>
           <div className="attic-bar-body">
-            <div className="attic-info">
+            {/* A key derived from stepIdx forces a remount on every step
+                change so the existing .fadein utility (already used for
+                the quickedit banner and resume prompt elsewhere in this
+                file) plays again - without it the question/hint/options
+                just popped in instantly with the old content replaced in
+                place, no transition to animate since nothing about the
+                DOM nodes themselves changed identity. .attic-info and
+                .attic-scroll are both plain <div>s at the same tree
+                depth, so a bare key={stepIdx} on both would collide
+                (two same-type siblings with an identical key confuses
+                React's reconciliation and produced duplicated/stale
+                nodes in testing) - prefixed per element instead. */}
+            <div key={"info-"+stepIdx} className="attic-info fadein">
               <div className="step-q" style={{marginBottom:2}}>{cur?cur.q:""}</div>
               {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
               {reactionText&&<div key={reactionText} className="reaction-line">✓ {reactionText}</div>}
             </div>
-            <div className="attic-scroll">
+            <div key={"scroll-"+stepIdx} className="attic-scroll fadein">
               {opts.map(opt=>makeOpt(opt,true))}
             </div>
           </div>
@@ -3666,7 +3687,18 @@ function App(){
             <span>✎ Editing this answer only</span>
             <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ Cancel, back to build</button>
           </div>}
-          <div className="step-hdr">
+          {/* A key derived from stepIdx forces a remount on every step
+              change so the existing .fadein utility (already used for
+              the quickedit banner above and the resume prompt elsewhere
+              in this file) plays again - without it the eyebrow/
+              question/hint just popped in instantly with the old content
+              swapped in place, nothing for a transition to animate from.
+              Mirrors the same fix applied to .attic-info/.attic-scroll in
+              the attic layout above, including the "prefix the key" part
+              - .step-hdr and .opts below are both plain <div>s at the
+              same tree depth, so a bare key={stepIdx} on both collided
+              (see the attic-info comment for what that broke). */}
+          <div key={"hdr-"+stepIdx} className="step-hdr fadein">
             <div className="step-eyebrow">
               <span>{cur&&<span className="chapter-tag">{CHAPTERS[curChapter]}</span>} Step {stepIdx}{totalKnown?` of ${totalSteps}`:''}</span>
               {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} aria-expanded={showInfo}
@@ -3681,7 +3713,7 @@ function App(){
           <div className={"info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
             {infoText&&<div className="info-expand"><div className="info-body">{infoText}</div></div>}
           </div></div>
-          <div className="opts">{opts.map(opt=>makeOpt(opt,false))}</div>
+          <div key={"opts-"+stepIdx} className="opts fadein">{opts.map(opt=>makeOpt(opt,false))}</div>
           <div className="nav-row">
             {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
             {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
@@ -3781,7 +3813,7 @@ function App(){
                 // place attic's ellipsis-clipped cells already send it).
                 isAtticMode?
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
-                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
+                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
                   <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
                   <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>EDIT</button>
                 </div>
@@ -3794,11 +3826,18 @@ function App(){
                 // value instead means it can never overlap anything: the
                 // value just wraps in whatever width is left beside it.
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",minWidth:0}}>
-                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"monospace",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
-                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6}}>
-                    <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal",flex:"1 1 auto",minWidth:0}} title={item.val}>{item.short||item.val}</span>
-                    <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{flex:"0 0 auto",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px"}}>EDIT</button>
-                  </div>
+                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
+                  {/* Value gets the cell's full width to wrap in (previously
+                      shared the row with the EDIT button, so a value long
+                      enough to wrap - "Filtration Cabinet + UV Light",
+                      "Yes - whole-home unit" - only got the button's
+                      leftover ~2/3 width, wrapped to 3 short lines, and read
+                      as if EDIT were sitting mid-sentence instead of
+                      alongside it). EDIT now sits on its own line
+                      bottom-right, same as it already does for every other
+                      value short enough to fit one line. */}
+                  <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal"}} title={item.val}>{item.short||item.val}</span>
+                  <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",marginTop:1}}>EDIT</button>
                 </div>
               ):null)}
             </div>
@@ -3835,11 +3874,11 @@ function App(){
                 const left=(
                   <div className={isAtticMode?"pricing-substep-left":undefined} style={{flex:isAtticMode?"0 0 420px":"1 1 auto"}}>
                     {subId==='systems'&&<>
-                      <div style={{fontSize:isAtticMode?13:14.5,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
+                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
                       <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:isAtticMode?1.3:1.5}}>This is typically the number of thermostats you have, or the number of outdoor condenser units.</div>
                     </>}
                     {subId==='sqft'&&<>
-                      <div style={{fontSize:isAtticMode?13:14.5,fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
+                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
                       <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5}}>
                         {isAtticMode
                           ?"Pick the tonnage for your home's sq ft, or enter it below for a suggestion."
@@ -3854,7 +3893,7 @@ function App(){
                         }}
                         className={"pricing-input"+(isAtticMode?" compact":"")}/>
                     </>}
-                    {subId==='ducts'&&<div style={{fontSize:isAtticMode?13:14.5,fontWeight:600,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>}
+                    {subId==='ducts'&&<div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>}
                   </div>
                 );
                 const right=(
@@ -3897,8 +3936,17 @@ function App(){
                     </div>}
                   </div>
                 );
-                return <div style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
-                  <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.5)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
+                {/* key={pricingSubStep} forces a remount per sub-step so
+                    the .fadein utility plays on each question/option swap,
+                    same fix and rationale as the wizard's .attic-info /
+                    .step-hdr above - this panel had the identical
+                    instant-pop-in gap since none of its content changes
+                    identity between sub-steps otherwise. */}
+                return <div key={pricingSubStep} className="fadein" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
+                  {/* .5 measured 3.20:1 against the panel background this
+                      sits on - under the 4.5:1 minimum for this 9-10.5px
+                      label. .7 clears it at 5.06:1. */}
+                  <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
 
                   {/* alignItems:"flex-start" only makes sense in ROW mode
                       (attic, wide) where it top-aligns two columns of
@@ -3926,7 +3974,12 @@ function App(){
                 </div>;
               })()}
 
-              {pricingFlow==='result'&&(()=>{
+              {/* Wrapped in its own key'd+fadein div for the same reason as
+                  the sizing sub-steps above - this result panel replaces
+                  the sizing UI in place with no DOM identity change, so
+                  without this it popped in instantly (the CountUp price
+                  digits were the only thing that animated in). */}
+              {pricingFlow==='result'&&<div key="result" className="fadein">{(()=>{
                 const est=calcEstimate(answers,pricingAnswers);
                 if(!est)return<div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
                 // Attic's wide-short panel doesn't need this stacked
@@ -3972,7 +4025,7 @@ function App(){
                   <div style={{flex:1,minWidth:0}}>{priceCard}</div>
                   <div style={{flex:1,minWidth:0}}>{considerations}</div>
                 </div>;
-              })()}
+              })()}</div>}
             </div>}
 
             {/* ── QUICK ACTIONS - one compact button grid instead of five
@@ -3998,8 +4051,8 @@ function App(){
                 rgba(255,255,255,.68) the class encodes, it's just no
                 longer re-typed inline every render. */}
             <div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"monospace",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
-              <button onClick={()=>window.print()} className="quick-print-btn" style={{width:"100%",fontFamily:"monospace",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
+              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
+              <button onClick={()=>window.print()} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
               <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
               <button className="quick-restart-btn" style={{width:"100%",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",padding:"9px"}} onClick={restart}>Start Over</button>
             </div>

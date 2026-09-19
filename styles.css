@@ -42,6 +42,17 @@
   --fs-toggle-eyebrow:10.5px;--fs-toggle-label:12.5px;--fs-toggle-temp:15px;--fs-toggle-caption:9px;
   --fs-pricing-line:13.5px;--fs-pricing-meta:13px;--fs-pricing-fine:12.5px;
   --fs-restart:13px;--fs-quickedit:12.5px;--fs-quickedit-btn:12px;
+  /* Closet's pricing sizing sub-steps ("How many separate HVAC systems...",
+     "What size system...", "Want duct replacement priced too?") play the
+     exact same "primary question" role .step-q plays for every other step,
+     but were hardcoded to 14.5px flat on every viewport - only ~1px above
+     --fs-pricing-line/-meta body copy right below them, so weight:600 was
+     the only thing marking them as more important, and unlike --fs-step-q
+     they never grew on desktop the way every other question in the wizard
+     does. This is the closet (non-fixed-height, scrolls-by-design) sidebar
+     only - attic's compact 13px stays untouched since it lives in the
+     zero-scroll-slack 200px bar (see the --fs-opt-compact-* comment above). */
+  --fs-pricing-q:15px;
   --info-btn-size:32px;
 }
 @media(min-width:1025px){
@@ -58,6 +69,7 @@
     --fs-toggle-eyebrow:12px;--fs-toggle-label:14.5px;--fs-toggle-temp:17px;--fs-toggle-caption:10.5px;
     --fs-pricing-line:14.5px;--fs-pricing-meta:14px;--fs-pricing-fine:13.5px;
     --fs-restart:14px;--fs-quickedit:13.5px;--fs-quickedit-btn:13px;
+    --fs-pricing-q:17px;
     --info-btn-size:36px;
   }
 }
@@ -86,7 +98,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .prog-chapter{flex:1;background:rgba(215,183,64,.1);border-radius:2px;overflow:hidden}
 .prog-chapter-fill{height:100%;background:var(--gh);transition:width .5s cubic-bezier(.4,0,.2,1)}
 .prog-chapter.done .prog-chapter-fill{background:linear-gradient(90deg,var(--gm),var(--gl))}
-.chapter-tag{color:var(--gh);font-weight:700}
+/* --gh is a gradient (used for background/border-image contexts elsewhere
+   in this file) and is not a valid value for `color` - a browser drops
+   that declaration entirely, so this used to silently fall back to
+   whatever color the surrounding label happened to inherit (rgba(215,
+   183,64,.72) in the attic step label, var(--gm) in the closet step
+   eyebrow) instead of ever actually painting. Pinned to --gl (the
+   brightest, most legible solid stop in that gradient) so it always
+   renders gold regardless of ancestor color, and reliably clears 4.5:1
+   against both the attic bar and sidebar panel backgrounds. */
+.chapter-tag{color:var(--gl);font-weight:700}
 
 /* CANVAS */
 .canvas-svg{width:100%;height:100%;position:absolute;inset:0}
@@ -134,16 +155,42 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    still fires exactly as before on the way IN. */
 .done-screen.done-leaving{opacity:0;transform:scale(.985) translateY(4px);pointer-events:none}
 
-/* Review-selections grid: auto-fill by default (right for the closet
-   sidebar's narrow 320px column, and for any narrow viewport). The attic
-   sidebar goes full-width on desktop though, wide enough for 7 columns of
-   10 items - 7-then-3 looks unbalanced, so lock it to 5 columns (5-and-5)
-   once it's actually that wide. Has to be a class, not the inline style
-   it replaces - an inline style always beats a stylesheet rule, so this
-   media query couldn't win otherwise. */
-.done-review-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+/* Review-selections grid. Has to be a class, not the inline style it
+   replaces - an inline style always beats a stylesheet rule, so a media
+   query couldn't win otherwise.
+   Base (and every width below the 1025px desktop tier, for BOTH modes -
+   attic-mode-grid only overrides this at >=1025px, see below) is a plain
+   fixed 2-column grid instead of the old auto-fill/minmax fluid count.
+   Auto-fill picked a different column count at nearly every viewport
+   width (3 at ~768px, 4 at ~1024px, ...), and because CSS Grid sizes
+   column TRACKS for the whole grid (not per row), any build whose item
+   count didn't divide evenly by that count left a literal blank
+   cell-shaped hole in the final row - e.g. 10 items at 4 columns left 2
+   empty cells bottom-right at 1024px. Locking to 2 caps the worst case at
+   half a row, and the :last-child rule right below closes even that. */
+.done-review-grid{grid-template-columns:repeat(2,1fr)}
+/* Fills the final row instead of leaving a blank track when the grid's
+   item count is odd for a 2-column layout (the sole item in that last
+   row is also :last-child, at an odd 1-based position) - stretches it
+   across both columns instead of a dead gap beside it. Was visible on the
+   closet done-screen's review grid whenever an odd number of answers were
+   set (e.g. 9 items: 4 full rows of 2, "Dehumidifier" alone with a blank
+   cell-sized gap next to it right above the Get Pricing button). */
+.done-review-grid>*:last-child:nth-child(2n+1){grid-column:1/-1}
 @media(min-width:1025px){
   .done-review-grid.attic-mode-grid{grid-template-columns:repeat(5,1fr)}
+  /* Same fix as the 2-column rule above, generalized to 5 columns: if the
+     grid's item count isn't a multiple of 5, the last (partial) row's
+     final item spans however many of the remaining columns are otherwise
+     left blank, instead of a dead gap. Only actually fires for a build
+     with a review-grid item count not divisible by 5 (7, 8, or 9 items -
+     purif/system_for/extras are all optional/skippable); a 10-item build
+     (this file's own zero-slack reference walkthrough) fills exactly 2
+     full rows and never matches any of these. */
+  .done-review-grid.attic-mode-grid>*:last-child:nth-child(5n+2){grid-column:span 4}
+  .done-review-grid.attic-mode-grid>*:last-child:nth-child(5n+3){grid-column:span 3}
+  .done-review-grid.attic-mode-grid>*:last-child:nth-child(5n+4){grid-column:span 2}
+  .done-review-grid.attic-mode-grid>*:last-child:nth-child(5n+1){grid-column:1/-1}
 }
 /* Closet's sidebar is a genuinely scrolling column (not fixed-height like
    attic's bar), so the fix here is cutting how much of it there is to
@@ -363,7 +410,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .opt-label{font-family:var(--ft);font-size:var(--fs-opt-label);font-weight:600;color:var(--wh);display:block;margin-bottom:2px;line-height:1.3;white-space:normal}
 .opt.sel .opt-label{color:var(--gl)}
 .opt-desc{font-size:var(--fs-opt-desc);color:var(--dim);line-height:1.5;display:block}
-.opt.sel .opt-desc{color:rgba(240,214,78,.6)}
+/* .6 measured 4.67:1 against the card's settled selected background
+   (rgba(240,214,78,.05) over --surf) - technically over 4.5 but with
+   almost no margin, and during the ~0.55s selectFlash animation right
+   after picking a card (background briefly much brighter gold) it dipped
+   as low as ~2.9:1. .7 keeps the same "dimmed gold" selected look but
+   clears the settled state at 5.8:1 and shortens how far the animated
+   dip falls short. */
+.opt.sel .opt-desc{color:rgba(240,214,78,.7)}
 /* Tighter padding for the pricing sizing steps' option cards on the attic
    layout's short, wide panel - every px here is one this panel doesn't
    have to give up to a scrollbar. */
@@ -392,10 +446,21 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 
 /* NAV */
 .nav-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--panel);position:sticky;bottom:0}
-.btn-back{flex:0 0 auto;background:transparent;border:1px solid var(--border);color:var(--mut);padding:11px 18px;font-family:var(--fb);font-size:var(--fs-btn-back);cursor:pointer;transition:border-color .2s,color .2s;outline:none}
-.btn-back:hover{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.55)}
+/* .btn-back sits directly beside .btn-next in every nav row (wizard bar,
+   pricing sub-steps, done-screen quick actions) but only had a color/
+   border transition - no transform at all, so next to .btn-next's hover
+   lift + press it read as dead/unresponsive by comparison. Given the
+   same hover lift and a scale-down :active to match, echoing the
+   .review-edit-btn press pattern already used elsewhere on this screen. */
+.btn-back{flex:0 0 auto;background:transparent;border:1px solid var(--border);color:var(--mut);padding:11px 18px;font-family:var(--fb);font-size:var(--fs-btn-back);cursor:pointer;transition:border-color .2s,color .2s,transform .12s;outline:none}
+.btn-back:hover{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.55);transform:translateY(-1px)}
+.btn-back:active{transform:scale(.96)}
 .btn-next{flex:1;background:var(--gh);border:none;color:var(--bk);padding:12px 18px;font-family:var(--ft);font-size:var(--fs-btn-next);font-weight:700;cursor:pointer;letter-spacing:.04em;transition:opacity .2s,transform .12s;outline:none}
 .btn-next:hover:not(:disabled){opacity:.85;transform:translateY(-1px)}
+/* :active fires while a mouse held-down hover is also matched, and this
+   rule comes after :hover so it wins - gives a distinct press "give"
+   instead of the click just holding at the hover lift the whole time. */
+.btn-next:active:not(:disabled){transform:scale(.96)}
 .btn-next:disabled{opacity:.22;cursor:not-allowed;transform:none}
 .btn-skip{background:transparent;border:none;color:rgba(255,255,255,.55);font-family:var(--fb);font-size:var(--fs-btn-skip);cursor:pointer;text-decoration:underline;outline:none;padding:4px;white-space:nowrap}
 .btn-skip:hover{color:rgba(255,255,255,.75)}
@@ -440,12 +505,21 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    (.btn-next, which does too). Colors match what was inline before;
    hover just intensifies each one's own existing tint instead of
    introducing a new accent. */
-.quick-financing-btn{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.4);color:rgba(180,180,255,.9);transition:background .15s,border-color .15s,color .15s}
+/* All three below had :hover but, unlike .review-edit-btn right above
+   them on the same done screen, no :active - clicking gave a color/bg
+   shift but no press "give", so next to the EDIT chips these four
+   equally-weighted CTAs (per the QUICK ACTIONS comment above) felt
+   inconsistent. Added a shared scale-down press, same .96 scale used by
+   .btn-back/.btn-next, on a matching transform transition. */
+.quick-financing-btn{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.4);color:rgba(180,180,255,.9);transition:background .15s,border-color .15s,color .15s,transform .1s ease}
 .quick-financing-btn:hover{background:rgba(99,102,241,.22);border-color:rgba(99,102,241,.7);color:#fff}
-.quick-print-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.68);transition:background .15s,border-color .15s,color .15s}
+.quick-financing-btn:active{transform:scale(.96);background:rgba(99,102,241,.3)}
+.quick-print-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.68);transition:background .15s,border-color .15s,color .15s,transform .1s ease}
 .quick-print-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28);color:rgba(255,255,255,.9)}
-.quick-restart-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.68);cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.quick-print-btn:active{transform:scale(.96);background:rgba(255,255,255,.15)}
+.quick-restart-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.68);cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .1s ease}
 .quick-restart-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.32);color:rgba(255,255,255,.9)}
+.quick-restart-btn:active{transform:scale(.96);background:rgba(255,255,255,.16)}
 
 /* ── SITE HEADER SPACER ── */
 /* Blank reserved band at the top - no text/branding (that part was
@@ -496,6 +570,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .splash-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .splash-card{width:360px;padding:28px 32px;background:rgba(215,183,64,.04);border:1px solid rgba(215,183,64,.15);cursor:pointer;transition:all .18s;display:flex;justify-content:center}
 .splash-card:hover{background:rgba(215,183,64,.09);border-color:rgba(215,183,64,.4);transform:translateY(-2px)}
+/* First interactive control on the whole page, and clicking it kicks off
+   a .5s screen fade (.splash-screen.out above) with nothing else marking
+   the click in between - no :active state meant a slow/held click read
+   as completely unresponsive for up to half a second. */
+.splash-card:active{transform:translateY(-2px) scale(.97);background:rgba(215,183,64,.14)}
 .splash-card-title{font-family:var(--ft);font-size:23px;font-weight:700;color:var(--wh)}
 .splash-card-desc{font-family:var(--fb);font-size:14.5px;color:var(--mut);text-align:center;line-height:1.6}
 /* Attic: canvas fills all, step bar on bottom */
@@ -528,6 +607,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .attic-opt:hover{border-color:rgba(215,183,64,.3);background:#1a1a1a}
 .attic-opt.sel{border-color:var(--gl);background:rgba(240,214,78,.05);animation:selectPop .32s cubic-bezier(.34,1.56,.64,1),selectFlash .55s ease-out}
 .attic-opt.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
+/* The sidebar's full-size option card (.opt) has a disabled state
+   (opacity:.3 + cursor:not-allowed + pointer-events:none - see .opt.disabled
+   above); this compact attic-bar equivalent never got the same rule, so an
+   opt.disabled card rendered here looked identical to (and remained
+   clickable as) a normal enabled one. Mirrors .opt.disabled exactly so the
+   two card styles stay visually and behaviorally consistent. */
+.attic-opt.disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
 .attic-opt-label{font-family:var(--ft);font-size:var(--fs-attic-label);font-weight:600;color:var(--wh);line-height:1.25}
 .attic-opt.sel .attic-opt-label{color:var(--gl)}
 .attic-opt-desc{font-size:var(--fs-attic-desc);color:var(--dim);line-height:1.4;flex:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
@@ -630,6 +716,18 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .sidebar{max-height:50vh}
   .opts .opt{min-width:100%;max-width:100%}
   .attic-opt{min-width:100%;max-width:100%}
+  /* Review grid back to 1 column below 600px - the fixed 2-column rule
+     above (added to close the dead-gap hole a partial final row left at
+     tablet widths) squeezes each attic-mode cell to ~170px at phone
+     width, which is well under what that cell type was ever designed
+     for: unlike closet's cells, attic's reserve a fixed 34px gutter on
+     the right for an absolutely-positioned EDIT chip (see the review-grid
+     cell markup in app.js), so at ~170px total width one-fifth of it is
+     dead gutter before the label/value text even starts, driving heavier
+     truncation than the same content got at any other width. Single
+     column gives every cell the phone's full ~345px to work with, same
+     as before the 2-column rule was introduced. */
+  .done-review-grid{grid-template-columns:1fr}
   .splash-logo{font-size:clamp(22px,8vw,38px)}
   .splash-card{padding:16px 18px}
   .attic-bar-top .btn-skip{display:none}
