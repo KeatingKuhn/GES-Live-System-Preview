@@ -489,6 +489,29 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     </g>;
   }
 
+  // Outdoor axial condenser fan, viewed head-on - real condenser fans have
+  // a small number (typically 3) of large, wide blades, nothing like an
+  // indoor squirrel-cage blower's many thin radial vanes (BlowerWheel
+  // above). Kept as its own component specifically so the mid-tier
+  // condenser's front fan never gets confused with an indoor blower again.
+  function CondenserFan({cx,cy,r,active}){
+    const bC=active?'rgba(215,220,230,.88)':'rgba(90,95,108,.55)';
+    return <g>
+      <circle cx={cx} cy={cy} r={r+3} fill="rgba(0,0,0,.55)" stroke="rgba(60,65,78,.7)" strokeWidth="1.2"/>
+      <g className={active?"spin":undefined} style={active?{transformBox:'fill-box',transformOrigin:'center',animationDuration:'0.9s'}:{}}>
+        {Array.from({length:3},(_,i)=>{
+          const ang=i*(Math.PI*2/3);
+          const bx1=cx+r*0.12*Math.cos(ang), by1=cy+r*0.12*Math.sin(ang);
+          const bx2=cx+r*0.92*Math.cos(ang+0.85), by2=cy+r*0.92*Math.sin(ang+0.85);
+          const cpx=cx+r*0.55*Math.cos(ang+0.38), cpy=cy+r*0.55*Math.sin(ang+0.38);
+          return <path key={i} d={`M${bx1} ${by1} Q${cpx} ${cpy} ${bx2} ${by2}`}
+            fill="none" stroke={bC} strokeWidth={r*0.26} strokeLinecap="round"/>;
+        })}
+      </g>
+      <circle cx={cx} cy={cy} r={r*0.16} fill="#1a1c20" stroke="rgba(90,95,110,.6)" strokeWidth="0.8"/>
+    </g>;
+  }
+
   // UV rod - thin horizontal rod ~45px (9" at scale), UV purple glow
   function UVRod({x,y,len,vertical}){
     len=len||56;
@@ -952,9 +975,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               })
             )}
             <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(60,65,78,.7)" strokeWidth="2.5"/>
-            <circle cx={fCX} cy={fCY} r={fR+4} fill="rgba(12,13,16,.6)" stroke="rgba(50,55,65,.5)" strokeWidth="1.2"/>
-            <BlowerWheel cx={fCX} cy={fCY} r={fR} spd={active?1.1:0.3} active={active}/>
-            <circle cx={fCX} cy={fCY} r={fR*0.14} fill="#2a2c32" stroke="rgba(90,95,110,.6)" strokeWidth="0.8"/>
+            <CondenserFan cx={fCX} cy={fCY} r={fR} active={active}/>
           </>;
         })()}
         {/* Right: service panel ~30% */}
@@ -1626,6 +1647,18 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {hasCond&&<rect x={EXT_WALL_X} y="0" width={OUTSIDE_W} height={VH}
             style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
 
+          {/* Sky above the roofline, house side - the real sky doesn't stop
+              at the house wall and pick back up over the condenser pad;
+              it's one continuous backdrop above both. Without this, the
+              area above the roof on the house side just showed the flat
+              base canvas color instead of matching the outside zone next
+              to it, reading as a "wall" running the full height of the
+              canvas instead of stopping at the actual building envelope
+              (the roof/eave line, below which the attic interior tint
+              below takes over). */}
+          {hasCond&&<rect x="0" y="0" width={HOUSE_W} height={EAVE_Y}
+            style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
+
           {/* Attic interior (above deck, inside house) - subtly tinted by
               the same mode metaphor as the outside zone, see intFill above. */}
           <rect x="0" y={EAVE_Y} width={HOUSE_W} height={DECK_Y-EAVE_Y}
@@ -2131,6 +2164,14 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
     const DECK_Y=220;
 
+    // Roof geometry, hoisted so the background sky-cap rect (below) and
+    // the actual roof line drawing can share one calculation instead of
+    // two copies that could drift apart.
+    const ROOF_W=hasCond?HOUSE_W:VW-8;
+    const ROOF_RISE=Math.round(Math.min(ROOF_W/2*(3/12),60));
+    const ROOF_EAVE_Y=ROOF_RISE+12;
+    const ROOF_RIDGE_Y=8, ROOF_MID_X=ROOF_W/2;
+
     // Plenum
     const PLEN_W=UNIT_W;
     const PLEN_ABOVE=hasPlenum?130:0;
@@ -2190,6 +2231,15 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {/* Full attic space above deck - subtly tinted by mode, see intFill above. */}
           <rect x="0" y="0" width={hasCond?HOUSE_W:VW} height={DECK_Y}
             style={{fill:intFill('attic'),transition:'fill .8s ease'}}/>
+          {/* Sky above the roofline, house side - painted over the top
+              sliver of the attic-interior rect above, so it matches the
+              outside zone's sky instead of reading as an interior-tinted
+              wall running the full canvas height. Real sky is continuous
+              above both the roof and the condenser pad; only below the
+              eave does the building envelope actually separate "inside"
+              from "outside". */}
+          {hasCond&&<rect x="0" y="0" width={HOUSE_W} height={ROOF_EAVE_Y}
+            style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
           {/* Closet below deck */}
           <rect x={UNIT_X-28} y={DECK_Y} width={UNIT_W+56} height={VH-DECK_Y}
             style={{fill:intFill('closet'),transition:'fill .8s ease'}} stroke={W+'.05)'} strokeWidth="1.4"/>
@@ -2200,10 +2250,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
           {/* ── LOW-PITCH ROOF - spans attic width ── */}
           {(()=>{
-            const rW=hasCond?HOUSE_W:VW-8;
-            const rRise=Math.round(Math.min(rW/2*(3/12),60));
-            const rEave=rRise+12;
-            const rRidge=8, rMid=rW/2;
+            const rW=ROOF_W, rEave=ROOF_EAVE_Y, rRidge=ROOF_RIDGE_Y, rMid=ROOF_MID_X;
             return <>
               <line x1="0" y1={rEave} x2={rMid} y2={rRidge} stroke="rgba(160,152,128,.55)" strokeWidth="3"/>
               <line x1={rMid} y1={rRidge} x2={rW} y2={rEave} stroke="rgba(160,152,128,.55)" strokeWidth="3"/>
