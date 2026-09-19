@@ -507,7 +507,18 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     return <g>
       <circle cx={cx} cy={cy} r={r+3} fill="rgba(0,0,0,.55)" stroke="rgba(60,65,78,.7)" strokeWidth="1.2"/>
       {active&&<circle cx={cx} cy={cy} r={r+1} fill="none" stroke={rim} strokeWidth="1" opacity="0.55" filter="url(#glow-sm)"/>}
-      <g className={active?"spin":undefined} style={active?{transformBox:'fill-box',transformOrigin:'center',animationDuration:'0.8s'}:{}}>
+      {/* transformBox:'fill-box' + transformOrigin:'center' (used elsewhere
+          in this file for BlowerWheel/CapFan) rotates around the BOUNDING
+          BOX's center, not the hub - fine for those, since their blade
+          layouts have even-fold symmetry (opposite blades cancel out and
+          the bounding box ends up centered on the hub anyway). Three
+          blades all swept the same rotational direction has no such
+          cancellation, so the bounding box is off-center from (cx,cy) and
+          the whole fan visibly orbits instead of spinning in place.
+          transformBox:'view-box' + an explicit px origin rotates around
+          the actual hub coordinate instead, regardless of the blades'
+          bounding box. */}
+      <g className={active?"spin":undefined} style={active?{transformBox:'view-box',transformOrigin:cx+'px '+cy+'px',animationDuration:'0.8s'}:{}}>
         {Array.from({length:3},(_,i)=>{
           const ang=i*(Math.PI*2/3);
           const sweep=0.95;
