@@ -643,6 +643,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     transform:none!important;
   }
   .splash-screen,.attic-layout,.closet-layout,.canvas-frame{display:none!important}
+  /* .prog-chapters (the gold segmented step-progress bar) sits at the App
+     root, position:absolute, outside every element this block already
+     hides - so it was never caught by those rules and printed as a stray
+     gold bar pinned to the real page's top edge (its own position:absolute
+     no longer has an absolutely-positioned ancestor to anchor to, once
+     .app-root above is forced to position:static for print). It's
+     on-screen wizard-progress chrome with no meaning on a printed price
+     sheet, same category as the nav buttons already hidden below. */
+  .prog-chapters{display:none!important}
   .sidebar{border:none!important}
   .done-wrap{animation:none!important}
   .btn-back,.btn-next,.btn-skip,.info-btn,.done-restart,.no-print{display:none!important}

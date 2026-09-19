@@ -3451,6 +3451,22 @@ function App(){
   React.useEffect(()=>{
     document.querySelector('.attic-bar-body')?.scrollTo(0,0);
   },[stepIdx]);
+  // Same nested-scroll problem as .attic-bar-body above, on the done
+  // screen's own panel: .sidebar (attic mode's fixed 200px band) and
+  // .done-wrap inside it (overflowY:auto in every layout) both scroll
+  // independently of the outer page. Picking a lower option in a sizing
+  // sub-step (e.g. a tonnage card below the fold on a short mobile panel)
+  // leaves that scroll offset in place - advancing to the next sub-step,
+  // or to the final result, never reset it, so shorter content that
+  // follows renders scrolled down by that same leftover amount. Most
+  // visibly this clipped the top of "AS LOW AS $X/mo", the estimate's own
+  // headline number. Scoped to .done-screen so this can't ever grab
+  // closet-layout's own (same-classed, but unrelated and possibly
+  // still-mounted-but-hidden) .sidebar instead.
+  React.useEffect(()=>{
+    document.querySelector('.done-screen .sidebar')?.scrollTo(0,0);
+    document.querySelector('.done-wrap')?.scrollTo(0,0);
+  },[pricingFlow,pricingSubStep]);
 
   const INFO_TEXT={
     location:"Your indoor unit location sets the whole system layout. Attic is the most common in Austin -- the unit sits horizontally above the living space. Closet is upflow -- the unit stands vertically in a hallway or utility closet. Both work great; closet installs are slightly easier to service.",
@@ -3554,14 +3570,31 @@ function App(){
           Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.
         </p>
         <p style={{fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.55)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>SELECT YOUR SYSTEM LOCATION TO BEGIN</p>
+        {/* Both cards are plain divs (not <button>) for a free hand over
+            layout, so keyboard reachability and semantics don't come for
+            free the way they would on a real button - this is the very
+            first interactive thing on the page, and without these it was
+            entirely unreachable by keyboard (no tabIndex) and invisible to
+            a screen reader as a control (no role/name), a hard dead end
+            for anyone not using a mouse/touchscreen. role="button" +
+            tabIndex=0 + a Enter/Space handler (native buttons activate on
+            both; a bare div's default keydown does neither) bring it to
+            parity with the real <button>s everywhere else in the wizard,
+            picking up the same global :focus-visible ring for free. */}
         <div className="splash-cards">
-          <div className="splash-card" onClick={()=>{setA("location","attic");setStepIdx(1);}}>
+          <div className="splash-card" role="button" tabIndex={0}
+            aria-label="Attic Horizontal - Unit lays on its side above the ceiling, most common in Austin. Air flows horizontally through ducts in the attic."
+            onClick={()=>{setA("location","attic");setStepIdx(1);}}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setA("location","attic");setStepIdx(1);}}}>
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:4}}>
               <div className="splash-card-title">Attic Horizontal</div>
               <div className="splash-card-desc">Unit lays on its side above the ceiling - most common in Austin. Air flows horizontally through ducts in the attic.</div>
             </div>
           </div>
-          <div className="splash-card" onClick={()=>{setA("location","closet");setStepIdx(1);}}>
+          <div className="splash-card" role="button" tabIndex={0}
+            aria-label="Closet Upflow - Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil."
+            onClick={()=>{setA("location","closet");setStepIdx(1);}}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setA("location","closet");setStepIdx(1);}}}>
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:4}}>
               <div className="splash-card-title">Closet Upflow</div>
               <div className="splash-card-desc">Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.</div>
