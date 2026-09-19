@@ -819,15 +819,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const OUTSIDE_SUNNY='#465c8c';     // cool mode - bright daytime sky
   const OUTSIDE_OVERCAST='#212b45'; // dual-fuel HP mode (~52F) - overcast/rain
   const OUTSIDE_COLD='#141c2e';     // furnace/aux cold-snap mode (~28F) - dark, not pure-black
-  // "Mild 52F" mode isn't unique to dual-fuel systems - a heat-pump-only
-  // system (!hasFurnace) also previews a 52F HEAT PUMP state before its
-  // 28F AUX HEAT state, same two-temperature split as dual-fuel's HEAT
-  // PUMP/FURNACE pair. Gating this on isDualFuel alone left heat-pump-only
-  // systems showing the cold-snap look even at 52F - matches the
-  // isDualFuel||!hasFurnace pattern already used below for evapActive/
-  // condenserActive/refReversed/thermostatTemp.
-  const isMildHp=(isDualFuel||!hasFurnace)&&heatSubMode==='hp';
-  const outsideFill=!heatMode?OUTSIDE_SUNNY:isMildHp?OUTSIDE_OVERCAST:OUTSIDE_COLD;
+  // isMildHp/outsideFill/intFill are defined further down (right after
+  // hasFurnace/isDualFuel, which they depend on) instead of here - see the
+  // comment there for why. OUTSIDE_SUNNY/OVERCAST/COLD stay here since the
+  // whole outside-zone palette reads as one block.
 
   // The interior panels get a deliberate tint keyed to the same mode
   // metaphor - the way a real room's light/warmth answers what's happening
@@ -848,7 +843,6 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const INT_BASE={attic:'#10121c',living:'#0d0f18',closet:'rgba(9,9,16,.9)'};
   const INT_COOL={attic:'#282e48',living:'#20263c',closet:'rgba(35,40,62,.9)'};
   const INT_WARM={attic:'#14121a',living:'#100e15',closet:'rgba(13,9,14,.9)'};
-  const intFill=(k)=>!heatMode?INT_COOL[k]:isMildHp?INT_BASE[k]:INT_WARM[k];
 
   const loc=a.location;
   const isAttic=!loc||loc==='attic';
@@ -873,6 +867,35 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const isSpray=a.insulation==='spray';
   const isComm=a.cond_tier==='high_ge18';
   const isDualFuel=hasFurnace&&(a.system_for==='hp');
+  // "Mild 52F" mode isn't unique to dual-fuel systems - a heat-pump-only
+  // system (!hasFurnace) also previews a 52F HEAT PUMP state before its
+  // 28F AUX HEAT state, same two-temperature split as dual-fuel's HEAT
+  // PUMP/FURNACE pair. Gating this on isDualFuel alone left heat-pump-only
+  // systems showing the cold-snap look even at 52F - matches the
+  // isDualFuel||!hasFurnace pattern already used below for evapActive/
+  // condenserActive/refReversed/thermostatTemp.
+  //
+  // This block has to live HERE, after hasFurnace/isDualFuel are actually
+  // assigned, not up near the OUTSIDE_* palette consts where it originally
+  // sat (textually before hasFurnace/isDualFuel's own declarations further
+  // down this function). In real TDZ-enforcing JS that ordering would throw
+  // outright, but babel-standalone's default preset compiles const/let down
+  // to plain var for broad-browser output, which hoists the declarations
+  // and drops the TDZ check - so it silently ran instead, with hasFurnace
+  // and isDualFuel both still undefined at that point. `(isDualFuel||
+  // !hasFurnace)` then evaluated as `(undefined || !undefined)` = true
+  // unconditionally, regardless of the system actually being built, so
+  // isMildHp collapsed to just `heatSubMode==='hp'`. heatSubMode's own
+  // default is 'hp' and nothing ever changes it away from that for a
+  // straight-cool furnace (its single HEAT MODE button only calls
+  // setHeatMode, never setHeatSubMode) - so straight-cool systems previewed
+  // their 28F heating call with the mild-52F overcast/rain look (and the
+  // brighter INT_BASE interior tint from intFill below, which reads the
+  // same isMildHp) instead of the actual cold-snap look real 28F heating
+  // should show, right up until the true isMildHp assignment here.
+  const isMildHp=(isDualFuel||!hasFurnace)&&heatSubMode==='hp';
+  const outsideFill=!heatMode?OUTSIDE_SUNNY:isMildHp?OUTSIDE_OVERCAST:OUTSIDE_COLD;
+  const intFill=(k)=>!heatMode?INT_COOL[k]:isMildHp?INT_BASE[k]:INT_WARM[k];
   // Mid efficiency is sold as a low-ambient heat pump - it's built to keep
   // working normally well below freezing. A standard heat pump (fed min,
   // high efficiency) can't, and locks its compressor out at that point,

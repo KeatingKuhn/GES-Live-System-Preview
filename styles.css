@@ -478,7 +478,23 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .attic-layout{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
 .attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
 .attic-canvas-area{flex:1;min-height:0;position:relative;overflow:hidden}
-.attic-bar{height:230px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
+/* min-height (not a hard height) so the bar can grow past its 230px resting
+   size instead of squeezing its contents when something inside needs more
+   room than that - e.g. the info panel (.info-collapse below) opening,
+   whether auto-opened on step 1 or toggled manually on any later step.
+   .attic-bar-body's own flex:1 previously divided a truly fixed 230px
+   between bar-top/info-collapse/body, so opening the info panel (~55px)
+   ate directly into the option cards below it, squeezing 3-line option
+   descriptions (e.g. indoor_type's "Air handler", system_for's "Dual
+   Fuel") down to ~2 lines worth of space - clipped mid-sentence with no
+   ellipsis, silently dropping real information a homeowner needs to make
+   the choice. Letting the bar grow instead borrows the extra height from
+   .attic-canvas-area (flex:1 above it, plenty of room to spare) exactly
+   the way opening .attic-bar-top's Back/Skip/Next row already does (see
+   comment below) instead of clipping. Mobile already overrides this to
+   height:auto (see the max-width:1024px block) so this only changes
+   desktop/tablet-landscape behavior. */
+.attic-bar{min-height:230px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
 /* Back/Next live here (not stacked inside .attic-info below) specifically
    so they're never subject to .attic-info's overflow:hidden - a long
    question+hint+reaction stack used to push Back past the fixed-height
