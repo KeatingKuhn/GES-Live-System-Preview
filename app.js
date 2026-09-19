@@ -1741,15 +1741,24 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // ~150px tall) doesn't fit inside the SVG's own top letterbox gutter -
   // the closet layout in particular has very little of that gutter to
   // begin with (its diagram fills most of the frame), so the panel used to
-  // sit directly on top of real equipment (the air handler, roofline/
-  // "OUTSIDE" label) instead of the empty space above it, hiding them
-  // entirely rather than just looking oversized. Below this width it swaps
-  // for a single compact icon+temp pill row instead - same click targets/
-  // state, just a small fraction of the vertical footprint. 900 is a frame-
-  // width (not viewport-width) cutoff wide enough to cover phone and
-  // portrait-tablet frames (measured overlap at 375/390/768) while leaving
-  // real desktop widths (1440+, where the gutter is plenty tall) alone.
-  const compactToggle=frameBox&&frameBox.w>0&&frameBox.w<900;
+  // sit directly on top of real equipment (the air handler/return plenum)
+  // instead of the empty space above it, hiding it entirely rather than
+  // just looking oversized. Below this width it swaps for a single compact
+  // icon+temp pill row instead - same click targets/state, just a small
+  // fraction of the vertical footprint. This was previously a flat 900,
+  // which meant closet - whose frame is always ~320px narrower than
+  // attic's at the same viewport width, thanks to the fixed-width sidebar
+  // sitting beside it - fell into the compact variant across most of the
+  // ordinary desktop window-width range, even though it reads noticeably
+  // better full-size and attic almost never needed it. Re-measured the
+  // actual overlap boundary directly (screenshotting the full-size stack
+  // forced on in closet mode at a sweep of widths): clean with real margin
+  // at a 650px frame, still overlapping the equipment at 600px. 700 keeps
+  // that margin while giving closet the full-size stack across realistic
+  // desktop widths, same as attic; phone/portrait-tablet frames (375-390,
+  // 768 was already clean) still fall well under it into the safe compact
+  // range.
+  const compactToggle=frameBox&&frameBox.w>0&&frameBox.w<700;
   const ToggleUI=({style})=>{
     if(compactToggle){
       const modes=isDualFuel?[
@@ -1777,16 +1786,16 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       </div>;
     }
     return (
-    <div className="fadein" style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3,...style}}>
-      {/* This label floats directly over the canvas (no backing box, unlike
-          the mode buttons just below it), so its contrast rides on the
-          diagram behind it. Pixel-sampled at .6 alpha against the diagram's
-          near-black sky at the top of the frame: ~4.05-4.14:1, under the
-          4.5:1 minimum. .8 clears that same spot at ~6.2:1. */}
-      <span style={{fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.8)'}}>
+    <div className="fadein" title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',flexDirection:'column',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden',...style}}>
+      {/* Used to float above the box with no backing of its own, so its
+          contrast rode on whatever part of the diagram happened to be
+          behind it - fine over the near-black sky, illegible over
+          anything brighter. Folded into the same box the mode buttons
+          already have (own #0c0c0c background, same border) so it always
+          reads clearly regardless of the diagram underneath. */}
+      <div style={{padding:'5px 10px',fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.75)',textAlign:'right',borderBottom:'1px solid rgba(215,183,64,.18)'}}>
         ▸ preview how your system runs
-      </span>
-      <div title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',flexDirection:'column',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden'}}>
+      </div>
       <button onClick={()=>setHeatMode(false)} style={{
         padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
         background:!heatMode?'rgba(35,137,224,.18)':'transparent',
@@ -1854,7 +1863,6 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode?1:0.55}}>28°</span>
           <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>OUTSIDE TEMP</span>
         </button>}
-      </div>
     </div>
     );
   };
