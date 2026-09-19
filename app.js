@@ -456,6 +456,16 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const line2C = refReversed ? '#ef4444' : '#2389e0';
 
   const TL={fedmin:'14 SEER2',mid_ge15:'18 SEER2',high_ge18:'21 SEER2'}[a.cond_tier]||'';
+  // Real motor type at the indoor blower differs by tier - this is new
+  // information the diagram didn't previously show at all. Federal Minimum
+  // pairs with a single/multi-tap ECM (electronically commutated motor,
+  // fixed set of speed taps); Mid Efficiency steps up to a true variable-
+  // speed motor (ramps continuously to match load/humidity demand); High
+  // Efficiency pairs with a modulating variable-speed motor that
+  // communicates with the modulating gas valve / inverter compressor for
+  // fine-grained staging. Shown as a small subtext line under "BLOWER",
+  // the same convention already used for the furnace's AFUE badge.
+  const BLOWER_MOTOR={fedmin:'ECM MOTOR',mid_ge15:'VARIABLE SPEED',high_ge18:'MOD. VAR. SPEED'}[a.cond_tier]||'';
 
   // ── SUB-COMPONENTS ──────────────────────────────────────────
 
@@ -642,9 +652,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
           stroke={G+'.36)'} strokeWidth="3" strokeLinecap="round"/>
       ))}
-      <BlowerWheel cx={x+w*0.25} cy={y+h/2+2} r={Math.min(w*0.21,h*0.36)}
+      <BlowerWheel cx={x+w*0.25} cy={y+h*0.42} r={Math.min(w*0.21,h*0.29)}
         spd={blowerActive?1.6:0.5} active={blowerActive}/>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="10.5" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={G+'.55)'} fontSize="10" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.4)'} fontSize="7.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
       {Array.from({length:6},(_,i)=>{
         const gy=y+10+i*(h-18)/6;
         return <path key={i}
@@ -723,9 +734,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       <rect x={x+3} y={y+8} width={coilW-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
       <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}/>
       <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.5)')} fontSize="10.5" fontFamily="monospace">A-COIL</text>
-      <BlowerWheel cx={c1+blowerW/2} cy={y+h/2+2} r={Math.min(blowerW*0.36,h*0.36)}
+      <BlowerWheel cx={c1+blowerW/2} cy={y+h*0.42} r={Math.min(blowerW*0.32,h*0.29)}
         spd={blowerActive?1.5:0.45} active={blowerActive}/>
-      <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={G+'.55)'} fontSize="10.5" fontFamily="monospace">BLOWER</text>
+      <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={G+'.55)'} fontSize="10" fontFamily="monospace">BLOWER</text>
+      <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={G+'.4)'} fontSize="7.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
       <rect x={c2+3} y={y+8} width={auxW-6} height={h-14} rx="2"
         fill={auxHeat?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
         stroke={auxHeat?"rgba(249,115,22,.6)":(G+'.14)')} strokeWidth="0.8"/>
@@ -844,17 +856,23 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             </g>
           ));
         })()}
-        {/* Brand badge centered */}
+        {/* Manufacturer data/rating plate, centered on the door panel -- a
+            generic nameplate (rivets + printed spec lines), not a badge or
+            monogram, so nothing here reads as a copied logo. */}
         {(()=>{
           const capH=Math.round(h*0.16);
-          const by=y+capH+Math.round((h-capH)*0.38);
+          const by=y+capH+Math.round((h-capH)*0.36);
+          const pw=Math.round(w*0.44), ph=Math.round(h*0.16);
+          const px=x+w/2-pw/2;
           return <>
-            <circle cx={x+w/2} cy={by} r={10}
-              fill="rgba(55,58,65,.9)" stroke="rgba(80,85,95,.7)" strokeWidth="1.2"/>
-            <circle cx={x+w/2} cy={by} r={7.5}
-              fill="rgba(35,38,45,.8)" stroke="rgba(90,95,108,.4)" strokeWidth="0.6"/>
-            <text x={x+w/2} y={by+3.5} textAnchor="middle"
-              fill="rgba(200,205,215,.7)" fontSize="10.5" fontFamily="sans-serif" fontWeight="700">G</text>
+            <rect x={px} y={by} width={pw} height={ph} rx="1.5"
+              fill="rgba(45,48,55,.55)" stroke="rgba(80,85,95,.55)" strokeWidth="0.8"/>
+            {[0.28,0.5,0.72].map((ty,i)=>(
+              <rect key={i} x={px+pw*0.14} y={by+ph*ty} width={pw*0.72*(1-i*0.16)} height={ph*0.09} rx="0.5"
+                fill="rgba(150,155,165,.45)"/>
+            ))}
+            <circle cx={px+3} cy={by+3} r={1.1} fill="rgba(90,95,105,.7)"/>
+            <circle cx={px+pw-3} cy={by+ph-3} r={1.1} fill="rgba(90,95,105,.7)"/>
           </>;
         })()}
         {[[x+4,y+h-4],[x+w-4,y+h-4]].map(([fx,fy],i)=>(
@@ -879,7 +897,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               fill={active?line1C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
             <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
               fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
-            <text x={cX+cW/2} y={cY+cH+domeH+10} textAnchor="middle"
+            {/* Clamped to sit just above the SEER badge instead of
+                cY+cH+domeH+10, which always lands domeH px below the
+                cabinet's own bottom edge (cY+cH already equals y+h-10) --
+                that pushed this label out of the housing entirely, where
+                it overlapped the outside-zone's "CONCRETE PAD"/"GROUND
+                LEVEL" text underneath it. */}
+            <text x={cX+cW/2} y={y+h-19} textAnchor="middle"
               fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="9.5" fontFamily="monospace">COMP.</text>
           </g>;
         })()}
@@ -891,67 +915,90 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       </>}
 
       {isMini&&<>
-        {/* MID: GE compact mini-split style */}
-        <rect x={x} y={y} width={w} height={h} rx={6}
-          fill={active?(refReversed?"#131828":"#1c1e22"):"#181a1e"}
-          stroke={active?cc:"rgba(80,85,95,.7)"} strokeWidth={active?1.8:1.4}/>
-        {/* Discharge grille top */}
-        <rect x={x+4} y={y+2} width={w-8} height={Math.round(h*0.1)} rx="2"
-          fill="rgba(0,0,0,.35)" stroke="rgba(70,75,85,.5)" strokeWidth="0.6"/>
-        {Array.from({length:3},(_,i)=>(
-          <rect key={i} x={x+6} y={y+4+i*4} width={w-12} height={2} rx="0.5"
-            fill="rgba(35,38,45,.9)" stroke="rgba(60,65,75,.4)" strokeWidth="0.3"/>
-        ))}
-        {/* Left: large fan area ~68% */}
+        {/* MID: same square top-discharge cabinet family as the fed-min
+            unit (both tiers are the same manufacturer's platform, real
+            GE NS16/NS18 residential condensers are conventional
+            top-discharge split-system cabinets, not mini-split-style
+            wall units) -- low-ambient variable-speed compressor gets a
+            shorter, wider footprint (see COND_SIZES) and a cool-toned
+            accent trim to read as the step-up model, not a different
+            product family. */}
+        <rect x={x} y={y} width={w} height={h} rx={4}
+          fill={active?"#a8adb8":"#b2b7c1"}
+          stroke={active?"rgba(140,148,165,.9)":"rgba(120,128,145,.8)"} strokeWidth="1.2"/>
+        {/* Dark top cap with CapFan */}
         {(()=>{
-          const fanAreaW=Math.round(w*0.68);
-          const fanAreaH=h-Math.round(h*0.1)-4;
-          const fanAreaY=y+Math.round(h*0.1)+2;
-          const fCX=x+fanAreaW/2, fCY=fanAreaY+fanAreaH/2;
-          const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.43);
+          const capH=Math.round(h*0.18);
           return <>
-            <rect x={x+2} y={fanAreaY} width={fanAreaW-2} height={fanAreaH} rx="3"
-              fill="rgba(0,0,0,.4)" stroke="rgba(55,60,70,.5)" strokeWidth="0.7"/>
-            {Array.from({length:Math.floor(fanAreaH/5)},(_,row)=>
-              Array.from({length:Math.floor(fanAreaW/5)},(_,col)=>{
-                const gx=x+4+col*5, gy=fanAreaY+2+row*5;
-                const dx=gx-fCX, dy=gy-fCY;
-                if(Math.sqrt(dx*dx+dy*dy)>fR+4) return null;
-                return <rect key={row+'-'+col} x={gx} y={gy} width={1.5} height={1.5} rx="0.3"
-                  fill="rgba(40,45,55,.9)"/>;
-              })
-            )}
-            <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(60,65,78,.7)" strokeWidth="2.5"/>
-            <circle cx={fCX} cy={fCY} r={fR+4} fill="rgba(12,13,16,.6)" stroke="rgba(50,55,65,.5)" strokeWidth="1.2"/>
-            <BlowerWheel cx={fCX} cy={fCY} r={fR} spd={active?1.1:0.3} active={active}/>
-            <circle cx={fCX} cy={fCY} r={fR*0.14} fill="#2a2c32" stroke="rgba(90,95,110,.6)" strokeWidth="0.8"/>
-          </>;
-        })()}
-        {/* Right: service panel ~30% */}
-        {(()=>{
-          const panelX=x+Math.round(w*0.7);
-          const panelW=w-Math.round(w*0.7)-2;
-          const panelY=y+Math.round(h*0.1)+4;
-          const panelH=h-Math.round(h*0.1)-8;
-          return <>
-            <rect x={panelX} y={panelY} width={panelW} height={panelH} rx="4"
-              fill={active?"rgba(28,32,40,.8)":"rgba(22,24,30,.7)"} stroke="rgba(55,60,72,.6)" strokeWidth="0.8"/>
-            <rect x={panelX+3} y={panelY+6} width={panelW-6} height={Math.round(panelH*0.55)} rx="3"
-              fill={active?"rgba(20,25,35,.9)":"rgba(16,18,24,.8)"} stroke="rgba(50,55,68,.5)" strokeWidth="0.7"/>
-            <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.7)} r={3.5}
-              fill={active?(cc):"rgba(40,45,55,.6)"} stroke={active?cc:"rgba(55,60,70,.3)"} strokeWidth="0.8"/>
-            {active&&<circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.7)} r={2}
-              fill="#fff" className="glow-pulse"/>}
-            {[0.18,0.88].map((ty,i)=>(
-              <circle key={i} cx={panelX+panelW/2} cy={panelY+panelH*ty} r={1.8}
-                fill="rgba(45,50,60,.9)" stroke="rgba(70,75,90,.5)" strokeWidth="0.5"/>
+            <rect x={x} y={y} width={w} height={capH} rx={4}
+              fill={active?"#2e323c":"#24272f"} stroke="rgba(18,20,26,.8)" strokeWidth="1"/>
+            <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
+              bladeColor={active?(refReversed?"rgba(100,160,220,.8)":"rgba(220,90,90,.7)"):"rgba(45,48,55,.6)"}
+              slatFill={active?"rgba(40,45,56,.88)":"rgba(32,37,48,.92)"}
+              slatCount={Math.floor((capH-2)*0.7/4)}/>
+            {[[x+5,y+4],[x+w-5,y+4],[x+5,y+capH-4],[x+w-5,y+capH-4]].map(([sx,sy],i)=>(
+              <circle key={i} cx={sx} cy={sy} r={1.8}
+                fill="rgba(50,55,66,.9)" stroke="rgba(80,88,105,.5)" strokeWidth="0.5"/>
             ))}
-            <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.85)} r={5}
-              fill="rgba(30,35,45,.8)" stroke={active?cc:"rgba(70,75,90,.5)"} strokeWidth="0.8"/>
-            <text x={panelX+panelW/2} y={panelY+Math.round(panelH*0.87)} textAnchor="middle"
-              fill={active?cc:"rgba(90,95,110,.7)"} fontSize="10" fontFamily="sans-serif" fontWeight="700">VS</text>
           </>;
         })()}
+        {/* Cool-toned accent band just under the cap -- the one visual
+            cue that separates this from the base-tier cabinet, standing
+            in for a step-up trim color rather than a printed logo. */}
+        <rect x={x} y={y+Math.round(h*0.18)+1} width={w} height={3}
+          fill={active?cc:"rgba(110,120,145,.55)"} opacity={active?0.85:0.6}/>
+        {/* Finer horizontal louver slats on body -- tighter pitch than the
+            base unit, reading as the nicer-finish cabinet */}
+        {(()=>{
+          const capH=Math.round(h*0.18)+4;
+          const slotY=y+capH+2, slotH=h-capH-4;
+          const count=Math.floor(slotH/4.2), step=slotH/count;
+          return Array.from({length:count},(_,i)=>(
+            <g key={i}>
+              <rect x={x+2} y={slotY+i*step} width={w-4} height={step-1.3} rx="0.5"
+                fill={active?"rgba(150,158,172,.85)":"rgba(160,168,182,.8)"}/>
+              <rect x={x+2} y={slotY+i*step} width={w-4} height={1.3}
+                fill={active?"rgba(200,206,218,.6)":"rgba(210,216,226,.55)"}/>
+              <rect x={x+2} y={slotY+i*step+step-2} width={w-4} height={1}
+                fill="rgba(95,100,115,.4)"/>
+            </g>
+          ));
+        })()}
+        {[[x+4,y+h-4],[x+w-4,y+h-4]].map(([fx,fy],i)=>(
+          <circle key={i} cx={fx} cy={fy} r={2.5}
+            fill="rgba(90,96,112,.8)" stroke="rgba(60,66,82,.6)" strokeWidth="0.7"/>
+        ))}
+        {/* Compressor outline (inverter-driven) -- visible inside housing */}
+        {(()=>{
+          const capH=Math.round(h*0.18)+4;
+          const bodyH=h-capH;
+          const cW=Math.round(w*0.26), cH=Math.round(bodyH*0.44);
+          const cX=x+w-cW-6, cY=y+capH+bodyH-cH-8;
+          const domeH=Math.round(cH*0.22);
+          return <g>
+            <rect x={cX} y={cY+domeH} width={cW} height={cH-domeH} rx="3"
+              fill="rgba(100,105,120,.2)" stroke={active?cc:"rgba(75,82,98,.4)"}
+              strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
+            <ellipse cx={cX+cW/2} cy={cY+domeH} rx={cW/2} ry={domeH}
+              fill="rgba(110,116,132,.22)" stroke={active?cc:"rgba(75,82,98,.4)"}
+              strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
+            <rect x={cX+cW*0.6} y={cY-5} width={3.5} height={domeH+5} rx="1"
+              fill={active?line1C:"rgba(65,70,85,.5)"} opacity={active?0.65:0.4}/>
+            <rect x={cX-5} y={cY+domeH+Math.round(cH*0.25)} width={7} height={3.5} rx="1"
+              fill={active?line2C:"rgba(65,70,85,.5)"} opacity={active?0.65:0.4}/>
+            {/* Clamped above the SEER badge for the same reason as the
+                fed-min/high-eff compressor labels -- see the note there. */}
+            <text x={cX+cW/2} y={y+h-19} textAnchor="middle"
+              fill={active?cc:"rgba(85,90,105,.5)"} fontSize="8.5" fontFamily="monospace">INV.</text>
+          </g>;
+        })()}
+        {/* Variable-speed tag -- small printed tag, not a lit control
+            panel (this is the outdoor unit; the control board lives
+            inside the cabinet, not on an exposed front-facing display). */}
+        <rect x={x+3} y={y+h-27} width={Math.round(w*0.5)} height={9} rx="1.5"
+          fill="rgba(35,38,46,.6)" opacity="0.9"/>
+        <text x={x+3+Math.round(w*0.5)/2} y={y+h-20} textAnchor="middle"
+          fill={active?cc:"rgba(150,158,172,.8)"} fontSize="7" fontFamily="monospace" fontWeight="700">VARIABLE SPEED</text>
         {/* SEER badge */}
         <rect x={x+3} y={y+h-16} width={w-6} height={13} rx="2"
           fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
@@ -985,6 +1032,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             ))}
           </>;
         })()}
+        {/* Top-tier accent trim -- wider than the mid-tier's thin band,
+            reading as the flagship cabinet in the lineup */}
+        <rect x={x} y={y+Math.round(h*0.2)+2} width={w} height={5}
+          fill={active?cc:"rgba(120,128,145,.5)"} opacity={active?0.9:0.55}/>
         {/* Vertical louver panels */}
         {(()=>{
           const capH=Math.round(h*0.2);
@@ -1033,7 +1084,10 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               fill={active?line1C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
             <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
               fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
-            <text x={cX+cW/2} y={cY+cH+domeH+10} textAnchor="middle"
+            {/* Clamped above the SEER badge -- see the fed-min compressor
+                label's note on why the unclamped cY+cH+domeH+10 offset
+                always falls domeH px below the cabinet's own bottom edge. */}
+            <text x={cX+cW/2} y={y+h-19} textAnchor="middle"
               fill={active?cc:"rgba(80,85,95,.45)"} fontSize="9.5" fontFamily="monospace">COMP.</text>
           </g>;
         })()}
@@ -1949,21 +2003,41 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               // out of) from needing extra height for it.
               const TX=RET_X+RET_PLEN_W+8, TY=DECK_Y+12;
               const isProprietary=a.thermostat==='proprietary';
-              const isWifi=a.thermostat==='wifi'||isProprietary;
-              return isWifi
+              const isWifi=a.thermostat==='wifi'&&!isProprietary;
+              const modeColor=heatMode?"#f97316":"#2389e0";
+              return isProprietary
+                // PROPRIETARY COMMUNICATING -- edge-to-edge glass touchscreen
+                // (Ecobee-style rectangle), deliberately not the round dial
+                // used for the Wi-Fi tier below, so it reads as a distinct,
+                // more premium control rather than the same thermostat with
+                // a different label.
+                ?<>
+                  <rect x={TX} y={TY} width={64} height={58} rx="9"
+                    fill="#0a0a0d" stroke={G+'.6)'} strokeWidth="1.4"/>
+                  <rect x={TX+2.5} y={TY+2.5} width={59} height={45} rx="6.5"
+                    fill="#050810" stroke={B+'.3)'} strokeWidth="0.7"/>
+                  <text x={TX+32} y={TY+30} textAnchor="middle" fill={B+'.95)'} fontSize="19"
+                    fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
+                  <text x={TX+32} y={TY+41} textAnchor="middle" fill={B+'.55)'} fontSize="6.5"
+                    fontFamily="monospace">{heatMode?'HEAT':'COOL'} · AUTO</text>
+                  <circle cx={TX+56} cy={TY+9} r={1.6} fill={B+'.55)'}/>
+                  <rect x={TX+5} y={TY+50} width={54} height="3" rx="1.5" fill={modeColor} opacity="0.8"/>
+                  <text x={TX+32} y={TY+70} textAnchor="middle" fill={G+'.5)'} fontSize="9" fontFamily="monospace">COMMUNICATING</text>
+                </>
+                :isWifi
                 ?<>
                   <circle cx={TX+32} cy={TY+30} r={28} fill="#0d0d0d" stroke={G+'.65)'} strokeWidth="1.6"/>
                   <circle cx={TX+32} cy={TY+30} r={22} fill="#060e1c" stroke={B+'.45)'} strokeWidth="1"/>
                   <text x={TX+32} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize="16.5"
                     fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
                   <path d={`M${TX+11} ${TY+30} A21 21 0 0 1 ${TX+53} ${TY+30}`}
-                    fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="2.2" strokeLinecap="round" opacity="0.55"/>
+                    fill="none" stroke={modeColor} strokeWidth="2.2" strokeLinecap="round" opacity="0.55"/>
                   <path d={`M${TX+21} ${TY+48} Q${TX+32} ${TY+41} ${TX+43} ${TY+48}`}
                     fill="none" stroke={B+'.5)'} strokeWidth="1.5" strokeLinecap="round"/>
                   <path d={`M${TX+24} ${TY+52} Q${TX+32} ${TY+47} ${TX+40} ${TY+52}`}
                     fill="none" stroke={B+'.7)'} strokeWidth="1.5" strokeLinecap="round"/>
                   <circle cx={TX+32} cy={TY+56} r={2.2} fill={B+'.8)'}/>
-                  <text x={TX+32} y={TY+68} textAnchor="middle" fill={G+'.5)'} fontSize="9" fontFamily="monospace">{isProprietary?'COMMUNICATING':'WI-FI SMART'}</text>
+                  <text x={TX+32} y={TY+68} textAnchor="middle" fill={G+'.5)'} fontSize="9" fontFamily="monospace">WI-FI SMART</text>
                 </>
                 :<>
                   <rect x={TX} y={TY} width={64} height={54} rx="3"
@@ -2373,11 +2447,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                     })}
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.195} textAnchor="middle"
                       fill={auxHeatActive?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="9.5" fontFamily="monospace">AUX HEAT KIT</text>
-                    <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.35}
-                      r={Math.min(UNIT_W*0.26,ACOIL_H*0.12)}
+                    <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.33}
+                      r={Math.min(UNIT_W*0.24,ACOIL_H*0.105)}
                       spd={blowerActive?1.4:0.4} active={blowerActive}/>
-                    <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.50} textAnchor="middle"
+                    <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.465} textAnchor="middle"
                       fill={G+'.55)'} fontSize="10" fontFamily="monospace">BLOWER</text>
+                    <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.50} textAnchor="middle"
+                      fill={G+'.4)'} fontSize="7.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
                     <ACoilV x={UNIT_X+8} y={ACOIL_Y+ACOIL_H*0.58} w={UNIT_W-16} h={ACOIL_H*0.38} active={active}/>
                   </>
                 }
@@ -2442,11 +2518,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H/4+6} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.75)':(G+'.5)')} fontSize="10" fontFamily="monospace">HEAT EXCH.</text>
             {/* BOTTOM: blower */}
-            <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.75}
-              r={Math.min(UNIT_W*0.32,FURN_H*0.18)}
+            <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.70}
+              r={Math.min(UNIT_W*0.32,FURN_H*0.155)}
               spd={blowerActive?1.55:0.5} active={blowerActive}/>
-            <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
+            <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-15} textAnchor="middle"
               fill={G+'.55)'} fontSize="10" fontFamily="monospace">BLOWER</text>
+            <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
+              fill={G+'.4)'} fontSize="8" fontFamily="monospace">{BLOWER_MOTOR}</text>
             {/* Flue - 45° elbow routing:
                 exits top of furnace → 45° elbow left → horizontal run → 45° elbow up → vertical through roof */}
             {(()=>{
@@ -2634,20 +2712,40 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               const midY=hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2;
               const TX=gapLeft+(gapRight-gapLeft)/2-38, TY=midY-38;
               const isProprietaryC=a.thermostat==='proprietary';
-              return(a.thermostat==='wifi'||isProprietaryC)
+              const isWifiC=a.thermostat==='wifi'&&!isProprietaryC;
+              const modeColorC=heatMode?"#f97316":"#2389e0";
+              return isProprietaryC
+                // PROPRIETARY COMMUNICATING -- edge-to-edge glass touchscreen
+                // (Ecobee-style rectangle), kept visually distinct from the
+                // round Wi-Fi dial below so the matched-communicating tier
+                // reads as a genuinely different, more premium control.
+                ?<>
+                  <rect x={TX} y={TY} width={76} height={68} rx="10"
+                    fill="#0a0a0d" stroke={G+'.62)'} strokeWidth="1.6"/>
+                  <rect x={TX+3} y={TY+3} width={70} height={52} rx="7"
+                    fill="#050810" stroke={B+'.3)'} strokeWidth="0.8"/>
+                  <text x={TX+38} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize="22"
+                    fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
+                  <text x={TX+38} y={TY+48} textAnchor="middle" fill={B+'.55)'} fontSize="7.5"
+                    fontFamily="monospace">{heatMode?'HEAT':'COOL'} · AUTO</text>
+                  <circle cx={TX+67} cy={TY+11} r={1.9} fill={B+'.55)'}/>
+                  <rect x={TX+6} y={TY+59} width={64} height="3.5" rx="1.75" fill={modeColorC} opacity="0.8"/>
+                  <text x={TX+38} y={TY+82} textAnchor="middle" fill={G+'.45)'} fontSize="10" fontFamily="monospace">COMMUNICATING</text>
+                </>
+                :isWifiC
                 ?<>
                   <circle cx={TX+38} cy={TY+38} r={36} fill="#0d0d0d" stroke={G+'.62)'} strokeWidth="1.8"/>
                   <circle cx={TX+38} cy={TY+38} r={28} fill="#060e1c" stroke={B+'.42)'} strokeWidth="1.1"/>
                   <text x={TX+38} y={TY+43} textAnchor="middle" fill={B+'.92)'} fontSize="19.5"
                     fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
                   <path d={`M${TX+12} ${TY+38} A26 26 0 0 1 ${TX+64} ${TY+38}`}
-                    fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="2.5" strokeLinecap="round" opacity="0.55"/>
+                    fill="none" stroke={modeColorC} strokeWidth="2.5" strokeLinecap="round" opacity="0.55"/>
                   <path d={`M${TX+24} ${TY+62} Q${TX+38} ${TY+53} ${TX+52} ${TY+62}`}
                     fill="none" stroke={B+'.5)'} strokeWidth="1.8" strokeLinecap="round"/>
                   <path d={`M${TX+28} ${TY+67} Q${TX+38} ${TY+61} ${TX+48} ${TY+67}`}
                     fill="none" stroke={B+'.7)'} strokeWidth="1.8" strokeLinecap="round"/>
                   <circle cx={TX+38} cy={TY+71} r={2.5} fill={B+'.8)'}/>
-                  <text x={TX+38} y={TY+85} textAnchor="middle" fill={G+'.45)'} fontSize="10" fontFamily="monospace">{isProprietaryC?'COMMUNICATING':'WI-FI SMART'}</text>
+                  <text x={TX+38} y={TY+85} textAnchor="middle" fill={G+'.45)'} fontSize="10" fontFamily="monospace">WI-FI SMART</text>
                 </>
                 :<>
                   <rect x={TX} y={TY} width={76} height={62} rx="3"
