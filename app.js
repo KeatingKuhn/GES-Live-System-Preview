@@ -3375,7 +3375,13 @@ function App(){
   const goBack=()=>{
     if(stepIdx>0){setStepIdx(s=>s-1);scrollTop();}
   };
-  const skip=()=>{if(cur.multi)setA(cur.id,[]);goNext();};
+  // Skipping a multi-select step means "none of the optional extras" - but
+  // for purif specifically, the enhanced filtration cabinet ships standard
+  // on every install regardless (see defaultAnswers/hasAprilaire), so
+  // skipping it must not wipe that default out along with the real
+  // optional picks (UV/ionizer/surge). Every other multi step (extras) has
+  // no such standard-included default, so [] is still correct there.
+  const skip=()=>{if(cur.multi)setA(cur.id,cur.id==='purif'?['aprilaire']:[]);goNext();};
   const restart=()=>{
     clearSavedBuild();setAnswers(defaultAnswers());setStepIdx(0);setDone(false);setQuickEdit(false);
     setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});
