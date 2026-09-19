@@ -356,6 +356,39 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const W='rgba(255,255,255,';
   const O='rgba(249,115,22,';
 
+  // ── OUTSIDE / INSIDE PALETTE ───────────────────────────────
+  // The outside zone's fill is a visual metaphor for the active heating/
+  // cooling mode (never real time-of-day or weather - see OutsideZone).
+  // All three states share one blue hue family (~220-225°) so they read
+  // as one continuous "sky" story - clear day -> overcast -> dark snowy
+  // dusk - rather than three unrelated colors. The coldest state used to
+  // crush to near-black (#080a10, luminance ~0.003), which was actually
+  // DARKER than the fixed interior panels (attic ~0.006) - the outside
+  // zone all but vanished into the rest of the canvas exactly when a
+  // customer is looking at the "it's 28F outside, warm inside" story.
+  // #141c2e keeps that state reading as dark/cold while staying ~2x the
+  // interior's luminance, so outside vs inside never collapses into each
+  // other no matter which mode is active. Sunny/overcast keep their
+  // original values - both already sit well above the interior range.
+  const OUTSIDE_SUNNY='#465c8c';     // cool mode - bright daytime sky
+  const OUTSIDE_OVERCAST='#212b45'; // dual-fuel HP mode (~52F) - overcast/rain
+  const OUTSIDE_COLD='#141c2e';     // furnace/aux cold-snap mode (~28F) - dark, not pure-black
+  const outsideFill=!heatMode?OUTSIDE_SUNNY:(isDualFuel&&heatSubMode==='hp')?OUTSIDE_OVERCAST:OUTSIDE_COLD;
+
+  // The interior panels get a small, deliberate tint keyed to the same
+  // mode metaphor - the way a real room's light/warmth answers what's
+  // happening outside. Cool mode (AC running) lifts blue a couple of RGB
+  // steps for a crisp feel; furnace/cold-snap mode nudges red up and
+  // blue down for a faint warm glow - "cozy inside vs. freezing outside"
+  // is exactly the story this tool is selling. Deltas are single digits
+  // per channel on purpose (mood, not a palette swap) and every variant
+  // stays well under the darkest outside state above, so the two zones
+  // never compete for attention.
+  const INT_BASE={attic:'#10121c',living:'#0d0f18',closet:'rgba(9,9,16,.9)'};
+  const INT_COOL={attic:'#11141f',living:'#0e1019',closet:'rgba(10,10,18,.9)'};
+  const INT_WARM={attic:'#14121a',living:'#100e15',closet:'rgba(13,9,14,.9)'};
+  const intFill=(k)=>!heatMode?INT_COOL[k]:(isDualFuel&&heatSubMode==='hp')?INT_BASE[k]:INT_WARM[k];
+
   const loc=a.location;
   const isAttic=!loc||loc==='attic';
   const isCloset=loc==='closet';
@@ -1538,15 +1571,19 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                mode) day, dimmer for the overcast 52° heat-pump day, darkest
                for the 28° cold snap - reads as daylight outside instead of
                a fixed dark panel regardless of weather. Fades like the
-               sun/cloud/snow rendered inside OutsideZone itself. */}
+               sun/cloud/snow rendered inside OutsideZone itself. See
+               OUTSIDE_* constants above for the palette reasoning. */}
           {hasCond&&<rect x={EXT_WALL_X} y="0" width={OUTSIDE_W} height={VH}
-            style={{fill:!heatMode?'#465c8c':(isDualFuel&&heatSubMode==='hp')?'#212b45':'#080a10',transition:'fill .8s ease'}}/>}
+            style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
 
-          {/* Attic interior (above deck, inside house) */}
-          <rect x="0" y={EAVE_Y} width={HOUSE_W} height={DECK_Y-EAVE_Y} fill="#10121c"/>
+          {/* Attic interior (above deck, inside house) - subtly tinted by
+              the same mode metaphor as the outside zone, see intFill above. */}
+          <rect x="0" y={EAVE_Y} width={HOUSE_W} height={DECK_Y-EAVE_Y}
+            style={{fill:intFill('attic'),transition:'fill .8s ease'}}/>
 
           {/* Living space below deck */}
-          <rect x="0" y={DECK_Y} width={HOUSE_W} height={VH-DECK_Y} fill="#0d0f18"/>
+          <rect x="0" y={DECK_Y} width={HOUSE_W} height={VH-DECK_Y}
+            style={{fill:intFill('living'),transition:'fill .8s ease'}}/>
 
           {/* ── LOW-PITCH ROOF - shallow, full house width ── */}
           {/* Left slope: eave (left edge) → ridge */}
@@ -2077,14 +2114,15 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <Defs/>
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
           {/* Outside zone - brightest sunny, dimmer overcast, darkest cold,
-              same as the attic layout's outside zone. */}
+              same as the attic layout's outside zone (OUTSIDE_* above). */}
           {hasCond&&<rect x={HOUSE_W} y="0" width={VW-HOUSE_W} height={VH}
-            style={{fill:!heatMode?'#465c8c':(isDualFuel&&heatSubMode==='hp')?'#212b45':'#080a10',transition:'fill .8s ease'}}/>}
-          {/* Full attic space above deck */}
-          <rect x="0" y="0" width={hasCond?HOUSE_W:VW} height={DECK_Y} fill="#10121c"/>
+            style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
+          {/* Full attic space above deck - subtly tinted by mode, see intFill above. */}
+          <rect x="0" y="0" width={hasCond?HOUSE_W:VW} height={DECK_Y}
+            style={{fill:intFill('attic'),transition:'fill .8s ease'}}/>
           {/* Closet below deck */}
           <rect x={UNIT_X-28} y={DECK_Y} width={UNIT_W+56} height={VH-DECK_Y}
-            fill="rgba(9,9,16,.9)" stroke={W+'.05)'} strokeWidth="1.4"/>
+            style={{fill:intFill('closet'),transition:'fill .8s ease'}} stroke={W+'.05)'} strokeWidth="1.4"/>
           <rect x={UNIT_X-28} y={DECK_Y} width="4" height={VH-DECK_Y} fill="#0d0d0d"/>
           <rect x={UNIT_X+UNIT_W+28} y={DECK_Y} width="4" height={VH-DECK_Y} fill="#0d0d0d"/>
           <text x={UNIT_X+UNIT_W/2} y={DECK_Y+14} textAnchor="middle"
