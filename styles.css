@@ -379,6 +379,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    regardless of whether picking it replaced or added to the answer. */
 .opt-check.radio{border-radius:50%}
 
+/* Shared field styling for the pricing flow's two number inputs (sqft
+   estimate on the sizing step, vent/register count on the ducts step) -
+   previously each re-typed the same background/border/color inline, and
+   the copies had drifted apart: sqft picked up the attic panel's
+   .opt-compact-style padding/font cut, vent-count never did, so it stood
+   taller than the Yes/No cards next to it in the same tight row. Same
+   compact modifier both inputs now share keeps them matched to each
+   other and to the option cards they sit beside. */
+.pricing-input{width:100%;background:var(--surf);border:1px solid var(--border);color:var(--wh);font-family:var(--fm);box-sizing:border-box;padding:8px 10px;font-size:13px}
+.pricing-input.compact{padding:3px 10px;font-size:11px}
+
 /* NAV */
 .nav-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--panel);position:sticky;bottom:0}
 .btn-back{flex:0 0 auto;background:transparent;border:1px solid var(--border);color:var(--mut);padding:11px 18px;font-family:var(--fb);font-size:var(--fs-btn-back);cursor:pointer;transition:border-color .2s,color .2s;outline:none}
@@ -402,7 +413,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .done-wrap{padding:24px 18px;text-align:center;animation:snap .35s ease both;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
 .done-icon{width:54px;height:54px;background:var(--gh);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--bk);font-weight:700}
 .done-title{font-family:var(--ft);font-size:19px;font-weight:700;color:var(--wh);margin-bottom:6px}
-.done-cta{display:block;width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px;font-family:var(--ft);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:8px;text-decoration:none;text-align:center}
+/* font-size used to be a flat 13px, so it never picked up the responsive
+   bump --fs-restart got in the accessibility pass below - at >=1025px
+   that left this primary "Resume My Build" CTA reading SMALLER than the
+   plain text link right under it (.done-restart, "Start Fresh Instead"),
+   inverting the intended primary/secondary size relationship. */
+.done-cta{display:block;width:100%;background:var(--gh);border:none;color:var(--bk);padding:13px;font-family:var(--ft);font-size:var(--fs-restart);font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:8px;text-decoration:none;text-align:center}
 /* Was rgba(255,255,255,.4) - measured well under the 4.5:1 contrast floor
    against the panel background (~3.8:1), so "Start Over"/"Start Fresh
    Instead" read as barely-there gray text for anyone with reduced contrast

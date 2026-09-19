@@ -3846,7 +3846,7 @@ function App(){
                           const rec=nearestTonnageOption(parseInt(val)||0);
                           setPricingAnswers(p=>({...p, sqftInput:val, ...(rec?{tonnageChoice:rec.v}:{})}));
                         }}
-                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:isAtticMode?"3px 10px":"8px 10px",fontSize:isAtticMode?11:13,fontFamily:"var(--fm)",boxSizing:"border-box"}}/>
+                        className={"pricing-input"+(isAtticMode?" compact":"")}/>
                     </>}
                     {subId==='ducts'&&<div style={{fontSize:isAtticMode?13:14.5,fontWeight:600,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>}
                   </div>
@@ -3886,7 +3886,7 @@ function App(){
                       {pricingAnswers.wantDucts&&<div style={{flex:1}}>
                         <div style={{fontSize:isAtticMode?9.5:11,color:"var(--mut)",marginBottom:4}}>How many vents/registers?</div>
                         <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,parseInt(e.target.value)||0)}))}
-                          style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:"9px 12px",fontFamily:"var(--fm)",fontSize:14,boxSizing:"border-box"}}/>
+                          className={"pricing-input"+(isAtticMode?" compact":"")}/>
                       </div>}
                     </div>}
                   </div>
