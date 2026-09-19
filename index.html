@@ -23,28 +23,28 @@
   --ft:'Lora',Georgia,serif;--fm:'Share Tech Mono',monospace;--fb:'Trebuchet MS',sans-serif;
 
   /* Type scale - mobile/tablet default. Desktop (>=1025px) overrides below.
-     The smallest sizes here (eyebrows, step labels, the info toggle) were
-     tuned purely for layout fit, not for reading comfort - bumped a notch
-     since the average visitor here is closer to 40-50 than 20, and these
-     labels carry real information (which step you're on, what a term
-     means), not pure decoration. Left untouched: --fs-opt-label/desc and
-     --fs-attic-label/desc, already sized generously in an earlier pass,
-     and the compact pricing sizing-step text (.opt-compact overrides,
-     inline in the sizing sub-steps), which is pinned to the attic panel's
-     fixed 200px height with zero spare room. */
-  --fs-opt-label:13px;--fs-opt-desc:11.5px;--fs-opt-badge:9px;
-  --fs-attic-label:13px;--fs-attic-desc:11px;--fs-attic-steplabel:11px;
-  --fs-step-eyebrow:9.5px;--fs-step-q:15.5px;--fs-step-hint:11.5px;
-  --fs-info-btn:10px;--fs-info-body:12px;
-  --fs-btn-back:12.5px;--fs-btn-next:13.5px;--fs-btn-skip:11.5px;
+     Sized up a notch across the board for a general-audience site where a
+     lot of visitors are closer to 40-50 than 20. --fs-opt-compact-label/
+     desc are a deliberate exception, held at the ORIGINAL --fs-opt-label/
+     desc values instead of following them up - .opt-compact (the sizing
+     sub-steps' option grid) is pinned to the attic panel's fixed 200px
+     height with zero spare room, proven to fit exactly at those original
+     sizes, so it can't follow the general bump without overflowing. */
+  --fs-opt-label:14px;--fs-opt-desc:12.5px;--fs-opt-badge:9.5px;
+  --fs-opt-compact-label:13px;--fs-opt-compact-desc:11.5px;
+  --fs-attic-label:14px;--fs-attic-desc:12px;--fs-attic-steplabel:12px;
+  --fs-step-eyebrow:10.5px;--fs-step-q:17px;--fs-step-hint:12.5px;
+  --fs-info-btn:10.5px;--fs-info-body:13px;
+  --fs-btn-back:13.5px;--fs-btn-next:14.5px;--fs-btn-skip:12.5px;
 }
 @media(min-width:1025px){
   :root{
-    --fs-opt-label:15.5px;--fs-opt-desc:13.5px;--fs-opt-badge:10px;
-    --fs-attic-label:15.5px;--fs-attic-desc:13px;--fs-attic-steplabel:14px;
-    --fs-step-eyebrow:11.5px;--fs-step-q:18px;--fs-step-hint:13.5px;
-    --fs-info-btn:11.5px;--fs-info-body:13.5px;
-    --fs-btn-back:14px;--fs-btn-next:15px;--fs-btn-skip:13px;
+    --fs-opt-label:17px;--fs-opt-desc:14.5px;--fs-opt-badge:10.5px;
+    --fs-opt-compact-label:15.5px;--fs-opt-compact-desc:13.5px;
+    --fs-attic-label:17px;--fs-attic-desc:14px;--fs-attic-steplabel:15px;
+    --fs-step-eyebrow:12.5px;--fs-step-q:20px;--fs-step-hint:14.5px;
+    --fs-info-btn:12.5px;--fs-info-body:14.5px;
+    --fs-btn-back:15.5px;--fs-btn-next:16.5px;--fs-btn-skip:14px;
   }
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -240,8 +240,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    layout's short, wide panel - every px here is one this panel doesn't
    have to give up to a scrollbar. */
 .opt-compact .opt-inner{padding:7px 10px}
-.opt-compact .opt-label{margin-bottom:0;line-height:1.15}
-.opt-compact .opt-desc{line-height:1.25}
+.opt-compact .opt-label{margin-bottom:0;line-height:1.15;font-size:var(--fs-opt-compact-label)}
+.opt-compact .opt-desc{line-height:1.25;font-size:var(--fs-opt-compact-desc)}
 .opt-badge{display:inline-block;background:var(--gh);color:var(--bk);font-size:var(--fs-opt-badge);font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .opt-check{width:21px;height:21px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;margin-top:2px;transition:all .15s}
 .opt.sel .opt-check{border-color:var(--gl);background:var(--gm);color:var(--bk)}
@@ -326,8 +326,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .splash-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .splash-card{width:360px;padding:28px 32px;background:rgba(215,183,64,.04);border:1px solid rgba(215,183,64,.15);cursor:pointer;transition:all .18s;display:flex;justify-content:center}
 .splash-card:hover{background:rgba(215,183,64,.09);border-color:rgba(215,183,64,.4);transform:translateY(-2px)}
-.splash-card-title{font-family:var(--ft);font-size:22px;font-weight:700;color:var(--wh)}
-.splash-card-desc{font-family:var(--fb);font-size:13px;color:var(--mut);text-align:center;line-height:1.6}
+.splash-card-title{font-family:var(--ft);font-size:23px;font-weight:700;color:var(--wh)}
+.splash-card-desc{font-family:var(--fb);font-size:14.5px;color:var(--mut);text-align:center;line-height:1.6}
 /* Attic: canvas fills all, step bar on bottom */
 .attic-layout{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
 .attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
@@ -3523,10 +3523,10 @@ function App(){
       {/* ── SPLASH - step 1 location picker ── */}
       <div className={"splash-screen"+(loc||done?" out":"")}>
         <div className="splash-logo">BUILD YOUR OWN SYSTEM</div>
-        <p style={{fontFamily:"var(--fb)",fontSize:"17px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:560,lineHeight:1.7,margin:"8px 0 4px"}}>
+        <p style={{fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
           Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.
         </p>
-        <p style={{fontFamily:"var(--fm)",fontSize:"13px",color:"rgba(215,183,64,.55)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>SELECT YOUR SYSTEM LOCATION TO BEGIN</p>
+        <p style={{fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.55)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>SELECT YOUR SYSTEM LOCATION TO BEGIN</p>
         <div className="splash-cards">
           <div className="splash-card" onClick={()=>{setA("location","attic");setStepIdx(1);}}>
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:4}}>
@@ -3541,7 +3541,7 @@ function App(){
             </div>
           </div>
         </div>
-        <p style={{fontFamily:"var(--fb)",fontSize:"13px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:440,lineHeight:1.6,marginTop:8}}>
+        <p style={{fontFamily:"var(--fb)",fontSize:"14px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:460,lineHeight:1.6,marginTop:8}}>
           Takes about 2 minutes. No personal info required. Your build saves automatically as you go.
         </p>
       </div>
@@ -3635,14 +3635,14 @@ function App(){
               lives here instead of costing the sidebar a row underneath. */}
           {isAtticMode&&(pricingFlow?
             <div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.7)",padding:"5px 9px"}}>
-              <span style={{fontSize:11,color:"rgba(255,255,255,.75)"}}>✓ Your system is built</span>
-              <button className="no-print" onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
+              <span style={{fontSize:12.5,color:"rgba(255,255,255,.75)"}}>✓ Your system is built</span>
+              <button className="no-print" onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"11px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
             </div>
             :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.55)",padding:"5px 9px 5px 6px"}}>
-              <div className="done-icon" style={{margin:0,width:24,height:24,fontSize:12,flexShrink:0}}>✓</div>
+              <div className="done-icon" style={{margin:0,width:26,height:26,fontSize:13,flexShrink:0}}>✓</div>
               <div>
-                <div className="done-title" style={{fontSize:12,marginBottom:0}}>Your System is Built</div>
-                <div style={{fontSize:9,color:"var(--mut)"}}>Review your selections below</div>
+                <div className="done-title" style={{fontSize:13.5,marginBottom:0}}>Your System is Built</div>
+                <div style={{fontSize:10.5,color:"var(--mut)"}}>Review your selections below</div>
               </div>
             </div>
           )}
@@ -3660,15 +3660,15 @@ function App(){
                 showing here, same as closet mode always does. */}
             {pricingFlow?
               <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
-                <span style={{fontSize:12,color:"rgba(255,255,255,.7)"}}>✓ Your system is built</span>
-                <button className="no-print" onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:"10px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
+                <span style={{fontSize:isAtticMode?12:13.5,color:"rgba(255,255,255,.7)"}}>✓ Your system is built</span>
+                <button className="no-print" onClick={()=>setPricingFlow(null)} style={{background:"none",border:"none",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:isAtticMode?"10px":"11.5px",letterSpacing:".04em",cursor:"pointer",textDecoration:"underline",padding:0}}>Edit selections</button>
               </div>
             :<>
             <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
-              <div className="done-icon" style={{margin:0,width:36,height:36,fontSize:16,flexShrink:0}}>✓</div>
+              <div className="done-icon" style={{margin:0,width:isAtticMode?36:40,height:isAtticMode?36:40,fontSize:isAtticMode?16:18,flexShrink:0}}>✓</div>
               <div>
-                <div className="done-title" style={{fontSize:16,marginBottom:1}}>Your System is Built</div>
-                <div style={{fontSize:11,color:"var(--mut)"}}>Review your selections below</div>
+                <div className="done-title" style={{fontSize:isAtticMode?16:18,marginBottom:1}}>Your System is Built</div>
+                <div style={{fontSize:isAtticMode?11:12.5,color:"var(--mut)"}}>Review your selections below</div>
               </div>
             </div>
             <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":"")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",borderRadius:2,display:"grid"}}>
@@ -3691,9 +3691,9 @@ function App(){
                 // in a tall column with plenty of room to spare, so it can run
                 // noticeably larger without ever needing to scroll.
                 <div key={i} style={{display:"flex",flexDirection:"column",gap:isAtticMode?2:3,padding:isAtticMode?"5px 34px 5px 10px":"8px 44px 8px 12px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
-                  <span style={{color:"rgba(215,183,64,.6)",fontFamily:"monospace",fontSize:isAtticMode?"9px":"11px",letterSpacing:".03em"}}>{item.label}</span>
-                  <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fb)",fontSize:isAtticMode?"11px":"14px",lineHeight:1.3,...(isAtticMode?{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}:{overflow:"visible",whiteSpace:"normal"})}} title={item.val}>{item.val}</span>
-                  <button className="no-print" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:isAtticMode?6:10,right:isAtticMode?6:10,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:isAtticMode?"8.5px":"10px",padding:isAtticMode?"2px 5px":"3px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
+                  <span style={{color:"rgba(215,183,64,.6)",fontFamily:"monospace",fontSize:isAtticMode?"9px":"12.5px",letterSpacing:".03em"}}>{item.label}</span>
+                  <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fb)",fontSize:isAtticMode?"11px":"15.5px",lineHeight:1.3,...(isAtticMode?{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}:{overflow:"visible",whiteSpace:"normal"})}} title={item.val}>{item.val}</span>
+                  <button className="no-print" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:isAtticMode?6:10,right:isAtticMode?6:10,background:"rgba(215,183,64,.1)",border:"1px solid rgba(215,183,64,.3)",color:"rgba(215,183,64,.8)",fontFamily:"monospace",fontSize:isAtticMode?"8.5px":"11px",padding:isAtticMode?"2px 5px":"3px 7px",cursor:"pointer",letterSpacing:".05em",borderRadius:1}}>EDIT</button>
                 </div>
               ):null)}
             </div>
@@ -3730,12 +3730,12 @@ function App(){
                 const left=(
                   <div className={isAtticMode?"pricing-substep-left":undefined} style={{flex:isAtticMode?"0 0 420px":"1 1 auto"}}>
                     {subId==='systems'&&<>
-                      <div style={{fontSize:13,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
-                      <div style={{fontSize:10.5,color:"var(--mut)",lineHeight:isAtticMode?1.3:1.5}}>This is typically the number of thermostats you have, or the number of outdoor condenser units.</div>
+                      <div style={{fontSize:isAtticMode?13:14.5,fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
+                      <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:isAtticMode?1.3:1.5}}>This is typically the number of thermostats you have, or the number of outdoor condenser units.</div>
                     </>}
                     {subId==='sqft'&&<>
-                      <div style={{fontSize:13,fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
-                      <div style={{fontSize:10.5,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5}}>
+                      <div style={{fontSize:isAtticMode?13:14.5,fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
+                      <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5}}>
                         {isAtticMode
                           ?"Pick the tonnage for your home's sq ft, or enter it below for a suggestion."
                           :<>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers - not the whole home.'} Not sure? Enter your sq ft for a suggested starting point.</>}
@@ -3747,9 +3747,9 @@ function App(){
                           const rec=nearestTonnageOption(parseInt(val)||0);
                           setPricingAnswers(p=>({...p, sqftInput:val, ...(rec?{tonnageChoice:rec.v}:{})}));
                         }}
-                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:isAtticMode?"3px 10px":"8px 10px",fontSize:isAtticMode?11:12,fontFamily:"var(--fm)",outline:"none",boxSizing:"border-box"}}/>
+                        style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:isAtticMode?"3px 10px":"8px 10px",fontSize:isAtticMode?11:13,fontFamily:"var(--fm)",outline:"none",boxSizing:"border-box"}}/>
                     </>}
-                    {subId==='ducts'&&<div style={{fontSize:13,fontWeight:600,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>}
+                    {subId==='ducts'&&<div style={{fontSize:isAtticMode?13:14.5,fontWeight:600,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>}
                   </div>
                 );
                 const right=(
@@ -3785,7 +3785,7 @@ function App(){
                         <div className="opt-inner"><div className="opt-body"><span className="opt-label">No / Skip</span></div></div>
                       </button>
                       {pricingAnswers.wantDucts&&<div style={{flex:1}}>
-                        <div style={{fontSize:9.5,color:"var(--mut)",marginBottom:4}}>How many vents/registers?</div>
+                        <div style={{fontSize:isAtticMode?9.5:11,color:"var(--mut)",marginBottom:4}}>How many vents/registers?</div>
                         <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,parseInt(e.target.value)||0)}))}
                           style={{width:"100%",background:"var(--surf)",border:"1px solid var(--border)",color:"var(--wh)",padding:"9px 12px",fontFamily:"var(--fm)",fontSize:14,boxSizing:"border-box"}}/>
                       </div>}
@@ -3793,7 +3793,7 @@ function App(){
                   </div>
                 );
                 return <div style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
-                  <div style={{fontSize:9,color:"rgba(215,183,64,.5)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
+                  <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.5)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
 
                   <div className={isAtticMode?"pricing-substep-row":undefined} style={{display:"flex",flexDirection:isAtticMode?"row":"column",gap:isAtticMode?20:8,alignItems:"flex-start"}}>
                     {left}
@@ -3801,8 +3801,8 @@ function App(){
                   </div>
 
                   <div style={{display:"flex",gap:8,marginTop:isAtticMode?8:12}}>
-                    <button className="btn-back" style={{flex:"0 0 auto",...(isAtticMode?{padding:"6px 16px"}:{})}} onClick={goSubBack}>‹ Back</button>
-                    <button className="btn-next" style={{flex:1,...(isAtticMode?{padding:"7px 16px"}:{})}} disabled={!canSubNext} onClick={goSubNext}>
+                    <button className="btn-back" style={{flex:"0 0 auto",...(isAtticMode?{padding:"6px 16px",fontSize:14}:{})}} onClick={goSubBack}>‹ Back</button>
+                    <button className="btn-next" style={{flex:1,...(isAtticMode?{padding:"7px 16px",fontSize:15}:{})}} disabled={!canSubNext} onClick={goSubNext}>
                       {pricingSubStep===subSteps.length-1?"Get My Estimate":"Next"}
                     </button>
                   </div>
@@ -3811,7 +3811,7 @@ function App(){
 
               {pricingFlow==='result'&&(()=>{
                 const est=calcEstimate(answers,pricingAnswers);
-                if(!est)return<div style={{fontSize:11,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
+                if(!est)return<div style={{fontSize:12.5,color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
                 // Attic's wide-short panel doesn't need this stacked
                 // full-width - splitting the price card and the
                 // considerations panel into side-by-side columns cuts the
@@ -3819,35 +3819,35 @@ function App(){
                 // narrow sidebar keeps the original single-column stack.
                 const priceCard=(
                   <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
-                    <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>AS LOW AS</div>
-                    <div style={{fontFamily:"var(--fm)",fontSize:42,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/><span style={{fontSize:16,color:"var(--dim)",fontWeight:400}}>/mo</span></div>
-                    <div style={{fontSize:10,color:"var(--mut)",marginTop:6,marginBottom:10}}>Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.</div>
-                    <div style={{fontSize:9,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
-                    <div style={{fontFamily:"var(--fm)",fontSize:26,color:"var(--gl)",marginBottom:10}}>~$<CountUp value={est.display} format={n=>n.toLocaleString()}/></div>
-                    {pricingAnswers.systemsCount&&pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:10,color:"rgba(215,183,64,.6)",marginBottom:10}}>Since your home has {pricingAnswers.systemsCount==='2'?'2 systems':'3+ systems'}, this estimate covers just the one you built here.</div>}
+                    <div style={{fontSize:10,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>AS LOW AS</div>
+                    <div style={{fontFamily:"var(--fm)",fontSize:44,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/><span style={{fontSize:17,color:"var(--dim)",fontWeight:400}}>/mo</span></div>
+                    <div style={{fontSize:11.5,color:"var(--mut)",marginTop:6,marginBottom:10}}>Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.</div>
+                    <div style={{fontSize:10,color:"rgba(215,183,64,.6)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
+                    <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<CountUp value={est.display} format={n=>n.toLocaleString()}/></div>
+                    {pricingAnswers.systemsCount&&pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:11.5,color:"rgba(215,183,64,.6)",marginBottom:10}}>Since your home has {pricingAnswers.systemsCount==='2'?'2 systems':'3+ systems'}, this estimate covers just the one you built here.</div>}
                     <div style={{marginBottom:10}}>
                       {est.lines.map((l,i)=>(
-                        <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:10.5}}>
+                        <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:12}}>
                           <span style={{color:"var(--dim)"}}>{l.label}</span>
                           <span style={{color:"rgba(255,255,255,.8)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>~${l.display.toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,.6)",lineHeight:1.5,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
+                    <div style={{fontSize:11.5,color:"rgba(255,255,255,.6)",lineHeight:1.5,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
                     <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ Adjust my answers</button>
                   </div>
                 );
                 // ── ADDITIONAL CONSIDERATIONS — education, not "choose your own" ──
                 const considerations=(
                   <div style={{width:"100%",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",...(isAtticMode?{}:{marginTop:12})}}>
-                    <div style={{fontSize:9,color:"rgba(215,183,64,.7)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
-                    <div style={{fontSize:10.5,color:"var(--dim)",lineHeight:1.7}}>
+                    <div style={{fontSize:10,color:"rgba(215,183,64,.7)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
+                    <div style={{fontSize:12,color:"var(--dim)",lineHeight:1.7}}>
                       <div><strong style={{color:"rgba(255,255,255,.85)"}}>Return plenum/ductwork</strong> - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should.</div>
                       <div><strong style={{color:"rgba(255,255,255,.85)"}}>New return duct run</strong> - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended.</div>
                       <div><strong style={{color:"rgba(255,255,255,.85)"}}>New supply duct runs</strong> - new duct, boot, and grille together for a single run. {pricingAnswers.ventCount>0?`You mentioned ${pricingAnswers.ventCount} vents - most homes only need a few of those runs redone, not all of them.`:"Ask us how many runs your home is likely to need."}</div>
                       <div><strong style={{color:"rgba(255,255,255,.85)"}}>Duct cleaning</strong> - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.</div>
                     </div>
-                    <div style={{fontSize:9.5,color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit.</div>
+                    <div style={{fontSize:11,color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit.</div>
                   </div>
                 );
                 if(!isAtticMode)return<>{priceCard}{considerations}</>;
@@ -3861,15 +3861,15 @@ function App(){
             {/* ── QUICK ACTIONS - one compact button grid instead of five
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
-            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"11px",fontSize:14}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>💰 Get Pricing</button>}
+            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"11px",fontSize:15}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>💰 Get Pricing</button>}
             {/* No Schedule Visit / phone CTA in this panel or the header -
                 both were dropped once this became an iframe embed on the
                 real site, which already has its own header with that CTA. */}
             <div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"12px",padding:"8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
-              <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"12px",padding:"8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
-              <button className="btn-back" style={{width:"100%",padding:"10px",fontSize:"12px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
-              <button className="done-restart" style={{width:"100%",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.18)",color:"rgba(255,255,255,.6)",fontFamily:"var(--fb)",fontSize:"12px",cursor:"pointer",padding:"10px",outline:"none",borderRadius:0}} onClick={restart}>Start Over</button>
+              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",background:"rgba(99,102,241,.12)",border:"1px solid rgba(99,102,241,.4)",color:"rgba(180,180,255,.85)",fontFamily:"monospace",fontSize:"13px",padding:"8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
+              <button onClick={()=>window.print()} style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.55)",fontFamily:"monospace",fontSize:"13px",padding:"8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
+              <button className="btn-back" style={{width:"100%",padding:"10px",fontSize:"13px",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
+              <button className="done-restart" style={{width:"100%",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.18)",color:"rgba(255,255,255,.6)",fontFamily:"var(--fb)",fontSize:"13px",cursor:"pointer",padding:"10px",outline:"none",borderRadius:0}} onClick={restart}>Start Over</button>
             </div>
           </div>
         </div>
