@@ -2760,8 +2760,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                       fill={G+'.3)'} fontSize="10" fontFamily="monospace">SUPPLY</text>
                   </g>
                 ))}
-                {/* Ionizer - horizontal from right */}
-                {hasIonizer&&!isExisting&&(()=>{
+                {/* Ionizer - horizontal from right. Shows regardless of
+                    whether the plenum is new or existing - same as the
+                    attic layout's equivalent ionizer block, which has never
+                    had an isExisting gate. An ionizer mounts inside the
+                    plenum itself, existing or not, so "keep existing
+                    plenum" has no bearing on whether it can be added. */}
+                {hasIonizer&&(()=>{
                   const rodLen=Math.round(PLEN_W*0.62);
                   const bulbX=UNIT_X+PLEN_W+12;
                   const rodY=PLEN_TOP+PLEN_TOTAL*0.88;
@@ -3119,8 +3124,14 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             {/* Suction line - always bold */}
             <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
               fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
-            {/* Flow dots -- both pipes */}
-            {Array.from({length:6},(_,i)=>{
+            {/* Flow dots -- both pipes. Gated on evapActive, same as the
+                attic layout's equivalent block - refrigerant only actually
+                moves through these lines while the compressor is active
+                (e.g. NOT during dual-fuel's furnace sub-mode, where the
+                heat pump/compressor is off and the furnace alone is
+                heating). This lacked that gate here, so the dots kept
+                animating flow even with the compressor in standby. */}
+            {evapActive&&Array.from({length:6},(_,i)=>{
               const isLine1=i<3;
               const pColor=isLine1?line1C:line2C;
               const lY=isLine1?LS_Y1:LS_Y2;
