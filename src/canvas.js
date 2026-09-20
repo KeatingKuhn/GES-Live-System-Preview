@@ -237,9 +237,9 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
     </g>
 
 
-    {/* ── CLOUD + RAIN - any system's mild 52° heat-pump preview (dual-fuel
+    {/* ── CLOUD + RAIN - any system's mild 60° heat-pump preview (dual-fuel
          HEAT PUMP, or a heat-pump-only system's own HEAT PUMP mode before
-         it drops to 28° AUX HEAT) - overcast rather than sunny or snowed in,
+         it drops to 32° AUX HEAT) - overcast rather than sunny or snowed in,
          same slot and reasoning as the sun above. Three depth layers of
          streaks (same treatment as the snow above) fall the full height
          of the zone along one consistent wind angle, so it reads as a
@@ -545,16 +545,16 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
 function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode,monthName}){
     if(compactToggle){
       const modes=isDualFuel?[
-        {key:'cool',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'hp',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
-        {key:'furnace',temp:'28°',active:heatMode&&heatSubMode==='furnace',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}},
+        {key:'cool',temp:'95°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'hp',temp:'60°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'furnace',temp:'32°',active:heatMode&&heatSubMode==='furnace',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}},
       ]:!hasFurnace?[
-        {key:'cool',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'hp',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
-        {key:'aux',temp:'28°',active:heatMode&&heatSubMode==='aux',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}},
+        {key:'cool',temp:'95°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'hp',temp:'60°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'aux',temp:'32°',active:heatMode&&heatSubMode==='aux',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}},
       ]:[
-        {key:'cool',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'heat',temp:'28°',active:heatMode,color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>setHeatMode(true)},
+        {key:'cool',temp:'95°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'heat',temp:'32°',active:heatMode,color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>setHeatMode(true)},
       ];
       return <div title="Not a control - tap to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',borderRadius:3,overflow:'hidden',...style}}>
         {modes.map((m,i)=>
@@ -590,13 +590,13 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
         color:!heatMode?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
         display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
         {/* Representative month for this mode's outside temp - see the
-            per-button mapping this file uses (96°→JUN peak summer,
-            52°→OCT mild shoulder season, 28°→FEB deep winter). Snowflake/
+            per-button mapping this file uses (95°→JUN peak summer,
+            60°→OCT mild shoulder season, 32°→FEB deep winter). Snowflake/
             flame icons dropped per direct feedback - the temp + mode label
             already say what this is without them. */}
         <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>(JUN)</span>
         <span>COOL MODE</span>
-        <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:!heatMode?1:0.55}}>96°</span>
+        <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:!heatMode?1:0.55}}>95°</span>
         <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>OUTSIDE TEMP</span>
       </button>
       <div style={{height:'1px',background:'rgba(215,183,64,.22)'}}/>
@@ -609,7 +609,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
             <span>HEAT PUMP</span>
-            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
+            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>60°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
           </button>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('furnace');}} style={{
@@ -619,7 +619,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>(FEB)</span>
             <span>FURNACE</span>
-            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.55}}>28°</span>
+            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.55}}>32°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>OUTSIDE TEMP</span>
           </button>
         </>
@@ -632,7 +632,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
             <span>HEAT PUMP</span>
-            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
+            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>60°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
           </button>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('aux');}} style={{
@@ -642,7 +642,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>(FEB)</span>
             <span>AUX HEAT</span>
-            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='aux'?1:0.55}}>28°</span>
+            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='aux'?1:0.55}}>32°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>OUTSIDE TEMP</span>
           </button>
         </>
@@ -653,7 +653,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
           display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
           <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>(FEB)</span>
           <span>HEAT MODE</span>
-          <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode?1:0.55}}>28°</span>
+          <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode?1:0.55}}>32°</span>
           <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>OUTSIDE TEMP</span>
         </button>}
     </div>
@@ -786,8 +786,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const CURRENT_MONTH_NAME=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][CURRENT_MONTH];
   const isHeatingSeason=CURRENT_MONTH<=1||CURRENT_MONTH>=10; // Nov-Feb
   // Within heating season, defaults the SUBmode too - November is still
-  // mild enough that a heat pump alone (52°F outside) handles it, but
-  // Dec/Jan/Feb are genuinely cold (28°F outside) where aux/furnace heat
+  // mild enough that a heat pump alone (60°F outside) handles it, but
+  // Dec/Jan/Feb are genuinely cold (32°F outside) where aux/furnace heat
   // actually kicks in for real, not just as a demo toggle.
   const isDeepWinter=CURRENT_MONTH<=1||CURRENT_MONTH===11; // Dec-Feb
   const [heatMode,setHeatMode]=React.useState(isHeatingSeason);
@@ -956,8 +956,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // a dehumidifier is pulling the humidity down (drier air reads as
   // comfortable at a higher temp), and a lower indoor reading as the
   // outdoor temp drops and the system has to work harder to hold it - full
-  // heat pump performance at 52°F outdoor, straining (aux heat/furnace
-  // takeover) at 28°F. Same split for a heat-pump-only air handler as for
+  // heat pump performance at 60°F outdoor, straining (aux heat/furnace
+  // takeover) at 32°F. Same split for a heat-pump-only air handler as for
   // dual fuel; a straight-cool system (furnace-only heating, no heat pump
   // at all) has no "efficient" state to show, so it always reads 67°.
   const thermostatTemp=!heatMode?(hasDehu?76:74):(((isDualFuel||!hasFurnace)&&heatSubMode==='hp')?70:67);
@@ -2020,9 +2020,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               ))}
             </g>
             <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(160,164,172,.5)" strokeWidth="2.5"/>
-            {/* Real condenser fans ramp up with load - faster at 96° (cool,
-                full compressor load) and 52° (mild heat-pump load) than at
-                28°, where either the compressor is standby (dual-fuel
+            {/* Real condenser fans ramp up with load - faster at 95° (cool,
+                full compressor load) and 60° (mild heat-pump load) than at
+                32°, where either the compressor is standby (dual-fuel
                 furnace mode) or running its slower low-ambient stage. */}
             <CondenserFan cx={fCX} cy={fCY} r={fR} active={active} fast={!heatMode||isMildHp}/>
           </>;
@@ -2543,8 +2543,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
 
           {/* Outside zone (right of wall) - brightest on a sunny (cool
-               mode) day, dimmer for the overcast 52° heat-pump day, darkest
-               for the 28° cold snap - reads as daylight outside instead of
+               mode) day, dimmer for the overcast 60° heat-pump day, darkest
+               for the 32° cold snap - reads as daylight outside instead of
                a fixed dark panel regardless of weather. Fades like the
                sun/cloud/snow rendered inside OutsideZone itself. See
                OUTSIDE_* constants above for the palette reasoning. */}
