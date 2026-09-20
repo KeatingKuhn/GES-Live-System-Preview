@@ -2356,21 +2356,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // Condenser: true side-wall view, lineset exits wall at condenser bottom.
   // ══════════════════════════════════════════════════════════
   if(isAttic){
-    // The living-space band below the deck line holds the return grille
-    // and the thermostat. Bumped back up from 95 (which only fit a
-    // thermostat squeezed to 65% of its real footprint, wedged under the
-    // return duct) now that the thermostat has moved into its own column
-    // in the left margin (see MARGIN_L below, THERM_* just after it) -
-    // borrowed from the attic zone's own headroom above, which has ~3x
-    // more height than the equipment needs (see VH's own comment above),
-    // so this doesn't touch VH/the roofline at all, just shifts DECK_Y up
-    // a bit and shrinks that already-generous headroom. Left at 140 even
-    // with the COOL/HEAT button row now painted below the thermostat's
-    // caption (see THERM_SCALE's own comment) - the taller content still
-    // fits inside this same band at every scale (the tightened upper
-    // clamp there is what makes room, not this), so there's no reason to
-    // shrink the system view above any further for it.
-    const LIVING_SPACE=140;
+    // The living-space band below the deck line holds just the return
+    // grille now - back down to 95 (from a 140 that was only ever there to
+    // give the thermostat room to breathe in this same band). The
+    // thermostat's since moved to its own spot beside the equipment
+    // instead (see THERM_* below, positioned off UNIT_Y/UNIT_H, not
+    // DECK_Y/LIVING_SPACE at all), so this band no longer needs to be any
+    // taller than the return grille itself actually needs - keeping it
+    // small is the point: it's what lets the supply/return grilles sit
+    // close to the bottom of the diagram instead of floating well above it.
+    const LIVING_SPACE=95;
     const ZOOM=hasCond?1:0.7;
     const BASE_VH=Math.round(510*ZOOM);
     const BASE_VW=Math.round(1280*ZOOM);
@@ -2444,15 +2439,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // sits genuinely empty today (a little roofline/insulation texture,
     // nothing structural), the same way the closet layout already has
     // real breathing room on both sides of ITS unit stack for a full-size
-    // thermostat. Scale derives from however wide MARGIN_L actually is at
-    // this viewport/equipment combo (never a fixed guess): clamped to
-    // [0.65, 1.55] so it never renders smaller than the old squeezed-in
-    // version even in a tight margin, and tops out a bit past the
-    // original pre-shrink 100% size in a roomy one. Below ~70px of
-    // margin (THERM_IN_MARGIN false) there just isn't a legible column to
-    // work with, so the thermostat falls back to its old spot wedged
-    // under the return duct instead - which still benefits from
-    // LIVING_SPACE's own increase above even in that fallback case.
+    // thermostat. Below ~70px of margin (THERM_IN_MARGIN false) there
+    // just isn't a legible column to work with, so the thermostat falls
+    // back to its old spot wedged under the return duct instead.
     const THERM_IN_MARGIN=MARGIN_L>=70;
     // The nominal box each thermostat design draws is 64 wide, but its
     // caption text (BASIC PROGRAMMABLE, the widest of the three labels)
@@ -2470,28 +2459,37 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // every size/position calc after this is based on what actually
     // needs to fit, not just the nominal box.
     const THERM_CONTENT_W=116, THERM_CONTENT_L=-26;
-    // 96 (up from a plain 78) is the real bottom-to-top extent now that a
-    // COOL/HEAT button row is painted below each variant's caption - see
-    // the button row's own y offsets a bit further down. Upper scale clamp
-    // pulled in from 1.55 to 1.2 to match: a taller content box needs more
-    // margin width per unit of scale to still fit LIVING_SPACE's band
-    // (still 140, unchanged - see its own comment) with real breathing
-    // room left over, not just barely avoiding a clip against the "LIVING
-    // SPACE" label sitting right below it.
-    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(1.2,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
+    // 96 is the real bottom-to-top extent of the tallest variant now that
+    // a COOL/HEAT button row is painted below each one's caption - see the
+    // button row's own y offsets a bit further down. THERM_MAX_SCALE caps
+    // the thermostat at (just under) its own real-world size relative to
+    // the equipment beside it: UNIT_H is a fixed 105 regardless of
+    // viewport (see its own comment - it's a real-world 15" dimension, not
+    // frame-derived), so this cap is a constant too, not something that
+    // keeps growing the thermostat bigger on a wider screen the way sizing
+    // off MARGIN_L alone used to. The MARGIN_L term still shrinks it
+    // further on a narrower margin than that.
+    const THERM_MAX_SCALE=(UNIT_H-10)/96;
+    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(THERM_MAX_SCALE,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
     const THERM_W=64*THERM_SCALE, THERM_H=96*THERM_SCALE;
     // TX/TY here are the <g transform="translate(...)"> origin, not a
     // bounding-box corner - the thermostat markup below still draws at
     // local 0-based coordinates (TX=0,TY=0 there) exactly as it always
     // has, so this places local x=THERM_CONTENT_L (the caption's real
     // left edge) at a small, constant safety pad from the house wall.
+    // Vertically centered on UNIT_Y/UNIT_H - the same row the equipment
+    // itself sits on - rather than anywhere in DECK_Y/LIVING_SPACE below,
+    // so the thermostat reads as sitting beside the system, not under it,
+    // and never has any bearing on how tall the living-space band needs
+    // to be.
     const THERM_TX=THERM_IN_MARGIN
       ?Math.round(8-THERM_CONTENT_L*THERM_SCALE)
       :RET_X+RET_PLEN_W+8;
-    const THERM_TY=THERM_IN_MARGIN?Math.round(DECK_Y+(LIVING_SPACE-THERM_H)/2):DECK_Y+12;
+    const THERM_TY=THERM_IN_MARGIN?Math.round(UNIT_Y+(UNIT_H-THERM_H)/2):DECK_Y+12;
     // Return plenum stays directly against the filter rack/furnace - the
-    // thermostat lives in the living-space band below instead, so it never
-    // gets inserted into this chain and pushes this adjacency apart.
+    // thermostat lives off to the left in its own margin column instead,
+    // so it never gets inserted into this chain and pushes this adjacency
+    // apart.
     const APR_X=RET_X+RET_PLEN_W+(APR_W?2:0);
     const UNIT_X=APR_X+APR_W+(APR_W?2:0);
     const FURN_X=UNIT_X;
@@ -2649,11 +2647,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <line key={'rr'+i} x1={rx} y1={DECK_Y} x2={RIDGE_X} y2={RIDGE_Y}
               stroke="rgba(88,68,32,.09)" strokeWidth="1.5"/>
           ))}
-          {/* Moved down near the floor (was DECK_Y+18, right where the
-              thermostat's new left-margin column now sits) - this label is
-              faint/decorative (9% opacity) so overlap wasn't a hard
-              collision, but the floor is genuinely empty here regardless
-              of where the thermostat lands. */}
+          {/* Moved down near the floor (was DECK_Y+18) - faint/decorative
+              (9% opacity) background label, sits clear of the return
+              grille/caption above it regardless of LIVING_SPACE's size. */}
           <text x="22" y={VH-10} fill={W+'.09)'} fontSize="12" fontFamily="monospace" letterSpacing="0.8">LIVING SPACE</text>
 
           {/* Return grille - duct trunk connects it down to the return plenum
