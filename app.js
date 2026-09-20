@@ -5207,7 +5207,9 @@
     };
     const goBack = () => {
       if (stepIdx > 0) {
-        setStepIdx((s) => s - 1);
+        const next = stepIdx - 1;
+        if (next === 0 && !quickEdit) setA("location", null);
+        setStepIdx(next);
         scrollTop();
       }
     };
@@ -5468,16 +5470,7 @@
       }
       return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, "GES")), opt.desc && /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, opt.desc)), /* @__PURE__ */ React.createElement("div", { className: isMulti ? "opt-check" : "opt-check radio", style: isOn && !isMulti ? { borderColor: "var(--gl)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" } : {} }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 8, height: 8, borderRadius: "50%", background: "var(--gh)" } }) : "")));
     };
-    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        className: "lang-toggle-btn",
-        onClick: () => setLang((l) => l === "es" ? "en" : "es"),
-        "aria-label": tr("Switch to Spanish", "Cambiar a ingl\xE9s"),
-        style: { position: "absolute", top: "50%", right: 8, transform: "translateY(-50%)", fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
-      },
-      lang === "es" ? "EN" : "ES"
-    )), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, "WELCOME BACK"), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, "WELCOME BACK"), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
       const savedCur = savedSteps[savedBuild.stepIdx];
       return savedBuild.done ? "You already finished building a system. Pick up right where you left off?" : savedCur ? /* @__PURE__ */ React.createElement(React.Fragment, null, "You were on ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.85)" } }, '"', savedCur.q, '"'), " - want to keep going?") : "You have a build in progress. Want to keep going?";
@@ -5523,7 +5516,16 @@
         }
       },
       /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { className: "splash-card-title" }, tr("Closet Upflow", "Cl\xF3set de Flujo Ascendente")), /* @__PURE__ */ React.createElement("div", { className: "splash-card-desc" }, tr("Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.", "La unidad se instala en posici\xF3n vertical en un cl\xF3set de servicio o pasillo. El aire fluye verticalmente a trav\xE9s del serpent\xEDn.")))
-    )), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su proceso se guarda autom\xE1ticamente."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    )), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        className: "lang-toggle-btn",
+        onClick: () => setLang((l) => l === "es" ? "en" : "es"),
+        "aria-label": tr("Switch to Spanish", "Cambiar a ingl\xE9s"),
+        style: { fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
+      },
+      lang === "es" ? "EN" : "ES"
+    ), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su proceso se guarda autom\xE1ticamente."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setQuickEdit(false);
       setDone(true);
     } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, tr("STEP", "PASO") + " " + stepIdx + (totalKnown ? " " + tr("OF", "DE") + " " + totalSteps : "")), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(

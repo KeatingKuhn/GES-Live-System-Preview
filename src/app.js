@@ -283,7 +283,18 @@ function App(){
     if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}else{setDone(true);scrollTop();trackBuildCompleted(answers);}
   };
   const goBack=()=>{
-    if(stepIdx>0){setStepIdx(s=>s-1);scrollTop();}
+    if(stepIdx>0){
+      const next=stepIdx-1;
+      // Stepping back past the first real question returns to the actual
+      // splash screen (clearing location, which is what keeps it hidden)
+      // instead of a bare duplicate of the location question rendered
+      // inline in the wizard chrome. Skipped in quick-edit mode, which
+      // should stay scoped to the one answer being edited rather than
+      // unwind all the way back to the start of the whole build.
+      if(next===0&&!quickEdit)setA('location',null);
+      setStepIdx(next);
+      scrollTop();
+    }
   };
   // Skipping a multi-select step means "none of the optional extras" - but
   // for purif specifically, the enhanced filtration cabinet ships standard
@@ -694,24 +705,10 @@ function App(){
   };
 
     return(<>
-      <div className="site-header-spacer no-print">
-        {/* Language toggle lives in this reserved 43px header-spacer bar
-            (always empty, always on top at z-index 50 - see .site-header-
-            spacer in styles.css) rather than floating over the canvas.
-            It used to sit inside .prog-chapters (the segmented progress
-            bar), which is only 4px tall - the button's real height
-            overflowed straight down into the canvas's own top-right
-            corner, where the live diagram renders its own ToggleUI mode-
-            preview box (also top:8/right:8, but relative to the canvas
-            frame) - the two collided and clipped each other on every
-            step past indoor_type. This spacer bar has no such conflict:
-            nothing else is ever drawn in it. */}
-        <button className="lang-toggle-btn" onClick={()=>setLang(l=>l==='es'?'en':'es')}
-          aria-label={tr('Switch to Spanish','Cambiar a inglés')}
-          style={{position:"absolute",top:"50%",right:8,transform:"translateY(-50%)",fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
-          {lang==='es'?'EN':'ES'}
-        </button>
-      </div>
+      {/* Reserved header-spacer bar simulating the real WordPress site
+          header's height above the iframe - unrelated to the language
+          toggle, which lives down on the splash screen now (see below). */}
+      <div className="site-header-spacer no-print"/>
     <div ref={topRef} className="app-root">
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
       {resumePending&&<div className="fadein" style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
@@ -817,6 +814,14 @@ function App(){
             </div>
           </div>
         </div>
+        {/* Small language toggle, below the two cards - only ever shown
+            here on the splash screen, not as a persistent header across
+            every wizard step. */}
+        <button className="lang-toggle-btn" onClick={()=>setLang(l=>l==='es'?'en':'es')}
+          aria-label={tr('Switch to Spanish','Cambiar a inglés')}
+          style={{fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
+          {lang==='es'?'EN':'ES'}
+        </button>
         <p style={{fontFamily:"var(--fb)",fontSize:"14px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:460,lineHeight:1.6,marginTop:8}}>
           {tr('Takes about 2 minutes. No personal info required. Your build saves automatically as you go.','Toma unos 2 minutos. No se requiere información personal. Su proceso se guarda automáticamente.')}
         </p>
