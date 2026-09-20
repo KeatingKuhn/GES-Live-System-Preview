@@ -1165,8 +1165,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // as the plainer vs. nicer fan guard at a glance.
     const guardRings=Math.max(2,Math.min(5,Math.round((slatCount||6)/3)));
     const cx=x+w/2, cy=y+h/2;
-    const fanRx=w*0.42;  // keep well inside width
-    const fanRy=h*0.34;  // keep well inside height
+    // Enlarged per a reference photo of a real condenser, where the fan/
+    // guard fills almost the entire top cap edge-to-edge - the previous
+    // 0.42/0.34 left a lot of visibly empty dark cap around a small oval.
+    const fanRx=w*0.46;
+    const fanRy=h*0.38;
     const spd=active?0.9:0;
     const spinStyle=active?{
       transformBox:'fill-box',
@@ -1254,28 +1257,47 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
     return <g>
       {isFed&&<>
-        {/* FED MIN: flat, boxy builder-grade cabinet -- square-ish
-            corners, a plain light panel with just two stamped seams
-            (not the old wall-to-wall micro-louvers), reading as the
-            no-frills base unit next to the high-eff cabinet below. */}
-        <rect x={x} y={y} width={w} height={h} rx={2}
+        {/* FED MIN: matched closely against a reference photo of a real
+            GE fed-min cabinet - genuinely rounded corners (not the
+            square-ish rx=2 this used to be), a chevron-louvered body,
+            and a domed black cap whose fan/guard fills nearly the whole
+            top instead of sitting as a small oval in empty dark space. */}
+        <rect x={x} y={y} width={w} height={h} rx={9}
           fill={active?"#b9bdc5":"#c4c8cf"}
           stroke={active?"rgba(150,155,165,.9)":"rgba(130,135,145,.8)"} strokeWidth="1.2"/>
         {/* Dark top cap with CapFan */}
         {(()=>{
           const capH=Math.round(h*0.20);
           return <>
-            <rect x={x} y={y} width={w} height={capH} rx={2}
+            <rect x={x} y={y} width={w} height={capH} rx={9}
               fill={active?"#3a3d42":"#2e3035"} stroke="rgba(20,22,26,.8)" strokeWidth="1"/>
+            {/* Domed-cap illusion - a flat rect can't actually curve in
+                this front-on view, so a lighter highlight arc along the
+                top edge + a darker shadow arc along the bottom edge fakes
+                the cap bulging up toward the viewer the way it does in
+                the reference photo. */}
+            <path d={`M${x+9} ${y+2} Q${x+w/2} ${y-1.5} ${x+w-9} ${y+2}`}
+              fill="none" stroke="rgba(150,155,165,.4)" strokeWidth="1.1" opacity="0.7"/>
+            <path d={`M${x+6} ${y+capH-1.5} Q${x+w/2} ${y+capH+2} ${x+w-6} ${y+capH-1.5}`}
+              fill="none" stroke="rgba(10,11,13,.6)" strokeWidth="1.3" opacity="0.6"/>
             <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
               bladeColor={active?(refReversed?"rgba(100,160,220,.8)":"rgba(220,90,90,.7)"):"rgba(45,48,55,.6)"}
               slatFill={active?"rgba(44,47,54,.88)":"rgba(36,39,46,.92)"}
               ringColor="rgba(120,125,135,.55)"
               slatCount={Math.max(3,Math.floor((capH-2)*0.7/6.5))}/>
-            {[[x+5,y+4],[x+w-5,y+4],[x+5,y+capH-4],[x+w-5,y+capH-4]].map(([sx,sy],i)=>(
-              <circle key={i} cx={sx} cy={sy} r={1.8}
-                fill="rgba(50,55,62,.9)" stroke="rgba(80,85,95,.5)" strokeWidth="0.5"/>
-            ))}
+            {/* Screw ring around the cap's outer edge (8, not the old 4
+                corner-only rivets) - the reference photo shows these
+                spaced all the way around the cap perimeter, not just at
+                its corners. */}
+            {Array.from({length:8},(_,i)=>{
+              const ang=(i/8)*Math.PI*2;
+              // Pushed out to the cap's own edge (not the fan/guard's) so
+              // the screws sit clearly outside the guard assembly, same
+              // as the reference photo's perimeter screw ring.
+              const rx=(w/2-3), ry=(capH/2-2.5);
+              return <circle key={i} cx={x+w/2+rx*Math.cos(ang)} cy={y+capH/2+ry*Math.sin(ang)} r={1.6}
+                fill="rgba(50,55,62,.9)" stroke="rgba(80,85,95,.5)" strokeWidth="0.5"/>;
+            })}
           </>;
         })()}
         {/* Flat panel body -- a continuous chevron-louver ribbon pattern
@@ -1307,28 +1329,34 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 const tx=x+4+t*toothW;
                 d+=` L${tx+toothW/2} ${rowY-1.7} L${tx+toothW} ${rowY}`;
               }
-              return <path key={r} d={d} fill="none"
-                stroke={active?"rgba(100,105,115,.4)":"rgba(90,95,105,.38)"} strokeWidth="0.65"/>;
+              // A single mid-tone line read as flat/subtle - a lighter
+              // highlight pass just above + a darker shadow pass just
+              // below the same path fakes each tooth catching light on
+              // its raised edge, closer to the crisp embossed look in
+              // the reference photo's die-stamped louvers.
+              return <g key={r}>
+                <path d={d} fill="none" stroke={active?"rgba(210,213,218,.55)":"rgba(220,223,228,.5)"} strokeWidth="0.5" transform="translate(0,-0.35)"/>
+                <path d={d} fill="none" stroke={active?"rgba(90,95,105,.5)":"rgba(80,85,95,.48)"} strokeWidth="0.5" transform="translate(0,0.35)"/>
+              </g>;
             })}
           </>;
         })()}
-        {/* Manufacturer data/rating plate, centered on the door panel -- a
-            generic nameplate (rivets + printed spec lines), not a badge or
-            monogram, so nothing here reads as a copied logo. */}
+        {/* Round manufacturer badge, centered on the panel - the reference
+            photo shows a round medallion (not a rectangular data plate)
+            roughly a third of the way down the body. Kept deliberately
+            blank/generic (a plain ringed medallion, no text or monogram)
+            so nothing here reads as a copied brand mark - the round
+            SHAPE alone isn't anyone's trademark, only a specific logo
+            would be. */}
         {(()=>{
           const capH=Math.round(h*0.20);
-          const by=y+capH+Math.round((h-capH)*0.36);
-          const pw=Math.round(w*0.44), ph=Math.round(h*0.16);
-          const px=x+w/2-pw/2;
+          const bcx=x+w/2, bcy=y+capH+Math.round((h-capH)*0.38);
+          const br=Math.round(Math.min(w,h)*0.09);
           return <>
-            <rect x={px} y={by} width={pw} height={ph} rx="1.5"
-              fill="rgba(45,48,55,.55)" stroke="rgba(80,85,95,.55)" strokeWidth="0.8"/>
-            {[0.28,0.5,0.72].map((ty,i)=>(
-              <rect key={i} x={px+pw*0.14} y={by+ph*ty} width={pw*0.72*(1-i*0.16)} height={ph*0.09} rx="0.5"
-                fill="rgba(150,155,165,.45)"/>
-            ))}
-            <circle cx={px+3} cy={by+3} r={1.1} fill="rgba(90,95,105,.7)"/>
-            <circle cx={px+pw-3} cy={by+ph-3} r={1.1} fill="rgba(90,95,105,.7)"/>
+            <ellipse cx={bcx} cy={bcy} rx={br} ry={br*0.82}
+              fill="rgba(40,43,50,.6)" stroke="rgba(150,155,165,.55)" strokeWidth="1"/>
+            <ellipse cx={bcx} cy={bcy} rx={br*0.72} ry={br*0.6}
+              fill="none" stroke="rgba(150,155,165,.35)" strokeWidth="0.6"/>
           </>;
         })()}
         {[[x+4,y+h-4],[x+w-4,y+h-4]].map(([fx,fy],i)=>(

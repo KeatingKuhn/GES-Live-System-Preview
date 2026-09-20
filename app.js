@@ -1737,8 +1737,8 @@
     function CapFan({ x, y, w, h, active, bladeColor, slatFill, slatCount, ringColor }) {
       const guardRings = Math.max(2, Math.min(5, Math.round((slatCount || 6) / 3)));
       const cx = x + w / 2, cy = y + h / 2;
-      const fanRx = w * 0.42;
-      const fanRy = h * 0.34;
+      const fanRx = w * 0.46;
+      const fanRy = h * 0.38;
       const spd = active ? 0.9 : 0;
       const spinStyle = active ? {
         transformBox: "fill-box",
@@ -1872,7 +1872,7 @@
           y,
           width: w,
           height: h,
-          rx: 2,
+          rx: 9,
           fill: active ? "#b9bdc5" : "#c4c8cf",
           stroke: active ? "rgba(150,155,165,.9)" : "rgba(130,135,145,.8)",
           strokeWidth: "1.2"
@@ -1886,10 +1886,28 @@
             y,
             width: w,
             height: capH,
-            rx: 2,
+            rx: 9,
             fill: active ? "#3a3d42" : "#2e3035",
             stroke: "rgba(20,22,26,.8)",
             strokeWidth: "1"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "path",
+          {
+            d: `M${x + 9} ${y + 2} Q${x + w / 2} ${y - 1.5} ${x + w - 9} ${y + 2}`,
+            fill: "none",
+            stroke: "rgba(150,155,165,.4)",
+            strokeWidth: "1.1",
+            opacity: "0.7"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "path",
+          {
+            d: `M${x + 6} ${y + capH - 1.5} Q${x + w / 2} ${y + capH + 2} ${x + w - 6} ${y + capH - 1.5}`,
+            fill: "none",
+            stroke: "rgba(10,11,13,.6)",
+            strokeWidth: "1.3",
+            opacity: "0.6"
           }
         ), /* @__PURE__ */ React.createElement(
           CapFan,
@@ -1904,18 +1922,22 @@
             ringColor: "rgba(120,125,135,.55)",
             slatCount: Math.max(3, Math.floor((capH - 2) * 0.7 / 6.5))
           }
-        ), [[x + 5, y + 4], [x + w - 5, y + 4], [x + 5, y + capH - 4], [x + w - 5, y + capH - 4]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement(
-          "circle",
-          {
-            key: i,
-            cx: sx,
-            cy: sy,
-            r: 1.8,
-            fill: "rgba(50,55,62,.9)",
-            stroke: "rgba(80,85,95,.5)",
-            strokeWidth: "0.5"
-          }
-        )));
+        ), Array.from({ length: 8 }, (_, i) => {
+          const ang = i / 8 * Math.PI * 2;
+          const rx = w / 2 - 3, ry = capH / 2 - 2.5;
+          return /* @__PURE__ */ React.createElement(
+            "circle",
+            {
+              key: i,
+              cx: x + w / 2 + rx * Math.cos(ang),
+              cy: y + capH / 2 + ry * Math.sin(ang),
+              r: 1.6,
+              fill: "rgba(50,55,62,.9)",
+              stroke: "rgba(80,85,95,.5)",
+              strokeWidth: "0.5"
+            }
+          );
+        }));
       })(), (() => {
         const capH = Math.round(h * 0.2);
         const slotY = y + capH + 3, slotH = h - capH - 6;
@@ -1939,46 +1961,35 @@
             const tx = x + 4 + t * toothW;
             d += ` L${tx + toothW / 2} ${rowY - 1.7} L${tx + toothW} ${rowY}`;
           }
-          return /* @__PURE__ */ React.createElement(
-            "path",
-            {
-              key: r,
-              d,
-              fill: "none",
-              stroke: active ? "rgba(100,105,115,.4)" : "rgba(90,95,105,.38)",
-              strokeWidth: "0.65"
-            }
-          );
+          return /* @__PURE__ */ React.createElement("g", { key: r }, /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(210,213,218,.55)" : "rgba(220,223,228,.5)", strokeWidth: "0.5", transform: "translate(0,-0.35)" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(90,95,105,.5)" : "rgba(80,85,95,.48)", strokeWidth: "0.5", transform: "translate(0,0.35)" }));
         }));
       })(), (() => {
         const capH = Math.round(h * 0.2);
-        const by = y + capH + Math.round((h - capH) * 0.36);
-        const pw = Math.round(w * 0.44), ph = Math.round(h * 0.16);
-        const px = x + w / 2 - pw / 2;
+        const bcx = x + w / 2, bcy = y + capH + Math.round((h - capH) * 0.38);
+        const br = Math.round(Math.min(w, h) * 0.09);
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "rect",
+          "ellipse",
           {
-            x: px,
-            y: by,
-            width: pw,
-            height: ph,
-            rx: "1.5",
-            fill: "rgba(45,48,55,.55)",
-            stroke: "rgba(80,85,95,.55)",
-            strokeWidth: "0.8"
+            cx: bcx,
+            cy: bcy,
+            rx: br,
+            ry: br * 0.82,
+            fill: "rgba(40,43,50,.6)",
+            stroke: "rgba(150,155,165,.55)",
+            strokeWidth: "1"
           }
-        ), [0.28, 0.5, 0.72].map((ty, i) => /* @__PURE__ */ React.createElement(
-          "rect",
+        ), /* @__PURE__ */ React.createElement(
+          "ellipse",
           {
-            key: i,
-            x: px + pw * 0.14,
-            y: by + ph * ty,
-            width: pw * 0.72 * (1 - i * 0.16),
-            height: ph * 0.09,
-            rx: "0.5",
-            fill: "rgba(150,155,165,.45)"
+            cx: bcx,
+            cy: bcy,
+            rx: br * 0.72,
+            ry: br * 0.6,
+            fill: "none",
+            stroke: "rgba(150,155,165,.35)",
+            strokeWidth: "0.6"
           }
-        )), /* @__PURE__ */ React.createElement("circle", { cx: px + 3, cy: by + 3, r: 1.1, fill: "rgba(90,95,105,.7)" }), /* @__PURE__ */ React.createElement("circle", { cx: px + pw - 3, cy: by + ph - 3, r: 1.1, fill: "rgba(90,95,105,.7)" }));
+        ));
       })(), [[x + 4, y + h - 4], [x + w - 4, y + h - 4]].map(([fx, fy], i) => /* @__PURE__ */ React.createElement(
         "circle",
         {
