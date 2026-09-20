@@ -464,39 +464,29 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           <line x1={DX+DW} y1={DY+DH/2} x2={condX} y2={DY+DH/2}
             stroke={G+'.48)'} strokeWidth="4" strokeLinecap="round"/>
         </>}
-        {/* Surge protector - bigger, below disconnect. Its own width, wider
-            than DW (the disconnect box above it keeps DW=44, sized for the
-            much shorter "DISC."/"SURGE") - "PROTECTOR" alone measures ~60
-            units wide at fontSize 11, well past a 44-wide box, and was
-            spilling out past the rounded corners on both sides instead of
-            reading as text inside a box. Centered under the disconnect box
-            (SX+SW/2 === DX+DW/2) so the two still look like a stacked pair;
-            every layout that reaches this component has open wall space on
-            both sides here for the extra width. The decorative inner-stroke
-            rect below also gets its own height now (was reusing the
-            disconnect box's DH-4, taller than this 52-tall box and
-            overflowing its bottom edge unnoticed under the low-opacity
-            stroke). */}
+        {/* Surge protector - below disconnect, same width (DW) so the two
+            read as one stacked mounted pair flush against the wall instead
+            of the wider box below overhanging the narrower one above it.
+            "PROTECTOR" doesn't fit a 44-wide box at a normal caption size
+            (measures ~60 units at fontSize 11), so it's set small (7)
+            here instead of widening the box to fit it - "SURGE" plus the
+            bolt icon above already carry the meaning on their own, this
+            caption is just backup. */}
         {isSurge&&<g className="fadein">
-          {(()=>{
-            const SW=DW+28, SX=DX-14;
-            return <>
-              <rect x={SX} y={DY+DH+6} width={SW} height={52} rx="4"
-                fill="#160700" stroke="#f97316" strokeWidth="1.8"/>
-              <rect x={SX+2} y={DY+DH+8} width={SW-4} height={44} rx="3"
-                fill="none" stroke="rgba(249,115,22,.15)" strokeWidth="0.7"/>
-              {/* Label */}
-              <rect x={SX+4} y={DY+DH+10} width={SW-8} height={15} rx="2"
-                fill="rgba(249,115,22,.12)" stroke="#f97316" strokeWidth="0.7"/>
-              <text x={SX+SW/2} y={DY+DH+21.5} textAnchor="middle"
-                fill="#f97316" fontSize="12" fontFamily="monospace" fontWeight="700">SURGE</text>
-              {/* Lightning bolt */}
-              <text x={SX+SW/2} y={DY+DH+40} textAnchor="middle"
-                fill="#f97316" fontSize="22">⚡</text>
-              <text x={SX+SW/2} y={DY+DH+54} textAnchor="middle"
-                fill="rgba(249,115,22,.6)" fontSize="11" fontFamily="monospace">PROTECTOR</text>
-            </>;
-          })()}
+          <rect x={DX} y={DY+DH+6} width={DW} height={52} rx="4"
+            fill="#160700" stroke="#f97316" strokeWidth="1.8"/>
+          <rect x={DX+2} y={DY+DH+8} width={DW-4} height={44} rx="3"
+            fill="none" stroke="rgba(249,115,22,.15)" strokeWidth="0.7"/>
+          {/* Label */}
+          <rect x={DX+3} y={DY+DH+10} width={DW-6} height={15} rx="2"
+            fill="rgba(249,115,22,.12)" stroke="#f97316" strokeWidth="0.7"/>
+          <text x={DX+DW/2} y={DY+DH+21.5} textAnchor="middle"
+            fill="#f97316" fontSize="12" fontFamily="monospace" fontWeight="700">SURGE</text>
+          {/* Lightning bolt */}
+          <text x={DX+DW/2} y={DY+DH+40} textAnchor="middle"
+            fill="#f97316" fontSize="22">⚡</text>
+          <text x={DX+DW/2} y={DY+DH+54} textAnchor="middle"
+            fill="rgba(249,115,22,.6)" fontSize="7" fontFamily="monospace">PROTECTOR</text>
         </g>}
       </>;
     })()}
