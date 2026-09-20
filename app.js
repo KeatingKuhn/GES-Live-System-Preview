@@ -2177,7 +2177,7 @@
         const panelW = w - Math.round(w * 0.7) - 2;
         const panelY = y + Math.round(h * 0.1) + 4;
         const panelH = h - Math.round(h * 0.1) - 8;
-        const br = Math.round(panelW * 0.34);
+        const br = Math.round(Math.min(w, h) * 0.09);
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {

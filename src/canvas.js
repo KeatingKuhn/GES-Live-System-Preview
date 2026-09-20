@@ -1483,7 +1483,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           const panelW=w-Math.round(w*0.7)-2;
           const panelY=y+Math.round(h*0.1)+4;
           const panelH=h-Math.round(h*0.1)-8;
-          const br=Math.round(panelW*0.34);
+          // Same badge formula fed-min/high-eff use (a fraction of the
+          // whole cabinet's shorter side), not a fraction of this narrow
+          // side panel - the old panelW*0.34 badge read noticeably
+          // bigger/more prominent than the other two tiers' medallion.
+          const br=Math.round(Math.min(w,h)*0.09);
           return <>
             <rect x={panelX} y={panelY} width={panelW} height={panelH} rx="4"
               fill={active?"#b0b4ba":"#a8acb2"} stroke="rgba(90,94,102,.7)" strokeWidth="0.8"/>
