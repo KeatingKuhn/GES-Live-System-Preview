@@ -323,11 +323,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 @keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
 .line-pulse{animation:gpulse 2.2s ease-in-out infinite;pointer-events:none}
 /* Done-screen diagram is clickable - hover reveals which piece each
-   component maps back to, so "edit this" doesn't require finding it in a list. */
+   component maps back to, so "edit this" doesn't require finding it in a list.
+   The box-level ring this used to draw on hover (.edit-zone-ring) was
+   removed - see EditZone's own comment in canvas.js - in favor of every
+   individual sub-part's own HoverInfo ring (hover-info-panel below). */
 .edit-zone{cursor:pointer}
 .edit-zone rect:first-child{pointer-events:all}
-.edit-zone-ring{opacity:0;transition:opacity .15s ease-out;pointer-events:none}
-.edit-zone:hover .edit-zone-ring{opacity:1}
 /* Wizard "you are here" spotlight (StepFocusRing in canvas.js) - a pulsing
    dashed ring on whichever component the step CURRENTLY being asked is
    about. Deliberately reuses three animations already defined above rather

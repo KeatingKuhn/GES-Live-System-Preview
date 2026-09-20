@@ -129,7 +129,7 @@ export const STEPS_ES={
   location:   {q:'¿Dónde está su unidad interior?',      hint:'Define el diseño de todo su sistema.'},
   indoor_type:{q:'¿Qué tipo de unidad interior?',          hint:'¿Horno o manejador de aire?\nHorno = Calefacción a gas.\nManejador de aire = Todo eléctrico.'},
   insulation: {q:'¿Fibra de vidrio o espuma aislante?',    hint:'Determina la construcción de su ático - y la eficiencia de su horno, si tiene uno.'},
-  plenum:     {q:'¿Necesita un plenum de suministro nuevo?', hint:'Alimenta aire acondicionado a sus ductos.'},
+  plenum:     {q:'¿Necesita un plenum de suministro nuevo?', hint:'Envía aire acondicionado a sus ductos.'},
   cond_tier:  {q:'Elija su nivel de eficiencia.',          hint:'Mayor eficiencia, facturas mensuales más bajas.'},
   system_for: {q:'¿Bomba de calor o solo enfriamiento?',   hint:'La bomba de calor hace más; el A/C solo enfría.'},
   thermostat: {q:'¿Qué termostato?',                       hint:'Los modelos Wi-Fi ahorran 10–15% en su factura.'},
@@ -162,7 +162,7 @@ export const OPTS_ES={
     none:     {label:'Conservar el plenum actual', desc:'Ya está en buen estado - conectamos directamente, ahorrando en mano de obra.'},
   },
   thermostat:{
-    proprietary:{label:'Termostato Comunicante',  desc:'Requerido en este nivel para una gradación precisa y diagnósticos completos.'},
+    proprietary:{label:'Termostato Comunicante',  desc:'Requerido en este nivel para un control por etapas preciso y diagnósticos completos.'},
     basic:      {label:'Programable Básico',      desc:'Confiable, sin app ni suscripción. Configure su horario y listo.'},
     wifi:       {label:'Inteligente Wi-Fi',       desc:'Contrólelo desde su teléfono, aprende sus hábitos. Ahorra 10–15% en su factura.'},
   },
@@ -181,7 +181,7 @@ export const OPTS_ES={
     high_ge18:{label:'Alta Eficiencia - 21 SEER2',  desc:'Nivel superior con tecnología Inverter.'},
   },
   dehu:{
-    yes:{label:'Sí, agregarlo', desc:'Dimensionado a sus pies cuadrados, funciona automáticamente. Sin mantenimiento.'},
+    yes:{label:'Sí, agregarlo', desc:'Calculado según el tamaño de su casa, funciona automáticamente. Sin mantenimiento.'},
     no: {label:'No, gracias',   desc:'Omitir por ahora - fácil de agregar después si la humedad se vuelve un problema.'},
   },
   extras:{
@@ -263,12 +263,7 @@ export const PRICING={
   // warranty, offered as a flat add-on at the end of pricing rather than
   // its own wizard question.
   laborWarranty10yr:1750,
-  // DRAFT PLACEHOLDER - price and plan structure are a starting draft, not
-  // confirmed numbers. First-year price + what's included below both need
-  // real figures before this ships live; swap them here, nothing else to
-  // change. $199/yr and the two-tune-up structure are typical of the
-  // industry, not anything GES-specific.
-  maintenancePlanAnnual:199,
+  maintenancePlanAnnual:177,
 };
 
 // ─── PRICING CALCULATION ────────────────────────────────────────
@@ -402,14 +397,12 @@ export function trackBuildCompleted(answers){
 }
 
 // ─── FINANCING OPTIONS ──────────────────────────────────────────
-// Shown as one button per entry with a real url - Wells Fargo is left
-// blank until its actual application/enrollment link is provided, so it
-// simply doesn't render a button yet (no placeholder/broken link goes
-// live). Add the url and it appears automatically, no other code change
-// needed.
+// Shown as one button per entry with a real url - an entry with no url
+// simply doesn't render a button (no placeholder/broken link goes live).
+// Add an entry with its url and it appears automatically, no other code
+// change needed.
 export const FINANCING_OPTIONS=[
   {key:'wisetack',label:'Wisetack',url:'https://wisetack.us/#/hyhu11w/prequalify'},
-  {key:'wellsfargo',label:'Wells Fargo',url:''},
 ];
 
 // ─── CONTACT-FORM GATE ──────────────────────────────────────────
@@ -423,7 +416,7 @@ export const FINANCING_OPTIONS=[
 // required WordPress-side snippet in src/app.js, right where this is
 // imported and used.
 export const GATE_CONFIG={
-  gravityFormId:0,
+  gravityFormId:9,
 };
 const TIER_LABEL={fedmin:'Federal Minimum - 14 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
@@ -481,8 +474,8 @@ export function calcEstimate(answers,pricingAnswers){
   if(pricingAnswers.wantLaborWarranty){
     lines.push({key:'laborWarranty',label:'10-year labor warranty',price:PRICING.laborWarranty10yr});
   }
-  // Annual maintenance plan - same treatment (see the DRAFT PLACEHOLDER
-  // comment on PRICING.maintenancePlanAnnual above).
+  // Annual maintenance plan - same add-on treatment as the labor warranty
+  // above, not a wizard question.
   if(pricingAnswers.wantMaintenancePlan){
     lines.push({key:'maintenancePlan',label:'Annual maintenance plan (1st year)',price:PRICING.maintenancePlanAnnual});
   }

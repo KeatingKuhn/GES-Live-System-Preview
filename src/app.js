@@ -409,7 +409,7 @@ function App(){
         short:answers.purif.map(v=>v==="aprilaire"?tr("Filtration Cabinet","Gabinete de filtración"):v==="uv"?tr("UV Light","Luz UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge Protector","Protector de sobrevoltaje"):v).join(" + ")}:null,
       {step:"cond_tier",label:tr("Efficiency","Eficiencia"),val:answers.cond_tier==="fedmin"?tr("Federal Minimum - 14 SEER2","Mínimo Federal - 14 SEER2"):answers.cond_tier==="mid_ge15"?tr("Mid Efficiency - 18 SEER2","Eficiencia Media - 18 SEER2"):answers.cond_tier==="high_ge18"?tr("High Efficiency - 21 SEER2","Alta Eficiencia - 21 SEER2"):null},
       answers.system_for?{step:"system_for",label:tr("Heat source","Fuente de calor"),
-        val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - solo horno"),
+        val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - horno únicamente"),
         short:answers.system_for==="hp"?tr("Dual Fuel (HP + furnace)","Combustible Dual (BC + horno)"):tr("Straight Cool (furnace)","Solo Enfriamiento (horno)")}:null,
       {step:"dehu",label:tr("Dehumidifier","Deshumidificador"),val:answers.dehu==="yes"?tr("Yes - whole-home unit","Sí - unidad para toda la casa"):answers.dehu==="no"?tr("No","No"):null},
       Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:tr("Final add-ons","Complementos finales"),val:answers.extras.map(v=>v==="condensate"?tr("Condensate pump","Bomba de condensado"):v==="erv"?"ERV":v).join(" + ")}:null,
@@ -570,7 +570,7 @@ function App(){
   // is local to app.js too.
   const INFO_TEXT_ES={
     location:"La ubicación de su unidad interior define el diseño de todo el sistema. Ático es la instalación más común en Austin, con la unidad en posición horizontal sobre el espacio habitable. Clóset es de flujo ascendente, en posición vertical en un pasillo o clóset de servicio. Ambas funcionan bien; las instalaciones de clóset son un poco más fáciles de dar servicio.",
-    indoor_type:"¿No está seguro cuál tiene? Una estufa o calentador de agua a gas usualmente significa que también tiene un horno, que quema gas para calefacción y se combina con A/C para enfriar. Un hogar totalmente eléctrico probablemente tiene un manejador de aire, combinado con una bomba de calor para calefacción y enfriamiento.",
+    indoor_type:"¿No está seguro de cuál tiene? Una estufa o calentador de agua a gas usualmente significa que también tiene un horno, que quema gas para calefacción y se combina con A/C para enfriar. Un hogar totalmente eléctrico probablemente tiene un manejador de aire, combinado con una bomba de calor para calefacción y enfriamiento.",
     insulation:"El aislamiento del ático determina qué horno le corresponde. Fibra de vidrio o soplada significa un ático ventilado, donde un horno estándar de 80% AFUE funciona bien con una chimenea metálica tipo B. Espuma aislante significa un ático sellado, que requiere un horno de condensación de 90% AFUE con chimenea de PVC hacia el techo.",
     insulation_ah:"El aislamiento del ático aparece en su diagrama de cualquier forma, aunque no haya un horno que dimensionar. Fibra de vidrio o soplada significa un ático ventilado, la instalación más común en Austin. Espuma aislante significa un ático sellado, que funciona más fresco y eficiente.",
     plenum:"El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitación. Si el suyo está dañado, con fugas, o tiene más de 15 años, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
@@ -832,15 +832,16 @@ function App(){
           {tr(<>Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.</>,
               <>Díganos dónde vive su unidad interior y construiremos un <strong style={{color:"rgba(255,255,255,.8)"}}>diagrama en vivo y en tiempo real</strong> de su sistema HVAC completo - cada componente, cada conexión, dimensionado y etiquetado.</>)}
         </p>
-        {/* Q13 - differentiation copy, drafted per the roadmap tracker
-            ("good call, add it somewhere") - only claims already true
-            elsewhere in this app (Austin-based, no personal info required,
-            upfront pricing) rather than anything unverifiable. */}
+        {/* Q13 - differentiation copy: locally owned/operated (not private
+            equity-owned, unlike a lot of HVAC roll-ups) and the "we care"
+            angle, per the owner's own framing - only claims already true
+            elsewhere in this app (Austin-based, upfront pricing) rather
+            than anything unverifiable. */}
         <div className="splash-rise" style={{animationDelay:'.12s',display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px 18px",maxWidth:560,margin:"6px 0"}}>
           {[
-            tr('See every component before anyone visits your home','Vea cada componente antes de que alguien visite su hogar'),
+            tr('Locally owned & operated - not private equity','Propiedad y operación local - no somos capital privado'),
+            tr('We treat your home like our own','Tratamos su hogar como si fuera el nuestro'),
             tr('Transparent pricing, zero pressure','Precios transparentes, sin presión'),
-            tr('Locally owned, Austin-based','Propiedad local, con sede en Austin'),
           ].map((line,i)=>(
             <span key={i} style={{fontFamily:"var(--fb)",fontSize:12.5,color:"rgba(255,255,255,.55)",display:"flex",alignItems:"center",gap:5}}>
               <span style={{color:"var(--gl)"}}>✓</span>{line}
@@ -892,7 +893,7 @@ function App(){
           {lang==='es'?'EN':'ES'}
         </button>
         <p className="splash-rise" style={{animationDelay:'.36s',fontFamily:"var(--fb)",fontSize:"14px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:460,lineHeight:1.6,marginTop:8}}>
-          {tr('Takes about 2 minutes. No personal info required. Your build saves automatically as you go.','Toma unos 2 minutos. No se requiere información personal. Su proceso se guarda automáticamente.')}
+          {tr('Takes about 2 minutes. No personal info required. Your build saves automatically as you go.','Toma unos 2 minutos. No se requiere información personal. Su sistema se guarda automáticamente mientras avanza.')}
         </p>
       </div>
 
@@ -1400,7 +1401,7 @@ function App(){
                     <div className="price-hero">
                       <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
                       <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
-                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.','Basado en 36 meses al 0% de interés a través del financiamiento de Wells Fargo, sujeto a aprobación de crédito.')}</div>
+                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR, on approved credit.','Basado en 36 meses al 0% de interés, sujeto a aprobación de crédito.')}</div>
                       {wisetack&&<a href={wisetack.url} target="_blank" rel="noopener" className="price-hero-financing-link no-print"
                         onClick={()=>trackEvent('financing_clicked',{lender:'wisetack',source:'price_reveal'})}>
                         {tr('→ See if you prequalify with Wisetack','→ Vea si precalifica con Wisetack')}
@@ -1416,7 +1417,7 @@ function App(){
                       </div>
                       <div className="price-breakdown-legend">
                         <span><span className="price-breakdown-dot base"/>{tr('Base system','Sistema base')} · {basePct}%</span>
-                        <span><span className="price-breakdown-dot addons"/>{tr('Add-ons','Adicionales')} · {addonsPct}%</span>
+                        <span><span className="price-breakdown-dot addons"/>{tr('Add-ons','Complementos')} · {addonsPct}%</span>
                       </div>
                     </div>}
                     <div style={{marginBottom:10}}>
@@ -1435,14 +1436,18 @@ function App(){
                         onChange={e=>setPricingAnswers(p=>({...p,wantLaborWarranty:e.target.checked}))}/>
                       {tr(`Add a 10-year labor warranty (+$${PRICING.laborWarranty10yr.toLocaleString()})`,`Agregar garantía de mano de obra de 10 años (+$${PRICING.laborWarranty10yr.toLocaleString()})`)}
                     </label>
-                    {/* Annual maintenance plan - draft add-on, see the
-                        PRICING.maintenancePlanAnnual comment in data.js for
-                        the placeholder-pricing caveat. */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantMaintenancePlan}
                         onChange={e=>setPricingAnswers(p=>({...p,wantMaintenancePlan:e.target.checked}))}/>
                       {tr(`Add our annual maintenance plan (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/yr)`,`Agregar nuestro plan de mantenimiento anual (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/año)`)}
                     </label>
+                    {/* Short, non-exhaustive summary of what the plan covers -
+                        kept to one line by design rather than reproducing
+                        the full benefits sheet. */}
+                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",lineHeight:1.5,margin:"3px 0 10px 24px"}}>
+                      {tr('Includes 2 seasonal tune-ups (AC + heating), priority scheduling, 10% off repairs, waived consultation fees, a free coil cleaning & drain flush, and one free service call for friends or family.',
+                          'Incluye 2 afinaciones estacionales (A/C y calefacción), programación prioritaria, 10% de descuento en reparaciones, consultas sin cargo, limpieza de serpentín y purga de drenaje gratis, y una visita de servicio gratis para amigos o familiares.')}
+                    </div>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.68)",lineHeight:1.55,marginBottom:10}}>{tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")}</div>
                     <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
                   </div>
@@ -1501,8 +1506,8 @@ function App(){
                 longer re-typed inline every render. */}
             <div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
               {/* One button per configured financing option (see
-                  FINANCING_OPTIONS in data.js) - Wells Fargo simply
-                  doesn't render here until its real link is filled in. */}
+                  FINANCING_OPTIONS in data.js) - an entry with no url
+                  simply doesn't render here. */}
               {FINANCING_OPTIONS.filter(f=>f.url).map(f=>(
                 <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {f.label}</a>
               ))}

@@ -766,6 +766,15 @@ function DehumidistatWall({x,y,lang,vw,vh}){
 // condensate, insulation...) pass no onClick at all, so clicking there
 // keeps doing nothing, exactly as today.
 const HoverCtx=React.createContext(null);
+// Lets a HoverInfo opt into a `group` (e.g. "supply_duct") so hovering ANY
+// one member rings every other member too, not just the one under the
+// cursor - "these are all the same kind of thing" (multiple duct runs,
+// multiple registers, etc.) rather than "this one exact pixel". Each
+// HoverInfo instance registers its own box under its group id via an
+// effect (see HoverInfo below) into Canvas's own groupBoxes state;
+// HoverPanel reads that map back out to draw the sibling rings alongside
+// its usual single `highlight` ring for the actual hovered box.
+const GroupCtx=React.createContext(null);
 function hiWrapText(text,maxChars){
   const words=(text||'').split(' ');
   const lines=[]; let cur='';
@@ -781,8 +790,14 @@ function hiWrapText(text,maxChars){
 // renders exactly one of these (see hoverPart state) at the end of each
 // layout branch's <svg>; it takes the trigger's own x/y/w/h (to anchor
 // against) plus vw/vh/title/text bundled together as `part`.
-function HoverPanel({part}){
-  const {x,y,w,h,rx,vw,vh,title,text,highlight}=part;
+function HoverPanel({part,groupBoxes}){
+  const {x,y,w,h,rx,vw,vh,title,text,highlight,group}=part;
+  // Sibling boxes sharing this part's `group` (e.g. every other supply-duct
+  // run) - excludes the exact box already covered by the `highlight` ring
+  // below so the actively-hovered one isn't double-outlined.
+  const siblings=(group&&groupBoxes&&groupBoxes[group])
+    ?Object.values(groupBoxes[group]).filter(b=>!(b.x===x&&b.y===y&&b.w===w&&b.h===h))
+    :[];
   const FONT=9.3, LINE_H=12, PAD=8, PANEL_W=172, TITLE_H=19;
   const maxChars=Math.max(10,Math.floor((PANEL_W-PAD*2)/(FONT*0.56)));
   const lines=hiWrapText(text,maxChars);
@@ -802,15 +817,20 @@ function HoverPanel({part}){
   }
   return <>
     {/* Traces the hovered part's own hit-rect (same x/y/w/h/rx the
-        invisible HoverInfo rect already uses) rather than a generic box -
-        same gold glow-ring language as EditZone's own .edit-zone-ring,
-        just for a specific sub-part instead of the whole indoor_type/
-        cond_tier box. Only rendered when the triggering HoverInfo opted
-        in via highlight - see its own module comment for which parts
-        currently do and why. */}
+        invisible HoverInfo rect already uses) rather than a generic box.
+        On by default (every hoverable part gets its own ring) - a caller
+        opts OUT with highlight={false} rather than opting in. */}
     {highlight&&<rect x={x-3} y={y-3} width={w+6} height={h+6} rx={(rx||3)+3}
       fill="rgba(215,183,64,.06)" stroke="rgba(215,183,64,.95)" strokeWidth="2.5"
       filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>}
+    {/* Same ring, dimmer/thinner, traced around every OTHER box sharing
+        this part's group - "you're learning about the same kind of thing"
+        (e.g. hovering one supply duct run lights up every other run too). */}
+    {siblings.map((b,i)=>(
+      <rect key={i} x={b.x-3} y={b.y-3} width={b.w+6} height={b.h+6} rx={(b.rx||3)+3}
+        fill="rgba(215,183,64,.04)" stroke="rgba(215,183,64,.7)" strokeWidth="2"
+        filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>
+    ))}
     <g className="hover-info-panel" transform={`translate(${px} ${py})`}
       style={{pointerEvents:'none'}}>
       <rect x={0} y={0} width={PANEL_W} height={panelH} rx="5"
@@ -832,27 +852,32 @@ function HoverPanel({part}){
 // to replace that. className kept on the wrapping <g> for identifiability
 // (tests, devtools) even though nothing keys off it visually anymore.
 //
-// highlight (optional, default off) - on the done screen, most sub-part
-// hovers already sit inside an EditZone whose own ring outlines the WHOLE
-// box (furnace+coil, or the whole condenser cabinet), but that ring never
-// distinguishes WHICH sub-part triggered it - hovering the fan or the
-// compressor lights up the identical outline either way. So far only the
-// compressor (which otherwise gives no visual confirmation of exactly
-// which part of the condenser the tooltip is describing - the fan's own
-// shape is already visually obvious, while the compressor is either
-// tucked in a back corner of the cabinet, fed-min/high-eff, or entirely
-// hidden behind the mid-tier's sealed front-discharge body) opts in with
-// highlight, at all five of its call sites (all three tiers' own
-// wizard-time Condenser rendering, plus the done-screen-only
-// condenserSubHovers for mid vs. fed-min/high-eff) so it's consistent
-// whether or not an EditZone box ring happens to be showing too.
-// HoverPanel (rendered once, same place it already was) traces this
-// hit-rect's own
-// x/y/w/h/rx when set, in addition to showing the tooltip panel as before.
-function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick,highlight}){
+// highlight (optional, defaults ON) - every hoverable part traces its own
+// gold ring on hover (HoverPanel draws it off this part's own x/y/w/h/rx),
+// not just a shared box around whatever bigger EditZone it happens to sit
+// inside - hovering the furnace only rings the furnace, hovering the coil
+// right next to it only rings the coil, instead of one combined box around
+// both (EditZone's own former box-level ring was removed for exactly this
+// reason - see EditZone's own comment). Pass highlight={false} to opt a
+// specific call site OUT (nothing currently does).
+//
+// group (optional) - opts into the linked-sibling ring behavior on
+// HoverPanel (see GroupCtx's own module comment above): every other
+// HoverInfo sharing the same group string lights up its own dimmer ring
+// too whenever any one member is hovered, e.g. group="supply_duct" so all
+// the supply-duct runs read as "the same kind of thing" together.
+function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick,highlight=true,group}){
   const setHover=React.useContext(HoverCtx);
+  const groupApi=React.useContext(GroupCtx);
+  const idRef=React.useRef(null);
+  if(idRef.current===null)idRef.current=Math.random().toString(36).slice(2);
+  React.useEffect(()=>{
+    if(!group||!groupApi)return;
+    groupApi.register(group,idRef.current,{x,y,w,h,rx});
+    return ()=>groupApi.unregister(group,idRef.current);
+  },[group,groupApi,x,y,w,h,rx]);
   if(!title)return null;
-  const part={x,y,w,h,rx,vw,vh,title,text,highlight};
+  const part={x,y,w,h,rx,vw,vh,title,text,highlight,group};
   return <g className="hover-info-zone">
     <rect x={x} y={y} width={w} height={h} rx={rx||3} fill="transparent"
       style={{pointerEvents:'all',cursor:onClick?'pointer':'default'}} onClick={onClick}
@@ -948,9 +973,17 @@ function partInfo(key,lang){
 
 // Clickable overlay on a finished diagram piece - only wired up on the done
 // screen (onEditStep is undefined during the wizard itself, where jumping
-// mid-flow doesn't make sense). Hover state is a stroke on a sibling rect,
-// revealed via CSS (.edit-zone:hover .edit-zone-ring in styles.css) so it
-// costs nothing when not hovered.
+// mid-flow doesn't make sense). Used to also draw its own gold ring around
+// this WHOLE box on hover (.edit-zone:hover .edit-zone-ring in styles.css)
+// - removed once every individual sub-part got its own HoverInfo ring
+// (highlight defaults on there now - see its own module comment): with
+// both showing at once, hovering just the furnace also lit up a ring
+// around the furnace+coil pair together, which read as "these are one
+// thing" when they're not. The per-part rings nested as this box's own
+// children (or, for indoor_type/cond_tier, painted by the FurnaceH/
+// ACoilH/Condenser/etc. components themselves) already cover the whole
+// box between them, so nothing is lost - cursor:pointer plus the tooltip
+// panel are enough affordance that this box is clickable on its own.
 //
 // Module-scope, not a Canvas-scoped closure like it used to be - Canvas
 // redefined it as a brand-new function on every single render, and since
@@ -1007,8 +1040,6 @@ function EditZone({x,y,w,h,stepId,rx,children,onEditStep,svgScale,vw,vh}){
   if(vh){if(ey<0)ey=0; if(ey+eh>vh)ey=Math.max(0,vh-eh);}
   return <g className="edit-zone" onClick={()=>onEditStep(stepId)}>
     <rect x={ex} y={ey} width={ew} height={eh} rx={rx||4} fill="transparent" stroke="none"/>
-    <rect className="edit-zone-ring" x={ex-3} y={ey-3} width={ew+6} height={eh+6} rx={(rx||4)+3}
-      fill="rgba(215,183,64,.06)" stroke="rgba(215,183,64,.95)" strokeWidth="2.5" filter="url(#glow-sm)"/>
     {children}
   </g>;
 }
@@ -2376,6 +2407,23 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // piece of shared state instead of each hover zone revealing its own
   // inline panel. null when nothing's hovered.
   const [hoverPart,setHoverPart]=React.useState(null);
+  // Registry of every currently-mounted HoverInfo box, keyed by group then
+  // by that instance's own id - see GroupCtx's own module comment. Stable
+  // register/unregister functions (useCallback, no deps) so each
+  // HoverInfo's registration effect only re-runs when ITS OWN box
+  // actually changes, not on every Canvas render.
+  const [groupBoxes,setGroupBoxes]=React.useState({});
+  const registerGroupBox=React.useCallback((group,id,box)=>{
+    setGroupBoxes(g=>({...g,[group]:{...(g[group]||{}),[id]:box}}));
+  },[]);
+  const unregisterGroupBox=React.useCallback((group,id)=>{
+    setGroupBoxes(g=>{
+      if(!g[group])return g;
+      const rest={...g[group]}; delete rest[id];
+      return {...g,[group]:rest};
+    });
+  },[]);
+  const groupApi=React.useMemo(()=>({register:registerGroupBox,unregister:unregisterGroupBox}),[registerGroupBox,unregisterGroupBox]);
   const [heatSubMode,setHeatSubMode]=React.useState(
     // 'hp'/'furnace' for dual fuel, 'hp'/'aux' for a heat-pump-only air
     // handler - irrelevant (never shown) for straight-cool furnace systems.
@@ -3214,6 +3262,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
 
     return(
       <HoverCtx.Provider value={setHoverPart}>
+      <GroupCtx.Provider value={groupApi}>
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid meet" className="canvas-svg" aria-hidden="true">
@@ -3675,7 +3724,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                       wins the small strip where the two overlap near the
                       deck line. */}
                   <HoverInfo x={cx-DW/2-2} y={pBot} w={DW+4} h={Math.max(0,DECK_Y-pBot)} rx={2}
-                    vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                    vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
                   {grille(cx)}
                 </g>
               );
@@ -3701,9 +3750,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                         elsewhere in this file - a single rect spanning the
                         full diagonal would swallow whatever sits beside it. */}
                     <HoverInfo x={Math.min(topX,botX)-DW/2-2} y={pBot-2} w={Math.abs(botX-topX)+DW+4} h={bendY-pBot+4} rx={2}
-                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
                     <HoverInfo x={botX-DW/2-2} y={bendY} w={DW+4} h={Math.max(0,DECK_Y-bendY)} rx={2}
-                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
                     {grille(botX)}
                   </g>
                 );
@@ -3820,7 +3869,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               :<>{thermostatTemp}°</>;
             return <g className="snap therm-hover-zone" key="tstat" style={{animationDelay:'.26s'}}
               onMouseEnter={()=>setHoverPart({x:THERM_TX,y:THERM_TY,w:THERM_W,h:THERM_H,
-                vw:SVG_VW,vh:SVG_VH,title:T('thermostat_general').title,text:T('thermostat_general').text})}
+                vw:SVG_VW,vh:SVG_VH,title:T('thermostat_general').title,text:T('thermostat_general').text,highlight:true})}
               onMouseLeave={()=>setHoverPart(null)}>
             {/* Invisible hover target, sized in outer canvas space like
                 EditZone's own hit-rect just below (same THERM_TX/TY/W/H
@@ -4040,9 +4089,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               on HoverCtx/HoverInfo for why this has to be the very last
               thing painted in the whole <svg> rather than living next to
               whichever hit-rect triggered it. */}
-          {hoverPart&&<HoverPanel part={hoverPart}/>}
+          {hoverPart&&<HoverPanel part={hoverPart} groupBoxes={groupBoxes}/>}
         </svg>
       </div>
+      </GroupCtx.Provider>
       </HoverCtx.Provider>
     );
   }
@@ -4161,6 +4211,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
 
     return(
       <HoverCtx.Provider value={setHoverPart}>
+      <GroupCtx.Provider value={groupApi}>
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
@@ -4409,9 +4460,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     grille below so its own more specific hover wins the
                     small overlap near the deck line. */}
                 <HoverInfo x={leftDropX-2} y={exitY-2} w={UNIT_X-leftDropX+2} h={DW+4} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
                 <HoverInfo x={leftDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
                 <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
 
                 {/* ── RIGHT DUCT ── */}
@@ -4425,9 +4476,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <DuctClamp x={rightDropX} y={DECK_Y-5} w={DW} vertical/>
                 {ductArrow(`M${UNIT_X+PLEN_W+3},${exitY+DW/2} L${rightDropX+DW/2},${exitY+DW/2} L${rightDropX+DW/2},${DECK_Y-4}`,'ra')}
                 <HoverInfo x={UNIT_X+PLEN_W} y={exitY-2} w={rightDropX-(UNIT_X+PLEN_W)+DW+2} h={DW+4} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
                 <HoverInfo x={rightDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
                 <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
               </>;
             })()}
@@ -4954,7 +5005,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               :<>{thermostatTemp}°</>;
             return <g className="snap therm-hover-zone" key="tstat-c" style={{animationDelay:'.26s'}}
               onMouseEnter={()=>setHoverPart({x:TX,y:TY,w:76,h:70,
-                vw:SVG_VW,vh:SVG_VH,title:T('thermostat_general').title,text:T('thermostat_general').text})}
+                vw:SVG_VW,vh:SVG_VH,title:T('thermostat_general').title,text:T('thermostat_general').text,highlight:true})}
               onMouseLeave={()=>setHoverPart(null)}>
             {/* General "what is this" thermostat tooltip - same purely-
                 additive reasoning as the attic layout's own call site
@@ -5084,10 +5135,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               on HoverCtx/HoverInfo for why this has to be the very last
               thing painted in the whole <svg> rather than living next to
               whichever hit-rect triggered it. */}
-          {hoverPart&&<HoverPanel part={hoverPart}/>}
+          {hoverPart&&<HoverPanel part={hoverPart} groupBoxes={groupBoxes}/>}
 
         </svg>
       </div>
+      </GroupCtx.Provider>
       </HoverCtx.Provider>
     );
   }

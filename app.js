@@ -167,7 +167,7 @@
     location: { q: "\xBFD\xF3nde est\xE1 su unidad interior?", hint: "Define el dise\xF1o de todo su sistema." },
     indoor_type: { q: "\xBFQu\xE9 tipo de unidad interior?", hint: "\xBFHorno o manejador de aire?\nHorno = Calefacci\xF3n a gas.\nManejador de aire = Todo el\xE9ctrico." },
     insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Determina la construcci\xF3n de su \xE1tico - y la eficiencia de su horno, si tiene uno." },
-    plenum: { q: "\xBFNecesita un plenum de suministro nuevo?", hint: "Alimenta aire acondicionado a sus ductos." },
+    plenum: { q: "\xBFNecesita un plenum de suministro nuevo?", hint: "Env\xEDa aire acondicionado a sus ductos." },
     cond_tier: { q: "Elija su nivel de eficiencia.", hint: "Mayor eficiencia, facturas mensuales m\xE1s bajas." },
     system_for: { q: "\xBFBomba de calor o solo enfriamiento?", hint: "La bomba de calor hace m\xE1s; el A/C solo enfr\xEDa." },
     thermostat: { q: "\xBFQu\xE9 termostato?", hint: "Los modelos Wi-Fi ahorran 10\u201315% en su factura." },
@@ -204,7 +204,7 @@
       none: { label: "Conservar el plenum actual", desc: "Ya est\xE1 en buen estado - conectamos directamente, ahorrando en mano de obra." }
     },
     thermostat: {
-      proprietary: { label: "Termostato Comunicante", desc: "Requerido en este nivel para una gradaci\xF3n precisa y diagn\xF3sticos completos." },
+      proprietary: { label: "Termostato Comunicante", desc: "Requerido en este nivel para un control por etapas preciso y diagn\xF3sticos completos." },
       basic: { label: "Programable B\xE1sico", desc: "Confiable, sin app ni suscripci\xF3n. Configure su horario y listo." },
       wifi: { label: "Inteligente Wi-Fi", desc: "Contr\xF3lelo desde su tel\xE9fono, aprende sus h\xE1bitos. Ahorra 10\u201315% en su factura." }
     },
@@ -223,7 +223,7 @@
       high_ge18: { label: "Alta Eficiencia - 21 SEER2", desc: "Nivel superior con tecnolog\xEDa Inverter." }
     },
     dehu: {
-      yes: { label: "S\xED, agregarlo", desc: "Dimensionado a sus pies cuadrados, funciona autom\xE1ticamente. Sin mantenimiento." },
+      yes: { label: "S\xED, agregarlo", desc: "Calculado seg\xFAn el tama\xF1o de su casa, funciona autom\xE1ticamente. Sin mantenimiento." },
       no: { label: "No, gracias", desc: "Omitir por ahora - f\xE1cil de agregar despu\xE9s si la humedad se vuelve un problema." }
     },
     extras: {
@@ -303,12 +303,7 @@
     // warranty, offered as a flat add-on at the end of pricing rather than
     // its own wizard question.
     laborWarranty10yr: 1750,
-    // DRAFT PLACEHOLDER - price and plan structure are a starting draft, not
-    // confirmed numbers. First-year price + what's included below both need
-    // real figures before this ships live; swap them here, nothing else to
-    // change. $199/yr and the two-tune-up structure are typical of the
-    // industry, not anything GES-specific.
-    maintenancePlanAnnual: 199
+    maintenancePlanAnnual: 177
   };
   var TONNAGE_OPTIONS = [
     { v: "t15", label: "1.5 Tons", sqftLabel: "~900 sq ft", tons: 1.5, sqftMid: 900 },
@@ -390,11 +385,10 @@
     });
   }
   var FINANCING_OPTIONS = [
-    { key: "wisetack", label: "Wisetack", url: "https://wisetack.us/#/hyhu11w/prequalify" },
-    { key: "wellsfargo", label: "Wells Fargo", url: "" }
+    { key: "wisetack", label: "Wisetack", url: "https://wisetack.us/#/hyhu11w/prequalify" }
   ];
   var GATE_CONFIG = {
-    gravityFormId: 0
+    gravityFormId: 9
   };
   var TIER_LABEL = { fedmin: "Federal Minimum - 14 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
   function calcEstimate(answers, pricingAnswers) {
@@ -1393,6 +1387,7 @@
     )));
   }
   var HoverCtx = React.createContext(null);
+  var GroupCtx = React.createContext(null);
   function hiWrapText(text, maxChars) {
     const words = (text || "").split(" ");
     const lines = [];
@@ -1407,8 +1402,9 @@
     if (cur) lines.push(cur);
     return lines;
   }
-  function HoverPanel({ part }) {
-    const { x, y, w, h, rx, vw, vh, title, text, highlight } = part;
+  function HoverPanel({ part, groupBoxes }) {
+    const { x, y, w, h, rx, vw, vh, title, text, highlight, group } = part;
+    const siblings = group && groupBoxes && groupBoxes[group] ? Object.values(groupBoxes[group]).filter((b) => !(b.x === x && b.y === y && b.w === w && b.h === h)) : [];
     const FONT = 9.3, LINE_H = 12, PAD = 8, PANEL_W = 172, TITLE_H = 19;
     const maxChars = Math.max(10, Math.floor((PANEL_W - PAD * 2) / (FONT * 0.56)));
     const lines = hiWrapText(text, maxChars);
@@ -1435,7 +1431,22 @@
         filter: "url(#glow-sm)",
         style: { pointerEvents: "none" }
       }
-    ), /* @__PURE__ */ React.createElement(
+    ), siblings.map((b, i) => /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        key: i,
+        x: b.x - 3,
+        y: b.y - 3,
+        width: b.w + 6,
+        height: b.h + 6,
+        rx: (b.rx || 3) + 3,
+        fill: "rgba(215,183,64,.04)",
+        stroke: "rgba(215,183,64,.7)",
+        strokeWidth: "2",
+        filter: "url(#glow-sm)",
+        style: { pointerEvents: "none" }
+      }
+    )), /* @__PURE__ */ React.createElement(
       "g",
       {
         className: "hover-info-panel",
@@ -1461,10 +1472,18 @@
       lines.map((ln, i) => /* @__PURE__ */ React.createElement("text", { key: i, x: PAD, y: TITLE_H + 9 + i * LINE_H, fill: "rgba(240,242,248,.86)", fontSize: FONT, fontFamily: "sans-serif" }, ln))
     ));
   }
-  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick, highlight }) {
+  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick, highlight = true, group }) {
     const setHover = React.useContext(HoverCtx);
+    const groupApi = React.useContext(GroupCtx);
+    const idRef = React.useRef(null);
+    if (idRef.current === null) idRef.current = Math.random().toString(36).slice(2);
+    React.useEffect(() => {
+      if (!group || !groupApi) return;
+      groupApi.register(group, idRef.current, { x, y, w, h, rx });
+      return () => groupApi.unregister(group, idRef.current);
+    }, [group, groupApi, x, y, w, h, rx]);
     if (!title) return null;
-    const part = { x, y, w, h, rx, vw, vh, title, text, highlight };
+    const part = { x, y, w, h, rx, vw, vh, title, text, highlight, group };
     return /* @__PURE__ */ React.createElement("g", { className: "hover-info-zone" }, /* @__PURE__ */ React.createElement(
       "rect",
       {
@@ -1630,21 +1649,7 @@
       if (ey < 0) ey = 0;
       if (ey + eh > vh) ey = Math.max(0, vh - eh);
     }
-    return /* @__PURE__ */ React.createElement("g", { className: "edit-zone", onClick: () => onEditStep(stepId) }, /* @__PURE__ */ React.createElement("rect", { x: ex, y: ey, width: ew, height: eh, rx: rx || 4, fill: "transparent", stroke: "none" }), /* @__PURE__ */ React.createElement(
-      "rect",
-      {
-        className: "edit-zone-ring",
-        x: ex - 3,
-        y: ey - 3,
-        width: ew + 6,
-        height: eh + 6,
-        rx: (rx || 4) + 3,
-        fill: "rgba(215,183,64,.06)",
-        stroke: "rgba(215,183,64,.95)",
-        strokeWidth: "2.5",
-        filter: "url(#glow-sm)"
-      }
-    ), children);
+    return /* @__PURE__ */ React.createElement("g", { className: "edit-zone", onClick: () => onEditStep(stepId) }, /* @__PURE__ */ React.createElement("rect", { x: ex, y: ey, width: ew, height: eh, rx: rx || 4, fill: "transparent", stroke: "none" }), children);
   }
   var G = "rgba(215,183,64,";
   var B = "rgba(35,137,224,";
@@ -3474,6 +3479,19 @@
     const isDeepWinter = CURRENT_MONTH <= 1 || CURRENT_MONTH === 11;
     const [heatMode, setHeatMode] = React.useState(isHeatingSeason);
     const [hoverPart, setHoverPart] = React.useState(null);
+    const [groupBoxes, setGroupBoxes] = React.useState({});
+    const registerGroupBox = React.useCallback((group, id, box) => {
+      setGroupBoxes((g) => ({ ...g, [group]: { ...g[group] || {}, [id]: box } }));
+    }, []);
+    const unregisterGroupBox = React.useCallback((group, id) => {
+      setGroupBoxes((g) => {
+        if (!g[group]) return g;
+        const rest = { ...g[group] };
+        delete rest[id];
+        return { ...g, [group]: rest };
+      });
+    }, []);
+    const groupApi = React.useMemo(() => ({ register: registerGroupBox, unregister: unregisterGroupBox }), [registerGroupBox, unregisterGroupBox]);
     const [heatSubMode, setHeatSubMode] = React.useState(
       // 'hp'/'furnace' for dual fuel, 'hp'/'aux' for a heat-pump-only air
       // handler - irrelevant (never shown) for straight-cool furnace systems.
@@ -4034,7 +4052,7 @@
       const DISC_ZONE = 52;
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const COND_Y = VH - 28 - 10 - COND_H;
-      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: EXT_WALL_X,
@@ -4697,7 +4715,8 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("supply_duct").title,
-            text: T("supply_duct").text
+            text: T("supply_duct").text,
+            group: "supply_duct"
           }
         ), grille(cx));
         const angled = (topX, dir, key) => {
@@ -4715,7 +4734,8 @@
               vw: SVG_VW,
               vh: SVG_VH,
               title: T("supply_duct").title,
-              text: T("supply_duct").text
+              text: T("supply_duct").text,
+              group: "supply_duct"
             }
           ), /* @__PURE__ */ React.createElement(
             HoverInfo,
@@ -4728,7 +4748,8 @@
               vw: SVG_VW,
               vh: SVG_VH,
               title: T("supply_duct").title,
-              text: T("supply_duct").text
+              text: T("supply_duct").text,
+              group: "supply_duct"
             }
           ), grille(botX));
         };
@@ -4900,7 +4921,8 @@
               vw: SVG_VW,
               vh: SVG_VH,
               title: T("thermostat_general").title,
-              text: T("thermostat_general").text
+              text: T("thermostat_general").text,
+              highlight: true
             }),
             onMouseLeave: () => setHoverPart(null)
           },
@@ -5273,7 +5295,7 @@
           h: 48,
           rx: 4
         }
-      ), hoverPart && /* @__PURE__ */ React.createElement(HoverPanel, { part: hoverPart }))));
+      ), hoverPart && /* @__PURE__ */ React.createElement(HoverPanel, { part: hoverPart, groupBoxes })))));
     }
     if (isCloset) {
       const BASE_VW = 1e3, VH = 820;
@@ -5329,7 +5351,7 @@
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const GROUND_Y = VH - 40;
       const COND_Y = GROUND_Y - COND_H;
-      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: HOUSE_W,
@@ -5626,7 +5648,8 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("supply_duct").title,
-            text: T("supply_duct").text
+            text: T("supply_duct").text,
+            group: "supply_duct"
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5639,7 +5662,8 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("supply_duct").title,
-            text: T("supply_duct").text
+            text: T("supply_duct").text,
+            group: "supply_duct"
           }
         ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: leftDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W, y: exitY, width: rightDropX - (UNIT_X + PLEN_W) + DW, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: UNIT_X + PLEN_W, y: exitY, w: rightDropX - (UNIT_X + PLEN_W) + DW, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: rightDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: rightDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X + PLEN_W + 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: rightDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X + PLEN_W + 3},${exitY + DW / 2} L${rightDropX + DW / 2},${exitY + DW / 2} L${rightDropX + DW / 2},${DECK_Y - 4}`, "ra"), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5652,7 +5676,8 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("supply_duct").title,
-            text: T("supply_duct").text
+            text: T("supply_duct").text,
+            group: "supply_duct"
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5665,7 +5690,8 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("supply_duct").title,
-            text: T("supply_duct").text
+            text: T("supply_duct").text,
+            group: "supply_duct"
           }
         ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: rightDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY" }));
       })()), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac-c" + a.cond_tier, style: { animationDelay: ".07s" } }, (() => {
@@ -6553,7 +6579,8 @@
               vw: SVG_VW,
               vh: SVG_VH,
               title: T("thermostat_general").title,
-              text: T("thermostat_general").text
+              text: T("thermostat_general").text,
+              highlight: true
             }),
             onMouseLeave: () => setHoverPart(null)
           },
@@ -6815,7 +6842,7 @@
             rx: 4
           }
         ), /* @__PURE__ */ React.createElement(StepFocusRing, { stepId: "dehu", x: rW - 80 - 34, y: rEave + 42, w: 80, h: 48, rx: 4 }), /* @__PURE__ */ React.createElement(StepFocusRing, { stepId: "extras", x: 24, y: rEave + 42, w: 80, h: 48, rx: 4 }));
-      })(), hoverPart && /* @__PURE__ */ React.createElement(HoverPanel, { part: hoverPart }))));
+      })(), hoverPart && /* @__PURE__ */ React.createElement(HoverPanel, { part: hoverPart, groupBoxes })))));
     }
     return null;
   }
@@ -7133,7 +7160,7 @@
         answers.system_for ? {
           step: "system_for",
           label: tr("Heat source", "Fuente de calor"),
-          val: answers.system_for === "hp" ? tr("Dual Fuel - heat pump + furnace", "Combustible Dual - bomba de calor + horno") : tr("Straight cool - furnace only", "Solo enfriamiento - solo horno"),
+          val: answers.system_for === "hp" ? tr("Dual Fuel - heat pump + furnace", "Combustible Dual - bomba de calor + horno") : tr("Straight cool - furnace only", "Solo enfriamiento - horno \xFAnicamente"),
           short: answers.system_for === "hp" ? tr("Dual Fuel (HP + furnace)", "Combustible Dual (BC + horno)") : tr("Straight Cool (furnace)", "Solo Enfriamiento (horno)")
         } : null,
         { step: "dehu", label: tr("Dehumidifier", "Deshumidificador"), val: answers.dehu === "yes" ? tr("Yes - whole-home unit", "S\xED - unidad para toda la casa") : answers.dehu === "no" ? tr("No", "No") : null },
@@ -7243,7 +7270,7 @@
     };
     const INFO_TEXT_ES = {
       location: "La ubicaci\xF3n de su unidad interior define el dise\xF1o de todo el sistema. \xC1tico es la instalaci\xF3n m\xE1s com\xFAn en Austin, con la unidad en posici\xF3n horizontal sobre el espacio habitable. Cl\xF3set es de flujo ascendente, en posici\xF3n vertical en un pasillo o cl\xF3set de servicio. Ambas funcionan bien; las instalaciones de cl\xF3set son un poco m\xE1s f\xE1ciles de dar servicio.",
-      indoor_type: "\xBFNo est\xE1 seguro cu\xE1l tiene? Una estufa o calentador de agua a gas usualmente significa que tambi\xE9n tiene un horno, que quema gas para calefacci\xF3n y se combina con A/C para enfriar. Un hogar totalmente el\xE9ctrico probablemente tiene un manejador de aire, combinado con una bomba de calor para calefacci\xF3n y enfriamiento.",
+      indoor_type: "\xBFNo est\xE1 seguro de cu\xE1l tiene? Una estufa o calentador de agua a gas usualmente significa que tambi\xE9n tiene un horno, que quema gas para calefacci\xF3n y se combina con A/C para enfriar. Un hogar totalmente el\xE9ctrico probablemente tiene un manejador de aire, combinado con una bomba de calor para calefacci\xF3n y enfriamiento.",
       insulation: "El aislamiento del \xE1tico determina qu\xE9 horno le corresponde. Fibra de vidrio o soplada significa un \xE1tico ventilado, donde un horno est\xE1ndar de 80% AFUE funciona bien con una chimenea met\xE1lica tipo B. Espuma aislante significa un \xE1tico sellado, que requiere un horno de condensaci\xF3n de 90% AFUE con chimenea de PVC hacia el techo.",
       insulation_ah: "El aislamiento del \xE1tico aparece en su diagrama de cualquier forma, aunque no haya un horno que dimensionar. Fibra de vidrio o soplada significa un \xE1tico ventilado, la instalaci\xF3n m\xE1s com\xFAn en Austin. Espuma aislante significa un \xE1tico sellado, que funciona m\xE1s fresco y eficiente.",
       plenum: "El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitaci\xF3n. Si el suyo est\xE1 da\xF1ado, con fugas, o tiene m\xE1s de 15 a\xF1os, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
@@ -7342,9 +7369,9 @@
       /* @__PURE__ */ React.createElement(React.Fragment, null, "Tell us where your indoor unit lives and we will build a ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "live, real-time diagram"), " of your complete HVAC system - every component, every connection, sized and labeled."),
       /* @__PURE__ */ React.createElement(React.Fragment, null, "D\xEDganos d\xF3nde vive su unidad interior y construiremos un ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "diagrama en vivo y en tiempo real"), " de su sistema HVAC completo - cada componente, cada conexi\xF3n, dimensionado y etiquetado.")
     )), /* @__PURE__ */ React.createElement("div", { className: "splash-rise", style: { animationDelay: ".12s", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 18px", maxWidth: 560, margin: "6px 0" } }, [
-      tr("See every component before anyone visits your home", "Vea cada componente antes de que alguien visite su hogar"),
-      tr("Transparent pricing, zero pressure", "Precios transparentes, sin presi\xF3n"),
-      tr("Locally owned, Austin-based", "Propiedad local, con sede en Austin")
+      tr("Locally owned & operated - not private equity", "Propiedad y operaci\xF3n local - no somos capital privado"),
+      tr("We treat your home like our own", "Tratamos su hogar como si fuera el nuestro"),
+      tr("Transparent pricing, zero pressure", "Precios transparentes, sin presi\xF3n")
     ].map((line, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontFamily: "var(--fb)", fontSize: 12.5, color: "rgba(255,255,255,.55)", display: "flex", alignItems: "center", gap: 5 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--gl)" } }, "\u2713"), line))), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".18s", fontFamily: "var(--fm)", fontSize: "14px", color: "rgba(215,183,64,.75)", textAlign: "center", letterSpacing: ".1em", margin: "0 0 6px" } }, tr("SELECT YOUR SYSTEM LOCATION TO BEGIN", "SELECCIONE LA UBICACI\xD3N DE SU SISTEMA PARA COMENZAR")), /* @__PURE__ */ React.createElement("div", { className: "splash-cards splash-rise", style: { animationDelay: ".24s" } }, /* @__PURE__ */ React.createElement(
       "div",
       {
@@ -7386,7 +7413,7 @@
         style: { animationDelay: ".3s", fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
       },
       lang === "es" ? "EN" : "ES"
-    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su proceso se guarda autom\xE1ticamente."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su sistema se guarda autom\xE1ticamente mientras avanza."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setQuickEdit(false);
       setDone(true);
     } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, stepCountText), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, stepCountText && " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
@@ -7526,7 +7553,7 @@
       const basePct = est.display > 0 ? Math.round(est.lines[0].display / est.display * 100) : 100;
       const addonsPct = 100 - basePct;
       const wisetack = FINANCING_OPTIONS.find((f) => f.key === "wisetack" && f.url);
-      const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { className: "price-hero" }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("AS LOW AS", "DESDE")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 48, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18, color: "var(--dim)", fontWeight: 400 } }, tr("/mo", "/mes"))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6 } }, tr("Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.", "Basado en 36 meses al 0% de inter\xE9s a trav\xE9s del financiamiento de Wells Fargo, sujeto a aprobaci\xF3n de cr\xE9dito.")), wisetack && /* @__PURE__ */ React.createElement(
+      const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { className: "price-hero" }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("AS LOW AS", "DESDE")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 48, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18, color: "var(--dim)", fontWeight: 400 } }, tr("/mo", "/mes"))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6 } }, tr("Based on 36 months at 0% APR, on approved credit.", "Basado en 36 meses al 0% de inter\xE9s, sujeto a aprobaci\xF3n de cr\xE9dito.")), wisetack && /* @__PURE__ */ React.createElement(
         "a",
         {
           href: wisetack.url,
@@ -7536,21 +7563,24 @@
           onClick: () => trackEvent("financing_clicked", { lender: "wisetack", source: "price_reveal" })
         },
         tr("\u2192 See if you prequalify with Wisetack", "\u2192 Vea si precalifica con Wisetack")
-      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr(`Includes a ${answers.cond_tier === "high_ge18" ? "10" : "12"}-year manufacturer warranty.`, `Incluye una garant\xEDa de f\xE1brica de ${answers.cond_tier === "high_ge18" ? "10" : "12"} a\xF1os.`)), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Adicionales"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr(`Includes a ${answers.cond_tier === "high_ge18" ? "10" : "12"}-year manufacturer warranty.`, `Incluye una garant\xEDa de f\xE1brica de ${answers.cond_tier === "high_ge18" ? "10" : "12"} a\xF1os.`)), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantLaborWarranty,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantLaborWarranty: e.target.checked }))
         }
-      ), tr(`Add a 10-year labor warranty (+$${PRICING.laborWarranty10yr.toLocaleString()})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+$${PRICING.laborWarranty10yr.toLocaleString()})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add a 10-year labor warranty (+$${PRICING.laborWarranty10yr.toLocaleString()})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+$${PRICING.laborWarranty10yr.toLocaleString()})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantMaintenancePlan,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantMaintenancePlan: e.target.checked }))
         }
-      ), tr(`Add our annual maintenance plan (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/yr)`, `Agregar nuestro plan de mantenimiento anual (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/a\xF1o)`)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
+      ), tr(`Add our annual maintenance plan (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/yr)`, `Agregar nuestro plan de mantenimiento anual (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/a\xF1o)`)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", lineHeight: 1.5, margin: "3px 0 10px 24px" } }, tr(
+        "Includes 2 seasonal tune-ups (AC + heating), priority scheduling, 10% off repairs, waived consultation fees, a free coil cleaning & drain flush, and one free service call for friends or family.",
+        "Incluye 2 afinaciones estacionales (A/C y calefacci\xF3n), programaci\xF3n prioritaria, 10% de descuento en reparaciones, consultas sin cargo, limpieza de serpent\xEDn y purga de drenaje gratis, y una visita de servicio gratis para amigos o familiares."
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
         setPricingFlow("sizing");
         setPricingSubStep(0);
       } }, "\u2039 ", tr("Adjust my answers", "Ajustar mis respuestas")));
