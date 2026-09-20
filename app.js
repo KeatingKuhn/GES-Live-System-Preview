@@ -132,9 +132,9 @@
         ];
       case "cond_tier": {
         return [
-          { v: "fedmin", label: "Federal Minimum - 14 SEER2", desc: "Meets 2023 federal energy code. 12-yr manufacturer warranty." },
-          { v: "mid_ge15", label: "Mid Efficiency - 18 SEER2", desc: "Variable-speed, better humidity control. 12-yr manufacturer warranty." },
-          { v: "high_ge18", label: "High Efficiency - 21 SEER2", desc: "Inverter-driven top tier. 10-yr manufacturer warranty." }
+          { v: "fedmin", label: "Federal Minimum - 14 SEER2", desc: "Meets 2023 federal energy code." },
+          { v: "mid_ge15", label: "Mid Efficiency - 18 SEER2", desc: "Variable-speed, better humidity control." },
+          { v: "high_ge18", label: "High Efficiency - 21 SEER2", desc: "Inverter-driven top tier." }
         ];
       }
       case "dehu":
@@ -197,9 +197,9 @@
       sc: { label: "Solo Enfriamiento", desc: "El A/C solo enfr\xEDa - el horno se encarga de toda la calefacci\xF3n. M\xE1s simple, menor costo inicial." }
     },
     cond_tier: {
-      fedmin: { label: "M\xEDnimo Federal - 14 SEER2", desc: "Cumple con el c\xF3digo energ\xE9tico federal de 2023. Garant\xEDa de f\xE1brica de 12 a\xF1os." },
-      mid_ge15: { label: "Eficiencia Media - 18 SEER2", desc: "Velocidad variable, mejor control de humedad. Garant\xEDa de f\xE1brica de 12 a\xF1os." },
-      high_ge18: { label: "Alta Eficiencia - 21 SEER2", desc: "Nivel superior con tecnolog\xEDa Inverter. Garant\xEDa de f\xE1brica de 10 a\xF1os." }
+      fedmin: { label: "M\xEDnimo Federal - 14 SEER2", desc: "Cumple con el c\xF3digo energ\xE9tico federal de 2023." },
+      mid_ge15: { label: "Eficiencia Media - 18 SEER2", desc: "Velocidad variable, mejor control de humedad." },
+      high_ge18: { label: "Alta Eficiencia - 21 SEER2", desc: "Nivel superior con tecnolog\xEDa Inverter." }
     },
     dehu: {
       yes: { label: "S\xED, agregarlo", desc: "Dimensionado a sus pies cuadrados, funciona autom\xE1ticamente. Sin mantenimiento." },
@@ -5375,7 +5375,7 @@
       plenum: "The supply plenum connects your indoor unit to your ductwork, so conditioned air can reach every room. If yours is damaged, leaking, or over 15 years old, replacing it improves both efficiency and airflow.",
       thermostat: "A basic programmable thermostat is reliable -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
       purif: "The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer clears particles, odors, and VOCs. A surge protector guards the condenser -- one lightning strike can destroy a compressor.",
-      cond_tier: "The condenser is your outdoor unit. SEER2 measures cooling output per unit of electricity, so higher means lower bills. Federal Minimum meets current code at the lowest cost. Mid Efficiency is our best-value tier. High Efficiency is our top tier, with rebate eligibility and the best humidity control.",
+      cond_tier: "The condenser is your outdoor unit. SEER2 measures cooling output per unit of electricity, so higher means lower bills. Federal Minimum meets current code at the lowest cost. Mid Efficiency is our best-value tier. High Efficiency is our top tier, with the best humidity control.",
       system_for: "With a gas furnace, you get two options. Dual fuel pairs a heat pump with the furnace -- the heat pump handles cooling and mild-weather heating, and the furnace only fires below about 35 degrees, the most efficient combo we offer. Straight cool means the AC only cools, and the furnace handles all heating.",
       dehu: "Austin humidity makes your home feel warmer than the thermostat reads. A dehumidifier ties into your ductwork and runs automatically, with no buckets and no upkeep from you.",
       extras: "A condensate pump handles drainage when there's no nearby gravity drain, which is common in closet installs. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange."
@@ -5387,7 +5387,7 @@
       plenum: "El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitaci\xF3n. Si el suyo est\xE1 da\xF1ado, con fugas, o tiene m\xE1s de 15 a\xF1os, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
       thermostat: "Un termostato programable b\xE1sico es confiable: configure su horario y olv\xEDdese de \xE9l. Un termostato inteligente Wi-Fi se conecta a su tel\xE9fono, aprende sus h\xE1bitos, y puede reducir su factura de energ\xEDa entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
       purif: "El gabinete de filtraci\xF3n mejorada viene incluido de f\xE1brica en cada instalaci\xF3n, capturando ya mucho m\xE1s polvo, polen y al\xE9rgenos que un filtro t\xEDpico de 1 pulgada. Una luz UV mantiene limpio el serpent\xEDn. Un ionizador elimina part\xEDculas, olores y COV. Un protector de sobrevoltaje protege el condensador: un solo rayo puede destruir un compresor.",
-      cond_tier: "El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, as\xED que m\xE1s alto significa facturas m\xE1s bajas. M\xEDnimo Federal cumple con el c\xF3digo actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con elegibilidad para reembolsos y el mejor control de humedad.",
+      cond_tier: "El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, as\xED que m\xE1s alto significa facturas m\xE1s bajas. M\xEDnimo Federal cumple con el c\xF3digo actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con el mejor control de humedad.",
       system_for: "Con un horno a gas, tiene dos opciones. Combustible Dual combina una bomba de calor con el horno: la bomba de calor se encarga del enfriamiento y la calefacci\xF3n en clima templado, y el horno solo se enciende por debajo de aproximadamente 35 grados, la combinaci\xF3n m\xE1s eficiente que ofrecemos. Solo Enfriamiento significa que el A/C solo enfr\xEDa, y el horno se encarga de toda la calefacci\xF3n.",
       dehu: "La humedad de Austin hace que su hogar se sienta m\xE1s caliente de lo que marca el termostato. Un deshumidificador se conecta a sus ductos y funciona autom\xE1ticamente, sin cubetas ni mantenimiento de su parte.",
       extras: "Una bomba de condensado maneja el drenaje cuando no hay un drenaje por gravedad cercano, algo com\xFAn en instalaciones de cl\xF3set. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio."

@@ -80,9 +80,9 @@ export function getOpts(stepId, answers){
     ];
     case 'cond_tier':{
       return[
-        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. 12-yr manufacturer warranty.'},
-        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed, better humidity control. 12-yr manufacturer warranty.'},
-        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier. 10-yr manufacturer warranty.'},
+        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code.'},
+        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed, better humidity control.'},
+        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier.'},
       ];
     }
     case 'dehu':return[
@@ -159,9 +159,9 @@ export const OPTS_ES={
     sc:{label:'Solo Enfriamiento',                          desc:'El A/C solo enfría - el horno se encarga de toda la calefacción. Más simple, menor costo inicial.'},
   },
   cond_tier:{
-    fedmin:   {label:'Mínimo Federal - 14 SEER2',  desc:'Cumple con el código energético federal de 2023. Garantía de fábrica de 12 años.'},
-    mid_ge15: {label:'Eficiencia Media - 18 SEER2', desc:'Velocidad variable, mejor control de humedad. Garantía de fábrica de 12 años.'},
-    high_ge18:{label:'Alta Eficiencia - 21 SEER2',  desc:'Nivel superior con tecnología Inverter. Garantía de fábrica de 10 años.'},
+    fedmin:   {label:'Mínimo Federal - 14 SEER2',  desc:'Cumple con el código energético federal de 2023.'},
+    mid_ge15: {label:'Eficiencia Media - 18 SEER2', desc:'Velocidad variable, mejor control de humedad.'},
+    high_ge18:{label:'Alta Eficiencia - 21 SEER2',  desc:'Nivel superior con tecnología Inverter.'},
   },
   dehu:{
     yes:{label:'Sí, agregarlo', desc:'Dimensionado a sus pies cuadrados, funciona automáticamente. Sin mantenimiento.'},
