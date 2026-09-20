@@ -2842,6 +2842,36 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             </text>
           </g>}
 
+          {/* Gas supply line + drip leg - real code requirement (IFGC/NFPA
+              54) on every gas appliance connection: a tee with a short
+              capped nipple hanging straight down catches sediment/
+              condensate by gravity before it reaches the furnace's own gas
+              valve. Riser sits at 0.15*FURN_W, clear of the blower graphic
+              above it (which is drawn mid-cabinet, not at the bottom edge
+              this enters through) and well left of the centered FURNACE/
+              STANDBY label below the cabinet. Runs down to DECK_Y, the
+              same attic-floor line the thermostat's own margin column and
+              the condensate drain both reference, since that's where the
+              home's actual gas piping would come up from. */}
+          {hasCoil&&hasFurnace&&(()=>{
+            const gasX=FURN_X+FURN_W*0.15;
+            const gasTopY=UNIT_Y+UNIT_H;
+            const teeY=gasTopY+38, valveY=gasTopY+65;
+            return <g className="snap" style={{animationDelay:'.14s'}}>
+              <line x1={gasX} y1={DECK_Y} x2={gasX} y2={gasTopY} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
+              <line x1={gasX} y1={DECK_Y} x2={gasX} y2={gasTopY} stroke="#5a5a5a" strokeWidth="1" strokeLinecap="round"/>
+              {/* Shutoff valve - ball-valve handle, closed-looking (perpendicular to the pipe) reads clearly at this scale */}
+              <circle cx={gasX} cy={valveY} r="4.2" fill="#242424" stroke="#5a5a5a" strokeWidth="0.8"/>
+              <line x1={gasX-6} y1={valveY} x2={gasX+6} y2={valveY} stroke="#c0392b" strokeWidth="2.4" strokeLinecap="round"/>
+              {/* Tee + drip leg */}
+              <line x1={gasX-5} y1={teeY} x2={gasX+5} y2={teeY} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
+              <line x1={gasX} y1={teeY} x2={gasX} y2={teeY+11} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
+              <rect x={gasX-3.5} y={teeY+11} width="7" height="3.5" rx="1" fill="#242424" stroke="#5a5a5a" strokeWidth="0.5"/>
+              <text x={gasX+10} y={teeY+15} textAnchor="start" fill="rgba(180,180,180,.5)" fontSize="8" fontFamily="monospace">DRIP LEG</text>
+              <text x={gasX} y={DECK_Y+14} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="11" fontFamily="monospace">GAS</text>
+            </g>;
+          })()}
+
           {/* A-coil (horizontal, right of furnace) */}
           {hasCoil&&hasFurnace&&<g className="snap" key={'ac'+a.cond_tier} style={{animationDelay:'.08s'}} filter="url(#shadow)">
             {(()=>{
@@ -3928,6 +3958,61 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y-13} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="9.5" fontFamily="monospace">FURNACE</text>
           </g>}
+
+          {/* Gas line + drip leg - closet version enters from the wall on
+              the furnace's right face instead of from below (the attic
+              layout's approach), since the space below the furnace here
+              is the enclosed 2x4 return chase, not open deck. Sits at
+              FURN_Y+50, in the ~90px gap between the furnace's top
+              (badges end around FURN_Y+20) and the thermostat's own
+              hover box, which starts at TY=midY-38 - see the thermostat
+              block above. The condensate drain's own vertical run (S-curve
+              into the chase, drawn below) crosses this same height at
+              furnace-face+20, so the tee/valve assembly is pushed out
+              past that (+34/+48) rather than sitting on top of it - the
+              connecting pipe still crosses the drain's dashed line, but
+              as a plain line crossing, not an icon overlapping it. */}
+          {hasCoil&&hasFurnace&&(()=>{
+            const gasY=FURN_Y+50;
+            const gasX1=UNIT_X+UNIT_W, gasX2=gasX1+62;
+            const teeX=gasX1+34, valveX=gasX1+48;
+            return <g className="snap" style={{animationDelay:'.14s'}}>
+              <line x1={gasX1} y1={gasY} x2={gasX2} y2={gasY} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
+              <line x1={gasX1} y1={gasY} x2={gasX2} y2={gasY} stroke="#5a5a5a" strokeWidth="1" strokeLinecap="round"/>
+              {/* Tee + drip leg, closest to the furnace connection that's clear of the drain crossing */}
+              <line x1={teeX} y1={gasY-5} x2={teeX} y2={gasY+5} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
+              <line x1={teeX} y1={gasY} x2={teeX} y2={gasY+11} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
+              <rect x={teeX-3.5} y={gasY+11} width="7" height="3.5" rx="1" fill="#242424" stroke="#5a5a5a" strokeWidth="0.5"/>
+              {/* Shutoff valve, toward the wall/supply side */}
+              <circle cx={valveX} cy={gasY} r="4.2" fill="#242424" stroke="#5a5a5a" strokeWidth="0.8"/>
+              <line x1={valveX} y1={gasY-6} x2={valveX} y2={gasY+6} stroke="#c0392b" strokeWidth="2.4" strokeLinecap="round"/>
+              <text x={gasX1+18} y={gasY-9} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="8.5" fontFamily="monospace">GAS</text>
+              <text x={teeX} y={gasY+24} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">DRIP LEG</text>
+            </g>;
+          })()}
+
+          {/* Furnace service disconnect - a 120V single-pole switch (often
+              just a household light switch) that lets a tech kill power to
+              the blower/control board before servicing, separate from the
+              240V condenser DISC. box outside. Mirrors the gas line's
+              placement on the opposite (left) face, at the same height, so
+              it clears the dehumidistat below it (which starts around
+              midY-20, well under FURN_Y+50) the same way the gas line
+              clears the thermostat. */}
+          {hasFurnace&&(()=>{
+            const swY=FURN_Y+50;
+            const swX2=UNIT_X, swX1=swX2-30;
+            const plateX=swX1-16, plateW=16, plateH=26;
+            return <g className="snap" style={{animationDelay:'.16s'}}>
+              <line x1={swX1} y1={swY} x2={swX2} y2={swY} stroke="#3a3a3a" strokeWidth="2" strokeLinecap="round"/>
+              <rect x={plateX} y={swY-plateH/2} width={plateW} height={plateH} rx="2"
+                fill="#e8e4da" stroke="#8a8578" strokeWidth="0.8"/>
+              <rect x={plateX+plateW/2-2.6} y={swY-8} width="5.2" height="11" rx="1.4"
+                fill="#2a2a2a" stroke="#555" strokeWidth="0.5"/>
+              <text x={plateX+plateW/2} y={swY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">SERVICE</text>
+              <text x={plateX+plateW/2} y={swY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">SWITCH</text>
+            </g>;
+          })()}
 
           {hasCoil&&<EditZone stepId="indoor_type"
             x={UNIT_X-4} y={ACOIL_Y-2} rx={6}

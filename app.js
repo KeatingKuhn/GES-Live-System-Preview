@@ -3599,7 +3599,12 @@
           fontFamily: "monospace"
         },
         furnaceActive ? "GAS HEATING ACTIVE" : "STANDBY"
-      )), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac" + a.cond_tier, style: { animationDelay: ".08s" }, filter: "url(#shadow)" }, (() => {
+      )), hasCoil && hasFurnace && (() => {
+        const gasX = FURN_X + FURN_W * 0.15;
+        const gasTopY = UNIT_Y + UNIT_H;
+        const teeY = gasTopY + 38, valveY = gasTopY + 65;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: gasX, cy: valveY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 6, y1: valveY, x2: gasX + 6, y2: valveY, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 5, y1: teeY, x2: gasX + 5, y2: teeY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: teeY, x2: gasX, y2: teeY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: gasX - 3.5, y: teeY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: gasX + 10, y: teeY + 15, textAnchor: "start", fill: "rgba(180,180,180,.5)", fontSize: "8", fontFamily: "monospace" }, "DRIP LEG"), /* @__PURE__ */ React.createElement("text", { x: gasX, y: DECK_Y + 14, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "11", fontFamily: "monospace" }, "GAS"));
+      })(), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac" + a.cond_tier, style: { animationDelay: ".08s" }, filter: "url(#shadow)" }, (() => {
         const active = evapActive;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
@@ -4935,7 +4940,41 @@
           fontFamily: "monospace"
         },
         "FURNACE"
-      )), hasCoil && /* @__PURE__ */ React.createElement(
+      )), hasCoil && hasFurnace && (() => {
+        const gasY = FURN_Y + 50;
+        const gasX1 = UNIT_X + UNIT_W, gasX2 = gasX1 + 62;
+        const teeX = gasX1 + 34, valveX = gasX1 + 48;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY - 5, x2: teeX, y2: gasY + 5, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY, x2: teeX, y2: gasY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: teeX - 3.5, y: gasY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("circle", { cx: valveX, cy: gasY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: valveX, y1: gasY - 6, x2: valveX, y2: gasY + 6, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("text", { x: gasX1 + 18, y: gasY - 9, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "8.5", fontFamily: "monospace" }, "GAS"), /* @__PURE__ */ React.createElement("text", { x: teeX, y: gasY + 24, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "DRIP LEG"));
+      })(), hasFurnace && (() => {
+        const swY = FURN_Y + 50;
+        const swX2 = UNIT_X, swX1 = swX2 - 30;
+        const plateX = swX1 - 16, plateW = 16, plateH = 26;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".16s" } }, /* @__PURE__ */ React.createElement("line", { x1: swX1, y1: swY, x2: swX2, y2: swY, stroke: "#3a3a3a", strokeWidth: "2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: plateX,
+            y: swY - plateH / 2,
+            width: plateW,
+            height: plateH,
+            rx: "2",
+            fill: "#e8e4da",
+            stroke: "#8a8578",
+            strokeWidth: "0.8"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: plateX + plateW / 2 - 2.6,
+            y: swY - 8,
+            width: "5.2",
+            height: "11",
+            rx: "1.4",
+            fill: "#2a2a2a",
+            stroke: "#555",
+            strokeWidth: "0.5"
+          }
+        ), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"));
+      })(), hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
         {
           stepId: "indoor_type",
