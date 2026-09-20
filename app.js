@@ -801,11 +801,12 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const B='rgba(35,137,224,';
   const W='rgba(255,255,255,';
   const O='rgba(249,115,22,';
-  // Galvanized-steel cabinet color for the furnace/air-handler body -
-  // real equipment cabinets are silver/gray sheet metal, not gold. Gold
-  // (G) stays reserved for the plenum, spec/tier badges and other accent
-  // uses; this is specifically the furnace/air-handler's own exterior.
-  const S='rgba(180,186,198,';
+  // Slate matte silver - the furnace/air-handler cabinet exterior and
+  // the blower's own static motor housing. Real equipment cabinets are
+  // galvanized sheet metal, not gold. Gold (G) stays reserved for the
+  // plenum, spec/tier badges, and the blower WHEEL itself (the moving
+  // assembly - kept gold on purpose, it reads well while spinning).
+  const S='rgba(148,158,172,';
 
   // ── OUTSIDE / INSIDE PALETTE ───────────────────────────────
   // The outside zone's fill is a visual metaphor for the active heating/
@@ -974,7 +975,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         stroke={active?(G+'.7)'):(G+'.2)')} strokeWidth="1.9" strokeLinecap="round"/>;
     });
     return <g>
-      <circle cx={cx} cy={cy} r={r+4} fill="rgba(0,0,0,.5)" stroke={G+'.15)'} strokeWidth="0.8"/>
+      {/* Outer ring is the static motor housing (never moves) - slate
+          silver, matching the rest of the cabinet exterior. The wheel
+          itself (rim, blades, hub below) stays gold - it's the moving
+          assembly and reads well spinning against the silver housing. */}
+      <circle cx={cx} cy={cy} r={r+4} fill="rgba(0,0,0,.5)" stroke={S+'.4)'} strokeWidth="0.8"/>
       <circle cx={cx} cy={cy} r={r} fill="#050505" stroke={G+'.3)'} strokeWidth="0.9"/>
       {active
         ?<g className="spin" style={{transformBox:'fill-box',transformOrigin:'center',animationDuration:(1.0/spd)+'s'}}>{blades}</g>
@@ -1296,36 +1301,52 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         spd={blowerActive?1.5:0.45} active={blowerActive}/>
       <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
       <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
-      <rect x={c2+3} y={y+8} width={auxW-6} height={h-14} rx="2"
+      {/* Literally the same AuxHeatKit artwork the closet layout uses
+          below (just called with this column's own width/height, since
+          the strip is proportional, not fixed-size) - wrapped in a
+          90-degree rotation instead of a hand-rebuilt layout, so this
+          column shows the exact same bordered-strip-of-elements design
+          the closet does, just turned to fit a column that's tall
+          instead of wide. See the AuxHeatKit comment for the rotation
+          math this translate+rotate pair relies on. */}
+      <g transform={`translate(${c2+3} ${y+8+(h-14)}) rotate(-90)`}>
+        <AuxHeatKit x={0} y={0} w={h-14} h={auxW-6} auxHeat={auxHeat}/>
+      </g>
+      <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
+
+    </g>;
+  }
+
+  // Aux heat kit - a bordered strip of heat-strip elements with a
+  // caption label. Drawn once in its natural wide-short orientation
+  // (matching how the closet/vertical air handler has room to show it -
+  // the column there is wide), and reused as-is for the attic/horizontal
+  // air handler by wrapping it in a 90-degree rotation instead of
+  // re-deriving a different layout for that column - so both layouts
+  // show literally the same artwork, just turned to fit whichever
+  // column is actually the narrow one there.
+  function AuxHeatKit({x,y,w,h,auxHeat,segCount}){
+    segCount=segCount||4;
+    const rectY=y, rectH=h*0.62;
+    const rectX=x+w*0.03, rectW=w*0.94;
+    const segGap=rectW*0.04;
+    const segW=(rectW-segGap*(segCount+1))/segCount;
+    const segH=rectH*0.6, segY=rectY+rectH*0.2;
+    return <g>
+      <rect x={rectX} y={rectY} width={rectW} height={rectH} rx="2"
         fill={auxHeat?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
         stroke={auxHeat?"rgba(249,115,22,.6)":(S+'.2)')} strokeWidth="0.8"/>
-      {/* Heat-strip elements stacked vertically (not side-by-side) so each
-          one gets real size in this narrow column, same idea as the
-          closet's own aux-heat-kit bank of elements - just stacked along
-          the column's long axis instead of its short one, since this
-          column is tall, not wide. */}
-      {Array.from({length:2},(_,i)=>{
-        const segY=y+h*0.62, segH=(h*0.3)/2;
-        const by=segY+i*(segH+3);
+      {Array.from({length:segCount},(_,i)=>{
+        const bx=rectX+segGap+i*(segW+segGap);
         return <g key={i}>
-          <rect x={c2+7} y={by} width={Math.max(1,auxW-14)} height={Math.max(1,segH-3)} rx="1"
+          <rect x={bx} y={segY} width={Math.max(1,segW)} height={Math.max(1,segH)} rx="1"
             fill={auxHeat?"#1a0805":"#0a0a0f"} stroke={auxHeat?"rgba(249,115,22,.4)":"rgba(48,20,5,.2)"} strokeWidth="0.5"/>
-          {auxHeat&&<ellipse cx={c2+auxW/2} cy={by+(segH-3)/2} rx={(auxW-14)/2} ry={Math.min(3,(segH-3)/2)}
+          {auxHeat&&<ellipse cx={bx+segW/2} cy={segY+segH/2} rx={segW/2} ry={Math.min(3,segH/2)}
             fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
         </g>;
       })}
-      {/* Full "AUX HEAT KIT" label, rotated to read up the column - same
-          technique the FILTRATION cabinet a few hundred lines up already
-          uses for its own narrow column. This used to fall back to just
-          "AUX" because the label read horizontally and 15% of the unit's
-          width isn't enough room for the full text - reading vertically
-          instead uses the column's much more generous height, matching
-          the closet layout's own full "AUX HEAT KIT" label. */}
-      <text x={c2+auxW/2} y={y+h*0.4} textAnchor="middle"
-        fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize="10" fontFamily="monospace"
-        transform={`rotate(-90,${c2+auxW/2},${y+h*0.4})`}>AUX HEAT KIT</text>
-      <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
-
+      <text x={x+w/2} y={y+h*0.92} textAnchor="middle"
+        fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize={Math.min(12,h*0.22)} fontFamily="monospace">AUX HEAT KIT</text>
     </g>;
   }
 
@@ -2946,11 +2967,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               return <>
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
                   fill={active?"#050c1c":"#090909"}
-                  stroke={active?(evapC+'88'):(G+'.44)')} strokeWidth={active?1.8:1.5}/>
+                  stroke={active?(evapC+'88'):(S+'.54)')} strokeWidth={active?1.8:1.5}/>
                 {active&&<rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
                   fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={9} rx="5"
-                  fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#gold)"} opacity=".65"/>
+                  fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#silver)"} opacity=".65"/>
                 {hasFurnace
                   ?<ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}/>
                   :<>
@@ -2969,31 +2990,17 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                         installed there as backup, it just almost never
                         glows. */}
                     <line x1={UNIT_X} y1={ACOIL_Y+ACOIL_H*0.215} x2={UNIT_X+UNIT_W} y2={ACOIL_Y+ACOIL_H*0.215}
-                      stroke={G+'.18)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+                      stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
                     <line x1={UNIT_X} y1={ACOIL_Y+ACOIL_H*0.53} x2={UNIT_X+UNIT_W} y2={ACOIL_Y+ACOIL_H*0.53}
-                      stroke={G+'.18)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-                    <rect x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.095} width={UNIT_W-28} height={ACOIL_H*0.075} rx="2"
-                      fill={auxHeatActive?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
-                      stroke={auxHeatActive?"rgba(249,115,22,.6)":(G+'.14)')} strokeWidth="0.8"/>
-                    {Array.from({length:4},(_,i)=>{
-                      const segW=(UNIT_W-52)/4;
-                      const bx=UNIT_X+22+i*(UNIT_W-36)/4;
-                      return <g key={i}>
-                        <rect x={bx} y={ACOIL_Y+ACOIL_H*0.115} width={Math.max(1,segW)} height={ACOIL_H*0.045} rx="1"
-                          fill={auxHeatActive?"#1a0805":"#0a0a0f"} stroke={auxHeatActive?"rgba(249,115,22,.4)":"rgba(48,20,5,.2)"} strokeWidth="0.5"/>
-                        {auxHeatActive&&<ellipse cx={bx+segW/2} cy={ACOIL_Y+ACOIL_H*0.115} rx={segW/2} ry={3}
-                          fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
-                      </g>;
-                    })}
-                    <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.195} textAnchor="middle"
-                      fill={auxHeatActive?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="12" fontFamily="monospace">AUX HEAT KIT</text>
+                      stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+                    <AuxHeatKit x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.09} w={UNIT_W-28} h={ACOIL_H*0.14} auxHeat={auxHeatActive}/>
                     <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.33}
                       r={Math.min(UNIT_W*0.24,ACOIL_H*0.105)}
                       spd={blowerActive?1.4:0.4} active={blowerActive}/>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.465} textAnchor="middle"
-                      fill={G+'.55)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+                      fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.50} textAnchor="middle"
-                      fill={G+'.4)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
+                      fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
                     <ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}/>
                   </>
                 }
@@ -3033,13 +3040,13 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu-c'+a.stage}>
             <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
               fill={furnaceActive?"#0e0606":"#090909"}
-              stroke={furnaceActive?'rgba(249,115,22,.78)':(G+'.58)')} strokeWidth={furnaceActive?2.1:1.7}/>
+              stroke={furnaceActive?'rgba(249,115,22,.78)':(S+'.7)')} strokeWidth={furnaceActive?2.1:1.7}/>
             {furnaceActive&&<rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
               fill={O+'.04)'} stroke="none"/>}
             <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={9} rx="5"
-              fill={furnaceActive?"url(#orange-g)":"url(#gold)"} opacity=".72"/>
+              fill={furnaceActive?"url(#orange-g)":"url(#silver)"} opacity=".72"/>
             <line x1={UNIT_X} y1={FURN_Y+FURN_H/2} x2={UNIT_X+UNIT_W} y2={FURN_Y+FURN_H/2}
-              stroke={G+'.18)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+              stroke={S+'.28)'} strokeWidth="0.9" strokeDasharray="4 3"/>
             {/* TOP: HX */}
             {Array.from({length:5},(_,i)=>(
               <path key={i}
@@ -3049,22 +3056,22 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             ))}
             <rect x={UNIT_X+6} y={FURN_Y+FURN_H/2-13} width={UNIT_W-12} height={10} rx="2"
               fill={furnaceActive?O+'.07)':'rgba(5,5,13,.8)'}
-              stroke={furnaceActive?'rgba(249,115,22,.42)':(G+'.14)')} strokeWidth="0.6"/>
+              stroke={furnaceActive?'rgba(249,115,22,.42)':(S+'.2)')} strokeWidth="0.6"/>
             {furnaceActive&&Array.from({length:4},(_,i)=>(
               <ellipse key={i} cx={UNIT_X+14+i*((UNIT_W-14)/4)} cy={FURN_Y+FURN_H/2-13}
                 rx={(UNIT_W-14)/10} ry={5}
                 fill={O+'.55)'} className="glow-pulse" style={{animationDelay:i*0.12+'s'}}/>
             ))}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H/4+6} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.75)':(G+'.5)')} fontSize="12.5" fontFamily="monospace">HEAT EXCH.</text>
+              fill={furnaceActive?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="12.5" fontFamily="monospace">HEAT EXCH.</text>
             {/* BOTTOM: blower */}
             <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.70}
               r={Math.min(UNIT_W*0.32,FURN_H*0.155)}
               spd={blowerActive?1.55:0.5} active={blowerActive}/>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-15} textAnchor="middle"
-              fill={G+'.55)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+              fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
-              fill={G+'.4)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
+              fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
             {/* Flue - 45° elbow routing:
                 exits top of furnace → 45° elbow left → horizontal run → 45° elbow up → vertical through roof */}
             {(()=>{
