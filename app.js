@@ -3533,14 +3533,50 @@ function App(){
   // page load, so navigating back to step 1 later doesn't force it open
   // again over a user who's already closed it.
   const autoInfoShown=React.useRef(false);
+  // This auto-open is the one time the panel opens WITHOUT the user asking
+  // for it - every other open (hover/focus/tap on the info button) is a
+  // direct response to something they just did, so an animated reveal
+  // reads fine there. This one fires unprompted, right as the step's own
+  // option cards first become clickable, and by default animates open over
+  // .25s (.info-collapse's transition). In the closet layout, an open info
+  // panel just pushes .opts down in normal flow with no reserved space
+  // (unlike attic's pinned 52px, see the comment on .attic-info-collapse) -
+  // measured, that .25s reveal drags the whole option list down as much as
+  // ~90px underneath someone who has just been handed a mouse/finger and is
+  // likely to tap the first thing they see. A fast tap aimed at where a
+  // card visibly was lands in the gap between cards, or on nothing, for
+  // most of that window instead of selecting anything - the same "clicked
+  // right as something else moved" shape as the sticky-header/reaction-line
+  // bug elsewhere in this file, just triggered by an unprompted auto-open
+  // instead of the user's own click. Suppressing the transition for this
+  // one auto-triggered open (a "no-anim" class on .info-collapse, cleared a
+  // couple frames later) makes the panel appear already-open on the very
+  // first frame the options are interactive, so there's never a stale
+  // position to aim at. Every later toggle clears the flag first (it's
+  // only ever set true here) and animates normally, since those are all
+  // direct responses to something the user just did with their pointer,
+  // not a surprise sprung on it.
+  const autoInfoInstant=React.useRef(false);
   React.useEffect(()=>{
     if(stepIdx===1&&!autoInfoShown.current){
       autoInfoShown.current=true;
+      autoInfoInstant.current=true;
       setShowInfo(true);
     }else{
       setShowInfo(false);
     }
   },[stepIdx]);
+  React.useEffect(()=>{
+    if(!autoInfoInstant.current)return;
+    // Double rAF: the first frame is when the browser actually paints the
+    // "open + no-anim" state (transition suppressed); only once that's
+    // committed is it safe to drop the flag, so a real toggle a moment
+    // later - which happens far later than two frames in practice - always
+    // animates normally instead of racing this cleanup.
+    let id2;
+    const id1=requestAnimationFrame(()=>{id2=requestAnimationFrame(()=>{autoInfoInstant.current=false;});});
+    return ()=>{cancelAnimationFrame(id1);if(id2)cancelAnimationFrame(id2);};
+  },[showInfo]);
   // On the mobile attic layout, .attic-bar-body is its own scrollable
   // region below the fixed-height eyebrow row (.attic-bar-top, which
   // isn't part of that scroll area). A step with enough option text to
@@ -3608,6 +3644,130 @@ function App(){
   const isAtticMode = loc === 'attic';
   const isClosetMode = loc === 'closet';
 
+  // splash-screen/attic-layout/closet-layout/done-screen all stay mounted
+  // the whole time - hidden via opacity+pointer-events (an "out"/
+  // "done-leaving" class) rather than display:none, so whichever one IS
+  // showing never has to wait out a remount. CSS pointer-events:none stops
+  // the MOUSE from reaching a hidden one, but says nothing to the
+  // KEYBOARD - its buttons stayed in Tab order the whole time, so the very
+  // next Tab after, say, picking a splash card landed back on that now
+  // -invisible, non-interactive screen (its other card, then the one just
+  // picked) with no focus ring visible anywhere on screen, before Tab
+  // finally escaped into the step that had actually replaced it - the same
+  // "control you can't see is still live" shape as the sticky-header bug
+  // elsewhere in this file, just for a keyboard user instead of a mouse
+  // click. The native `inert` attribute is the direct fix (removes a
+  // subtree from tab order and assistive tech in one property, exactly
+  // mirroring what the CSS already does visually/for the mouse) - but the
+  // React version pinned here (18.2, predating React's own `inert` prop
+  // support added in 19) silently drops an `inert` JSX prop instead of
+  // reflecting it, so it's set imperatively via a ref instead, one effect
+  // per hidden-able panel, each mirroring that panel's own "out"/
+  // "done-leaving" condition exactly.
+  const splashRef=useRef(null),atticLayoutRef=useRef(null),closetLayoutRef=useRef(null),doneScreenRef=useRef(null);
+  // Moves focus to the newly-active layout's first real control. Used
+  // right below when a panel that currently holds focus is about to go
+  // inert - waiting for the browser's own "focus dropped to <body>" fallout
+  // and reacting to it (see the effect further down) works for a disabled
+  // button, whose blur-to-<body> happens synchronously, but inert's own
+  // version of that isn't synchronous with the effect that sets it (it
+  // lands sometime before the next paint, racing - and beating - a rAF
+  // callback that tries to react to it after the fact). Redirecting focus
+  // ourselves, synchronously, in the same effect that flips inert on,
+  // sidesteps that race outright instead of trying to win it.
+  const focusActiveModeControl=()=>{
+    const scope=isAtticMode?'.attic-layout':isClosetMode?'.closet-layout':null;
+    if(!scope)return;
+    // Deferred to a microtask: this can run before the effect (declared
+    // later than this one, further down) that actually clears `inert` on
+    // the layout we're focusing INTO - focusing into a still-inert subtree
+    // is always a no-op, and effects for one commit don't wait on each
+    // other's declaration order for anything except their own run order,
+    // not for when the DOM side effects they perform become visible to
+    // this kind of check. A microtask runs after every effect in this
+    // commit has finished (still well before the next paint, so no visible
+    // flash of the wrong thing being focused), so by the time this actually
+    // calls .focus() the target layout's own inert has always already been
+    // cleared, regardless of which effect happened to be declared first.
+    queueMicrotask(()=>{
+      const target=document.querySelector(`${scope} .info-btn, ${scope} .btn-back, ${scope} .attic-opt, ${scope} .opt`);
+      target&&target.focus();
+    });
+  };
+  const splashInert=!!(loc||done);
+  React.useEffect(()=>{
+    if(!splashRef.current)return;
+    if(splashInert&&splashRef.current.contains(document.activeElement))focusActiveModeControl();
+    splashRef.current.inert=splashInert;
+  },[splashInert]);
+  const atticInert=!!(!isAtticMode||done);
+  React.useEffect(()=>{
+    if(!atticLayoutRef.current)return;
+    // Only redirects for the isClosetMode case (attic -> closet, e.g.
+    // switching location mid quick-edit) - focusActiveModeControl finds
+    // nothing for the `done` case (isAtticMode and isClosetMode both go
+    // false together) and no-ops, which is fine: Finish is a deliberate,
+    // conversation-ending action, and Tab from <body> still reaches the
+    // done screen's real content correctly once it's mounted, just
+    // without an explicit landing spot - a smaller gap than the one this
+    // whole block exists to close.
+    if(atticInert&&isClosetMode&&atticLayoutRef.current.contains(document.activeElement))focusActiveModeControl();
+    atticLayoutRef.current.inert=atticInert;
+  },[atticInert]);
+  const closetInert=!!(!isClosetMode||done);
+  React.useEffect(()=>{
+    if(!closetLayoutRef.current)return;
+    if(closetInert&&isAtticMode&&closetLayoutRef.current.contains(document.activeElement))focusActiveModeControl();
+    closetLayoutRef.current.inert=closetInert;
+  },[closetInert]);
+  React.useEffect(()=>{if(doneScreenRef.current)doneScreenRef.current.inert=!done;},[done,doneVisible]);
+  // Two different ways a step change drops keyboard focus to <body>, both
+  // fixed the same way below:
+  // 1) Picking a location (splash -> step 1) focuses one of the two splash
+  //    cards onto an element that inert (above) immediately makes
+  //    un-focusable, since it's what a keyboard user just activated - per
+  //    spec, a focused element that becomes inert drops focus to <body>.
+  // 2) Every ordinary Next/Back keeps focus on that same nav button (its
+  //    DOM node persists across the step change, so focus doesn't move on
+  //    its own) - but the new step is almost always unanswered, so Next
+  //    immediately goes disabled again, and a browser always blurs a
+  //    disabled control straight to <body> too. This one isn't specific to
+  //    a single step; it happens on essentially every forward step of the
+  //    whole wizard.
+  // Either way <body> is a "safe" landing spot in the sense that Tab from
+  // there reaches something real, but it's a silent one - nothing on
+  // screen looks focused, so a keyboard/screen-reader user gets no
+  // confirmation of where they landed and has to blind-Tab to find out.
+  // Watching for focus actually having been dropped to <body> (rather than
+  // firing on every step change unconditionally) means this only ever
+  // steps in to recover from that specific failure - it never fights a
+  // user who has focus somewhere else on purpose, and the guard below
+  // skips the very first render so a fresh/resumed page load never grabs
+  // focus nobody asked for.
+  const stepFocusMounted=React.useRef(false);
+  React.useEffect(()=>{
+    if(!stepFocusMounted.current){stepFocusMounted.current=true;return;}
+    if(!loc||done)return;
+    // Checked only inside the rAF, not before scheduling it: setting
+    // `inert` (the splash-screen case above) doesn't blur its now-inert
+    // descendant to <body> synchronously within this same effect pass -
+    // that happens on the browser's own schedule, sometime before the
+    // next paint but after every effect for this commit has already run.
+    // Bailing out early here on an activeElement check made at THIS exact
+    // moment saw the splash card still (about to be, not yet) blurred and
+    // skipped recovering focus entirely. Waiting for the same rAF that
+    // already guards "something else claimed it" covers both this and the
+    // disabled-Next-button case (a synchronous, immediate blur) equally
+    // well, since both are settled well before a rAF callback runs.
+    const id=requestAnimationFrame(()=>{
+      if(document.activeElement!==document.body)return; // something else already claimed it
+      const scope=isAtticMode?'.attic-layout':'.closet-layout';
+      const target=document.querySelector(`${scope} .info-btn, ${scope} .btn-back, ${scope} .attic-opt, ${scope} .opt`);
+      target&&target.focus();
+    });
+    return ()=>cancelAnimationFrame(id);
+  },[stepIdx,loc,done]);
+
   // Render option button (attic small or sidebar full)
   const makeOpt = (opt, isSmall) => {
     if(!cur) return null;
@@ -3670,7 +3830,24 @@ function App(){
       </div>
 
       {/* ── SPLASH - step 1 location picker ── */}
-      <div className={"splash-screen"+(loc||done?" out":"")}>
+      {/* inert mirrors the "out" class's opacity/pointer-events:none exactly
+          (see the .splash-screen.out rule) - CSS opacity/pointer-events hide
+          this from the mouse and from view, but say nothing to the KEYBOARD:
+          its two cards stayed in Tab order the whole time, so the very next
+          Tab after picking one (keyboard or switch-access, not just a mouse
+          click) landed back on this now-invisible, non-interactive screen -
+          on the OTHER card, then back on the one just picked - with no focus
+          ring visible anywhere on screen, before Tab finally escaped into
+          the real step 1 that had already replaced it. inert removes the
+          whole subtree from tab order and assistive tech the same instant
+          the mouse loses it, so focus moves straight into the step that's
+          actually on screen. Same fix applied below to .attic-layout,
+          .closet-layout and .done-screen - every one of them stays mounted
+          (hidden via opacity, not display:none) so its buttons keep working
+          for whichever mode IS visible without a remount, but that means
+          all three needed this same guard against leaking into Tab order
+          while hidden. */}
+      <div ref={splashRef} className={"splash-screen"+(loc||done?" out":"")}>
         <div className="splash-logo">BUILD YOUR OWN SYSTEM</div>
         <p style={{fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
           Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.
@@ -3717,7 +3894,9 @@ function App(){
       </div>
 
       {/* ── ATTIC LAYOUT - canvas full width, step bar on bottom ── */}
-      <div className={"attic-layout"+(!isAtticMode||done?" out":"")}>
+      {/* inert matches the "out" condition below - see the comment on
+          .splash-screen above for why this is needed at all. */}
+      <div ref={atticLayoutRef} className={"attic-layout"+(!isAtticMode||done?" out":"")}>
         <div className="attic-canvas-area canvas-frame">
           <div className="canvas-zoom">
             <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
@@ -3728,23 +3907,21 @@ function App(){
             <span>✎ Editing this answer only</span>
             <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ Cancel, back to build</button>
           </div>}
-          <div className="attic-bar-top">
-            <span className="attic-step-label">
-              {cur ? <><span className="chapter-tag">{CHAPTERS[curChapter]}</span>{" · STEP "+stepIdx+(totalKnown?" OF "+totalSteps:"")+" · "+cur.q.toUpperCase()}</> : ""}
-            </span>
-            {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} aria-expanded={showInfo}
-              onMouseEnter={()=>hoverCapable()&&setShowInfo(true)} onMouseLeave={()=>hoverCapable()&&setShowInfo(false)}
-              onFocus={()=>setShowInfo(true)} onBlur={()=>setShowInfo(false)}
-              onTouchEnd={e=>{e.preventDefault();setShowInfo(v=>!v);}}>i</button>}
-            {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
-            {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
-            <button className="btn-next" onClick={goNext} disabled={!canNext}>
-              {quickEdit?(quickEditWillFinish?"Save & Return →":"Next →"):(stepIdx===activeSteps.length-1?"Finish →":"Next →")}
-            </button>
-          </div>
-          <div className={"info-collapse attic-info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
-            {infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)"}}>{infoText}</div>}
-          </div></div>
+          {/* .attic-bar-top/.attic-info-collapse are rendered AFTER
+              .attic-bar-body below (still visually on top - see the
+              order:1/2/3 rules on all three in styles.css) so Tab order
+              runs question -> options -> Back/Skip/Next instead of DOM
+              order putting the nav row before the options it's supposed to
+              act on. Forward-Tab from an option used to have nowhere to go
+              but backward into the same options over and over - Next sat
+              earlier in the DOM, so it was only ever reachable with
+              Shift+Tab once you'd tabbed into the option list, a dead end
+              for anyone tabbing forward only. Flexbox `order` changes paint
+              order, never focus order, so fixing this needed the actual
+              DOM sequence to change; mirrors the closet sidebar's own
+              .opts-before-.nav-row structure a few hundred lines down,
+              which never had this problem because it was already ordered
+              this way. */}
           <div className="attic-bar-body">
             {/* A key derived from stepIdx forces a remount on every step
                 change so the existing .fadein utility (already used for
@@ -3767,11 +3944,30 @@ function App(){
               {opts.map(opt=>makeOpt(opt,true))}
             </div>
           </div>
+          <div className="attic-bar-top">
+            <span className="attic-step-label">
+              {cur ? <><span className="chapter-tag">{CHAPTERS[curChapter]}</span>{" · STEP "+stepIdx+(totalKnown?" OF "+totalSteps:"")+" · "+cur.q.toUpperCase()}</> : ""}
+            </span>
+            {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} aria-expanded={showInfo}
+              onMouseEnter={()=>hoverCapable()&&setShowInfo(true)} onMouseLeave={()=>hoverCapable()&&setShowInfo(false)}
+              onFocus={()=>setShowInfo(true)} onBlur={()=>setShowInfo(false)}
+              onTouchEnd={e=>{e.preventDefault();setShowInfo(v=>!v);}}>i</button>}
+            {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
+            {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
+            <button className="btn-next" onClick={goNext} disabled={!canNext}>
+              {quickEdit?(quickEditWillFinish?"Save & Return →":"Next →"):(stepIdx===activeSteps.length-1?"Finish →":"Next →")}
+            </button>
+          </div>
+          <div className={"info-collapse attic-info-collapse"+(showInfo&&infoText?" open":"")+(autoInfoInstant.current?" no-anim":"")}><div className="info-collapse-inner">
+            {infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)"}}>{infoText}</div>}
+          </div></div>
         </div>
       </div>
 
       {/* ── CLOSET LAYOUT - canvas left, sidebar right ── */}
-      <div className={"closet-layout"+(!isClosetMode||done?" out":"")}>
+      {/* inert matches the "out" condition below - see the comment on
+          .splash-screen above for why this is needed at all. */}
+      <div ref={closetLayoutRef} className={"closet-layout"+(!isClosetMode||done?" out":"")}>
         <div className="closet-canvas-area canvas-frame">
           <div className="canvas-zoom">
             <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
@@ -3817,7 +4013,7 @@ function App(){
               .step-hdr instead, it only pushes .opts down slightly in
               normal flow - .opts already scrolls independently. */}
           {reactionText&&<div key={reactionText} className="reaction-line" style={{padding:"4px 18px 0"}}>✓ {reactionText}</div>}
-          <div className={"info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
+          <div className={"info-collapse"+(showInfo&&infoText?" open":"")+(autoInfoInstant.current?" no-anim":"")}><div className="info-collapse-inner">
             {infoText&&<div className="info-expand"><div className="info-body">{infoText}</div></div>}
           </div></div>
           <div key={"opts-"+stepIdx} className="opts fadein">{opts.map(opt=>makeOpt(opt,false))}</div>
@@ -3836,7 +4032,12 @@ function App(){
            (tall/narrow diagram) keeps it as a side column so the canvas
            keeps full height. Mirrors the same tradeoff each layout already
            makes during the wizard steps (.attic-layout vs .closet-layout). ── */}
-      {doneVisible&&<div className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
+      {/* inert only during the done-leaving close (see .done-screen.done-leaving's
+          own pointer-events:none) - the rest of the time this is unmounted
+          entirely (doneVisible false), so there's no stray Tab stop to guard
+          against outside that one closing beat. Same reasoning as the
+          .splash-screen comment above. */}
+      {doneVisible&&<div ref={doneScreenRef} className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
         <div className="canvas-frame done-canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
           <div className="canvas-zoom">
             <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>

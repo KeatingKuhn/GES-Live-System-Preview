@@ -387,6 +387,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    what already had to make room for this content in normal flow). */
 .info-collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease;flex-shrink:0}
 .info-collapse.open{grid-template-rows:1fr}
+/* Suppresses the transition above for exactly one open - the unprompted
+   auto-open on someone's first-ever visit to step 1 (see the app.js
+   comment on autoInfoInstant). That animated reveal otherwise drags the
+   option list down underneath a user who's likely about to tap the first
+   card they see, for most of the .25s it takes; jumping straight to the
+   final open height instead means the options are already exactly where
+   they'll stay by the very first frame they're interactive. Every
+   user-triggered toggle (hover/tap/focus) clears this class first and
+   keeps the normal animated feel. */
+.info-collapse.no-anim{transition:none}
 .info-collapse-inner{overflow:hidden;min-height:0}
 /* Desktop attic only: fixed open height instead of the shared 1fr
    (content-hugging) rule above. .attic-bar is a true fixed height there
@@ -612,6 +622,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    overrides this to height:auto (see the max-width:1024px block) so this
    only affects desktop/tablet-landscape behavior. */
 .attic-bar{height:230px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column}
+/* .attic-bar-top/.attic-info-collapse now come AFTER .attic-bar-body in
+   the DOM (app.js) so Tab order runs question -> options -> Back/Skip/Next
+   instead of hitting the nav row before the options it acts on - `order`
+   restores the original top-to-bottom VISUAL stacking on top of that new
+   DOM order. `order` only ever repaints; it never changes Tab order (a
+   common trap - the DOM move above is what actually fixes that part), so
+   both pieces are needed together. .quickedit-banner has no `order` set,
+   so it keeps the default 0 and stays visually first either way. */
+.attic-bar-top{order:1}
+.attic-info-collapse{order:2}
+.attic-bar-body{order:3}
 /* Back/Next live here (not stacked inside .attic-info below) specifically
    so they're never subject to .attic-info's overflow:hidden - a long
    question+hint+reaction stack used to push Back past the fixed-height
