@@ -3053,8 +3053,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               different from the real cabinet's own footprint. */}
           <StepFocusRing stepId="purif"
             x={APR_X-2} y={UNIT_Y-2} w={(APR_W||32)+4} h={UNIT_H+4} rx={4}/>
+          {/* x mirrors DehuErvBoxes' own dehuBX formula below exactly (a
+              furnace-tuned +44 offset doesn't clear the AIR HANDLER title,
+              which sits centered above the cabinet unlike FURNACE's own
+              title below it - see that call site's comment) so this ghost
+              preview lands in the same spot the real box will. */}
           <StepFocusRing stepId="dehu"
-            x={(hasFurnace?FURN_X:AH_X)+44} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
+            x={hasFurnace?FURN_X+44:AH_X+AH_W-80-8} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
           <StepFocusRing stepId="extras"
             x={Math.max(8,RET_X)} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
         </svg>
