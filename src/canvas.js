@@ -1402,19 +1402,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         {/* MID: real GE NS18H condensers are a front-discharge cabinet - a
             large round fan grille dominating most of the front face, a
             narrower service-panel column beside it - not a top-discharge
-            square cabinet like the fed-min/high-eff units. Reverted back
-            to this shape after an earlier pass mistakenly rebuilt it onto
-            the top-discharge template; a real reference photo confirmed
-            this round-front-fan silhouette is correct. */}
+            square cabinet like the fed-min/high-eff units. Lightened per
+            a reference photo of a real front-discharge unit (same
+            "should be light metal, not near-black" correction the fed-min/
+            high-eff passes already got) - kept between the two on the
+            gray scale: cooler/dimmer than fed-min's plainer light gray,
+            lighter than high-eff's darker richer tone. */}
         <rect x={x} y={y} width={w} height={h} rx={6}
-          fill={active?(refReversed?"#131828":"#1c1e22"):"#181a1e"}
-          stroke={active?cc:"rgba(80,85,95,.7)"} strokeWidth={active?1.8:1.4}/>
-        {/* Discharge grille top */}
+          fill={active?(refReversed?"#a5aab4":"#bec2c8"):"#b5b9bf"}
+          stroke={active?cc:"rgba(120,124,132,.8)"} strokeWidth={active?1.8:1.4}/>
+        {/* Discharge grille top - stays black/dark, a real grille slot,
+            unlike the body around it */}
         <rect x={x+4} y={y+2} width={w-8} height={Math.round(h*0.1)} rx="2"
-          fill="rgba(0,0,0,.35)" stroke="rgba(70,75,85,.5)" strokeWidth="0.6"/>
+          fill="rgba(20,22,26,.55)" stroke="rgba(150,154,162,.4)" strokeWidth="0.6"/>
         {Array.from({length:3},(_,i)=>(
           <rect key={i} x={x+6} y={y+4+i*4} width={w-12} height={2} rx="0.5"
-            fill="rgba(35,38,45,.9)" stroke="rgba(60,65,75,.4)" strokeWidth="0.3"/>
+            fill="rgba(15,17,20,.85)" stroke="rgba(90,95,105,.4)" strokeWidth="0.3"/>
         ))}
         {/* Left: large fan area ~68% */}
         {(()=>{
@@ -1423,19 +1426,33 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           const fanAreaY=y+Math.round(h*0.1)+2;
           const fCX=x+fanAreaW/2, fCY=fanAreaY+fanAreaH/2;
           const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.43);
+          // Woven-wire crosshatch mesh (two crossing diagonal line sets,
+          // clipped to the grille circle) instead of the old sparse dot
+          // pattern - closer to how a real fan guard mesh actually reads,
+          // matching the reference photo's visible diamond weave.
+          const meshLines=[];
+          const pitch=4.2;
+          for(let i=-Math.ceil((fanAreaW+fanAreaH)/pitch);i<=Math.ceil((fanAreaW+fanAreaH)/pitch);i++){
+            meshLines.push(i);
+          }
           return <>
             <rect x={x+2} y={fanAreaY} width={fanAreaW-2} height={fanAreaH} rx="3"
-              fill="rgba(0,0,0,.4)" stroke="rgba(55,60,70,.5)" strokeWidth="0.7"/>
-            {Array.from({length:Math.floor(fanAreaH/5)},(_,row)=>
-              Array.from({length:Math.floor(fanAreaW/5)},(_,col)=>{
-                const gx=x+4+col*5, gy=fanAreaY+2+row*5;
-                const dx=gx-fCX, dy=gy-fCY;
-                if(Math.sqrt(dx*dx+dy*dy)>fR+4) return null;
-                return <rect key={row+'-'+col} x={gx} y={gy} width={1.5} height={1.5} rx="0.3"
-                  fill="rgba(40,45,55,.9)"/>;
-              })
-            )}
-            <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(60,65,78,.7)" strokeWidth="2.5"/>
+              fill="rgba(10,11,14,.55)" stroke="rgba(150,154,162,.4)" strokeWidth="0.7"/>
+            {[[x+7,fanAreaY+5],[x+fanAreaW-6,fanAreaY+5],[x+7,fanAreaY+fanAreaH-5],[x+fanAreaW-6,fanAreaY+fanAreaH-5]].map(([sx,sy],i)=>(
+              <circle key={i} cx={sx} cy={sy} r={1.6} fill="rgba(35,38,44,.9)" stroke="rgba(150,154,162,.4)" strokeWidth="0.4"/>
+            ))}
+            <clipPath id={"midfan-clip-"+active}><circle cx={fCX} cy={fCY} r={fR+3}/></clipPath>
+            <g clipPath={`url(#midfan-clip-${active})`} opacity="0.5">
+              {meshLines.map(i=>(
+                <line key={'a'+i} x1={fCX-fR-3+i*pitch} y1={fCY-fR-3} x2={fCX-fR-3+i*pitch+2*(fR+3)} y2={fCY+fR+3}
+                  stroke="rgba(70,75,85,.7)" strokeWidth="0.4"/>
+              ))}
+              {meshLines.map(i=>(
+                <line key={'b'+i} x1={fCX-fR-3+i*pitch} y1={fCY+fR+3} x2={fCX-fR-3+i*pitch+2*(fR+3)} y2={fCY-fR-3}
+                  stroke="rgba(70,75,85,.7)" strokeWidth="0.4"/>
+              ))}
+            </g>
+            <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(160,164,172,.5)" strokeWidth="2.5"/>
             {/* Real condenser fans ramp up with load - faster at 96° (cool,
                 full compressor load) and 52° (mild heat-pump load) than at
                 28°, where either the compressor is standby (dual-fuel
@@ -1443,29 +1460,37 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <CondenserFan cx={fCX} cy={fCY} r={fR} active={active} fast={!heatMode||isMildHp}/>
           </>;
         })()}
-        {/* Right: service panel ~30% */}
+        {/* Right: service panel ~30% - light like the rest of the body
+            (was a dark panel before this pass), with a round badge
+            (matching fed-min/high-eff's generic medallion), a couple of
+            thin access-panel seam lines, and the VS status indicator
+            kept as a small dark accent window rather than a dominating
+            dark panel. */}
         {(()=>{
           const panelX=x+Math.round(w*0.7);
           const panelW=w-Math.round(w*0.7)-2;
           const panelY=y+Math.round(h*0.1)+4;
           const panelH=h-Math.round(h*0.1)-8;
+          const br=Math.round(panelW*0.34);
           return <>
             <rect x={panelX} y={panelY} width={panelW} height={panelH} rx="4"
-              fill={active?"rgba(28,32,40,.8)":"rgba(22,24,30,.7)"} stroke="rgba(55,60,72,.6)" strokeWidth="0.8"/>
-            <rect x={panelX+3} y={panelY+6} width={panelW-6} height={Math.round(panelH*0.55)} rx="3"
-              fill={active?"rgba(20,25,35,.9)":"rgba(16,18,24,.8)"} stroke="rgba(50,55,68,.5)" strokeWidth="0.7"/>
-            <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.7)} r={3.5}
-              fill={active?(cc):"rgba(40,45,55,.6)"} stroke={active?cc:"rgba(55,60,70,.3)"} strokeWidth="0.8"/>
-            {active&&<circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.7)} r={2}
-              fill="#fff" className="glow-pulse"/>}
-            {[0.18,0.88].map((ty,i)=>(
-              <circle key={i} cx={panelX+panelW/2} cy={panelY+panelH*ty} r={1.8}
-                fill="rgba(45,50,60,.9)" stroke="rgba(70,75,90,.5)" strokeWidth="0.5"/>
+              fill={active?"#b0b4ba":"#a8acb2"} stroke="rgba(90,94,102,.7)" strokeWidth="0.8"/>
+            <ellipse cx={panelX+panelW/2} cy={panelY+panelH*0.28} rx={br} ry={br*0.8}
+              fill="rgba(30,32,38,.6)" stroke="rgba(190,194,200,.5)" strokeWidth="0.9"/>
+            <ellipse cx={panelX+panelW/2} cy={panelY+panelH*0.28} rx={br*0.7} ry={br*0.56}
+              fill="none" stroke="rgba(190,194,200,.3)" strokeWidth="0.5"/>
+            {[0.5,0.63].map((ty,i)=>(
+              <line key={i} x1={panelX+2} y1={panelY+panelH*ty} x2={panelX+panelW-2} y2={panelY+panelH*ty}
+                stroke="rgba(80,84,90,.4)" strokeWidth="0.6"/>
             ))}
-            <circle cx={panelX+panelW/2} cy={panelY+Math.round(panelH*0.85)} r={5}
-              fill="rgba(30,35,45,.8)" stroke={active?cc:"rgba(70,75,90,.5)"} strokeWidth="0.8"/>
-            <text x={panelX+panelW/2} y={panelY+Math.round(panelH*0.87)} textAnchor="middle"
-              fill={active?cc:"rgba(90,95,110,.7)"} fontSize="10" fontFamily="sans-serif" fontWeight="700">VS</text>
+            <rect x={panelX+3} y={panelY+panelH*0.7} width={panelW-6} height={panelH*0.2} rx="2"
+              fill={active?"rgba(20,25,35,.85)":"rgba(16,18,24,.75)"} stroke="rgba(60,65,75,.5)" strokeWidth="0.6"/>
+            <circle cx={panelX+panelW/2} cy={panelY+panelH*0.8} r={3}
+              fill={active?(cc):"rgba(40,45,55,.6)"} stroke={active?cc:"rgba(90,95,105,.4)"} strokeWidth="0.7"/>
+            {active&&<circle cx={panelX+panelW/2} cy={panelY+panelH*0.8} r={1.7}
+              fill="#fff" className="glow-pulse"/>}
+            <text x={panelX+panelW/2} y={panelY+panelH*0.87} textAnchor="middle"
+              fill={active?cc:"rgba(200,204,210,.6)"} fontSize="8.5" fontFamily="sans-serif" fontWeight="700">VS</text>
           </>;
         })()}
         {/* SEER badge */}

@@ -2097,8 +2097,8 @@
           width: w,
           height: h,
           rx: 6,
-          fill: active ? refReversed ? "#131828" : "#1c1e22" : "#181a1e",
-          stroke: active ? cc : "rgba(80,85,95,.7)",
+          fill: active ? refReversed ? "#a5aab4" : "#bec2c8" : "#b5b9bf",
+          stroke: active ? cc : "rgba(120,124,132,.8)",
           strokeWidth: active ? 1.8 : 1.4
         }
       ), /* @__PURE__ */ React.createElement(
@@ -2109,8 +2109,8 @@
           width: w - 8,
           height: Math.round(h * 0.1),
           rx: "2",
-          fill: "rgba(0,0,0,.35)",
-          stroke: "rgba(70,75,85,.5)",
+          fill: "rgba(20,22,26,.55)",
+          stroke: "rgba(150,154,162,.4)",
           strokeWidth: "0.6"
         }
       ), Array.from({ length: 3 }, (_, i) => /* @__PURE__ */ React.createElement(
@@ -2122,8 +2122,8 @@
           width: w - 12,
           height: 2,
           rx: "0.5",
-          fill: "rgba(35,38,45,.9)",
-          stroke: "rgba(60,65,75,.4)",
+          fill: "rgba(15,17,20,.85)",
+          stroke: "rgba(90,95,105,.4)",
           strokeWidth: "0.3"
         }
       )), (() => {
@@ -2132,6 +2132,11 @@
         const fanAreaY = y + Math.round(h * 0.1) + 2;
         const fCX = x + fanAreaW / 2, fCY = fanAreaY + fanAreaH / 2;
         const fR = Math.round(Math.min(fanAreaW, fanAreaH) * 0.43);
+        const meshLines = [];
+        const pitch = 4.2;
+        for (let i = -Math.ceil((fanAreaW + fanAreaH) / pitch); i <= Math.ceil((fanAreaW + fanAreaH) / pitch); i++) {
+          meshLines.push(i);
+        }
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {
@@ -2140,35 +2145,39 @@
             width: fanAreaW - 2,
             height: fanAreaH,
             rx: "3",
-            fill: "rgba(0,0,0,.4)",
-            stroke: "rgba(55,60,70,.5)",
+            fill: "rgba(10,11,14,.55)",
+            stroke: "rgba(150,154,162,.4)",
             strokeWidth: "0.7"
           }
-        ), Array.from(
-          { length: Math.floor(fanAreaH / 5) },
-          (_, row) => Array.from({ length: Math.floor(fanAreaW / 5) }, (_2, col) => {
-            const gx = x + 4 + col * 5, gy = fanAreaY + 2 + row * 5;
-            const dx = gx - fCX, dy = gy - fCY;
-            if (Math.sqrt(dx * dx + dy * dy) > fR + 4) return null;
-            return /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                key: row + "-" + col,
-                x: gx,
-                y: gy,
-                width: 1.5,
-                height: 1.5,
-                rx: "0.3",
-                fill: "rgba(40,45,55,.9)"
-              }
-            );
-          })
-        ), /* @__PURE__ */ React.createElement("circle", { cx: fCX, cy: fCY, r: fR + 8, fill: "none", stroke: "rgba(60,65,78,.7)", strokeWidth: "2.5" }), /* @__PURE__ */ React.createElement(CondenserFan, { cx: fCX, cy: fCY, r: fR, active, fast: !heatMode || isMildHp }));
+        ), [[x + 7, fanAreaY + 5], [x + fanAreaW - 6, fanAreaY + 5], [x + 7, fanAreaY + fanAreaH - 5], [x + fanAreaW - 6, fanAreaY + fanAreaH - 5]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement("circle", { key: i, cx: sx, cy: sy, r: 1.6, fill: "rgba(35,38,44,.9)", stroke: "rgba(150,154,162,.4)", strokeWidth: "0.4" })), /* @__PURE__ */ React.createElement("clipPath", { id: "midfan-clip-" + active }, /* @__PURE__ */ React.createElement("circle", { cx: fCX, cy: fCY, r: fR + 3 })), /* @__PURE__ */ React.createElement("g", { clipPath: `url(#midfan-clip-${active})`, opacity: "0.5" }, meshLines.map((i) => /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            key: "a" + i,
+            x1: fCX - fR - 3 + i * pitch,
+            y1: fCY - fR - 3,
+            x2: fCX - fR - 3 + i * pitch + 2 * (fR + 3),
+            y2: fCY + fR + 3,
+            stroke: "rgba(70,75,85,.7)",
+            strokeWidth: "0.4"
+          }
+        )), meshLines.map((i) => /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            key: "b" + i,
+            x1: fCX - fR - 3 + i * pitch,
+            y1: fCY + fR + 3,
+            x2: fCX - fR - 3 + i * pitch + 2 * (fR + 3),
+            y2: fCY - fR - 3,
+            stroke: "rgba(70,75,85,.7)",
+            strokeWidth: "0.4"
+          }
+        ))), /* @__PURE__ */ React.createElement("circle", { cx: fCX, cy: fCY, r: fR + 8, fill: "none", stroke: "rgba(160,164,172,.5)", strokeWidth: "2.5" }), /* @__PURE__ */ React.createElement(CondenserFan, { cx: fCX, cy: fCY, r: fR, active, fast: !heatMode || isMildHp }));
       })(), (() => {
         const panelX = x + Math.round(w * 0.7);
         const panelW = w - Math.round(w * 0.7) - 2;
         const panelY = y + Math.round(h * 0.1) + 4;
         const panelH = h - Math.round(h * 0.1) - 8;
+        const br = Math.round(panelW * 0.34);
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {
@@ -2177,70 +2186,82 @@
             width: panelW,
             height: panelH,
             rx: "4",
-            fill: active ? "rgba(28,32,40,.8)" : "rgba(22,24,30,.7)",
-            stroke: "rgba(55,60,72,.6)",
+            fill: active ? "#b0b4ba" : "#a8acb2",
+            stroke: "rgba(90,94,102,.7)",
             strokeWidth: "0.8"
           }
         ), /* @__PURE__ */ React.createElement(
+          "ellipse",
+          {
+            cx: panelX + panelW / 2,
+            cy: panelY + panelH * 0.28,
+            rx: br,
+            ry: br * 0.8,
+            fill: "rgba(30,32,38,.6)",
+            stroke: "rgba(190,194,200,.5)",
+            strokeWidth: "0.9"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "ellipse",
+          {
+            cx: panelX + panelW / 2,
+            cy: panelY + panelH * 0.28,
+            rx: br * 0.7,
+            ry: br * 0.56,
+            fill: "none",
+            stroke: "rgba(190,194,200,.3)",
+            strokeWidth: "0.5"
+          }
+        ), [0.5, 0.63].map((ty, i) => /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            key: i,
+            x1: panelX + 2,
+            y1: panelY + panelH * ty,
+            x2: panelX + panelW - 2,
+            y2: panelY + panelH * ty,
+            stroke: "rgba(80,84,90,.4)",
+            strokeWidth: "0.6"
+          }
+        )), /* @__PURE__ */ React.createElement(
           "rect",
           {
             x: panelX + 3,
-            y: panelY + 6,
+            y: panelY + panelH * 0.7,
             width: panelW - 6,
-            height: Math.round(panelH * 0.55),
-            rx: "3",
-            fill: active ? "rgba(20,25,35,.9)" : "rgba(16,18,24,.8)",
-            stroke: "rgba(50,55,68,.5)",
-            strokeWidth: "0.7"
+            height: panelH * 0.2,
+            rx: "2",
+            fill: active ? "rgba(20,25,35,.85)" : "rgba(16,18,24,.75)",
+            stroke: "rgba(60,65,75,.5)",
+            strokeWidth: "0.6"
           }
         ), /* @__PURE__ */ React.createElement(
           "circle",
           {
             cx: panelX + panelW / 2,
-            cy: panelY + Math.round(panelH * 0.7),
-            r: 3.5,
+            cy: panelY + panelH * 0.8,
+            r: 3,
             fill: active ? cc : "rgba(40,45,55,.6)",
-            stroke: active ? cc : "rgba(55,60,70,.3)",
-            strokeWidth: "0.8"
+            stroke: active ? cc : "rgba(90,95,105,.4)",
+            strokeWidth: "0.7"
           }
         ), active && /* @__PURE__ */ React.createElement(
           "circle",
           {
             cx: panelX + panelW / 2,
-            cy: panelY + Math.round(panelH * 0.7),
-            r: 2,
+            cy: panelY + panelH * 0.8,
+            r: 1.7,
             fill: "#fff",
             className: "glow-pulse"
-          }
-        ), [0.18, 0.88].map((ty, i) => /* @__PURE__ */ React.createElement(
-          "circle",
-          {
-            key: i,
-            cx: panelX + panelW / 2,
-            cy: panelY + panelH * ty,
-            r: 1.8,
-            fill: "rgba(45,50,60,.9)",
-            stroke: "rgba(70,75,90,.5)",
-            strokeWidth: "0.5"
-          }
-        )), /* @__PURE__ */ React.createElement(
-          "circle",
-          {
-            cx: panelX + panelW / 2,
-            cy: panelY + Math.round(panelH * 0.85),
-            r: 5,
-            fill: "rgba(30,35,45,.8)",
-            stroke: active ? cc : "rgba(70,75,90,.5)",
-            strokeWidth: "0.8"
           }
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
             x: panelX + panelW / 2,
-            y: panelY + Math.round(panelH * 0.87),
+            y: panelY + panelH * 0.87,
             textAnchor: "middle",
-            fill: active ? cc : "rgba(90,95,110,.7)",
-            fontSize: "10",
+            fill: active ? cc : "rgba(200,204,210,.6)",
+            fontSize: "8.5",
             fontFamily: "sans-serif",
             fontWeight: "700"
           },
