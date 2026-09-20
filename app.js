@@ -482,7 +482,8 @@
     eaveY,
     lang,
     vw,
-    vh
+    vh,
+    linesetRingBox
   }) {
     const groundY = zoneH - 28;
     const padY = groundY - 10;
@@ -907,7 +908,9 @@
         const wx = isLine1 ? px1 : px2;
         const topY = isLine1 ? lineY1 : lineY2;
         const botY = isLine1 ? exitY1 : exitY2;
-        const toCondenser = isLine1 ? !refReversed : refReversed;
+        {
+        }
+        const toCondenser = isLine1 ? refReversed : !refReversed;
         const p = toCondenser ? `M${wx} ${topY} L${wx} ${botY} L${condX} ${botY}` : `M${condX} ${botY} L${wx} ${botY} L${wx} ${topY}`;
         return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 2.2 + i % 3 * 0.5 + "s", repeatCount: "indefinite", begin: i * 0.7 + "s", path: p }));
       }), /* @__PURE__ */ React.createElement(
@@ -921,7 +924,8 @@
           vw,
           vh,
           title: partInfo("lineset", lang).title,
-          text: partInfo("lineset", lang).text
+          text: partInfo("lineset", lang).text,
+          ringBox: linesetRingBox
         }
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
@@ -934,7 +938,8 @@
           vw,
           vh,
           title: partInfo("lineset", lang).title,
-          text: partInfo("lineset", lang).text
+          text: partInfo("lineset", lang).text,
+          ringBox: linesetRingBox
         }
       ));
     })(), (() => {
@@ -1371,11 +1376,11 @@
   function DehumidistatWall({ x, y, lang, vw, vh }) {
     const W2 = 44, H = 40;
     const info = partInfo("dehumidistat", lang);
-    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, "45%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT"), /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, "45%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT")), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
-        x: -2,
-        y: -2,
+        x: x - 2,
+        y: y - 2,
         w: W2 + 4,
         h: H + 18,
         rx: 4,
@@ -1384,7 +1389,7 @@
         title: info.title,
         text: info.text
       }
-    )));
+    ));
   }
   var HoverCtx = React.createContext(null);
   var GroupCtx = React.createContext(null);
@@ -1405,6 +1410,37 @@
   function HoverPanel({ part, groupBoxes }) {
     const { x, y, w, h, rx, vw, vh, title, text, highlight, group } = part;
     const siblings = group && groupBoxes && groupBoxes[group] ? Object.values(groupBoxes[group]).filter((b) => !(b.x === x && b.y === y && b.w === w && b.h === h)) : [];
+    const ring = (box, bright) => {
+      if (box.ringPath) return /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: box.ringPath,
+          fill: "none",
+          stroke: bright ? "rgba(215,183,64,.95)" : "rgba(215,183,64,.7)",
+          strokeWidth: box.ringStrokeWidth || 10,
+          strokeLinecap: "round",
+          strokeLinejoin: "round",
+          filter: "url(#glow-sm)",
+          style: { pointerEvents: "none" }
+        }
+      );
+      const rb = box.ringBox || box;
+      return /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: rb.x - 3,
+          y: rb.y - 3,
+          width: rb.w + 6,
+          height: rb.h + 6,
+          rx: (rb.rx || 3) + 3,
+          fill: bright ? "rgba(215,183,64,.06)" : "rgba(215,183,64,.04)",
+          stroke: bright ? "rgba(215,183,64,.95)" : "rgba(215,183,64,.7)",
+          strokeWidth: bright ? 2.5 : 2,
+          filter: "url(#glow-sm)",
+          style: { pointerEvents: "none" }
+        }
+      );
+    };
     const FONT = 9.3, LINE_H = 12, PAD = 8, PANEL_W = 172, TITLE_H = 19;
     const maxChars = Math.max(10, Math.floor((PANEL_W - PAD * 2) / (FONT * 0.56)));
     const lines = hiWrapText(text, maxChars);
@@ -1417,36 +1453,7 @@
       if (px < 4) px = 4;
       if (px + PANEL_W > vw - 4) px = Math.max(4, vw - 4 - PANEL_W);
     }
-    return /* @__PURE__ */ React.createElement(React.Fragment, null, highlight && /* @__PURE__ */ React.createElement(
-      "rect",
-      {
-        x: x - 3,
-        y: y - 3,
-        width: w + 6,
-        height: h + 6,
-        rx: (rx || 3) + 3,
-        fill: "rgba(215,183,64,.06)",
-        stroke: "rgba(215,183,64,.95)",
-        strokeWidth: "2.5",
-        filter: "url(#glow-sm)",
-        style: { pointerEvents: "none" }
-      }
-    ), siblings.map((b, i) => /* @__PURE__ */ React.createElement(
-      "rect",
-      {
-        key: i,
-        x: b.x - 3,
-        y: b.y - 3,
-        width: b.w + 6,
-        height: b.h + 6,
-        rx: (b.rx || 3) + 3,
-        fill: "rgba(215,183,64,.04)",
-        stroke: "rgba(215,183,64,.7)",
-        strokeWidth: "2",
-        filter: "url(#glow-sm)",
-        style: { pointerEvents: "none" }
-      }
-    )), /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, highlight && ring(part, true), siblings.map((b, i) => /* @__PURE__ */ React.createElement(React.Fragment, { key: i }, ring(b, false))), /* @__PURE__ */ React.createElement(
       "g",
       {
         className: "hover-info-panel",
@@ -1472,18 +1479,18 @@
       lines.map((ln, i) => /* @__PURE__ */ React.createElement("text", { key: i, x: PAD, y: TITLE_H + 9 + i * LINE_H, fill: "rgba(240,242,248,.86)", fontSize: FONT, fontFamily: "sans-serif" }, ln))
     ));
   }
-  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick, highlight = true, group }) {
+  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick, highlight = true, group, ringPath, ringStrokeWidth, ringBox }) {
     const setHover = React.useContext(HoverCtx);
     const groupApi = React.useContext(GroupCtx);
     const idRef = React.useRef(null);
     if (idRef.current === null) idRef.current = Math.random().toString(36).slice(2);
     React.useEffect(() => {
       if (!group || !groupApi) return;
-      groupApi.register(group, idRef.current, { x, y, w, h, rx });
+      groupApi.register(group, idRef.current, { x, y, w, h, rx, ringPath, ringStrokeWidth, ringBox });
       return () => groupApi.unregister(group, idRef.current);
-    }, [group, groupApi, x, y, w, h, rx]);
+    }, [group, groupApi, x, y, w, h, rx, ringPath, ringStrokeWidth, ringBox]);
     if (!title) return null;
-    const part = { x, y, w, h, rx, vw, vh, title, text, highlight, group };
+    const part = { x, y, w, h, rx, vw, vh, title, text, highlight, group, ringPath, ringStrokeWidth, ringBox };
     return /* @__PURE__ */ React.createElement("g", { className: "hover-info-zone" }, /* @__PURE__ */ React.createElement(
       "rect",
       {
@@ -4052,6 +4059,13 @@
       const DISC_ZONE = 52;
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const COND_Y = VH - 28 - 10 - COND_H;
+      const linesetRingBox = {
+        x: RL_START_X - 7,
+        y: Math.min(UNIT_Y + UNIT_H * 0.35, RL_ROOF_Y) - 6,
+        w: COND_X + 6 - (RL_START_X - 7),
+        h: COND_Y + COND_H * 0.86 + 6 - (Math.min(UNIT_Y + UNIT_H * 0.35, RL_ROOF_Y) - 6),
+        rx: 4
+      };
       return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -4735,7 +4749,9 @@
               vh: SVG_VH,
               title: T("supply_duct").title,
               text: T("supply_duct").text,
-              group: "supply_duct"
+              group: "supply_duct",
+              ringPath: d,
+              ringStrokeWidth: DW + 8
             }
           ), /* @__PURE__ */ React.createElement(
             HoverInfo,
@@ -4749,7 +4765,9 @@
               vh: SVG_VH,
               title: T("supply_duct").title,
               text: T("supply_duct").text,
-              group: "supply_duct"
+              group: "supply_duct",
+              ringPath: d,
+              ringStrokeWidth: DW + 8
             }
           ), grille(botX));
         };
@@ -4808,7 +4826,9 @@
           const sx = RL_START_X + (isLine1 ? 0 : 5);
           const sy = isLine1 ? ry1 : ry2;
           const rY = isLine1 ? RL_ROOF_Y : RL_ROOF_Y + 9;
-          const toWall = isLine1 ? !refReversed : refReversed;
+          {
+          }
+          const toWall = isLine1 ? refReversed : !refReversed;
           const p = toWall ? `M${sx} ${sy} L${sx} ${rY} L${wallX} ${rY}` : `M${wallX} ${rY} L${sx} ${rY} L${sx} ${sy}`;
           return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 2.2 + i % 3 * 0.5 + "s", repeatCount: "indefinite", begin: i * 0.7 + "s", path: p }));
         }), /* @__PURE__ */ React.createElement(
@@ -4822,7 +4842,8 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("lineset").title,
-            text: T("lineset").text
+            text: T("lineset").text,
+            ringBox: linesetRingBox
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -4835,7 +4856,8 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("lineset").title,
-            text: T("lineset").text
+            text: T("lineset").text,
+            ringBox: linesetRingBox
           }
         ));
       })()), hasCond && /* @__PURE__ */ React.createElement(
@@ -4865,6 +4887,7 @@
           lang,
           vw: SVG_VW,
           vh: SVG_VH,
+          linesetRingBox,
           condenserEl: /* @__PURE__ */ React.createElement(
             Condenser,
             {
@@ -5351,6 +5374,13 @@
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const GROUND_Y = VH - 40;
       const COND_Y = GROUND_Y - COND_H;
+      const linesetRingBox = {
+        x: UNIT_X + UNIT_W,
+        y: Math.min(LS_Y1, LS_Y2) - 6,
+        w: COND_X + 6 - (UNIT_X + UNIT_W),
+        h: COND_Y + COND_H * 0.86 + 6 - (Math.min(LS_Y1, LS_Y2) - 6),
+        rx: 4
+      };
       return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -6477,7 +6507,9 @@
         const isLine1 = i < 3;
         const pColor = isLine1 ? line1C : line2C;
         const lY = isLine1 ? LS_Y1 : LS_Y2;
-        const toWall = isLine1 ? !refReversed : refReversed;
+        {
+        }
+        const toWall = isLine1 ? refReversed : !refReversed;
         const p = toWall ? `M${UNIT_X + UNIT_W} ${lY} L${EXT_WALL_X} ${lY}` : `M${EXT_WALL_X} ${lY} L${UNIT_X + UNIT_W} ${lY}`;
         return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 1.8 + i % 3 * 0.4 + "s", repeatCount: "indefinite", begin: i * 0.55 + "s", path: p }));
       }), /* @__PURE__ */ React.createElement(
@@ -6491,7 +6523,8 @@
           vw: SVG_VW,
           vh: SVG_VH,
           title: T("lineset").title,
-          text: T("lineset").text
+          text: T("lineset").text,
+          ringBox: linesetRingBox
         }
       )), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
@@ -6520,6 +6553,7 @@
           lang,
           vw: SVG_VW,
           vh: SVG_VH,
+          linesetRingBox,
           condenserEl: /* @__PURE__ */ React.createElement(
             Condenser,
             {

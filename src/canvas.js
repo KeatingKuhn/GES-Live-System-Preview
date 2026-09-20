@@ -50,7 +50,7 @@ function rnd(seed){
 // skips recomputation when only unrelated wizard state changed.
 function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, lineY2, active,
   heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl, tierKey, eaveY,
-  lang, vw, vh}){
+  lang, vw, vh, linesetRingBox}){
   const groundY=zoneH-28;
   const padY=groundY-10;
   const wallThick=18;   // visible wall cross-section width
@@ -372,7 +372,17 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           const wx=isLine1?px1:px2;
           const topY=isLine1?lineY1:lineY2;
           const botY=isLine1?exitY1:exitY2;
-          const toCondenser=isLine1?!refReversed:refReversed;
+          {/* line1 tracks the CONDENSER's own current color/role (see
+              line1C's "physically correct" comment above Canvas) - the
+              real liquid line in cool mode (condenser pushes liquid OUT
+              to the indoor coil, i.e. AWAY from the condenser), which the
+              reversing valve then runs the opposite way in heat mode
+              (liquid returns FROM the now-condensing indoor coil TO the
+              now-evaporating outdoor coil, i.e. TOWARD the condenser).
+              line2 mirrors the indoor coil instead and simply runs the
+              other way in both modes. This was previously inverted (both
+              lines drawn flowing backwards, in both modes) - fixed here. */}
+          const toCondenser=isLine1?refReversed:!refReversed;
           const p=toCondenser
             ?`M${wx} ${topY} L${wx} ${botY} L${condX} ${botY}`
             :`M${condX} ${botY} L${wx} ${botY} L${wx} ${topY}`;
@@ -387,13 +397,18 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
             wall, then the horizontal exit into the condenser) rather than
             one full bounding rect spanning the whole wall face - that
             used to swallow the disconnect/surge boxes sitting in the
-            same span. */}
+            same span. Both (and the indoor segments in Canvas's own
+            attic/closet branches) share the caller's linesetRingBox so
+            the ring reads as ONE run regardless of which narrow segment
+            triggered it - see HoverPanel's own `ring()` comment. */}
         <HoverInfo x={Math.min(px1,px2)-6} y={Math.min(lineY1,lineY2)-4}
           w={Math.abs(px2-px1)+12} h={exitY1-Math.min(lineY1,lineY2)+4}
-          rx={3} vw={vw} vh={vh} title={partInfo('lineset',lang).title} text={partInfo('lineset',lang).text}/>
+          rx={3} vw={vw} vh={vh} title={partInfo('lineset',lang).title} text={partInfo('lineset',lang).text}
+          ringBox={linesetRingBox}/>
         <HoverInfo x={Math.min(px1,px2)-6} y={Math.min(exitY1,exitY2)-6}
           w={condX-Math.min(px1,px2)+6} h={Math.abs(exitY2-exitY1)+12}
-          rx={3} vw={vw} vh={vh} title={partInfo('lineset',lang).title} text={partInfo('lineset',lang).text}/>
+          rx={3} vw={vw} vh={vh} title={partInfo('lineset',lang).title} text={partInfo('lineset',lang).text}
+          ringBox={linesetRingBox}/>
       </>;
     })()}
 
@@ -711,12 +726,21 @@ function DehumidistatWall({x,y,lang,vw,vh}){
       <text x={W/2} y={21} textAnchor="middle" fill="#22c55e" fontSize="13">💧</text>
       <text x={W/2} y={33} textAnchor="middle" fill="#22c55e" fontSize="9" fontFamily="monospace" fontWeight="700">45%</text>
       <text x={W/2} y={H+9} textAnchor="middle" fill="rgba(34,197,94,.6)" fontSize="6.2" fontFamily="monospace">DEHUMIDISTAT</text>
-      {/* No EditZone ever covers this control (search confirms no
-          stepId="dehu" EditZone exists) so this hover never has an
-          existing click to preserve - no onClick needed. */}
-      <HoverInfo x={-2} y={-2} w={W+4} h={H+18} rx={4} vw={vw} vh={vh}
-        title={info.title} text={info.text}/>
     </g>
+    {/* No EditZone ever covers this control (search confirms no
+        stepId="dehu" EditZone exists) so this hover never has an
+        existing click to preserve - no onClick needed.
+        Lives OUTSIDE the translated <g> above, with x/y offset by this
+        component's own absolute x/y instead of the local 0,0 the shapes
+        above use - HoverPanel (ring + tooltip) reads this box in outer
+        canvas space, not through this component's own transform, so
+        local-only coordinates put its ring in the SVG's actual top-left
+        corner instead of over this component (the bug that shipped with
+        `highlight` defaulting on - previously invisible since nothing
+        rendered a ring off the tooltip's own equally-mispositioned
+        anchor). */}
+    <HoverInfo x={x-2} y={y-2} w={W+4} h={H+18} rx={4} vw={vw} vh={vh}
+      title={info.title} text={info.text}/>
   </g>;
 }
 
@@ -798,6 +822,34 @@ function HoverPanel({part,groupBoxes}){
   const siblings=(group&&groupBoxes&&groupBoxes[group])
     ?Object.values(groupBoxes[group]).filter(b=>!(b.x===x&&b.y===y&&b.w===w&&b.h===h))
     :[];
+  // A ring normally just traces its box's own x/y/w/h as a rect, which
+  // looks right for anything actually rectangular - but a hit-box that's
+  // really a loose bounding box around a DIAGONAL/bent pipe (the 45° duct
+  // elbow, say) doesn't have a rectangular shape to trace, and a rect ring
+  // around its bounding box reads as a big awkward box floating next to
+  // the actual pipe instead of hugging it. A box can opt out of the rect
+  // ring and supply its own `ringPath` (the same kind of SVG path `d`
+  // string already used to draw the pipe itself) + `ringStrokeWidth`
+  // instead, stroked in gold in place of the rect.
+  //
+  // `ringBox` is the other override: several separate HoverInfo hit-boxes
+  // (e.g. the lineset's 4 narrow segments - indoor riser, indoor roof run,
+  // outdoor wall drop, outdoor condenser entry - kept narrow/separate on
+  // purpose so none of them swallows a neighboring component) can all pass
+  // the SAME shared `ringBox` spanning the whole run, so whichever segment
+  // is actually under the cursor, the ring drawn is the one consistent
+  // "this whole pipe" outline instead of 4 different small disconnected
+  // boxes depending on exactly where you're hovering.
+  const ring=(box,bright)=>{
+    if(box.ringPath)return <path d={box.ringPath} fill="none" stroke={bright?"rgba(215,183,64,.95)":"rgba(215,183,64,.7)"}
+      strokeWidth={box.ringStrokeWidth||10} strokeLinecap="round" strokeLinejoin="round"
+      filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>;
+    const rb=box.ringBox||box;
+    return <rect x={rb.x-3} y={rb.y-3} width={rb.w+6} height={rb.h+6} rx={(rb.rx||3)+3}
+      fill={bright?"rgba(215,183,64,.06)":"rgba(215,183,64,.04)"}
+      stroke={bright?"rgba(215,183,64,.95)":"rgba(215,183,64,.7)"} strokeWidth={bright?2.5:2}
+      filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>;
+  };
   const FONT=9.3, LINE_H=12, PAD=8, PANEL_W=172, TITLE_H=19;
   const maxChars=Math.max(10,Math.floor((PANEL_W-PAD*2)/(FONT*0.56)));
   const lines=hiWrapText(text,maxChars);
@@ -820,17 +872,11 @@ function HoverPanel({part,groupBoxes}){
         invisible HoverInfo rect already uses) rather than a generic box.
         On by default (every hoverable part gets its own ring) - a caller
         opts OUT with highlight={false} rather than opting in. */}
-    {highlight&&<rect x={x-3} y={y-3} width={w+6} height={h+6} rx={(rx||3)+3}
-      fill="rgba(215,183,64,.06)" stroke="rgba(215,183,64,.95)" strokeWidth="2.5"
-      filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>}
+    {highlight&&ring(part,true)}
     {/* Same ring, dimmer/thinner, traced around every OTHER box sharing
         this part's group - "you're learning about the same kind of thing"
         (e.g. hovering one supply duct run lights up every other run too). */}
-    {siblings.map((b,i)=>(
-      <rect key={i} x={b.x-3} y={b.y-3} width={b.w+6} height={b.h+6} rx={(b.rx||3)+3}
-        fill="rgba(215,183,64,.04)" stroke="rgba(215,183,64,.7)" strokeWidth="2"
-        filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>
-    ))}
+    {siblings.map((b,i)=><React.Fragment key={i}>{ring(b,false)}</React.Fragment>)}
     <g className="hover-info-panel" transform={`translate(${px} ${py})`}
       style={{pointerEvents:'none'}}>
       <rect x={0} y={0} width={PANEL_W} height={panelH} rx="5"
@@ -866,18 +912,22 @@ function HoverPanel({part,groupBoxes}){
 // HoverInfo sharing the same group string lights up its own dimmer ring
 // too whenever any one member is hovered, e.g. group="supply_duct" so all
 // the supply-duct runs read as "the same kind of thing" together.
-function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick,highlight=true,group}){
+//
+// ringPath/ringStrokeWidth/ringBox (all optional) - override what
+// HoverPanel draws for THIS box's own ring, instead of tracing its literal
+// x/y/w/h hit-rect (see HoverPanel's own `ring()` comment for when/why).
+function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick,highlight=true,group,ringPath,ringStrokeWidth,ringBox}){
   const setHover=React.useContext(HoverCtx);
   const groupApi=React.useContext(GroupCtx);
   const idRef=React.useRef(null);
   if(idRef.current===null)idRef.current=Math.random().toString(36).slice(2);
   React.useEffect(()=>{
     if(!group||!groupApi)return;
-    groupApi.register(group,idRef.current,{x,y,w,h,rx});
+    groupApi.register(group,idRef.current,{x,y,w,h,rx,ringPath,ringStrokeWidth,ringBox});
     return ()=>groupApi.unregister(group,idRef.current);
-  },[group,groupApi,x,y,w,h,rx]);
+  },[group,groupApi,x,y,w,h,rx,ringPath,ringStrokeWidth,ringBox]);
   if(!title)return null;
-  const part={x,y,w,h,rx,vw,vh,title,text,highlight,group};
+  const part={x,y,w,h,rx,vw,vh,title,text,highlight,group,ringPath,ringStrokeWidth,ringBox};
   return <g className="hover-info-zone">
     <rect x={x} y={y} width={w} height={h} rx={rx||3} fill="transparent"
       style={{pointerEvents:'all',cursor:onClick?'pointer':'default'}} onClick={onClick}
@@ -3259,6 +3309,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // Condenser sits at ground level in the outside zone
     // OutsideZone groundY = VH-28 = 467. padY = 457. condY = 457-COND_H.
     const COND_Y=VH-28-10-COND_H;
+    // One shared ring box for the WHOLE lineset run - indoor riser, indoor
+    // roof run, OutsideZone's own wall drop, and its condenser entry -
+    // even though the run itself stays split into 4 narrow hit-boxes (see
+    // each one's own comment) so none of them swallows a neighboring
+    // component. Passed as `ringBox` to all 4, so the ring drawn is
+    // always this same "whole pipe" outline no matter which narrow
+    // segment the cursor is actually over. exitY2's 0.86 factor mirrors
+    // OutsideZone's own exitY2 (computed inside its own closure from the
+    // same condY/condH this passes it) - keep the two in sync if that
+    // ever changes.
+    const linesetRingBox={
+      x:RL_START_X-7, y:Math.min(UNIT_Y+UNIT_H*0.35,RL_ROOF_Y)-6,
+      w:(COND_X+6)-(RL_START_X-7),
+      h:(COND_Y+COND_H*0.86+6)-(Math.min(UNIT_Y+UNIT_H*0.35,RL_ROOF_Y)-6),
+      rx:4,
+    };
 
     return(
       <HoverCtx.Provider value={setHoverPart}>
@@ -3748,11 +3814,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                         then straight drop) rather than one bounding rect,
                         same reasoning as the lineset's own L-shaped hover
                         elsewhere in this file - a single rect spanning the
-                        full diagonal would swallow whatever sits beside it. */}
+                        full diagonal would swallow whatever sits beside it.
+                        Both still share the SAME ringPath (this run's own
+                        `d`, the diagonal elbow + straight drop as one
+                        path) so whichever leg is actually under the
+                        cursor, the ring shown hugs the real bent pipe
+                        instead of a blocky rect bounding-box around the
+                        diagonal leg. */}
                     <HoverInfo x={Math.min(topX,botX)-DW/2-2} y={pBot-2} w={Math.abs(botX-topX)+DW+4} h={bendY-pBot+4} rx={2}
-                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
+                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
+                      ringPath={d} ringStrokeWidth={DW+8}/>
                     <HoverInfo x={botX-DW/2-2} y={bendY} w={DW+4} h={Math.max(0,DECK_Y-bendY)} rx={2}
-                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
+                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
+                      ringPath={d} ringStrokeWidth={DW+8}/>
                     {grille(botX)}
                   </g>
                 );
@@ -3791,7 +3865,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   const sx=RL_START_X+(isLine1?0:5);
                   const sy=isLine1?ry1:ry2;
                   const rY=isLine1?RL_ROOF_Y:RL_ROOF_Y+9;
-                  const toWall=isLine1?!refReversed:refReversed;
+                  {/* Same fix, same reasoning, as OutsideZone's own
+                      toCondenser above - was inverted, now correct. */}
+                  const toWall=isLine1?refReversed:!refReversed;
                   const p=toWall
                     ?`M${sx} ${sy} L${sx} ${rY} L${wallX} ${rY}`
                     :`M${wallX} ${rY} L${sx} ${rY} L${sx} ${sy}`;
@@ -3810,9 +3886,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     in that same span below the roofline. */}
                 <HoverInfo x={RL_START_X-7} y={Math.min(ry1,RL_ROOF_Y)-6} w={14}
                   h={ry2-Math.min(ry1,RL_ROOF_Y)+6} rx={3}
-                  vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
+                  ringBox={linesetRingBox}/>
                 <HoverInfo x={RL_START_X-7} y={RL_ROOF_Y-6} w={wallX-RL_START_X+14} h={21} rx={3}
-                  vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
+                  ringBox={linesetRingBox}/>
               </>;
             })()}
           </g>}
@@ -3826,6 +3904,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             heatMode={heatMode} isMildHp={isMildHp}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
+            linesetRingBox={linesetRingBox}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
               active={condenserActive} tierKey={a.cond_tier}
               condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
@@ -4208,6 +4287,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // Lineset exits the RIGHT face of the A-coil at its midpoint - NOT the plenum
     // ACOIL_Y is defined below, so we compute after unit stack constants
     // (will be: ACOIL_Y + ACOIL_H * 0.35 and 0.55)
+    // Same shared ring box idea as the attic layout's own linesetRingBox -
+    // see its comment there.
+    const linesetRingBox={
+      x:UNIT_X+UNIT_W, y:Math.min(LS_Y1,LS_Y2)-6,
+      w:(COND_X+6)-(UNIT_X+UNIT_W),
+      h:(COND_Y+COND_H*0.86+6)-(Math.min(LS_Y1,LS_Y2)-6),
+      rx:4,
+    };
 
     return(
       <HoverCtx.Provider value={setHoverPart}>
@@ -4948,7 +5035,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               const isLine1=i<3;
               const pColor=isLine1?line1C:line2C;
               const lY=isLine1?LS_Y1:LS_Y2;
-              const toWall=isLine1?!refReversed:refReversed;
+              {/* Same fix, same reasoning, as OutsideZone's own
+                  toCondenser above - was inverted, now correct. */}
+              const toWall=isLine1?refReversed:!refReversed;
               const p=toWall
                 ?`M${UNIT_X+UNIT_W} ${lY} L${EXT_WALL_X} ${lY}`
                 :`M${EXT_WALL_X} ${lY} L${UNIT_X+UNIT_W} ${lY}`;
@@ -4960,7 +5049,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 hover, no onClick. OutsideZone's own lineset hover covers
                 the outside portion of this same run separately. */}
             <HoverInfo x={UNIT_X+UNIT_W} y={Math.min(LS_Y1,LS_Y2)-6} w={EXT_WALL_X-(UNIT_X+UNIT_W)} h={Math.abs(LS_Y2-LS_Y1)+12}
-              rx={3} vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}/>
+              rx={3} vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
+              ringBox={linesetRingBox}/>
           </g>}
 
           {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}
@@ -4972,6 +5062,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             heatMode={heatMode} isMildHp={isMildHp}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
+            linesetRingBox={linesetRingBox}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
               active={condenserActive} tierKey={a.cond_tier}
               condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
