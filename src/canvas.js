@@ -1013,6 +1013,1147 @@ function EditZone({x,y,w,h,stepId,rx,children,onEditStep,svgScale,vw,vh}){
   </g>;
 }
 
+// Equipment-diagram color palette - gold/blue/white/orange/silver rgba
+// prefixes shared by every cabinet sub-component below (FurnaceH,
+// BlowerWheel, ACoilH/V, Condenser, CondenserFan, CapFan, and the small
+// cabinet/coil detail kits they call). Genuinely constant strings (never
+// derived from wizard state), so - unlike evapC/condC/etc. below, which
+// really do vary per Canvas render and stay Canvas-local - these live at
+// module scope instead of being redeclared as a fresh `const` on every
+// single Canvas call. That's what lets the diagram sub-components that
+// only need color, not wizard state, move to module scope too (see the
+// module comment on OutsideZone above for why component identity has to
+// be stable across Canvas re-renders): a module-scope function can't
+// close over a Canvas-local `const`, so as long as these were Canvas-
+// local, EVERY diagram sub-component that used them was pinned to also
+// being Canvas-local, and hence to re-mounting on every hoverPart change
+// - not just the couple that genuinely need wizard-derived state.
+const G='rgba(215,183,64,';
+const B='rgba(35,137,224,';
+const W='rgba(255,255,255,';
+const O='rgba(249,115,22,';
+// Slate matte silver - the furnace/air-handler cabinet exterior and the
+// blower's own static motor housing. Real equipment cabinets are
+// galvanized sheet metal, not gold. Gold (G) stays reserved for the
+// plenum, spec/tier badges, and the blower WHEEL itself (the moving
+// assembly - kept gold on purpose, it reads well while spinning).
+const S='rgba(148,158,172,';
+
+// ── CABINET EXTERIOR DETAIL KIT ─────────────────────────────
+// Small shared bits reused by all four furnace/air-handler cabinet
+// shells (FurnaceH + AirHandlerH, plus the closet layout's own inline
+// furnace/A-coil-AH boxes) so the "genuine sheet-metal cabinet" read -
+// rivets, a seam-mounted latch, a brand-agnostic data plate - looks
+// identical everywhere instead of each shell re-deriving its own
+// version. Each call site still picks its own x/y placement (the
+// internals differ enough between shells that a single auto-layout
+// would collide with something in at least one of them), but the
+// artwork itself is one definition.
+//
+// Module-scope, not nested inside Canvas like the shells that call them
+// used to be: these only ever needed the palette constants just above
+// (now also module-scope) plus their own explicit params, so hoisting
+// them costs nothing and lets FurnaceH/AirHandlerH be hoisted too - see
+// the module comment on OutsideZone above for why identity stability
+// matters here.
+function CabinetRivet({cx,cy}){
+  // A single flat-head rivet/screw - dark socket, thin highlight,
+  // slot line. Sized to read at a glance without competing with the
+  // labels/gauges around it.
+  return <g>
+    <circle cx={cx} cy={cy} r="2.3" fill="rgba(35,38,44,.85)" stroke={S+'.55)'} strokeWidth="0.6"/>
+    <line x1={cx-1.2} y1={cy-0.3} x2={cx+1.2} y2={cy+0.3} stroke={S+'.75)'} strokeWidth="0.55" strokeLinecap="round"/>
+  </g>;
+}
+// Recessed door latch - the cabinet's access-panel hardware. A short
+// horizontal handle sunk into a shallow housing, the way a real
+// furnace/AH front panel's captive latch reads from a few feet away.
+function CabinetLatch({cx,cy,w}){
+  w=w||15;
+  return <g>
+    <rect x={cx-w/2} y={cy-3.4} width={w} height={6.8} rx="1.6"
+      fill="rgba(20,22,27,.85)" stroke={S+'.4)'} strokeWidth="0.6"/>
+    <rect x={cx-w/2+2.2} y={cy-1.3} width={w-4.4} height={2.6} rx="1.1"
+      fill="rgba(60,65,75,.9)" stroke={S+'.6)'} strokeWidth="0.5"/>
+  </g>;
+}
+// Brand-agnostic data plate - a small riveted spec tag, the kind every
+// real furnace/AH cabinet carries (model/serial/electrical rating)
+// without inventing a fake brand. Two hairline rules stand in for
+// print too fine to read at diagram scale, same convention as a real
+// photo of one reading as "text" from across a room.
+function CabinetPlate({x,y,w,h}){
+  h=h||9;
+  return <g opacity="0.85">
+    <rect x={x} y={y} width={w} height={h} rx="1"
+      fill="rgba(18,20,25,.8)" stroke={S+'.42)'} strokeWidth="0.55"/>
+    <line x1={x+2.5} y1={y+h*0.36} x2={x+w-2.5} y2={y+h*0.36} stroke={S+'.5)'} strokeWidth="0.6"/>
+    <line x1={x+2.5} y1={y+h*0.66} x2={x+w-3.5-w*0.22} y2={y+h*0.66} stroke={S+'.35)'} strokeWidth="0.6"/>
+  </g>;
+}
+// A few faint brushed-metal hairlines across the top accent strip -
+// reads as a rolled sheet-metal lip catching light unevenly rather
+// than a flat painted bar. Kept very low-opacity/thin so it never
+// fights the strip's own gradient or the AFUE/COMMUNICATING badges
+// that sit just below it.
+function CabinetStripBrushing({x,y,w}){
+  const n=Math.max(4,Math.min(10,Math.round(w/26)));
+  return <g opacity="0.3">
+    {Array.from({length:n},(_,i)=>{
+      const lx=x+w*(i+0.5)/n;
+      return <line key={i} x1={lx} y1={y+1.2} x2={lx} y2={y+7.8} stroke="#fff" strokeWidth="0.5"/>;
+    })}
+  </g>;
+}
+
+// ── COIL TUBE DETAIL KIT ─────────────────────────────────────
+// Shared by ACoilH/ACoilV below. Module-scope for the same reason as the
+// cabinet kit just above - zero closure dependencies beyond the palette
+// constants (which are module-scope too now), so there's no reason to
+// have these be redefined on every Canvas render.
+
+// A single copper tube end, face-on - the visible cross-section where
+// one pass of the serpentine coil tube pokes through the fin pack. A
+// flat stroked ellipse (the old version) reads as a painted ring, not
+// a rounded piece of metal - adding a bright rim highlight along the
+// upper edge (the same "catch the light from above" trick used on the
+// condenser's hail-guard flange and cabinet edges elsewhere) is what
+// actually sells it as a small round tube instead of a flat icon.
+function CoilTube({cx,cy,rx,ry,rotate,fill,stroke,glow,active,delay}){
+  rx=rx||4; ry=ry||2;
+  return <g transform={`rotate(${rotate||0},${cx},${cy})`}>
+    <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={fill} stroke={stroke} strokeWidth="0.9"/>
+    <path d={`M${(cx-rx*0.55).toFixed(1)} ${(cy-ry*0.55).toFixed(1)} Q${cx.toFixed(1)} ${(cy-ry*1.25).toFixed(1)} ${(cx+rx*0.55).toFixed(1)} ${(cy-ry*0.55).toFixed(1)}`}
+      fill="none" stroke="rgba(255,255,255,.45)" strokeWidth="0.5" strokeLinecap="round"/>
+    {active&&glow&&<circle cx={cx} cy={cy} r={Math.min(rx,ry)*0.85} fill={glow} opacity="0.7" className="glow-pulse" style={{animationDelay:(delay||0)+'s'}}/>}
+  </g>;
+}
+// A bead of condensate clinging to the fin pack - real evaporator coils
+// sweat heavily in cooling mode (the fin surface runs below the room's
+// dew point), which is one of the most immediately recognizable "this
+// coil is actually running" cues on a real unit. Only ever drawn when
+// active (cooling) - a dry coil in heating/standby has no condensate.
+function CoilSweat({cx,cy,r,delay}){
+  r=r||1.7;
+  return <g style={{animationDelay:(delay||0)+'s'}} className="glow-pulse">
+    <circle cx={cx} cy={cy} r={r} fill="rgba(200,230,252,.85)" stroke="rgba(235,246,255,.9)" strokeWidth="0.5"/>
+    <circle cx={cx-r*0.35} cy={cy-r*0.35} r={r*0.32} fill="rgba(255,255,255,.9)"/>
+  </g>;
+}
+
+// UV rod - thin horizontal rod ~45px (9" at scale), UV purple glow.
+// Module-scope, zero closure dependencies (pure geometry from its own
+// params) - used by ACoilH/ACoilV below.
+function UVRod({x,y,len,vertical}){
+  len=len||56;
+  const x2=vertical?x:x+len, y2=vertical?y+len:y;
+  return <g className="fadein">
+    {/* Wide diffuse glow */}
+    <line x1={x} y1={y} x2={x2} y2={y2}
+      stroke="rgba(139,92,246,.55)" strokeWidth={vertical?22:22} strokeLinecap="round" filter="url(#glow-uv)" className="glow-pulse"/>
+    {/* Mid glow */}
+    <line x1={x} y1={y} x2={x2} y2={y2}
+      stroke="rgba(167,139,250,.75)" strokeWidth={vertical?10:10} strokeLinecap="round" filter="url(#glow-uv)"/>
+    {/* Rod body */}
+    <line x1={x} y1={y} x2={x2} y2={y2}
+      stroke="rgba(216,180,254,.95)" strokeWidth={vertical?3.5:3.5} strokeLinecap="round"/>
+    {/* End caps */}
+    <circle cx={x} cy={y} r="4" fill="rgba(167,139,250,.9)" stroke="rgba(216,180,254,.8)" strokeWidth="1"/>
+    <circle cx={x2} cy={y2} r="4" fill="rgba(167,139,250,.9)" stroke="rgba(216,180,254,.8)" strokeWidth="1"/>
+    {/* Pulse overlay */}
+    <line x1={x} y1={y} x2={x2} y2={y2}
+      stroke="rgba(233,213,255,.6)" strokeWidth={vertical?2:2} strokeLinecap="round" className="glow-pulse"/>
+  </g>;
+}
+
+// Indoor blower - a real furnace/AH blower is a forward-curved
+// centrifugal ("squirrel cage") wheel: many short, shallow blades
+// mounted between two thin end rings at the RIM, all swept the same
+// rotational direction, with the wheel's flat front/back disc (and its
+// spider of structural spokes down to the hub) showing through the gaps
+// between blades - nothing like a bicycle-wheel spoke pattern radiating
+// from the hub itself. Many small rim-mounted scoops, same curved-path-
+// blade technique CondenserFan below uses with few large hub-mounted
+// ones instead.
+//
+// Module-scope, not nested inside Canvas like it used to be - the exact
+// same "brand-new function reference every Canvas render" bug EditZone's
+// own module comment (above OutsideZone) describes, just without a CSS
+// entrance animation on this component's OWN outer <g> to make the churn
+// read as a "jump." It still remounts the whole wheel - discarding and
+// recreating every blade/spoke/hub <path>/<circle> - on every hoverPart
+// change once hover-info's HoverCtx makes that happen on nearly every
+// mouse movement over the diagram, which resets this wheel's own CSS
+// `.spin` animation (see styles.css) to its start angle every single
+// time: a real, confirmed (via getAnimations().currentTime dropping back
+// toward 0 on each hover, checked directly against the DOM node identity
+// via a ref-attached fingerprint) spinning-blower stutter, not just
+// wasted DOM churn. onEditStep/lang/vw/vh come in as explicit props
+// instead of Canvas closures for the same reason EditZone's own do.
+function BlowerWheel({cx,cy,r,spd,active,onEditStep,lang,vw,vh}){
+  r=r||28; spd=spd||1; active=active!==false;
+  const n=22;
+  const innerR=r*0.56, outerR=r*0.92;
+  const bladeFill=active?(G+'.62)'):(G+'.13)');
+  const bladeStroke=active?(G+'.82)'):(G+'.24)');
+  const blades=Array.from({length:n},(_,i)=>{
+    const ang=i*(Math.PI*2/n);
+    // Each blade is a thin curved scoop between innerR and outerR - a
+    // filled sliver (not a stroked line) so it keeps a shallow "cup"
+    // cross-section instead of reading as a wire spoke. The trailing
+    // edge sits at +sweep so every blade curls the same way, the way a
+    // forward-curved wheel's blades all lean into the direction of
+    // rotation.
+    const sweep=0.30, backSweep=0.09;
+    const ax=cx+innerR*Math.cos(ang-backSweep), ay=cy+innerR*Math.sin(ang-backSweep);
+    const bx=cx+innerR*Math.cos(ang+backSweep), by=cy+innerR*Math.sin(ang+backSweep);
+    const tipAng=ang+sweep;
+    const cAng=ang+sweep*0.55, cR=(innerR+outerR)/2*1.04;
+    const cxm=cx+cR*Math.cos(cAng), cym=cy+cR*Math.sin(cAng);
+    const tx=cx+outerR*Math.cos(tipAng), ty=cy+outerR*Math.sin(tipAng);
+    const d=`M${ax.toFixed(1)} ${ay.toFixed(1)} Q${cxm.toFixed(1)} ${cym.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)} `+
+      `L${(tx-1.2*Math.cos(tipAng-1.2)).toFixed(1)} ${(ty-1.2*Math.sin(tipAng-1.2)).toFixed(1)} `+
+      `Q${(cx+cR*0.82*Math.cos(cAng)).toFixed(1)} ${(cy+cR*0.82*Math.sin(cAng)).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)} Z`;
+    return <path key={i} d={d} fill={bladeFill} stroke={bladeStroke} strokeWidth="0.5"/>;
+  });
+  return <g>
+    {/* Outer ring is the static motor housing (never moves) - slate
+        silver, matching the rest of the cabinet exterior. The wheel
+        itself (rim, blades, hub below) stays gold - it's the moving
+        assembly and reads well spinning against the silver housing. */}
+    <circle cx={cx} cy={cy} r={r+4} fill="rgba(0,0,0,.5)" stroke={S+'.4)'} strokeWidth="0.8"/>
+    <circle cx={cx} cy={cy} r={r} fill="#050505" stroke={G+'.3)'} strokeWidth="0.9"/>
+    {/* Rim band the blade tips mount to - a hair inside the housing
+        bore, so the wheel reads as a specific, slightly-smaller part
+        sitting inside the scroll housing rather than filling it. */}
+    <circle cx={cx} cy={cy} r={outerR+1} fill="none" stroke={active?(G+'.4)'):(G+'.12)')} strokeWidth="1"/>
+    {active
+      ?<g className="spin" style={{transformBox:'fill-box',transformOrigin:'center',animationDuration:(1.0/spd)+'s'}}>{blades}</g>
+      :<g>{blades}</g>}
+    {/* Front-disc structural spokes - the flat plate a real squirrel-
+        cage wheel's blades are riveted to, showing through as thin ribs
+        from the hub out to the inner blade ring. Spins with the wheel
+        (same group as the blades) since it's one rigid stamped part. */}
+    {active
+      ?<g className="spin" style={{transformBox:'fill-box',transformOrigin:'center',animationDuration:(1.0/spd)+'s'}}>
+        {Array.from({length:4},(_,i)=>{
+          const ang=i*(Math.PI/2);
+          return <line key={i} x1={cx+r*0.13*Math.cos(ang)} y1={cy+r*0.13*Math.sin(ang)}
+            x2={cx+innerR*Math.cos(ang)} y2={cy+innerR*Math.sin(ang)}
+            stroke={G+'.2)'} strokeWidth="1.1"/>;
+        })}
+      </g>
+      :Array.from({length:4},(_,i)=>{
+        const ang=i*(Math.PI/2);
+        return <line key={i} x1={cx+r*0.13*Math.cos(ang)} y1={cy+r*0.13*Math.sin(ang)}
+          x2={cx+innerR*Math.cos(ang)} y2={cy+innerR*Math.sin(ang)}
+          stroke={G+'.08)'} strokeWidth="1.1"/>;
+      })}
+    <circle cx={cx} cy={cy} r={r*0.27} fill="#090909" stroke={G+'.34)'} strokeWidth="0.9"/>
+    <circle cx={cx} cy={cy} r={r*0.1} fill="#111" stroke={G+'.42)'} strokeWidth="0.6"/>
+    {/* Every BlowerWheel call site sits inside the furnace/air-handler
+        cabinet's own indoor_type EditZone box, so a hover hit-rect here
+        - necessarily painted on top of it for the hover to register at
+        all - needs the same onClick forwarding HoverInfo's own module
+        comment describes, to keep the done screen's existing "click the
+        furnace/AH to quick-edit indoor_type" behavior exactly as it was. */}
+    <HoverInfo x={cx-r-5} y={cy-r-5} w={(r+5)*2} h={(r+5)*2} rx={r+5}
+      vw={vw} vh={vh} title={partInfo('blower',lang).title} text={partInfo('blower',lang).text}
+      onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+  </g>;
+}
+
+// Outdoor axial condenser fan, viewed head-on - real condenser fans have
+// a small number (typically 3) of large, wide blades, nothing like an
+// indoor squirrel-cage blower's many thin radial vanes (BlowerWheel
+// above). Kept as its own component specifically so the mid-tier
+// condenser's front fan never gets confused with an indoor blower again.
+//
+// Module-scope for the same "stop remounting the whole thing on every
+// hoverPart change" reason as BlowerWheel just above - this fan spins
+// via the same CSS `.spin` class, so it had the exact same confirmed
+// rotation-reset stutter every time the diagram's hover state changed.
+function CondenserFan({cx,cy,r,active,fast,onEditStep,lang,vw,vh}){
+  // Real axial blades are a filled, tapered scimitar shape - wide at the
+  // hub, sweeping out to a near-point tip - not a uniform-width stroked
+  // line. A thick round-capped stroke (the old approach) has no taper
+  // and reads as a flailing stick-figure limb instead of a blade. Each
+  // blade here is a closed path: a wide edge at the hub, two curves
+  // sweeping out to a narrow tip, filled solid with a glowing accent
+  // rim when spinning for a cleaner, more high-tech look.
+  const bladeFill=active?'#ccd3e0':'#565c68';
+  const rim=active?'#7fb8ff':'rgba(70,76,90,.6)';
+  return <g>
+    <circle cx={cx} cy={cy} r={r+3} fill="rgba(0,0,0,.55)" stroke="rgba(60,65,78,.7)" strokeWidth="1.2"/>
+    {active&&<circle cx={cx} cy={cy} r={r+1} fill="none" stroke={rim} strokeWidth="1" opacity="0.55" filter="url(#glow-sm)"/>}
+    {/* transformBox:'fill-box' + transformOrigin:'center' (used elsewhere
+        in this file for BlowerWheel/CapFan) rotates around the BOUNDING
+        BOX's center, not the hub - fine for those, since their blade
+        layouts have even-fold symmetry (opposite blades cancel out and
+        the bounding box ends up centered on the hub anyway). Three
+        blades all swept the same rotational direction has no such
+        cancellation, so the bounding box is off-center from (cx,cy) and
+        the whole fan visibly orbits instead of spinning in place.
+        transformBox:'view-box' + an explicit px origin rotates around
+        the actual hub coordinate instead, regardless of the blades'
+        bounding box. */}
+    <g className={active?"spin":undefined} style={active?{transformBox:'view-box',transformOrigin:cx+'px '+cy+'px',animationDuration:(fast?'0.45s':'0.8s')}:{}}>
+      {/* Broad sickle blades - widened per a reference photo of a real
+          3-blade condenser fan, where the blades themselves (not gaps)
+          cover most of the disc, maybe ~60% blade / ~40% visible gap,
+          not a thin airplane-propeller silhouette. Wider hub base, a
+          bigger sweep angle, and control points pushed further out
+          (both edges, not just the leading one) keep the blade fuller
+          for more of its length instead of tapering to a point early. */}
+      {Array.from({length:3},(_,i)=>{
+        const ang=i*(Math.PI*2/3);
+        const sweep=1.4;
+        const hubR=r*0.14, tipR=r*0.94;
+        const ux=Math.cos(ang), uy=Math.sin(ang);
+        const px=-Math.sin(ang), py=Math.cos(ang);
+        const hubW=r*0.38;
+        const hAx=cx+ux*hubR+px*hubW, hAy=cy+uy*hubR+py*hubW;
+        const hBx=cx+ux*hubR-px*hubW, hBy=cy+uy*hubR-py*hubW;
+        const tipAng=ang+sweep;
+        const tX=cx+Math.cos(tipAng)*tipR, tY=cy+Math.sin(tipAng)*tipR;
+        const c1Ang=ang+sweep*0.42, c1R=r*0.78;
+        const c1X=cx+Math.cos(c1Ang)*c1R+px*hubW*0.78, c1Y=cy+Math.sin(c1Ang)*c1R+py*hubW*0.78;
+        const c2Ang=ang+sweep*0.78, c2R=r*0.68;
+        const c2X=cx+Math.cos(c2Ang)*c2R-px*hubW*0.6, c2Y=cy+Math.sin(c2Ang)*c2R-py*hubW*0.6;
+        const d=`M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
+        return <path key={i} d={d} fill={bladeFill} stroke={active?rim:'rgba(20,22,26,.7)'} strokeWidth="0.7" opacity={active?0.95:0.8}/>;
+      })}
+    </g>
+    <circle cx={cx} cy={cy} r={r*0.18} fill="#16181c" stroke={active?rim:"rgba(90,95,110,.6)"} strokeWidth="1"/>
+    <circle cx={cx} cy={cy} r={r*0.07} fill={active?rim:"#3a3d44"}/>
+    {/* Only reached from Condenser's own mid-tier (front-discharge)
+        layout below - CapFan (the top-cap fan the other two tiers use)
+        gets its own separate hover, since it's a different component.
+        Sits inside the cond_tier EditZone box, same onClick-forwarding
+        reasoning as BlowerWheel's own hover above. */}
+    <HoverInfo x={cx-r-4} y={cy-r-4} w={(r+4)*2} h={(r+4)*2} rx={r+4}
+      vw={vw} vh={vh} title={partInfo('condenser_fan',lang).title} text={partInfo('condenser_fan',lang).text}
+      onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
+  </g>;
+}
+
+// A-coil > (peak RIGHT) - horizontal attic.
+//
+// Module-scope, same "stop remounting on every hoverPart change" reason
+// as BlowerWheel/CondenserFan above - the coil's own CoilSweat condensate
+// beads and CoilTube glow dots use the `.glow-pulse` animation class, so
+// this had the same confirmed reset-on-remount stutter. evapC/evapC2
+// (the refrigerant colors, which really do change with heat-pump mode)
+// and hasUV/infoKey (which UV-rod/hover copy to show) come in as explicit
+// props instead of Canvas closures, same as everywhere else in this file
+// that made this move; infoKey replaces a `acoilInfoKey()` call since
+// that helper's own inputs (heatMode/refReversed) are themselves Canvas
+// state - callers compute the key once and pass the resulting string.
+function ACoilH({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh}){
+  const peakX=x+w, peakY=y+h/2; const n=8;
+  const tc=active?evapC:'rgba(48,48,78,.8)';
+  const distX=peakX-5, distY=peakY+4;
+  return <g>
+    <polygon points={`${x},${y} ${peakX},${peakY} ${peakX},${peakY+8} ${x},${y+12}`}
+      fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"}
+      stroke={active?(evapC+'88'):(G+'.22)')} strokeWidth="0.9"/>
+    <polygon points={`${x},${y+h} ${peakX},${peakY} ${peakX},${peakY+8} ${x},${y+h-12}`}
+      fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"}
+      stroke={active?(evapC2+'80'):(G+'.18)')} strokeWidth="0.9"/>
+    {/* Aluminum fin pack - denser and a touch brighter than before (14
+        hairlines at .04 opacity read as almost nothing at diagram
+        scale) plus every 4th line nudged brighter, the way a real fin
+        pack's stamped ridges catch uneven light instead of a flat
+        hatch. */}
+    {Array.from({length:20},(_,i)=>(
+      <line key={i} x1={x+4} y1={y+h*(i+0.5)/20} x2={x+w-8} y2={y+h*(i+0.5)/20}
+        stroke={i%4===0?W+'.08)':W+'.035)'} strokeWidth="0.4"/>
+    ))}
+    {Array.from({length:n},(_,i)=>{
+      const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=y+(peakY-y)*t+3;
+      return <g key={i}>
+        <CoilTube cx={tx} cy={ty} rotate={-22} fill={active?(evapC+'22'):'rgba(14,14,34,.8)'} stroke={tc} glow={evapC} active={active} delay={i*0.1}/>
+        {/* Capillary feeder - thin line from the peak distributor out
+            to this circuit's first tube, showing where its refrigerant
+            actually comes from instead of leaving the distributor
+            floating unconnected to the coil rows it feeds. Only drawn
+            for every other circuit so it stays a light suggestion
+            instead of a dense knot of lines converging on one point. */}
+        {i%2===0&&<path d={`M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX-(distX-tx)*0.5).toFixed(1)} ${(distY-6).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`}
+          fill="none" stroke={active?(evapC+'55'):'rgba(110,110,140,.22)'} strokeWidth="0.7"/>}
+        {active&&i%3===1&&<CoilSweat cx={tx+1.5} cy={ty+3} delay={i*0.35}/>}
+      </g>;
+    })}
+    {Array.from({length:n},(_,i)=>{
+      const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=(y+h)+(peakY-(y+h))*t-3;
+      return <g key={i}>
+        <CoilTube cx={tx} cy={ty} rotate={22} fill={active?(evapC2+'22'):'rgba(14,14,34,.8)'} stroke={active?evapC2:tc} glow={evapC2} active={active} delay={(i+n)*0.1}/>
+        {active&&i%3===2&&<CoilSweat cx={tx-1.5} cy={ty+3} delay={(i+n)*0.3}/>}
+      </g>;
+    })}
+    <circle cx={distX} cy={distY} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
+    {active&&<circle cx={distX} cy={distY} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
+    <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
+    {/* UV rod - centered exactly in the > coil:
+        horizontal midline = y+h/2, depth center = x + w*0.45
+        rod runs horizontal, length ~9" at scale (46px) */}
+    {hasUV&&(()=>{
+      const rodLen=Math.min(w*0.70, w-12);
+      const rodCX=x+w*0.48;
+      const rodCY=y+h/2;
+      return <UVRod x={rodCX-rodLen/2} y={rodCY} len={rodLen}/>;
+    })()}
+    {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
+        reasoning as BlowerWheel's own hover above. */}
+    <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={vw} vh={vh}
+      title={partInfo(infoKey,lang).title} text={partInfo(infoKey,lang).text}
+      onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+  </g>;
+}
+
+// A-coil ^ (peak UP) - upflow. Module-scope for the same reason as ACoilH
+// just above.
+function ACoilV({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh}){
+  const peakX=x+w/2, peakY=y; const n=7;
+  const tc=active?evapC:'rgba(48,48,78,.8)';
+  const distX=peakX+4, distY=peakY+6;
+  const angL=Math.atan2(peakY-(y+h),peakX-x)*180/Math.PI;
+  const angR=Math.atan2(peakY-(y+h),peakX-(x+w))*180/Math.PI;
+  return <g>
+    <polygon points={`${x},${y+h} ${peakX},${peakY} ${peakX+8},${peakY} ${x+12},${y+h}`}
+      fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"} stroke={active?(evapC+'88'):(G+'.22)')} strokeWidth="0.9"/>
+    <polygon points={`${x+w},${y+h} ${peakX},${peakY} ${peakX+8},${peakY} ${x+w-12},${y+h}`}
+      fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"} stroke={active?(evapC2+'80'):(G+'.18)')} strokeWidth="0.9"/>
+    {/* Aluminum fin pack - see ACoilH's own comment on the same density/
+        brightness bump, mirrored here for the vertical A-frame. */}
+    {Array.from({length:18},(_,i)=>(
+      <line key={i} x1={x+w*(i+0.5)/18} y1={y+4} x2={x+w*(i+0.5)/18} y2={y+h-4}
+        stroke={i%4===0?W+'.08)':W+'.035)'} strokeWidth="0.4"/>
+    ))}
+    {Array.from({length:n},(_,i)=>{
+      const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=(y+h)+(peakY-(y+h))*t+3;
+      return <g key={i}>
+        <CoilTube cx={tx} cy={ty} rotate={angL} fill={active?(evapC+'22'):'rgba(14,14,34,.8)'} stroke={tc} glow={evapC} active={active} delay={i*0.11}/>
+        {/* Capillary feeder from the peak distributor - see ACoilH's
+            own comment on this same detail. */}
+        {i%2===0&&<path d={`M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX-(distX-tx)*0.5).toFixed(1)} ${(distY+ (ty-distY)*0.4).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`}
+          fill="none" stroke={active?(evapC+'55'):'rgba(110,110,140,.22)'} strokeWidth="0.7"/>}
+        {active&&i%3===1&&<CoilSweat cx={tx+1.5} cy={ty+3} delay={i*0.35}/>}
+      </g>;
+    })}
+    {Array.from({length:n},(_,i)=>{
+      const t=(i+0.5)/n, tx=(x+w)+(peakX-(x+w))*t-3, ty=(y+h)+(peakY-(y+h))*t+3;
+      return <g key={i}>
+        <CoilTube cx={tx} cy={ty} rotate={angR} fill={active?(evapC2+'22'):'rgba(14,14,34,.8)'} stroke={active?evapC2:tc} glow={evapC2} active={active} delay={(i+n)*0.11}/>
+        {active&&i%3===2&&<CoilSweat cx={tx-1.5} cy={ty+3} delay={(i+n)*0.3}/>}
+      </g>;
+    })}
+    <circle cx={distX} cy={distY} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
+    {active&&<circle cx={distX} cy={distY} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
+    <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
+    {/* UV rod - centered in the ^ A-coil triangle:
+        Triangle centroid is at (x+w/2, y + h*2/3) - that's the geometric center.
+        Rod runs vertical through the centroid, ~9" at scale (46px) */}
+    {hasUV&&(()=>{
+      const rodCX=x+w*0.5;     // horizontal center of the A-frame
+      const rodLen2=Math.min(h*0.75, h-12);
+      const rodCY=y+h/2;
+      return <UVRod x={rodCX} y={rodCY-rodLen2/2} len={rodLen2} vertical={true}/>;
+    })()}
+    {/* Liquid + suction stub-outs - the actual lineset connection, at
+        the coil's base/header on the RIGHT side of its cabinet (not the
+        peak, which is the internal distributor drawn above - real
+        lineset never taps into that). Both tubes exit side by side from
+        one point so they read as one connection, not two unrelated
+        ones. Positioned in fractions of this box's own (y,h) so callers
+        that compute the external lineset's Y from the same fractions
+        always land exactly here, even if the coil's size/position
+        changes. */}
+    <rect x={x+w-6} y={y+h*0.80-3} width={16} height={6} rx="1.5" fill={active?(evapC+'2a'):'rgba(22,22,44,.7)'} stroke={evapC} strokeWidth="0.9"/>
+    <rect x={x+w-6} y={y+h*0.88-3} width={16} height={6} rx="1.5" fill={active?(evapC2+'2a'):'rgba(22,22,44,.7)'} stroke={evapC2} strokeWidth="0.9"/>
+    {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
+        reasoning as BlowerWheel's own hover above. */}
+    <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={vw} vh={vh}
+      title={partInfo(infoKey,lang).title} text={partInfo(infoKey,lang).text}
+      onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+  </g>;
+}
+
+// Furnace horizontal - blower LEFT | HX RIGHT.
+//
+// Module-scope - this is the component whose remount was originally
+// flagged as a candidate for the same bug that hit EditZone (see its own
+// module comment above OutsideZone): defined fresh inside Canvas on
+// every render, so every hoverPart change (nearly every mouse movement
+// once hover-info shipped) unmounted and remounted this whole cabinet -
+// BlowerWheel included - discarding every path/rect/circle inside it.
+// Confirmed via a DOM-identity fingerprint (a random id stamped onto the
+// root <g> via a ref callback, checked with document.contains() across a
+// hover) that this really was a fresh DOM node each time, and via
+// getAnimations().currentTime that the flame glow-pulse ellipses and
+// BlowerWheel's own `.spin` rotation were resetting because of it - a
+// real, visible stutter, not just wasted DOM churn (EditZone's own
+// remount was worse only because .edit-zone-ring's `.snap` entrance
+// animation replays a bounce-in on every remount; FurnaceH has no such
+// entrance animation on its own outer <g>, so the churn here never read
+// as a "jump" the way EditZone's did, but it's the same underlying bug).
+// onEditStep/lang/vw/vh and the wizard-derived blowerActive/is90/isComm/
+// BLOWER_MOTOR come in as explicit props instead of Canvas closures, same
+// convention as BlowerWheel/ACoilH/ACoilV above.
+function FurnaceH({x,y,w,h,active,roofY,onEditStep,lang,vw,vh,blowerActive,is90,isComm,blowerMotorLabel}){
+  const mid=x+w/2;
+  return <g>
+    {/* General cabinet hover - painted first/bottommost so the more
+        specific heat-exchanger/AFUE hovers added further down (painted
+        later, i.e. on top) win their own smaller areas; BlowerWheel adds
+        its own hover internally. Sits inside the indoor_type EditZone
+        box, same onClick-forwarding reasoning as everywhere else in
+        this file. */}
+    <HoverInfo x={x} y={y} w={w} h={h} rx={4} vw={vw} vh={vh}
+      title={partInfo('furnace_cabinet',lang).title} text={partInfo('furnace_cabinet',lang).text}
+      onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+    {/* Exterior housing stays silver whether the furnace is running or
+        not - a real sheet-metal cabinet doesn't change color when it
+        turns on, only what's happening inside it does (the flames/heat
+        exchanger below, the evaporator coil's own tubes in ACoilH, the
+        STANDBY/ACTIVE label). Border+top strip used to switch to a
+        bright orange whenever active, which read as the cabinet itself
+        changing material rather than just what's running inside it. */}
+    <rect x={x} y={y} width={w} height={h} rx="4"
+      fill={active?"#0d0606":"#0a0a0a"}
+      stroke="url(#cabinet-edge)" strokeOpacity="0.85" strokeWidth="1.8"/>
+    {/* Faint active-state tint over the whole cabinet - purely a color
+        wash (stroke="none", fill isn't literally "none" though, so SVG's
+        default pointer-events:visiblePainted still hit-tests it) painted
+        AFTER the general cabinet hover above it. Found swallowing that
+        hover across the ENTIRE box whenever active (i.e. whenever the
+        system is actually running - found via a wizard-step hover sweep,
+        the done-screen sweep never exercises "hover the plain cabinet
+        while a more specific sub-part isn't also covering that pixel"
+        for every combination). Same fix as the flue-pipe swallowed-hover
+        bug above: pointer-events:none, since this tint has no
+        interactivity of its own to lose. */}
+    {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={O+'.04)'} stroke="none" style={{pointerEvents:'none'}}/>}
+    <rect x={x} y={y} width={w} height={7} rx="4" fill="url(#silver)" opacity=".72"/>
+    <CabinetStripBrushing x={x} y={y} w={w}/>
+    <CabinetRivet cx={x+8} cy={y+3.5}/>
+    <CabinetRivet cx={x+w-8} cy={y+3.5}/>
+    <CabinetPlate x={x+w-46} y={y+11} w={40}/>
+    <CabinetLatch cx={mid} cy={y+3.5} w={14}/>
+    <line x1={mid} y1={y+7} x2={mid} y2={y+h} stroke={S+'.28)'} strokeWidth="1" strokeDasharray="4 3"/>
+    {Array.from({length:7},(_,i)=>(
+      <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
+        stroke={S+'.42)'} strokeWidth="3" strokeLinecap="round"/>
+    ))}
+    <BlowerWheel cx={x+w*0.25} cy={y+h*0.42} r={Math.min(w*0.21,h*0.29)}
+      spd={blowerActive?1.6:0.5} active={blowerActive}
+      onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
+    <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+    <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{blowerMotorLabel}</text>
+    {/* Clamshell HX tubes - each is a stamped-steel cell, not a flat
+        orange squiggle: a thin highlight riding the curve's upper edge
+        (same "catch light from above" convention as CoilTube/the hail-
+        guard flange elsewhere in this file) plus a small crimped end
+        cap where the clamshell halves are seamed shut sell the actual
+        3D tube shape instead of a painted line. */}
+    {Array.from({length:6},(_,i)=>{
+      const gy=y+10+i*(h-18)/6;
+      const d=`M${mid+6} ${gy+6} Q${mid+w*0.17} ${gy-2} ${mid+w*0.31} ${gy+7} Q${mid+w*0.41} ${gy+14} ${mid+w*0.31} ${gy+18}`;
+      return <g key={i}>
+        <path d={d} fill="none" stroke={active?'rgba(249,115,22,.6)':'rgba(108,44,8,.22)'} strokeWidth="2.8" strokeLinecap="round"/>
+        <path d={d} fill="none" stroke={active?'rgba(255,205,150,.45)':'rgba(180,140,90,.14)'} strokeWidth="0.8" strokeLinecap="round" transform="translate(0,-0.9)"/>
+        <circle cx={mid+6} cy={gy+6} r="1.7" fill={active?'rgba(249,115,22,.55)':'rgba(80,40,10,.4)'} stroke={active?'rgba(255,205,150,.4)':'rgba(150,100,60,.25)'} strokeWidth="0.4"/>
+        <circle cx={mid+w*0.31} cy={gy+18} r="1.7" fill={active?'rgba(249,115,22,.55)':'rgba(80,40,10,.4)'} stroke={active?'rgba(255,205,150,.4)':'rgba(150,100,60,.25)'} strokeWidth="0.4"/>
+      </g>;
+    })}
+    <rect x={mid+4} y={y+h-17} width={w/2-8} height={10} rx="2"
+      fill={active?O+'.07)':'rgba(5,5,13,.8)'} stroke={active?'rgba(249,115,22,.42)':(S+'.2)')} strokeWidth="0.6"/>
+    {Array.from({length:4},(_,i)=>{
+      const bx=mid+6+i*(w/2-12)/4, bw2=(w/2-14)/4;
+      return <g key={i}>
+        <rect x={bx} y={y+h-16} width={bw2} height={8} rx="1"
+          fill={active?"#100505":"#09090f"} stroke={active?'rgba(249,115,22,.36)':'rgba(48,20,5,.2)'} strokeWidth="0.5"/>
+        {active&&<>
+          <ellipse cx={bx+bw2/2} cy={y+h-16} rx={bw2/2} ry={4.5} fill={O+'.56)'} className="glow-pulse" style={{animationDelay:i*0.12+'s'}}/>
+          <ellipse cx={bx+bw2/2} cy={y+h-18} rx={bw2/3} ry={3.5} fill="rgba(253,224,71,.64)" className="glow-pulse" style={{animationDelay:i*0.12+0.07+'s'}}/>
+        </>}
+      </g>;
+    })}
+    <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="13" fontFamily="monospace">HEAT EXCH.</text>
+    <HoverInfo x={mid} y={y} w={w/2} h={h} vw={vw} vh={vh}
+      title={partInfo('heat_exchanger',lang).title} text={partInfo('heat_exchanger',lang).text}
+      onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+    {(()=>{
+      const pW=is90?5:7;
+      const pC=is90?"#bfdbfe":"#c0c0c0";
+      const pS=is90?"#93c5fd":"#999";
+      const fX=mid+Math.round(w*0.2); // flue exit X - right half of furnace
+      const pipeTop=roofY-12; // pokes ~12px above the actual roof surface, not up into the sky
+      // Purely decorative (no hover/click of its own) - wrapped in
+      // pointer-events:none so its opaque pipe/cap rects never swallow a
+      // hover zone that happens to sit underneath (the same "wide
+      // decorative shape painted on top of a HoverInfo zone silently
+      // blocks it" bug already fixed for the airflow/pulse animation
+      // classes in styles.css, found again here during a QA pass -
+      // fixed defensively even though this specific vertical run, unlike
+      // the closet layout's routed flue below, doesn't currently cross
+      // any other hover zone).
+      return <g style={{pointerEvents:'none'}}>
+        {/* Flue pipe - from top of furnace up through the roof, stopping
+            just above the roofline instead of shooting up toward the
+            top of the canvas. */}
+        <rect x={fX-pW/2} y={pipeTop} width={pW} height={Math.max(0,y-pipeTop)} rx="1"
+          fill={pC} stroke={pS} strokeWidth="0.7"/>
+        {/* Cap at top (visible just above the roofline) */}
+        {is90
+          ?<rect x={fX-pW-1} y={pipeTop} width={pW*2+2} height={5} rx="1" fill={pC} stroke={pS} strokeWidth="0.7"/>
+          :<path d={'M'+(fX-pW-2)+' '+(pipeTop+5)+' L'+fX+' '+(pipeTop-3)+' L'+(fX+pW+2)+' '+(pipeTop+5)} fill={pC} stroke={pS} strokeWidth="0.5"/>
+        }
+        <text x={fX+6} y={y-8} textAnchor="start"
+          fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
+      </g>;
+    })()}
+    {isComm&&<><rect x={x+4} y={y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={x+7} y={y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">COMMUNICATING</text></>}
+    <rect x={mid+4} y={y+11} width={36} height="8" rx="2" fill={is90?"rgba(35,137,224,.13)":(G+'.07)')} stroke={is90?(B+'.24)'):(G+'.16)')} strokeWidth="0.5"/>
+    <text x={mid+22} y={y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="11" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
+    <HoverInfo x={mid+2} y={y+9} w={40} h={12} rx={2} vw={vw} vh={vh}
+      title={partInfo('afue_badge',lang).title} text={partInfo('afue_badge',lang).text}
+      onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+  </g>;
+}
+
+// CapFan -- side-perspective view into condenser top cap.
+// Fan blades contained by keeping radii tight -- no clipPath needed.
+//
+// Module-scope for the same reason as BlowerWheel/CondenserFan above -
+// this fan spins via the same CSS `.spin` class (fed-min/high-eff
+// condensers' own top-cap fan), so it had the same confirmed rotation-
+// reset stutter on every hoverPart change while it was still a Canvas-
+// local closure.
+function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount,ringColor,onEditStep,lang,vw,vh}){
+  // guardRings: how many concentric wire-guard rings cage the blades -
+  // callers pass a density (higher slatCount = finer cage), fed-min
+  // gets a coarser 2-ring cage, high-eff a finer 4-ring one, reading
+  // as the plainer vs. nicer fan guard at a glance.
+  const guardRings=Math.max(2,Math.min(5,Math.round((slatCount||6)/3)));
+  const cx=x+w/2, cy=y+h/2;
+  // Enlarged per a reference photo of a real condenser, where the fan/
+  // guard fills almost the entire top cap edge-to-edge - the previous
+  // 0.42/0.34 left a lot of visibly empty dark cap around a small oval.
+  const fanRx=w*0.46;
+  const fanRy=h*0.38;
+  const spd=active?0.9:0;
+  const spinStyle=active?{
+    transformBox:'fill-box',
+    transformOrigin:'center',
+    animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
+  }:{};
+  const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
+  const gC=slatFill||ringColor||bC;
+  // Blades are laid out on a true circle (radius fanRx) and rotated as
+  // one, THEN flattened into the cap's side-perspective ellipse with a
+  // static scaleY - not the other way round. Rotating points that were
+  // already squashed onto an ellipse (unequal x/y radii) with a plain
+  // CSS rotate() doesn't preserve the ellipse - a blade tip near the
+  // ellipse's long axis swings, at the same radius, to where the SHORT
+  // axis is, poking far out past the shallow cap (reads as blades
+  // flying out of the condenser). Rotating a genuine circle has no such
+  // distortion; squashing it afterwards is a fixed, non-animating step.
+  const squash=fanRy/fanRx;
+  return <>
+    <ellipse cx={cx} cy={cy} rx={fanRx} ry={fanRy}
+      fill={active?"rgba(10,11,14,.95)":"rgba(8,9,12,.9)"}
+      stroke="rgba(30,32,38,.6)" strokeWidth="0.7"/>
+    <g transform={'translate('+cx+' '+cy+') scale(1,'+squash+')'}>
+      <g style={spinStyle}>
+        {Array.from({length:4},(_,i)=>{
+          const ang=i*(Math.PI/2);
+          const bx1=fanRx*0.15*Math.cos(ang);
+          const by1=fanRx*0.15*Math.sin(ang);
+          const bx2=fanRx*0.82*Math.cos(ang+0.55);
+          const by2=fanRx*0.82*Math.sin(ang+0.55);
+          const cpx=fanRx*0.65*Math.cos(ang+0.28);
+          const cpy=fanRx*0.65*Math.sin(ang+0.28);
+          return <path key={i} d={'M'+bx1+' '+by1+' Q'+cpx+' '+cpy+' '+bx2+' '+by2}
+            fill="none" stroke={bC} strokeWidth="4" strokeLinecap="round" opacity="0.9"/>;
+        })}
+      </g>
+    </g>
+    {/* Wire guard cage -- concentric rings + crossing spokes, confined
+        to the fan disc itself (not the old full-rect louver bars,
+        which were nearly opaque and blotted the whole cap out,
+        hiding the fan almost entirely). This is what actually reads
+        as "a real fan behind a guard" instead of a flat dark smear,
+        and the ring density is the fed-min/high-eff differentiator:
+        a coarse 2-ring cage vs. a finer 4-ring one. */}
+    {Array.from({length:guardRings},(_,i)=>{
+      const t=(i+1)/(guardRings+0.3);
+      return <ellipse key={i} cx={cx} cy={cy} rx={fanRx*t} ry={fanRy*t} fill="none"
+        stroke={gC} strokeWidth={active?0.9:0.7} opacity={active?0.55:0.42}/>;
+    })}
+    <line x1={cx-fanRx} y1={cy} x2={cx+fanRx} y2={cy} stroke={gC} strokeWidth="0.8" opacity={active?0.45:0.34}/>
+    <line x1={cx} y1={cy-fanRy} x2={cx} y2={cy+fanRy} stroke={gC} strokeWidth="0.8" opacity={active?0.45:0.34}/>
+    {/* Two more spokes at +-45deg - six total, closer to a real woven-
+        wire hail guard's diagonal ribs than the original plain cross. */}
+    <line x1={cx-fanRx*0.7071} y1={cy-fanRy*0.7071} x2={cx+fanRx*0.7071} y2={cy+fanRy*0.7071}
+      stroke={gC} strokeWidth="0.65" opacity={active?0.38:0.28}/>
+    <line x1={cx-fanRx*0.7071} y1={cy+fanRy*0.7071} x2={cx+fanRx*0.7071} y2={cy-fanRy*0.7071}
+      stroke={gC} strokeWidth="0.65" opacity={active?0.38:0.28}/>
+    {/* Outer rim bezel -- the visible edge of the guard cage/fan
+        housing, brighter than the inner rings so the whole assembly
+        still reads as one fan at a glance. */}
+    <ellipse cx={cx} cy={cy} rx={fanRx*0.98} ry={fanRy*0.98} fill="none"
+      stroke={ringColor||bC} strokeWidth="1.2" opacity={active?0.6:0.45}/>
+    {/* Hail guard flange -- a raised dome/lip sitting proud of the flat
+        cap surface, the way a real hail guard bulges outward over the
+        fan opening (emulating a reference photo of a real fed-min
+        condenser). A flat single-color ring can't fake a bevel; split
+        into a lighter top-half arc and a darker bottom-half arc so it
+        reads as catching light from above instead of a flat painted
+        circle. */}
+    <path d={`M${cx-fanRx*1.07} ${cy} A${fanRx*1.07} ${fanRy*1.07} 0 0 1 ${cx+fanRx*1.07} ${cy}`}
+      fill="none" stroke="rgba(165,170,180,.5)" strokeWidth="1" opacity={active?0.55:0.42}/>
+    <path d={`M${cx-fanRx*1.07} ${cy} A${fanRx*1.07} ${fanRy*1.07} 0 0 0 ${cx+fanRx*1.07} ${cy}`}
+      fill="none" stroke="rgba(8,9,11,.75)" strokeWidth="1" opacity={active?0.6:0.5}/>
+    <ellipse cx={cx} cy={cy} rx={fanRx*0.12} ry={fanRy*0.14}
+      fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
+    {/* Fed-min/high-eff condenser's own top-cap fan - CondenserFan's own
+        hover above covers the mid-tier's front-discharge fan instead.
+        Sits inside the cond_tier EditZone box, same onClick-forwarding
+        reasoning as BlowerWheel's own hover. */}
+    <HoverInfo x={x} y={y} w={w} h={h} rx={4} vw={vw} vh={vh}
+      title={partInfo('condenser_fan',lang).title} text={partInfo('condenser_fan',lang).text}
+      onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
+  </>;
+}
+
+// Condenser -- three distinct tiers.
+//
+// Module-scope for the same reason as CapFan/CondenserFan above - the
+// service-panel VS indicator dot uses `.glow-pulse` and, via CapFan/
+// CondenserFan, the fan itself spins via `.spin`, so this had the same
+// confirmed animation-reset stutter every hoverPart change. condC/
+// refReversed/line1C/line2C (all wizard-derived) and fanFast (the
+// mid-tier fan's speed, precomputed by the caller from heatMode/
+// isMildHp - both Canvas-only state) come in as explicit props instead
+// of Canvas closures, same convention as everywhere else in this file
+// that made this move.
+function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanFast,onEditStep,lang,vw,vh}){
+  const isMini=tierKey==='mid_ge15';
+  const isBig=tierKey==='high_ge18';
+  const isFed=tierKey==='fedmin';
+  const cc=active?condC:(refReversed?'rgba(18,18,55,.5)':'rgba(55,18,18,.5)');
+
+  return <g>
+    {/* General "what is this" cabinet hover - painted FIRST/bottommost
+        in this <g> on purpose, so the more specific fan/compressor/SEER
+        hovers added below (each painted later, i.e. on top) win hover
+        priority over their own smaller areas, leaving this one covering
+        just the rest of the box. Same onClick-forwarding reasoning as
+        every other hover nested inside an existing EditZone box - this
+        is the exact box cond_tier's own EditZone already covers. */}
+    <HoverInfo x={x} y={y} w={w} h={h} rx={9} vw={vw} vh={vh}
+      title={partInfo('condenser_cabinet',lang).title} text={partInfo('condenser_cabinet',lang).text}
+      onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
+    {isFed&&<>
+      {/* FED MIN: matched closely against a reference photo of a real
+          GE fed-min cabinet - genuinely rounded corners (not the
+          square-ish rx=2 this used to be), a chevron-louvered body,
+          and a domed black cap whose fan/guard fills nearly the whole
+          top instead of sitting as a small oval in empty dark space. */}
+      <rect x={x} y={y} width={w} height={h} rx={9}
+        fill={active?"#b9bdc5":"#c4c8cf"}
+        stroke={active?"rgba(150,155,165,.9)":"rgba(130,135,145,.8)"} strokeWidth="1.2"/>
+      {/* Dark top cap with CapFan */}
+      {(()=>{
+        const capH=Math.round(h*0.20);
+        return <>
+          <rect x={x} y={y} width={w} height={capH} rx={9}
+            fill={active?"#3a3d42":"#2e3035"} stroke="rgba(20,22,26,.8)" strokeWidth="1"/>
+          {/* Domed-cap illusion - a flat rect can't actually curve in
+              this front-on view, so a lighter highlight arc along the
+              top edge + a darker shadow arc along the bottom edge fakes
+              the cap bulging up toward the viewer the way it does in
+              the reference photo. */}
+          <path d={`M${x+9} ${y+2} Q${x+w/2} ${y-1.5} ${x+w-9} ${y+2}`}
+            fill="none" stroke="rgba(150,155,165,.4)" strokeWidth="1.1" opacity="0.7"/>
+          <path d={`M${x+6} ${y+capH-1.5} Q${x+w/2} ${y+capH+2} ${x+w-6} ${y+capH-1.5}`}
+            fill="none" stroke="rgba(10,11,13,.6)" strokeWidth="1.3" opacity="0.6"/>
+          <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
+            bladeColor={active?(refReversed?"rgba(100,160,220,.8)":"rgba(220,90,90,.7)"):"rgba(45,48,55,.6)"}
+            slatFill={active?"rgba(44,47,54,.88)":"rgba(36,39,46,.92)"}
+            ringColor="rgba(120,125,135,.55)"
+            slatCount={Math.max(3,Math.floor((capH-2)*0.7/6.5))}
+            onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
+          {/* Screw ring around the cap's outer edge (8, not the old 4
+              corner-only rivets) - the reference photo shows these
+              spaced all the way around the cap perimeter, not just at
+              its corners. */}
+          {Array.from({length:8},(_,i)=>{
+            const ang=(i/8)*Math.PI*2;
+            // Pushed out to the cap's own edge (not the fan/guard's) so
+            // the screws sit clearly outside the guard assembly, same
+            // as the reference photo's perimeter screw ring.
+            const rx=(w/2-3), ry=(capH/2-2.5);
+            return <circle key={i} cx={x+w/2+rx*Math.cos(ang)} cy={y+capH/2+ry*Math.sin(ang)} r={1.6}
+              fill="rgba(50,55,62,.9)" stroke="rgba(80,85,95,.5)" strokeWidth="0.5"/>;
+          })}
+        </>;
+      })()}
+      {/* Flat panel body -- a continuous chevron-louver ribbon pattern
+          (real 14 SEER2 builder-grade condensers - GE, Goodman, Amana -
+          are almost always stamped this way top to bottom, not the flat
+          sheet + sparse dot-perforation patch this used to be) matched
+          against a reference photo of a real fed-min cabinet. Each row
+          is a shallow repeating "V" tooth - a cheap approximation of the
+          real die-stamped wave/louver slot, dense enough to read as
+          "corrugated sheet metal" at diagram scale without the cost of
+          an actually-perforated real vent (which would need a genuine
+          hole through the cabinet). */}
+      {(()=>{
+        const capH=Math.round(h*0.20);
+        const slotY=y+capH+3, slotH=h-capH-6;
+        const rowH=5.5, toothW=8;
+        const rows=Math.max(6,Math.floor(slotH/rowH));
+        // Teeth start at x+4 (2px clear of the body rect's x+2 edge) and
+        // stop at x+w-4 - never offset per-row, so every tooth stays
+        // safely inside the panel with no per-row edge-overhang risk.
+        const teeth=Math.floor((w-8)/toothW);
+        return <>
+          <rect x={x+2} y={slotY} width={w-4} height={slotH} rx="1"
+            fill={active?"rgba(150,154,162,.4)":"rgba(160,164,172,.38)"}/>
+          {Array.from({length:rows},(_,r)=>{
+            const rowY=slotY+3+r*rowH;
+            let d=`M${x+4} ${rowY}`;
+            for(let t=0;t<teeth;t++){
+              const tx=x+4+t*toothW;
+              d+=` L${tx+toothW/2} ${rowY-1.7} L${tx+toothW} ${rowY}`;
+            }
+            // A single mid-tone line read as flat/subtle - a lighter
+            // highlight pass just above + a darker shadow pass just
+            // below the same path fakes each tooth catching light on
+            // its raised edge, closer to the crisp embossed look in
+            // the reference photo's die-stamped louvers.
+            return <g key={r}>
+              <path d={d} fill="none" stroke={active?"rgba(210,213,218,.55)":"rgba(220,223,228,.5)"} strokeWidth="0.5" transform="translate(0,-0.35)"/>
+              <path d={d} fill="none" stroke={active?"rgba(90,95,105,.5)":"rgba(80,85,95,.48)"} strokeWidth="0.5" transform="translate(0,0.35)"/>
+            </g>;
+          })}
+        </>;
+      })()}
+      {/* Round manufacturer badge, centered on the panel - the reference
+          photo shows a round medallion (not a rectangular data plate)
+          roughly a third of the way down the body. Kept deliberately
+          blank/generic (a plain ringed medallion, no text or monogram)
+          so nothing here reads as a copied brand mark - the round
+          SHAPE alone isn't anyone's trademark, only a specific logo
+          would be. */}
+      {(()=>{
+        const capH=Math.round(h*0.20);
+        const bcx=x+w/2, bcy=y+capH+Math.round((h-capH)*0.38);
+        const br=Math.round(Math.min(w,h)*0.09);
+        return <>
+          <ellipse cx={bcx} cy={bcy} rx={br} ry={br*0.82}
+            fill="rgba(40,43,50,.6)" stroke="rgba(150,155,165,.55)" strokeWidth="1"/>
+          <ellipse cx={bcx} cy={bcy} rx={br*0.72} ry={br*0.6}
+            fill="none" stroke="rgba(150,155,165,.35)" strokeWidth="0.6"/>
+        </>;
+      })()}
+      {[[x+4,y+h-4],[x+w-4,y+h-4]].map(([fx,fy],i)=>(
+        <circle key={i} cx={fx} cy={fy} r={2.5}
+          fill="rgba(90,95,105,.8)" stroke="rgba(60,65,75,.6)" strokeWidth="0.7"/>
+      ))}
+      {/* Compressor outline - visible inside housing */}
+      {(()=>{
+        const capH=Math.round(h*0.20);
+        const bodyH=h-capH;
+        const cW=Math.round(w*0.3), cH=Math.round(bodyH*0.42);
+        const cX=x+w-cW-6, cY=y+capH+bodyH-cH-10;
+        const domeH=Math.round(cH*0.22);
+        return <g>
+          <rect x={cX} y={cY+domeH} width={cW} height={cH-domeH} rx="3"
+            fill="rgba(100,105,115,.18)" stroke={active?'rgba(180,80,80,.6)':"rgba(70,75,85,.4)"}
+            strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
+          <ellipse cx={cX+cW/2} cy={cY+domeH} rx={cW/2} ry={domeH}
+            fill="rgba(110,115,125,.2)" stroke={active?'rgba(180,80,80,.6)':"rgba(70,75,85,.4)"}
+            strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
+          <rect x={cX+cW*0.6} y={cY-6} width={4} height={domeH+6} rx="1"
+            fill={active?line1C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
+          <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
+            fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
+          {/* y+h-22 instead of cY+cH+domeH+10, which always lands domeH
+              px below the cabinet's own bottom edge (cY+cH already
+              equals y+h-10) - that pushed this label out of the housing
+              entirely, where it overlapped the outside-zone's "CONCRETE
+              PAD"/"GROUND LEVEL" text underneath it. */}
+          <text x={cX+cW/2} y={y+h-22} textAnchor="middle"
+            fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
+          <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3}
+            vw={vw} vh={vh} title={partInfo('compressor',lang).title} text={partInfo('compressor',lang).text}
+            onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
+        </g>;
+      })()}
+    </>}
+
+    {isMini&&<>
+      {/* MID: real GE NS18H condensers are a front-discharge cabinet - a
+          large round fan grille dominating most of the front face, a
+          narrower service-panel column beside it - not a top-discharge
+          square cabinet like the fed-min/high-eff units. Lightened per
+          a reference photo of a real front-discharge unit (same
+          "should be light metal, not near-black" correction the fed-min/
+          high-eff passes already got) - kept between the two on the
+          gray scale: cooler/dimmer than fed-min's plainer light gray,
+          lighter than high-eff's darker richer tone. */}
+      <rect x={x} y={y} width={w} height={h} rx={6}
+        fill={active?(refReversed?"#a5aab4":"#bec2c8"):"#b5b9bf"}
+        stroke={active?cc:"rgba(120,124,132,.8)"} strokeWidth={active?1.8:1.4}/>
+      {/* Discharge grille top - stays black/dark, a real grille slot,
+          unlike the body around it */}
+      <rect x={x+4} y={y+2} width={w-8} height={Math.round(h*0.1)} rx="2"
+        fill="rgba(20,22,26,.55)" stroke="rgba(150,154,162,.4)" strokeWidth="0.6"/>
+      {Array.from({length:3},(_,i)=>(
+        <rect key={i} x={x+6} y={y+4+i*4} width={w-12} height={2} rx="0.5"
+          fill="rgba(15,17,20,.85)" stroke="rgba(90,95,105,.4)" strokeWidth="0.3"/>
+      ))}
+      {/* Left: large fan area ~68% */}
+      {(()=>{
+        const fanAreaW=Math.round(w*0.68);
+        const fanAreaH=h-Math.round(h*0.1)-4;
+        const fanAreaY=y+Math.round(h*0.1)+2;
+        const fCX=x+fanAreaW/2, fCY=fanAreaY+fanAreaH/2;
+        // Sized to read as close as possible to the fed-min cap's fan
+        // circle (CapFan's fanRx), which the user specifically liked -
+        // maxed out against this cabinet's available front-face height
+        // (the tight dimension here), the largest this can go without
+        // the outer glow rim clipping the fan-area box edges.
+        const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.41);
+        // Woven-wire crosshatch mesh (two crossing diagonal line sets,
+        // clipped to the grille circle) instead of the old sparse dot
+        // pattern - closer to how a real fan guard mesh actually reads,
+        // matching the reference photo's visible diamond weave.
+        const meshLines=[];
+        const pitch=4.2;
+        for(let i=-Math.ceil((fanAreaW+fanAreaH)/pitch);i<=Math.ceil((fanAreaW+fanAreaH)/pitch);i++){
+          meshLines.push(i);
+        }
+        return <>
+          <rect x={x+2} y={fanAreaY} width={fanAreaW-2} height={fanAreaH} rx="3"
+            fill="rgba(10,11,14,.55)" stroke="rgba(150,154,162,.4)" strokeWidth="0.7"/>
+          {[[x+7,fanAreaY+5],[x+fanAreaW-6,fanAreaY+5],[x+7,fanAreaY+fanAreaH-5],[x+fanAreaW-6,fanAreaY+fanAreaH-5]].map(([sx,sy],i)=>(
+            <circle key={i} cx={sx} cy={sy} r={1.6} fill="rgba(35,38,44,.9)" stroke="rgba(150,154,162,.4)" strokeWidth="0.4"/>
+          ))}
+          <clipPath id={"midfan-clip-"+active}><circle cx={fCX} cy={fCY} r={fR+3}/></clipPath>
+          <g clipPath={`url(#midfan-clip-${active})`} opacity="0.5">
+            {meshLines.map(i=>(
+              <line key={'a'+i} x1={fCX-fR-3+i*pitch} y1={fCY-fR-3} x2={fCX-fR-3+i*pitch+2*(fR+3)} y2={fCY+fR+3}
+                stroke="rgba(70,75,85,.7)" strokeWidth="0.4"/>
+            ))}
+            {meshLines.map(i=>(
+              <line key={'b'+i} x1={fCX-fR-3+i*pitch} y1={fCY+fR+3} x2={fCX-fR-3+i*pitch+2*(fR+3)} y2={fCY-fR-3}
+                stroke="rgba(70,75,85,.7)" strokeWidth="0.4"/>
+            ))}
+          </g>
+          <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(160,164,172,.5)" strokeWidth="2.5"/>
+          {/* Real condenser fans ramp up with load - faster at 95° (cool,
+              full compressor load) and 60° (mild heat-pump load) than at
+              32°, where either the compressor is standby (dual-fuel
+              furnace mode) or running its slower low-ambient stage. */}
+          <CondenserFan cx={fCX} cy={fCY} r={fR} active={active} fast={fanFast}
+            onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
+        </>;
+      })()}
+      {/* Right: service panel ~30% - light like the rest of the body
+          (was a dark panel before this pass), with a round badge
+          (matching fed-min/high-eff's generic medallion), a couple of
+          thin access-panel seam lines, and the VS status indicator
+          kept as a small dark accent window rather than a dominating
+          dark panel. */}
+      {(()=>{
+        const panelX=x+Math.round(w*0.7);
+        const panelW=w-Math.round(w*0.7)-2;
+        const panelY=y+Math.round(h*0.1)+4;
+        const panelH=h-Math.round(h*0.1)-8;
+        // Same badge formula fed-min/high-eff use (a fraction of the
+        // whole cabinet's shorter side), not a fraction of this narrow
+        // side panel - the old panelW*0.34 badge read noticeably
+        // bigger/more prominent than the other two tiers' medallion.
+        const br=Math.round(Math.min(w,h)*0.09);
+        return <>
+          <rect x={panelX} y={panelY} width={panelW} height={panelH} rx="4"
+            fill={active?"#b0b4ba":"#a8acb2"} stroke="rgba(90,94,102,.7)" strokeWidth="0.8"/>
+          <ellipse cx={panelX+panelW/2} cy={panelY+panelH*0.28} rx={br} ry={br*0.8}
+            fill="rgba(30,32,38,.6)" stroke="rgba(190,194,200,.5)" strokeWidth="0.9"/>
+          <ellipse cx={panelX+panelW/2} cy={panelY+panelH*0.28} rx={br*0.7} ry={br*0.56}
+            fill="none" stroke="rgba(190,194,200,.3)" strokeWidth="0.5"/>
+          {[0.5,0.63].map((ty,i)=>(
+            <line key={i} x1={panelX+2} y1={panelY+panelH*ty} x2={panelX+panelW-2} y2={panelY+panelH*ty}
+              stroke="rgba(80,84,90,.4)" strokeWidth="0.6"/>
+          ))}
+          <rect x={panelX+3} y={panelY+panelH*0.7} width={panelW-6} height={panelH*0.2} rx="2"
+            fill={active?"rgba(20,25,35,.85)":"rgba(16,18,24,.75)"} stroke="rgba(60,65,75,.5)" strokeWidth="0.6"/>
+          <circle cx={panelX+panelW/2} cy={panelY+panelH*0.8} r={3}
+            fill={active?(cc):"rgba(40,45,55,.6)"} stroke={active?cc:"rgba(90,95,105,.4)"} strokeWidth="0.7"/>
+          {active&&<circle cx={panelX+panelW/2} cy={panelY+panelH*0.8} r={1.7}
+            fill="#fff" className="glow-pulse"/>}
+          <text x={panelX+panelW/2} y={panelY+panelH*0.87} textAnchor="middle"
+            fill={active?cc:"rgba(200,204,210,.6)"} fontSize="8.5" fontFamily="sans-serif" fontWeight="700">VS</text>
+        </>;
+      })()}
+      {/* Compressor hover - this tier's front-discharge cabinet is
+          sealed (no visible compressor dome the way fed-min/high-eff's
+          top-discharge unibody exposes one), but a real one still sits
+          inside, behind the service-access panel just rendered above -
+          recomputing that same panelX/panelW/panelY/panelH here rather
+          than threading it out of that IIFE, same convention used
+          throughout this file. */}
+      {(()=>{
+        const panelX=x+Math.round(w*0.7);
+        const panelW=w-Math.round(w*0.7)-2;
+        const panelY=y+Math.round(h*0.1)+4;
+        const panelH=h-Math.round(h*0.1)-8;
+        return <HoverInfo x={panelX-4} y={panelY-4} w={panelW+8} h={panelH+8} rx={4}
+          vw={vw} vh={vh} title={partInfo('compressor',lang).title} text={partInfo('compressor',lang).text}
+          onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>;
+      })()}
+    </>}
+
+    {isBig&&<>
+      {/* HIGH EFF: darker medium-gray unibody cabinet - a second pass
+          against the same American Standard reference photo, matching
+          its noticeably darker/richer gray (not the lighter tone this
+          used to be) so the two tiers read as clearly different grades:
+          fed-min's plain light gray vs. this darker, denser metal.
+          Rounded corners bumped to match fed-min's own rx (was a
+          flatter rx=5) and the cap picked up the same domed-highlight +
+          screw-ring treatment fed-min's reference pass added, for
+          visual consistency between the two tiers' cap designs. */}
+      <rect x={x} y={y} width={w} height={h} rx={10}
+        fill={active?(refReversed?"#767c8e":"#8c9096"):"#82868c"}
+        stroke={active?cc:"rgba(100,104,112,.85)"} strokeWidth={active?1.8:1.4}/>
+      {/* Slim corner posts -- narrower than the old chamfer strips, a
+          cleaner structural read instead of thick side blocks */}
+      <rect x={x} y={y+4} width={5} height={h-8} rx="1.5"
+        fill={active?"#6d7178":"#65686f"} stroke="rgba(50,54,60,.7)" strokeWidth="0.8"/>
+      <rect x={x+w-5} y={y+4} width={5} height={h-8} rx="1.5"
+        fill={active?"#6d7178":"#65686f"} stroke="rgba(50,54,60,.7)" strokeWidth="0.8"/>
+      {/* Dark rounded top cap with CapFan - tightened padding (vs.
+          fed-min's own x+2/w-4 inset) so the fan/hail-guard assembly
+          dominates the cap the way it does in the reference photo,
+          instead of sitting as a small oval within a mostly-empty
+          black cap. Stroke lightened to a metallic tone for a rounded
+          rim highlight where the cap meets the lighter body. */}
+      {(()=>{
+        const capH=Math.round(h*0.24);
+        return <>
+          <rect x={x} y={y} width={w} height={capH} rx={10}
+            fill="#1e2024" stroke="rgba(150,154,162,.55)" strokeWidth="1.2"/>
+          {/* Domed-cap illusion, same technique as fed-min's reference
+              pass - a flat rect can't curve in this front-on view, so a
+              light highlight arc on top + dark shadow arc on bottom
+              fakes it bulging toward the viewer. */}
+          <path d={`M${x+10} ${y+2} Q${x+w/2} ${y-1.5} ${x+w-10} ${y+2}`}
+            fill="none" stroke="rgba(150,155,165,.4)" strokeWidth="1.1" opacity="0.7"/>
+          <path d={`M${x+7} ${y+capH-1.5} Q${x+w/2} ${y+capH+2} ${x+w-7} ${y+capH-1.5}`}
+            fill="none" stroke="rgba(10,11,13,.6)" strokeWidth="1.3" opacity="0.6"/>
+          <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
+            bladeColor={active?(refReversed?"rgba(100,160,220,.7)":"rgba(220,90,90,.65)"):"rgba(40,44,52,.6)"}
+            slatFill={active?"rgba(24,27,33,.88)":"rgba(18,21,27,.92)"}
+            ringColor={active?cc:"rgba(100,105,115,.55)"}
+            slatCount={Math.max(9,Math.floor((capH-4)*0.72/2.6))}
+            onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
+          {/* Screw ring around the cap's outer edge (8, matching
+              fed-min's reference pass) instead of the old 4 corner-only
+              rivets. */}
+          {Array.from({length:8},(_,i)=>{
+            const ang=(i/8)*Math.PI*2;
+            const rx=(w/2-3), ry=(capH/2-2.5);
+            return <circle key={i} cx={x+w/2+rx*Math.cos(ang)} cy={y+capH/2+ry*Math.sin(ang)} r={1.8}
+              fill="rgba(35,38,44,.9)" stroke="rgba(55,60,68,.5)" strokeWidth="0.5"/>;
+          })}
+        </>;
+      })()}
+      {/* Top-tier accent -- a slim pinstripe instead of the old thick
+          block band, a subtler premium cue */}
+      <rect x={x} y={y+Math.round(h*0.24)+2} width={w} height={2}
+        fill={active?cc:"rgba(120,128,145,.5)"} opacity={active?0.9:0.55}/>
+      {/* Vertical fin louvers -- tall, closely-pitched fins running
+          the full body height, alternating light/dark for a fluted
+          corrugated-metal read (replacing the old fine dot-mesh,
+          which doesn't match how a real high-eff cabinet's panel is
+          actually stamped) plus the same center reveal seam as
+          before for a two-panel unibody look. */}
+      {(()=>{
+        const capH=Math.round(h*0.24);
+        const bodyY=y+capH+5, bodyH=h-capH-11;
+        const midX=x+w/2;
+        const finW=2.2, finGap=0.9, step=finW+finGap;
+        const cols=Math.max(6,Math.floor((w-14)/step));
+        return <>
+          <rect x={x+6} y={bodyY} width={w-12} height={bodyH} rx="1.5"
+            fill={active?"rgba(120,124,130,.35)":"rgba(110,114,120,.32)"} stroke="rgba(80,84,90,.45)" strokeWidth="0.6"/>
+          {Array.from({length:cols},(_,c)=>{
+            const fx=x+7+c*step;
+            return <rect key={c} x={fx} y={bodyY+2} width={finW} height={bodyH-4} rx="0.6"
+              fill={c%2===0?"rgba(145,149,155,.55)":"rgba(70,74,80,.5)"}/>;
+          })}
+          <line x1={midX} y1={bodyY} x2={midX} y2={bodyY+bodyH}
+            stroke="rgba(55,59,65,.6)" strokeWidth="1.4"/>
+          <line x1={midX+1.2} y1={bodyY} x2={midX+1.2} y2={bodyY+bodyH}
+            stroke="rgba(170,174,180,.3)" strokeWidth="0.6"/>
+          {/* Round manufacturer badge, matching fed-min's reference
+              pass - deliberately blank (no text/logo), just the
+              generic medallion shape. */}
+          {(()=>{
+            const bcx=x+w/2, bcy=bodyY+bodyH*0.22;
+            const br=Math.round(Math.min(w,h)*0.085);
+            return <>
+              <ellipse cx={bcx} cy={bcy} rx={br} ry={br*0.78}
+                fill="rgba(30,32,38,.6)" stroke="rgba(190,194,200,.5)" strokeWidth="1"/>
+              <ellipse cx={bcx} cy={bcy} rx={br*0.72} ry={br*0.58}
+                fill="none" stroke="rgba(190,194,200,.32)" strokeWidth="0.6"/>
+            </>;
+          })()}
+        </>;
+      })()}
+      {/* Faint active-state tint - see FurnaceH's own comment on the
+          identical pattern for why this needs pointer-events:none (found
+          swallowing the general condenser_cabinet hover across this
+          whole tier's box whenever active, via a wizard-step sweep). */}
+      {active&&<rect x={x} y={y} width={w} height={h} rx={10}
+        fill={refReversed?"rgba(35,137,224,.04)":"rgba(239,68,68,.03)"} stroke="none" style={{pointerEvents:'none'}}/>}
+      <rect x={x} y={y+h-6} width={w} height={6} rx={2}
+        fill="#14151a" stroke="rgba(20,22,28,.8)" strokeWidth="0.7"/>
+      {/* Compressor outline -- visible inside housing */}
+      {(()=>{
+        const capH=Math.round(h*0.24);
+        const bodyH=h-capH;
+        const cW=Math.round(w*0.28), cH=Math.round(bodyH*0.45);
+        const cX=x+w-cW-8, cY=y+capH+bodyH-cH-10;
+        const domeH=Math.round(cH*0.22);
+        return <g>
+          <rect x={cX} y={cY+domeH} width={cW} height={cH-domeH} rx="3"
+            fill="rgba(20,22,28,.65)" stroke={active?cc:"rgba(70,75,85,.4)"} strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
+          <ellipse cx={cX+cW/2} cy={cY+domeH} rx={cW/2} ry={domeH}
+            fill="rgba(25,28,35,.7)" stroke={active?cc:"rgba(70,75,85,.4)"} strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
+          <rect x={cX+cW*0.6} y={cY-6} width={4} height={domeH+6} rx="1"
+            fill={active?line1C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
+          <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
+            fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
+          {/* y+h-22 -- see the fed-min compressor label's own note on
+              why the unclamped cY+cH+domeH+10 offset always falls domeH
+              px below the cabinet's own bottom edge. */}
+          <text x={cX+cW/2} y={y+h-22} textAnchor="middle"
+            fill={active?cc:"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
+          <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3}
+            vw={vw} vh={vh} title={partInfo('compressor',lang).title} text={partInfo('compressor',lang).text}
+            onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
+        </g>;
+      })()}
+    </>}
+  </g>;
+}
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // Shorthand for the hover-tooltip copy above, resolved to this render's
@@ -1259,16 +2400,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     ro.observe(el);
     return ()=>ro.disconnect();
   },[]);
-  const G='rgba(215,183,64,';
-  const B='rgba(35,137,224,';
-  const W='rgba(255,255,255,';
-  const O='rgba(249,115,22,';
-  // Slate matte silver - the furnace/air-handler cabinet exterior and
-  // the blower's own static motor housing. Real equipment cabinets are
-  // galvanized sheet metal, not gold. Gold (G) stays reserved for the
-  // plenum, spec/tier badges, and the blower WHEEL itself (the moving
-  // assembly - kept gold on purpose, it reads well while spinning).
-  const S='rgba(148,158,172,';
+  // G/B/O/W/S (gold/blue/orange/white/silver) now live at module scope,
+  // just above - see the comment there for why.
 
   // ── OUTSIDE / INSIDE PALETTE ───────────────────────────────
   // The outside zone's fill is a visual metaphor for the active heating/
@@ -1430,182 +2563,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   const BLOWER_MOTOR={fedmin:'ECM MOTOR',mid_ge15:'VARIABLE SPEED',high_ge18:'MOD. VAR. SPEED'}[a.cond_tier]||'';
 
   // ── SUB-COMPONENTS ──────────────────────────────────────────
+  // BlowerWheel now lives at module scope, above Canvas - see its own
+  // comment there for why.
 
-  // Indoor blower - a real furnace/AH blower is a forward-curved
-  // centrifugal ("squirrel cage") wheel: many short, shallow blades
-  // mounted between two thin end rings at the RIM, all swept the same
-  // rotational direction, with the wheel's flat front/back disc (and its
-  // spider of structural spokes down to the hub) showing through the gaps
-  // between blades - nothing like a bicycle-wheel spoke pattern radiating
-  // from the hub itself (the old 16-straight-line version, which read as
-  // a generic "fan" icon rather than the specific squirrel-cage shape
-  // every real blower wheel actually has). Rebuilt on the same curved-
-  // path-blade technique already proven on CondenserFan below, just with
-  // many small rim-mounted scoops instead of few large hub-mounted ones.
-  function BlowerWheel({cx,cy,r,spd,active}){
-    r=r||28; spd=spd||1; active=active!==false;
-    const n=22;
-    const innerR=r*0.56, outerR=r*0.92;
-    const bladeFill=active?(G+'.62)'):(G+'.13)');
-    const bladeStroke=active?(G+'.82)'):(G+'.24)');
-    const blades=Array.from({length:n},(_,i)=>{
-      const ang=i*(Math.PI*2/n);
-      // Each blade is a thin curved scoop between innerR and outerR - a
-      // filled sliver (not a stroked line) so it keeps a shallow "cup"
-      // cross-section instead of reading as a wire spoke. The trailing
-      // edge sits at +sweep so every blade curls the same way, the way a
-      // forward-curved wheel's blades all lean into the direction of
-      // rotation.
-      const sweep=0.30, backSweep=0.09;
-      const ax=cx+innerR*Math.cos(ang-backSweep), ay=cy+innerR*Math.sin(ang-backSweep);
-      const bx=cx+innerR*Math.cos(ang+backSweep), by=cy+innerR*Math.sin(ang+backSweep);
-      const tipAng=ang+sweep;
-      const cAng=ang+sweep*0.55, cR=(innerR+outerR)/2*1.04;
-      const cxm=cx+cR*Math.cos(cAng), cym=cy+cR*Math.sin(cAng);
-      const tx=cx+outerR*Math.cos(tipAng), ty=cy+outerR*Math.sin(tipAng);
-      const d=`M${ax.toFixed(1)} ${ay.toFixed(1)} Q${cxm.toFixed(1)} ${cym.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)} `+
-        `L${(tx-1.2*Math.cos(tipAng-1.2)).toFixed(1)} ${(ty-1.2*Math.sin(tipAng-1.2)).toFixed(1)} `+
-        `Q${(cx+cR*0.82*Math.cos(cAng)).toFixed(1)} ${(cy+cR*0.82*Math.sin(cAng)).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)} Z`;
-      return <path key={i} d={d} fill={bladeFill} stroke={bladeStroke} strokeWidth="0.5"/>;
-    });
-    return <g>
-      {/* Outer ring is the static motor housing (never moves) - slate
-          silver, matching the rest of the cabinet exterior. The wheel
-          itself (rim, blades, hub below) stays gold - it's the moving
-          assembly and reads well spinning against the silver housing. */}
-      <circle cx={cx} cy={cy} r={r+4} fill="rgba(0,0,0,.5)" stroke={S+'.4)'} strokeWidth="0.8"/>
-      <circle cx={cx} cy={cy} r={r} fill="#050505" stroke={G+'.3)'} strokeWidth="0.9"/>
-      {/* Rim band the blade tips mount to - a hair inside the housing
-          bore, so the wheel reads as a specific, slightly-smaller part
-          sitting inside the scroll housing rather than filling it. */}
-      <circle cx={cx} cy={cy} r={outerR+1} fill="none" stroke={active?(G+'.4)'):(G+'.12)')} strokeWidth="1"/>
-      {active
-        ?<g className="spin" style={{transformBox:'fill-box',transformOrigin:'center',animationDuration:(1.0/spd)+'s'}}>{blades}</g>
-        :<g>{blades}</g>}
-      {/* Front-disc structural spokes - the flat plate a real squirrel-
-          cage wheel's blades are riveted to, showing through as thin ribs
-          from the hub out to the inner blade ring. Spins with the wheel
-          (same group as the blades) since it's one rigid stamped part. */}
-      {active
-        ?<g className="spin" style={{transformBox:'fill-box',transformOrigin:'center',animationDuration:(1.0/spd)+'s'}}>
-          {Array.from({length:4},(_,i)=>{
-            const ang=i*(Math.PI/2);
-            return <line key={i} x1={cx+r*0.13*Math.cos(ang)} y1={cy+r*0.13*Math.sin(ang)}
-              x2={cx+innerR*Math.cos(ang)} y2={cy+innerR*Math.sin(ang)}
-              stroke={G+'.2)'} strokeWidth="1.1"/>;
-          })}
-        </g>
-        :Array.from({length:4},(_,i)=>{
-          const ang=i*(Math.PI/2);
-          return <line key={i} x1={cx+r*0.13*Math.cos(ang)} y1={cy+r*0.13*Math.sin(ang)}
-            x2={cx+innerR*Math.cos(ang)} y2={cy+innerR*Math.sin(ang)}
-            stroke={G+'.08)'} strokeWidth="1.1"/>;
-        })}
-      <circle cx={cx} cy={cy} r={r*0.27} fill="#090909" stroke={G+'.34)'} strokeWidth="0.9"/>
-      <circle cx={cx} cy={cy} r={r*0.1} fill="#111" stroke={G+'.42)'} strokeWidth="0.6"/>
-      {/* Every BlowerWheel call site sits inside the furnace/air-handler
-          cabinet's own indoor_type EditZone box, so a hover hit-rect here
-          - necessarily painted on top of it for the hover to register at
-          all - needs the same onClick forwarding HoverInfo's own module
-          comment describes, to keep the done screen's existing "click the
-          furnace/AH to quick-edit indoor_type" behavior exactly as it was. */}
-      <HoverInfo x={cx-r-5} y={cy-r-5} w={(r+5)*2} h={(r+5)*2} rx={r+5}
-        vw={SVG_VW} vh={SVG_VH} title={T('blower').title} text={T('blower').text}
-        onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
-    </g>;
-  }
+  // CondenserFan now lives at module scope, above Canvas.
 
-  // Outdoor axial condenser fan, viewed head-on - real condenser fans have
-  // a small number (typically 3) of large, wide blades, nothing like an
-  // indoor squirrel-cage blower's many thin radial vanes (BlowerWheel
-  // above). Kept as its own component specifically so the mid-tier
-  // condenser's front fan never gets confused with an indoor blower again.
-  function CondenserFan({cx,cy,r,active,fast}){
-    // Real axial blades are a filled, tapered scimitar shape - wide at the
-    // hub, sweeping out to a near-point tip - not a uniform-width stroked
-    // line. A thick round-capped stroke (the old approach) has no taper
-    // and reads as a flailing stick-figure limb instead of a blade. Each
-    // blade here is a closed path: a wide edge at the hub, two curves
-    // sweeping out to a narrow tip, filled solid with a glowing accent
-    // rim when spinning for a cleaner, more high-tech look.
-    const bladeFill=active?'#ccd3e0':'#565c68';
-    const rim=active?'#7fb8ff':'rgba(70,76,90,.6)';
-    return <g>
-      <circle cx={cx} cy={cy} r={r+3} fill="rgba(0,0,0,.55)" stroke="rgba(60,65,78,.7)" strokeWidth="1.2"/>
-      {active&&<circle cx={cx} cy={cy} r={r+1} fill="none" stroke={rim} strokeWidth="1" opacity="0.55" filter="url(#glow-sm)"/>}
-      {/* transformBox:'fill-box' + transformOrigin:'center' (used elsewhere
-          in this file for BlowerWheel/CapFan) rotates around the BOUNDING
-          BOX's center, not the hub - fine for those, since their blade
-          layouts have even-fold symmetry (opposite blades cancel out and
-          the bounding box ends up centered on the hub anyway). Three
-          blades all swept the same rotational direction has no such
-          cancellation, so the bounding box is off-center from (cx,cy) and
-          the whole fan visibly orbits instead of spinning in place.
-          transformBox:'view-box' + an explicit px origin rotates around
-          the actual hub coordinate instead, regardless of the blades'
-          bounding box. */}
-      <g className={active?"spin":undefined} style={active?{transformBox:'view-box',transformOrigin:cx+'px '+cy+'px',animationDuration:(fast?'0.45s':'0.8s')}:{}}>
-        {/* Broad sickle blades - widened per a reference photo of a real
-            3-blade condenser fan, where the blades themselves (not gaps)
-            cover most of the disc, maybe ~60% blade / ~40% visible gap,
-            not a thin airplane-propeller silhouette. Wider hub base, a
-            bigger sweep angle, and control points pushed further out
-            (both edges, not just the leading one) keep the blade fuller
-            for more of its length instead of tapering to a point early. */}
-        {Array.from({length:3},(_,i)=>{
-          const ang=i*(Math.PI*2/3);
-          const sweep=1.4;
-          const hubR=r*0.14, tipR=r*0.94;
-          const ux=Math.cos(ang), uy=Math.sin(ang);
-          const px=-Math.sin(ang), py=Math.cos(ang);
-          const hubW=r*0.38;
-          const hAx=cx+ux*hubR+px*hubW, hAy=cy+uy*hubR+py*hubW;
-          const hBx=cx+ux*hubR-px*hubW, hBy=cy+uy*hubR-py*hubW;
-          const tipAng=ang+sweep;
-          const tX=cx+Math.cos(tipAng)*tipR, tY=cy+Math.sin(tipAng)*tipR;
-          const c1Ang=ang+sweep*0.42, c1R=r*0.78;
-          const c1X=cx+Math.cos(c1Ang)*c1R+px*hubW*0.78, c1Y=cy+Math.sin(c1Ang)*c1R+py*hubW*0.78;
-          const c2Ang=ang+sweep*0.78, c2R=r*0.68;
-          const c2X=cx+Math.cos(c2Ang)*c2R-px*hubW*0.6, c2Y=cy+Math.sin(c2Ang)*c2R-py*hubW*0.6;
-          const d=`M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
-          return <path key={i} d={d} fill={bladeFill} stroke={active?rim:'rgba(20,22,26,.7)'} strokeWidth="0.7" opacity={active?0.95:0.8}/>;
-        })}
-      </g>
-      <circle cx={cx} cy={cy} r={r*0.18} fill="#16181c" stroke={active?rim:"rgba(90,95,110,.6)"} strokeWidth="1"/>
-      <circle cx={cx} cy={cy} r={r*0.07} fill={active?rim:"#3a3d44"}/>
-      {/* Only reached from Condenser's own mid-tier (front-discharge)
-          layout below - CapFan (the top-cap fan the other two tiers use)
-          gets its own separate hover, since it's a different component.
-          Sits inside the cond_tier EditZone box, same onClick-forwarding
-          reasoning as BlowerWheel's own hover above. */}
-      <HoverInfo x={cx-r-4} y={cy-r-4} w={(r+4)*2} h={(r+4)*2} rx={r+4}
-        vw={SVG_VW} vh={SVG_VH} title={T('condenser_fan').title} text={T('condenser_fan').text}
-        onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
-    </g>;
-  }
-
-  // UV rod - thin horizontal rod ~45px (9" at scale), UV purple glow
-  function UVRod({x,y,len,vertical}){
-    len=len||56;
-    const x2=vertical?x:x+len, y2=vertical?y+len:y;
-    return <g className="fadein">
-      {/* Wide diffuse glow */}
-      <line x1={x} y1={y} x2={x2} y2={y2}
-        stroke="rgba(139,92,246,.55)" strokeWidth={vertical?22:22} strokeLinecap="round" filter="url(#glow-uv)" className="glow-pulse"/>
-      {/* Mid glow */}
-      <line x1={x} y1={y} x2={x2} y2={y2}
-        stroke="rgba(167,139,250,.75)" strokeWidth={vertical?10:10} strokeLinecap="round" filter="url(#glow-uv)"/>
-      {/* Rod body */}
-      <line x1={x} y1={y} x2={x2} y2={y2}
-        stroke="rgba(216,180,254,.95)" strokeWidth={vertical?3.5:3.5} strokeLinecap="round"/>
-      {/* End caps */}
-      <circle cx={x} cy={y} r="4" fill="rgba(167,139,250,.9)" stroke="rgba(216,180,254,.8)" strokeWidth="1"/>
-      <circle cx={x2} cy={y2} r="4" fill="rgba(167,139,250,.9)" stroke="rgba(216,180,254,.8)" strokeWidth="1"/>
-      {/* Pulse overlay */}
-      <line x1={x} y1={y} x2={x2} y2={y2}
-        stroke="rgba(233,213,255,.6)" strokeWidth={vertical?2:2} strokeLinecap="round" className="glow-pulse"/>
-    </g>;
-  }
+  // UVRod now lives at module scope, above Canvas - see the comment there.
 
   // Ionizer - bulb sits OUTSIDE on top of plenum, rod penetrates DOWN into airstream
   // bulbX/bulbY = center of the bulb (outside, above plenum top)
@@ -1646,232 +2609,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     </g>;
   }
 
-  // ── COIL TUBE DETAIL KIT ─────────────────────────────────────
-  // Shared by ACoilH/ACoilV below - the housing exterior around these
-  // (the silver/dark cabinet box) stays exactly as a prior pass left it;
-  // only what's INSIDE that box, the actual finned-tube coil geometry,
-  // gets upgraded here.
+  // CoilTube/CoilSweat/ACoilH/ACoilV now live at module scope, above Canvas.
 
-  // A single copper tube end, face-on - the visible cross-section where
-  // one pass of the serpentine coil tube pokes through the fin pack. A
-  // flat stroked ellipse (the old version) reads as a painted ring, not
-  // a rounded piece of metal - adding a bright rim highlight along the
-  // upper edge (the same "catch the light from above" trick already used
-  // on the condenser's hail-guard flange and cabinet edges elsewhere in
-  // this file) is what actually sells it as a small round tube instead
-  // of a flat icon.
-  function CoilTube({cx,cy,rx,ry,rotate,fill,stroke,glow,active,delay}){
-    rx=rx||4; ry=ry||2;
-    return <g transform={`rotate(${rotate||0},${cx},${cy})`}>
-      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={fill} stroke={stroke} strokeWidth="0.9"/>
-      <path d={`M${(cx-rx*0.55).toFixed(1)} ${(cy-ry*0.55).toFixed(1)} Q${cx.toFixed(1)} ${(cy-ry*1.25).toFixed(1)} ${(cx+rx*0.55).toFixed(1)} ${(cy-ry*0.55).toFixed(1)}`}
-        fill="none" stroke="rgba(255,255,255,.45)" strokeWidth="0.5" strokeLinecap="round"/>
-      {active&&glow&&<circle cx={cx} cy={cy} r={Math.min(rx,ry)*0.85} fill={glow} opacity="0.7" className="glow-pulse" style={{animationDelay:(delay||0)+'s'}}/>}
-    </g>;
-  }
-  // A bead of condensate clinging to the fin pack - real evaporator coils
-  // sweat heavily in cooling mode (the fin surface runs below the room's
-  // dew point), which is one of the most immediately recognizable "this
-  // coil is actually running" cues on a real unit. Only ever drawn when
-  // active (cooling) - a dry coil in heating/standby has no condensate.
-  function CoilSweat({cx,cy,r,delay}){
-    r=r||1.7;
-    return <g style={{animationDelay:(delay||0)+'s'}} className="glow-pulse">
-      <circle cx={cx} cy={cy} r={r} fill="rgba(200,230,252,.85)" stroke="rgba(235,246,255,.9)" strokeWidth="0.5"/>
-      <circle cx={cx-r*0.35} cy={cy-r*0.35} r={r*0.32} fill="rgba(255,255,255,.9)"/>
-    </g>;
-  }
-
-  // A-coil > (peak RIGHT) - horizontal attic
-  function ACoilH({x,y,w,h,active}){
-    const peakX=x+w, peakY=y+h/2; const n=8;
-    const tc=active?evapC:'rgba(48,48,78,.8)';
-    const distX=peakX-5, distY=peakY+4;
-    return <g>
-      <polygon points={`${x},${y} ${peakX},${peakY} ${peakX},${peakY+8} ${x},${y+12}`}
-        fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"}
-        stroke={active?(evapC+'88'):(G+'.22)')} strokeWidth="0.9"/>
-      <polygon points={`${x},${y+h} ${peakX},${peakY} ${peakX},${peakY+8} ${x},${y+h-12}`}
-        fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"}
-        stroke={active?(evapC2+'80'):(G+'.18)')} strokeWidth="0.9"/>
-      {/* Aluminum fin pack - denser and a touch brighter than before (14
-          hairlines at .04 opacity read as almost nothing at diagram
-          scale) plus every 4th line nudged brighter, the way a real fin
-          pack's stamped ridges catch uneven light instead of a flat
-          hatch. */}
-      {Array.from({length:20},(_,i)=>(
-        <line key={i} x1={x+4} y1={y+h*(i+0.5)/20} x2={x+w-8} y2={y+h*(i+0.5)/20}
-          stroke={i%4===0?W+'.08)':W+'.035)'} strokeWidth="0.4"/>
-      ))}
-      {Array.from({length:n},(_,i)=>{
-        const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=y+(peakY-y)*t+3;
-        return <g key={i}>
-          <CoilTube cx={tx} cy={ty} rotate={-22} fill={active?(evapC+'22'):'rgba(14,14,34,.8)'} stroke={tc} glow={evapC} active={active} delay={i*0.1}/>
-          {/* Capillary feeder - thin line from the peak distributor out
-              to this circuit's first tube, showing where its refrigerant
-              actually comes from instead of leaving the distributor
-              floating unconnected to the coil rows it feeds. Only drawn
-              for every other circuit so it stays a light suggestion
-              instead of a dense knot of lines converging on one point. */}
-          {i%2===0&&<path d={`M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX-(distX-tx)*0.5).toFixed(1)} ${(distY-6).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`}
-            fill="none" stroke={active?(evapC+'55'):'rgba(110,110,140,.22)'} strokeWidth="0.7"/>}
-          {active&&i%3===1&&<CoilSweat cx={tx+1.5} cy={ty+3} delay={i*0.35}/>}
-        </g>;
-      })}
-      {Array.from({length:n},(_,i)=>{
-        const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=(y+h)+(peakY-(y+h))*t-3;
-        return <g key={i}>
-          <CoilTube cx={tx} cy={ty} rotate={22} fill={active?(evapC2+'22'):'rgba(14,14,34,.8)'} stroke={active?evapC2:tc} glow={evapC2} active={active} delay={(i+n)*0.1}/>
-          {active&&i%3===2&&<CoilSweat cx={tx-1.5} cy={ty+3} delay={(i+n)*0.3}/>}
-        </g>;
-      })}
-      <circle cx={distX} cy={distY} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
-      {active&&<circle cx={distX} cy={distY} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
-      <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
-      {/* UV rod - centered exactly in the > coil:
-          horizontal midline = y+h/2, depth center = x + w*0.45
-          rod runs horizontal, length ~9" at scale (46px) */}
-      {hasUV&&(()=>{
-        const rodLen=Math.min(w*0.70, w-12);
-        const rodCX=x+w*0.48;
-        const rodCY=y+h/2;
-        return <UVRod x={rodCX-rodLen/2} y={rodCY} len={rodLen}/>;
-      })()}
-      {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
-          reasoning as BlowerWheel's own hover above. */}
-      <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={SVG_VW} vh={SVG_VH}
-        title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text}
-        onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
-    </g>;
-  }
-
-  // A-coil ^ (peak UP) - upflow
-  function ACoilV({x,y,w,h,active}){
-    const peakX=x+w/2, peakY=y; const n=7;
-    const tc=active?evapC:'rgba(48,48,78,.8)';
-    const distX=peakX+4, distY=peakY+6;
-    const angL=Math.atan2(peakY-(y+h),peakX-x)*180/Math.PI;
-    const angR=Math.atan2(peakY-(y+h),peakX-(x+w))*180/Math.PI;
-    return <g>
-      <polygon points={`${x},${y+h} ${peakX},${peakY} ${peakX+8},${peakY} ${x+12},${y+h}`}
-        fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"} stroke={active?(evapC+'88'):(G+'.22)')} strokeWidth="0.9"/>
-      <polygon points={`${x+w},${y+h} ${peakX},${peakY} ${peakX+8},${peakY} ${x+w-12},${y+h}`}
-        fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"} stroke={active?(evapC2+'80'):(G+'.18)')} strokeWidth="0.9"/>
-      {/* Aluminum fin pack - see ACoilH's own comment on the same density/
-          brightness bump, mirrored here for the vertical A-frame. */}
-      {Array.from({length:18},(_,i)=>(
-        <line key={i} x1={x+w*(i+0.5)/18} y1={y+4} x2={x+w*(i+0.5)/18} y2={y+h-4}
-          stroke={i%4===0?W+'.08)':W+'.035)'} strokeWidth="0.4"/>
-      ))}
-      {Array.from({length:n},(_,i)=>{
-        const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=(y+h)+(peakY-(y+h))*t+3;
-        return <g key={i}>
-          <CoilTube cx={tx} cy={ty} rotate={angL} fill={active?(evapC+'22'):'rgba(14,14,34,.8)'} stroke={tc} glow={evapC} active={active} delay={i*0.11}/>
-          {/* Capillary feeder from the peak distributor - see ACoilH's
-              own comment on this same detail. */}
-          {i%2===0&&<path d={`M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX-(distX-tx)*0.5).toFixed(1)} ${(distY+ (ty-distY)*0.4).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`}
-            fill="none" stroke={active?(evapC+'55'):'rgba(110,110,140,.22)'} strokeWidth="0.7"/>}
-          {active&&i%3===1&&<CoilSweat cx={tx+1.5} cy={ty+3} delay={i*0.35}/>}
-        </g>;
-      })}
-      {Array.from({length:n},(_,i)=>{
-        const t=(i+0.5)/n, tx=(x+w)+(peakX-(x+w))*t-3, ty=(y+h)+(peakY-(y+h))*t+3;
-        return <g key={i}>
-          <CoilTube cx={tx} cy={ty} rotate={angR} fill={active?(evapC2+'22'):'rgba(14,14,34,.8)'} stroke={active?evapC2:tc} glow={evapC2} active={active} delay={(i+n)*0.11}/>
-          {active&&i%3===2&&<CoilSweat cx={tx-1.5} cy={ty+3} delay={(i+n)*0.3}/>}
-        </g>;
-      })}
-      <circle cx={distX} cy={distY} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
-      {active&&<circle cx={distX} cy={distY} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
-      <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
-      {/* UV rod - centered in the ^ A-coil triangle:
-          Triangle centroid is at (x+w/2, y + h*2/3) - that's the geometric center.
-          Rod runs vertical through the centroid, ~9" at scale (46px) */}
-      {hasUV&&(()=>{
-        const rodCX=x+w*0.5;     // horizontal center of the A-frame
-        const rodLen2=Math.min(h*0.75, h-12);
-        const rodCY=y+h/2;
-        return <UVRod x={rodCX} y={rodCY-rodLen2/2} len={rodLen2} vertical={true}/>;
-      })()}
-      {/* Liquid + suction stub-outs - the actual lineset connection, at
-          the coil's base/header on the RIGHT side of its cabinet (not the
-          peak, which is the internal distributor drawn above - real
-          lineset never taps into that). Both tubes exit side by side from
-          one point so they read as one connection, not two unrelated
-          ones. Positioned in fractions of this box's own (y,h) so callers
-          that compute the external lineset's Y from the same fractions
-          always land exactly here, even if the coil's size/position
-          changes. */}
-      <rect x={x+w-6} y={y+h*0.80-3} width={16} height={6} rx="1.5" fill={active?(evapC+'2a'):'rgba(22,22,44,.7)'} stroke={evapC} strokeWidth="0.9"/>
-      <rect x={x+w-6} y={y+h*0.88-3} width={16} height={6} rx="1.5" fill={active?(evapC2+'2a'):'rgba(22,22,44,.7)'} stroke={evapC2} strokeWidth="0.9"/>
-      {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
-          reasoning as BlowerWheel's own hover above. */}
-      <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={SVG_VW} vh={SVG_VH}
-        title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text}
-        onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
-    </g>;
-  }
-
-  // ── CABINET EXTERIOR DETAIL KIT ─────────────────────────────
-  // Small shared bits reused by all four furnace/air-handler cabinet
-  // shells below (FurnaceH + AirHandlerH here, plus the closet layout's
-  // own inline furnace/A-coil-AH boxes further down) so the "genuine
-  // sheet-metal cabinet" read - rivets, a seam-mounted latch, a brand-
-  // agnostic data plate - looks identical everywhere instead of each
-  // shell re-deriving its own version. Each call site still picks its
-  // own x/y placement (the internals - blower position, badges, labels -
-  // differ enough between shells that a single auto-layout would collide
-  // with something in at least one of them), but the artwork itself is
-  // one definition.
-  function CabinetRivet({cx,cy}){
-    // A single flat-head rivet/screw - dark socket, thin highlight,
-    // slot line. Sized to read at a glance without competing with the
-    // labels/gauges around it.
-    return <g>
-      <circle cx={cx} cy={cy} r="2.3" fill="rgba(35,38,44,.85)" stroke={S+'.55)'} strokeWidth="0.6"/>
-      <line x1={cx-1.2} y1={cy-0.3} x2={cx+1.2} y2={cy+0.3} stroke={S+'.75)'} strokeWidth="0.55" strokeLinecap="round"/>
-    </g>;
-  }
-  // Recessed door latch - the cabinet's access-panel hardware. A short
-  // horizontal handle sunk into a shallow housing, the way a real
-  // furnace/AH front panel's captive latch reads from a few feet away.
-  function CabinetLatch({cx,cy,w}){
-    w=w||15;
-    return <g>
-      <rect x={cx-w/2} y={cy-3.4} width={w} height={6.8} rx="1.6"
-        fill="rgba(20,22,27,.85)" stroke={S+'.4)'} strokeWidth="0.6"/>
-      <rect x={cx-w/2+2.2} y={cy-1.3} width={w-4.4} height={2.6} rx="1.1"
-        fill="rgba(60,65,75,.9)" stroke={S+'.6)'} strokeWidth="0.5"/>
-    </g>;
-  }
-  // Brand-agnostic data plate - a small riveted spec tag, the kind every
-  // real furnace/AH cabinet carries (model/serial/electrical rating)
-  // without inventing a fake brand. Two hairline rules stand in for
-  // print too fine to read at diagram scale, same convention as a real
-  // photo of one reading as "text" from across a room.
-  function CabinetPlate({x,y,w,h}){
-    h=h||9;
-    return <g opacity="0.85">
-      <rect x={x} y={y} width={w} height={h} rx="1"
-        fill="rgba(18,20,25,.8)" stroke={S+'.42)'} strokeWidth="0.55"/>
-      <line x1={x+2.5} y1={y+h*0.36} x2={x+w-2.5} y2={y+h*0.36} stroke={S+'.5)'} strokeWidth="0.6"/>
-      <line x1={x+2.5} y1={y+h*0.66} x2={x+w-3.5-w*0.22} y2={y+h*0.66} stroke={S+'.35)'} strokeWidth="0.6"/>
-    </g>;
-  }
-  // A few faint brushed-metal hairlines across the top accent strip -
-  // reads as a rolled sheet-metal lip catching light unevenly rather
-  // than a flat painted bar. Kept very low-opacity/thin so it never
-  // fights the strip's own gradient or the AFUE/COMMUNICATING badges
-  // that sit just below it.
-  function CabinetStripBrushing({x,y,w}){
-    const n=Math.max(4,Math.min(10,Math.round(w/26)));
-    return <g opacity="0.3">
-      {Array.from({length:n},(_,i)=>{
-        const lx=x+w*(i+0.5)/n;
-        return <line key={i} x1={lx} y1={y+1.2} x2={lx} y2={y+7.8} stroke="#fff" strokeWidth="0.5"/>;
-      })}
-    </g>;
-  }
+  // CabinetRivet/CabinetLatch/CabinetPlate/CabinetStripBrushing now live
+  // at module scope, above Canvas.
 
   // ── DUCTWORK DETAIL KIT ──────────────────────────────────────
   // Shared by both the attic-horizontal layout's supply-duct drops and
@@ -2018,107 +2759,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     </g>;
   }
 
-  // Furnace horizontal - blower LEFT | HX RIGHT
-  function FurnaceH({x,y,w,h,active,roofY}){
-    const mid=x+w/2;
-    return <g>
-      {/* General cabinet hover - painted first/bottommost so the more
-          specific heat-exchanger/AFUE hovers added further down (painted
-          later, i.e. on top) win their own smaller areas; BlowerWheel adds
-          its own hover internally. Sits inside the indoor_type EditZone
-          box, same onClick-forwarding reasoning as everywhere else in
-          this file. */}
-      <HoverInfo x={x} y={y} w={w} h={h} rx={4} vw={SVG_VW} vh={SVG_VH}
-        title={T('furnace_cabinet').title} text={T('furnace_cabinet').text}
-        onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
-      {/* Exterior housing stays silver whether the furnace is running or
-          not - a real sheet-metal cabinet doesn't change color when it
-          turns on, only what's happening inside it does (the flames/heat
-          exchanger below, the evaporator coil's own tubes in ACoilH, the
-          STANDBY/ACTIVE label). Border+top strip used to switch to a
-          bright orange whenever active, which read as the cabinet itself
-          changing material rather than just what's running inside it. */}
-      <rect x={x} y={y} width={w} height={h} rx="4"
-        fill={active?"#0d0606":"#0a0a0a"}
-        stroke="url(#cabinet-edge)" strokeOpacity="0.85" strokeWidth="1.8"/>
-      {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={O+'.04)'} stroke="none"/>}
-      <rect x={x} y={y} width={w} height={7} rx="4" fill="url(#silver)" opacity=".72"/>
-      <CabinetStripBrushing x={x} y={y} w={w}/>
-      <CabinetRivet cx={x+8} cy={y+3.5}/>
-      <CabinetRivet cx={x+w-8} cy={y+3.5}/>
-      <CabinetPlate x={x+w-46} y={y+11} w={40}/>
-      <CabinetLatch cx={mid} cy={y+3.5} w={14}/>
-      <line x1={mid} y1={y+7} x2={mid} y2={y+h} stroke={S+'.28)'} strokeWidth="1" strokeDasharray="4 3"/>
-      {Array.from({length:7},(_,i)=>(
-        <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
-          stroke={S+'.42)'} strokeWidth="3" strokeLinecap="round"/>
-      ))}
-      <BlowerWheel cx={x+w*0.25} cy={y+h*0.42} r={Math.min(w*0.21,h*0.29)}
-        spd={blowerActive?1.6:0.5} active={blowerActive}/>
-      <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
-      {/* Clamshell HX tubes - each is a stamped-steel cell, not a flat
-          orange squiggle: a thin highlight riding the curve's upper edge
-          (same "catch light from above" convention as CoilTube/the hail-
-          guard flange elsewhere in this file) plus a small crimped end
-          cap where the clamshell halves are seamed shut sell the actual
-          3D tube shape instead of a painted line. */}
-      {Array.from({length:6},(_,i)=>{
-        const gy=y+10+i*(h-18)/6;
-        const d=`M${mid+6} ${gy+6} Q${mid+w*0.17} ${gy-2} ${mid+w*0.31} ${gy+7} Q${mid+w*0.41} ${gy+14} ${mid+w*0.31} ${gy+18}`;
-        return <g key={i}>
-          <path d={d} fill="none" stroke={active?'rgba(249,115,22,.6)':'rgba(108,44,8,.22)'} strokeWidth="2.8" strokeLinecap="round"/>
-          <path d={d} fill="none" stroke={active?'rgba(255,205,150,.45)':'rgba(180,140,90,.14)'} strokeWidth="0.8" strokeLinecap="round" transform="translate(0,-0.9)"/>
-          <circle cx={mid+6} cy={gy+6} r="1.7" fill={active?'rgba(249,115,22,.55)':'rgba(80,40,10,.4)'} stroke={active?'rgba(255,205,150,.4)':'rgba(150,100,60,.25)'} strokeWidth="0.4"/>
-          <circle cx={mid+w*0.31} cy={gy+18} r="1.7" fill={active?'rgba(249,115,22,.55)':'rgba(80,40,10,.4)'} stroke={active?'rgba(255,205,150,.4)':'rgba(150,100,60,.25)'} strokeWidth="0.4"/>
-        </g>;
-      })}
-      <rect x={mid+4} y={y+h-17} width={w/2-8} height={10} rx="2"
-        fill={active?O+'.07)':'rgba(5,5,13,.8)'} stroke={active?'rgba(249,115,22,.42)':(S+'.2)')} strokeWidth="0.6"/>
-      {Array.from({length:4},(_,i)=>{
-        const bx=mid+6+i*(w/2-12)/4, bw2=(w/2-14)/4;
-        return <g key={i}>
-          <rect x={bx} y={y+h-16} width={bw2} height={8} rx="1"
-            fill={active?"#100505":"#09090f"} stroke={active?'rgba(249,115,22,.36)':'rgba(48,20,5,.2)'} strokeWidth="0.5"/>
-          {active&&<>
-            <ellipse cx={bx+bw2/2} cy={y+h-16} rx={bw2/2} ry={4.5} fill={O+'.56)'} className="glow-pulse" style={{animationDelay:i*0.12+'s'}}/>
-            <ellipse cx={bx+bw2/2} cy={y+h-18} rx={bw2/3} ry={3.5} fill="rgba(253,224,71,.64)" className="glow-pulse" style={{animationDelay:i*0.12+0.07+'s'}}/>
-          </>}
-        </g>;
-      })}
-      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="13" fontFamily="monospace">HEAT EXCH.</text>
-      <HoverInfo x={mid} y={y} w={w/2} h={h} vw={SVG_VW} vh={SVG_VH}
-        title={T('heat_exchanger').title} text={T('heat_exchanger').text}
-        onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
-      {(()=>{
-        const pW=is90?5:7;
-        const pC=is90?"#bfdbfe":"#c0c0c0";
-        const pS=is90?"#93c5fd":"#999";
-        const fX=mid+Math.round(w*0.2); // flue exit X - right half of furnace
-        const pipeTop=roofY-12; // pokes ~12px above the actual roof surface, not up into the sky
-        return <>
-          {/* Flue pipe - from top of furnace up through the roof, stopping
-              just above the roofline instead of shooting up toward the
-              top of the canvas. */}
-          <rect x={fX-pW/2} y={pipeTop} width={pW} height={Math.max(0,y-pipeTop)} rx="1"
-            fill={pC} stroke={pS} strokeWidth="0.7"/>
-          {/* Cap at top (visible just above the roofline) */}
-          {is90
-            ?<rect x={fX-pW-1} y={pipeTop} width={pW*2+2} height={5} rx="1" fill={pC} stroke={pS} strokeWidth="0.7"/>
-            :<path d={'M'+(fX-pW-2)+' '+(pipeTop+5)+' L'+fX+' '+(pipeTop-3)+' L'+(fX+pW+2)+' '+(pipeTop+5)} fill={pC} stroke={pS} strokeWidth="0.5"/>
-          }
-          <text x={fX+6} y={y-8} textAnchor="start"
-            fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
-        </>;
-      })()}
-      {isComm&&<><rect x={x+4} y={y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={x+7} y={y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">COMMUNICATING</text></>}
-      <rect x={mid+4} y={y+11} width={36} height="8" rx="2" fill={is90?"rgba(35,137,224,.13)":(G+'.07)')} stroke={is90?(B+'.24)'):(G+'.16)')} strokeWidth="0.5"/>
-      <text x={mid+22} y={y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="11" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
-      <HoverInfo x={mid+2} y={y+9} w={40} h={12} rx={2} vw={SVG_VW} vh={SVG_VH}
-        title={T('afue_badge').title} text={T('afue_badge').text}
-        onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
-    </g>;
-  }
+  // FurnaceH now lives at module scope, above Canvas.
 
   // Air handler horizontal - blower LEFT | A-coil RIGHT
   // Air handler splits into three labeled sections, sized by real
@@ -2151,7 +2792,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       <rect x={x} y={y} width={w} height={h} rx="4"
         fill={active?"#050c1a":"#090909"}
         stroke="url(#cabinet-edge)" strokeOpacity="0.8" strokeWidth="1.5"/>
-      {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
+      {/* Faint active-state tint - see FurnaceH's own comment on the
+          identical pattern for why this needs pointer-events:none (found
+          swallowing the general air_handler_cabinet hover across this
+          whole box whenever active, via a wizard-step sweep). */}
+      {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
       <rect x={x} y={y} width={w} height={7} rx="4" fill="url(#silver)" opacity=".68"/>
       <CabinetStripBrushing x={x} y={y} w={w}/>
       {/* Left rivet nudged in - the standalone-AH lineset riser anchors at
@@ -2167,10 +2812,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           stroke={S+'.38)'} strokeWidth="3" strokeLinecap="round"/>
       ))}
       <rect x={x+3} y={y+8} width={coilW-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
-      <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}/>
+      <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}
+        evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey()}
+        onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
       <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(S+'.6)')} fontSize="13" fontFamily="monospace">A-COIL</text>
       <BlowerWheel cx={c1+blowerW/2} cy={y+h*0.42} r={Math.min(blowerW*0.32,h*0.29)}
-        spd={blowerActive?1.5:0.45} active={blowerActive}/>
+        spd={blowerActive?1.5:0.45} active={blowerActive}
+        onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
       <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
       <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
       {/* Literally the same AuxHeatKit artwork the closet layout uses
@@ -2222,514 +2870,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     </g>;
   }
 
-  // CapFan -- side-perspective view into condenser top cap
-  // Fan blades contained by keeping radii tight -- no clipPath needed
-  function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount,ringColor}){
-    // guardRings: how many concentric wire-guard rings cage the blades -
-    // callers pass a density (higher slatCount = finer cage), fed-min
-    // gets a coarser 2-ring cage, high-eff a finer 4-ring one, reading
-    // as the plainer vs. nicer fan guard at a glance.
-    const guardRings=Math.max(2,Math.min(5,Math.round((slatCount||6)/3)));
-    const cx=x+w/2, cy=y+h/2;
-    // Enlarged per a reference photo of a real condenser, where the fan/
-    // guard fills almost the entire top cap edge-to-edge - the previous
-    // 0.42/0.34 left a lot of visibly empty dark cap around a small oval.
-    const fanRx=w*0.46;
-    const fanRy=h*0.38;
-    const spd=active?0.9:0;
-    const spinStyle=active?{
-      transformBox:'fill-box',
-      transformOrigin:'center',
-      animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
-    }:{};
-    const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
-    const gC=slatFill||ringColor||bC;
-    // Blades are laid out on a true circle (radius fanRx) and rotated as
-    // one, THEN flattened into the cap's side-perspective ellipse with a
-    // static scaleY - not the other way round. Rotating points that were
-    // already squashed onto an ellipse (unequal x/y radii) with a plain
-    // CSS rotate() doesn't preserve the ellipse - a blade tip near the
-    // ellipse's long axis swings, at the same radius, to where the SHORT
-    // axis is, poking far out past the shallow cap (reads as blades
-    // flying out of the condenser). Rotating a genuine circle has no such
-    // distortion; squashing it afterwards is a fixed, non-animating step.
-    const squash=fanRy/fanRx;
-    return <>
-      <ellipse cx={cx} cy={cy} rx={fanRx} ry={fanRy}
-        fill={active?"rgba(10,11,14,.95)":"rgba(8,9,12,.9)"}
-        stroke="rgba(30,32,38,.6)" strokeWidth="0.7"/>
-      <g transform={'translate('+cx+' '+cy+') scale(1,'+squash+')'}>
-        <g style={spinStyle}>
-          {Array.from({length:4},(_,i)=>{
-            const ang=i*(Math.PI/2);
-            const bx1=fanRx*0.15*Math.cos(ang);
-            const by1=fanRx*0.15*Math.sin(ang);
-            const bx2=fanRx*0.82*Math.cos(ang+0.55);
-            const by2=fanRx*0.82*Math.sin(ang+0.55);
-            const cpx=fanRx*0.65*Math.cos(ang+0.28);
-            const cpy=fanRx*0.65*Math.sin(ang+0.28);
-            return <path key={i} d={'M'+bx1+' '+by1+' Q'+cpx+' '+cpy+' '+bx2+' '+by2}
-              fill="none" stroke={bC} strokeWidth="4" strokeLinecap="round" opacity="0.9"/>;
-          })}
-        </g>
-      </g>
-      {/* Wire guard cage -- concentric rings + crossing spokes, confined
-          to the fan disc itself (not the old full-rect louver bars,
-          which were nearly opaque and blotted the whole cap out,
-          hiding the fan almost entirely). This is what actually reads
-          as "a real fan behind a guard" instead of a flat dark smear,
-          and the ring density is the fed-min/high-eff differentiator:
-          a coarse 2-ring cage vs. a finer 4-ring one. */}
-      {Array.from({length:guardRings},(_,i)=>{
-        const t=(i+1)/(guardRings+0.3);
-        return <ellipse key={i} cx={cx} cy={cy} rx={fanRx*t} ry={fanRy*t} fill="none"
-          stroke={gC} strokeWidth={active?0.9:0.7} opacity={active?0.55:0.42}/>;
-      })}
-      <line x1={cx-fanRx} y1={cy} x2={cx+fanRx} y2={cy} stroke={gC} strokeWidth="0.8" opacity={active?0.45:0.34}/>
-      <line x1={cx} y1={cy-fanRy} x2={cx} y2={cy+fanRy} stroke={gC} strokeWidth="0.8" opacity={active?0.45:0.34}/>
-      {/* Two more spokes at +-45deg - six total, closer to a real woven-
-          wire hail guard's diagonal ribs than the original plain cross. */}
-      <line x1={cx-fanRx*0.7071} y1={cy-fanRy*0.7071} x2={cx+fanRx*0.7071} y2={cy+fanRy*0.7071}
-        stroke={gC} strokeWidth="0.65" opacity={active?0.38:0.28}/>
-      <line x1={cx-fanRx*0.7071} y1={cy+fanRy*0.7071} x2={cx+fanRx*0.7071} y2={cy-fanRy*0.7071}
-        stroke={gC} strokeWidth="0.65" opacity={active?0.38:0.28}/>
-      {/* Outer rim bezel -- the visible edge of the guard cage/fan
-          housing, brighter than the inner rings so the whole assembly
-          still reads as one fan at a glance. */}
-      <ellipse cx={cx} cy={cy} rx={fanRx*0.98} ry={fanRy*0.98} fill="none"
-        stroke={ringColor||bC} strokeWidth="1.2" opacity={active?0.6:0.45}/>
-      {/* Hail guard flange -- a raised dome/lip sitting proud of the flat
-          cap surface, the way a real hail guard bulges outward over the
-          fan opening (emulating a reference photo of a real fed-min
-          condenser). A flat single-color ring can't fake a bevel; split
-          into a lighter top-half arc and a darker bottom-half arc so it
-          reads as catching light from above instead of a flat painted
-          circle. */}
-      <path d={`M${cx-fanRx*1.07} ${cy} A${fanRx*1.07} ${fanRy*1.07} 0 0 1 ${cx+fanRx*1.07} ${cy}`}
-        fill="none" stroke="rgba(165,170,180,.5)" strokeWidth="1" opacity={active?0.55:0.42}/>
-      <path d={`M${cx-fanRx*1.07} ${cy} A${fanRx*1.07} ${fanRy*1.07} 0 0 0 ${cx+fanRx*1.07} ${cy}`}
-        fill="none" stroke="rgba(8,9,11,.75)" strokeWidth="1" opacity={active?0.6:0.5}/>
-      <ellipse cx={cx} cy={cy} rx={fanRx*0.12} ry={fanRy*0.14}
-        fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
-      {/* Fed-min/high-eff condenser's own top-cap fan - CondenserFan's own
-          hover above covers the mid-tier's front-discharge fan instead.
-          Sits inside the cond_tier EditZone box, same onClick-forwarding
-          reasoning as BlowerWheel's own hover. */}
-      <HoverInfo x={x} y={y} w={w} h={h} rx={4} vw={SVG_VW} vh={SVG_VH}
-        title={T('condenser_fan').title} text={T('condenser_fan').text}
-        onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
-    </>;
-  }
-
-  // Condenser -- three distinct tiers
-  function Condenser({x,y,w,h,active,tierKey}){
-    const isMini=tierKey==='mid_ge15';
-    const isBig=tierKey==='high_ge18';
-    const isFed=tierKey==='fedmin';
-    const cc=active?condC:(refReversed?'rgba(18,18,55,.5)':'rgba(55,18,18,.5)');
-
-    return <g>
-      {/* General "what is this" cabinet hover - painted FIRST/bottommost
-          in this <g> on purpose, so the more specific fan/compressor/SEER
-          hovers added below (each painted later, i.e. on top) win hover
-          priority over their own smaller areas, leaving this one covering
-          just the rest of the box. Same onClick-forwarding reasoning as
-          every other hover nested inside an existing EditZone box - this
-          is the exact box cond_tier's own EditZone already covers. */}
-      <HoverInfo x={x} y={y} w={w} h={h} rx={9} vw={SVG_VW} vh={SVG_VH}
-        title={T('condenser_cabinet').title} text={T('condenser_cabinet').text}
-        onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
-      {isFed&&<>
-        {/* FED MIN: matched closely against a reference photo of a real
-            GE fed-min cabinet - genuinely rounded corners (not the
-            square-ish rx=2 this used to be), a chevron-louvered body,
-            and a domed black cap whose fan/guard fills nearly the whole
-            top instead of sitting as a small oval in empty dark space. */}
-        <rect x={x} y={y} width={w} height={h} rx={9}
-          fill={active?"#b9bdc5":"#c4c8cf"}
-          stroke={active?"rgba(150,155,165,.9)":"rgba(130,135,145,.8)"} strokeWidth="1.2"/>
-        {/* Dark top cap with CapFan */}
-        {(()=>{
-          const capH=Math.round(h*0.20);
-          return <>
-            <rect x={x} y={y} width={w} height={capH} rx={9}
-              fill={active?"#3a3d42":"#2e3035"} stroke="rgba(20,22,26,.8)" strokeWidth="1"/>
-            {/* Domed-cap illusion - a flat rect can't actually curve in
-                this front-on view, so a lighter highlight arc along the
-                top edge + a darker shadow arc along the bottom edge fakes
-                the cap bulging up toward the viewer the way it does in
-                the reference photo. */}
-            <path d={`M${x+9} ${y+2} Q${x+w/2} ${y-1.5} ${x+w-9} ${y+2}`}
-              fill="none" stroke="rgba(150,155,165,.4)" strokeWidth="1.1" opacity="0.7"/>
-            <path d={`M${x+6} ${y+capH-1.5} Q${x+w/2} ${y+capH+2} ${x+w-6} ${y+capH-1.5}`}
-              fill="none" stroke="rgba(10,11,13,.6)" strokeWidth="1.3" opacity="0.6"/>
-            <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
-              bladeColor={active?(refReversed?"rgba(100,160,220,.8)":"rgba(220,90,90,.7)"):"rgba(45,48,55,.6)"}
-              slatFill={active?"rgba(44,47,54,.88)":"rgba(36,39,46,.92)"}
-              ringColor="rgba(120,125,135,.55)"
-              slatCount={Math.max(3,Math.floor((capH-2)*0.7/6.5))}/>
-            {/* Screw ring around the cap's outer edge (8, not the old 4
-                corner-only rivets) - the reference photo shows these
-                spaced all the way around the cap perimeter, not just at
-                its corners. */}
-            {Array.from({length:8},(_,i)=>{
-              const ang=(i/8)*Math.PI*2;
-              // Pushed out to the cap's own edge (not the fan/guard's) so
-              // the screws sit clearly outside the guard assembly, same
-              // as the reference photo's perimeter screw ring.
-              const rx=(w/2-3), ry=(capH/2-2.5);
-              return <circle key={i} cx={x+w/2+rx*Math.cos(ang)} cy={y+capH/2+ry*Math.sin(ang)} r={1.6}
-                fill="rgba(50,55,62,.9)" stroke="rgba(80,85,95,.5)" strokeWidth="0.5"/>;
-            })}
-          </>;
-        })()}
-        {/* Flat panel body -- a continuous chevron-louver ribbon pattern
-            (real 14 SEER2 builder-grade condensers - GE, Goodman, Amana -
-            are almost always stamped this way top to bottom, not the flat
-            sheet + sparse dot-perforation patch this used to be) matched
-            against a reference photo of a real fed-min cabinet. Each row
-            is a shallow repeating "V" tooth - a cheap approximation of the
-            real die-stamped wave/louver slot, dense enough to read as
-            "corrugated sheet metal" at diagram scale without the cost of
-            an actually-perforated real vent (which would need a genuine
-            hole through the cabinet). */}
-        {(()=>{
-          const capH=Math.round(h*0.20);
-          const slotY=y+capH+3, slotH=h-capH-6;
-          const rowH=5.5, toothW=8;
-          const rows=Math.max(6,Math.floor(slotH/rowH));
-          // Teeth start at x+4 (2px clear of the body rect's x+2 edge) and
-          // stop at x+w-4 - never offset per-row, so every tooth stays
-          // safely inside the panel with no per-row edge-overhang risk.
-          const teeth=Math.floor((w-8)/toothW);
-          return <>
-            <rect x={x+2} y={slotY} width={w-4} height={slotH} rx="1"
-              fill={active?"rgba(150,154,162,.4)":"rgba(160,164,172,.38)"}/>
-            {Array.from({length:rows},(_,r)=>{
-              const rowY=slotY+3+r*rowH;
-              let d=`M${x+4} ${rowY}`;
-              for(let t=0;t<teeth;t++){
-                const tx=x+4+t*toothW;
-                d+=` L${tx+toothW/2} ${rowY-1.7} L${tx+toothW} ${rowY}`;
-              }
-              // A single mid-tone line read as flat/subtle - a lighter
-              // highlight pass just above + a darker shadow pass just
-              // below the same path fakes each tooth catching light on
-              // its raised edge, closer to the crisp embossed look in
-              // the reference photo's die-stamped louvers.
-              return <g key={r}>
-                <path d={d} fill="none" stroke={active?"rgba(210,213,218,.55)":"rgba(220,223,228,.5)"} strokeWidth="0.5" transform="translate(0,-0.35)"/>
-                <path d={d} fill="none" stroke={active?"rgba(90,95,105,.5)":"rgba(80,85,95,.48)"} strokeWidth="0.5" transform="translate(0,0.35)"/>
-              </g>;
-            })}
-          </>;
-        })()}
-        {/* Round manufacturer badge, centered on the panel - the reference
-            photo shows a round medallion (not a rectangular data plate)
-            roughly a third of the way down the body. Kept deliberately
-            blank/generic (a plain ringed medallion, no text or monogram)
-            so nothing here reads as a copied brand mark - the round
-            SHAPE alone isn't anyone's trademark, only a specific logo
-            would be. */}
-        {(()=>{
-          const capH=Math.round(h*0.20);
-          const bcx=x+w/2, bcy=y+capH+Math.round((h-capH)*0.38);
-          const br=Math.round(Math.min(w,h)*0.09);
-          return <>
-            <ellipse cx={bcx} cy={bcy} rx={br} ry={br*0.82}
-              fill="rgba(40,43,50,.6)" stroke="rgba(150,155,165,.55)" strokeWidth="1"/>
-            <ellipse cx={bcx} cy={bcy} rx={br*0.72} ry={br*0.6}
-              fill="none" stroke="rgba(150,155,165,.35)" strokeWidth="0.6"/>
-          </>;
-        })()}
-        {[[x+4,y+h-4],[x+w-4,y+h-4]].map(([fx,fy],i)=>(
-          <circle key={i} cx={fx} cy={fy} r={2.5}
-            fill="rgba(90,95,105,.8)" stroke="rgba(60,65,75,.6)" strokeWidth="0.7"/>
-        ))}
-        {/* Compressor outline - visible inside housing */}
-        {(()=>{
-          const capH=Math.round(h*0.20);
-          const bodyH=h-capH;
-          const cW=Math.round(w*0.3), cH=Math.round(bodyH*0.42);
-          const cX=x+w-cW-6, cY=y+capH+bodyH-cH-10;
-          const domeH=Math.round(cH*0.22);
-          return <g>
-            <rect x={cX} y={cY+domeH} width={cW} height={cH-domeH} rx="3"
-              fill="rgba(100,105,115,.18)" stroke={active?'rgba(180,80,80,.6)':"rgba(70,75,85,.4)"}
-              strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
-            <ellipse cx={cX+cW/2} cy={cY+domeH} rx={cW/2} ry={domeH}
-              fill="rgba(110,115,125,.2)" stroke={active?'rgba(180,80,80,.6)':"rgba(70,75,85,.4)"}
-              strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
-            <rect x={cX+cW*0.6} y={cY-6} width={4} height={domeH+6} rx="1"
-              fill={active?line1C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
-            <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
-              fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
-            {/* y+h-22 instead of cY+cH+domeH+10, which always lands domeH
-                px below the cabinet's own bottom edge (cY+cH already
-                equals y+h-10) - that pushed this label out of the housing
-                entirely, where it overlapped the outside-zone's "CONCRETE
-                PAD"/"GROUND LEVEL" text underneath it. */}
-            <text x={cX+cW/2} y={y+h-22} textAnchor="middle"
-              fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
-            <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3}
-              vw={SVG_VW} vh={SVG_VH} title={T('compressor').title} text={T('compressor').text}
-              onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
-          </g>;
-        })()}
-      </>}
-
-      {isMini&&<>
-        {/* MID: real GE NS18H condensers are a front-discharge cabinet - a
-            large round fan grille dominating most of the front face, a
-            narrower service-panel column beside it - not a top-discharge
-            square cabinet like the fed-min/high-eff units. Lightened per
-            a reference photo of a real front-discharge unit (same
-            "should be light metal, not near-black" correction the fed-min/
-            high-eff passes already got) - kept between the two on the
-            gray scale: cooler/dimmer than fed-min's plainer light gray,
-            lighter than high-eff's darker richer tone. */}
-        <rect x={x} y={y} width={w} height={h} rx={6}
-          fill={active?(refReversed?"#a5aab4":"#bec2c8"):"#b5b9bf"}
-          stroke={active?cc:"rgba(120,124,132,.8)"} strokeWidth={active?1.8:1.4}/>
-        {/* Discharge grille top - stays black/dark, a real grille slot,
-            unlike the body around it */}
-        <rect x={x+4} y={y+2} width={w-8} height={Math.round(h*0.1)} rx="2"
-          fill="rgba(20,22,26,.55)" stroke="rgba(150,154,162,.4)" strokeWidth="0.6"/>
-        {Array.from({length:3},(_,i)=>(
-          <rect key={i} x={x+6} y={y+4+i*4} width={w-12} height={2} rx="0.5"
-            fill="rgba(15,17,20,.85)" stroke="rgba(90,95,105,.4)" strokeWidth="0.3"/>
-        ))}
-        {/* Left: large fan area ~68% */}
-        {(()=>{
-          const fanAreaW=Math.round(w*0.68);
-          const fanAreaH=h-Math.round(h*0.1)-4;
-          const fanAreaY=y+Math.round(h*0.1)+2;
-          const fCX=x+fanAreaW/2, fCY=fanAreaY+fanAreaH/2;
-          // Sized to read as close as possible to the fed-min cap's fan
-          // circle (CapFan's fanRx), which the user specifically liked -
-          // maxed out against this cabinet's available front-face height
-          // (the tight dimension here), the largest this can go without
-          // the outer glow rim clipping the fan-area box edges.
-          const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.41);
-          // Woven-wire crosshatch mesh (two crossing diagonal line sets,
-          // clipped to the grille circle) instead of the old sparse dot
-          // pattern - closer to how a real fan guard mesh actually reads,
-          // matching the reference photo's visible diamond weave.
-          const meshLines=[];
-          const pitch=4.2;
-          for(let i=-Math.ceil((fanAreaW+fanAreaH)/pitch);i<=Math.ceil((fanAreaW+fanAreaH)/pitch);i++){
-            meshLines.push(i);
-          }
-          return <>
-            <rect x={x+2} y={fanAreaY} width={fanAreaW-2} height={fanAreaH} rx="3"
-              fill="rgba(10,11,14,.55)" stroke="rgba(150,154,162,.4)" strokeWidth="0.7"/>
-            {[[x+7,fanAreaY+5],[x+fanAreaW-6,fanAreaY+5],[x+7,fanAreaY+fanAreaH-5],[x+fanAreaW-6,fanAreaY+fanAreaH-5]].map(([sx,sy],i)=>(
-              <circle key={i} cx={sx} cy={sy} r={1.6} fill="rgba(35,38,44,.9)" stroke="rgba(150,154,162,.4)" strokeWidth="0.4"/>
-            ))}
-            <clipPath id={"midfan-clip-"+active}><circle cx={fCX} cy={fCY} r={fR+3}/></clipPath>
-            <g clipPath={`url(#midfan-clip-${active})`} opacity="0.5">
-              {meshLines.map(i=>(
-                <line key={'a'+i} x1={fCX-fR-3+i*pitch} y1={fCY-fR-3} x2={fCX-fR-3+i*pitch+2*(fR+3)} y2={fCY+fR+3}
-                  stroke="rgba(70,75,85,.7)" strokeWidth="0.4"/>
-              ))}
-              {meshLines.map(i=>(
-                <line key={'b'+i} x1={fCX-fR-3+i*pitch} y1={fCY+fR+3} x2={fCX-fR-3+i*pitch+2*(fR+3)} y2={fCY-fR-3}
-                  stroke="rgba(70,75,85,.7)" strokeWidth="0.4"/>
-              ))}
-            </g>
-            <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(160,164,172,.5)" strokeWidth="2.5"/>
-            {/* Real condenser fans ramp up with load - faster at 95° (cool,
-                full compressor load) and 60° (mild heat-pump load) than at
-                32°, where either the compressor is standby (dual-fuel
-                furnace mode) or running its slower low-ambient stage. */}
-            <CondenserFan cx={fCX} cy={fCY} r={fR} active={active} fast={!heatMode||isMildHp}/>
-          </>;
-        })()}
-        {/* Right: service panel ~30% - light like the rest of the body
-            (was a dark panel before this pass), with a round badge
-            (matching fed-min/high-eff's generic medallion), a couple of
-            thin access-panel seam lines, and the VS status indicator
-            kept as a small dark accent window rather than a dominating
-            dark panel. */}
-        {(()=>{
-          const panelX=x+Math.round(w*0.7);
-          const panelW=w-Math.round(w*0.7)-2;
-          const panelY=y+Math.round(h*0.1)+4;
-          const panelH=h-Math.round(h*0.1)-8;
-          // Same badge formula fed-min/high-eff use (a fraction of the
-          // whole cabinet's shorter side), not a fraction of this narrow
-          // side panel - the old panelW*0.34 badge read noticeably
-          // bigger/more prominent than the other two tiers' medallion.
-          const br=Math.round(Math.min(w,h)*0.09);
-          return <>
-            <rect x={panelX} y={panelY} width={panelW} height={panelH} rx="4"
-              fill={active?"#b0b4ba":"#a8acb2"} stroke="rgba(90,94,102,.7)" strokeWidth="0.8"/>
-            <ellipse cx={panelX+panelW/2} cy={panelY+panelH*0.28} rx={br} ry={br*0.8}
-              fill="rgba(30,32,38,.6)" stroke="rgba(190,194,200,.5)" strokeWidth="0.9"/>
-            <ellipse cx={panelX+panelW/2} cy={panelY+panelH*0.28} rx={br*0.7} ry={br*0.56}
-              fill="none" stroke="rgba(190,194,200,.3)" strokeWidth="0.5"/>
-            {[0.5,0.63].map((ty,i)=>(
-              <line key={i} x1={panelX+2} y1={panelY+panelH*ty} x2={panelX+panelW-2} y2={panelY+panelH*ty}
-                stroke="rgba(80,84,90,.4)" strokeWidth="0.6"/>
-            ))}
-            <rect x={panelX+3} y={panelY+panelH*0.7} width={panelW-6} height={panelH*0.2} rx="2"
-              fill={active?"rgba(20,25,35,.85)":"rgba(16,18,24,.75)"} stroke="rgba(60,65,75,.5)" strokeWidth="0.6"/>
-            <circle cx={panelX+panelW/2} cy={panelY+panelH*0.8} r={3}
-              fill={active?(cc):"rgba(40,45,55,.6)"} stroke={active?cc:"rgba(90,95,105,.4)"} strokeWidth="0.7"/>
-            {active&&<circle cx={panelX+panelW/2} cy={panelY+panelH*0.8} r={1.7}
-              fill="#fff" className="glow-pulse"/>}
-            <text x={panelX+panelW/2} y={panelY+panelH*0.87} textAnchor="middle"
-              fill={active?cc:"rgba(200,204,210,.6)"} fontSize="8.5" fontFamily="sans-serif" fontWeight="700">VS</text>
-          </>;
-        })()}
-        {/* Compressor hover - this tier's front-discharge cabinet is
-            sealed (no visible compressor dome the way fed-min/high-eff's
-            top-discharge unibody exposes one), but a real one still sits
-            inside, behind the service-access panel just rendered above -
-            recomputing that same panelX/panelW/panelY/panelH here rather
-            than threading it out of that IIFE, same convention used
-            throughout this file. */}
-        {(()=>{
-          const panelX=x+Math.round(w*0.7);
-          const panelW=w-Math.round(w*0.7)-2;
-          const panelY=y+Math.round(h*0.1)+4;
-          const panelH=h-Math.round(h*0.1)-8;
-          return <HoverInfo x={panelX-4} y={panelY-4} w={panelW+8} h={panelH+8} rx={4}
-            vw={SVG_VW} vh={SVG_VH} title={T('compressor').title} text={T('compressor').text}
-            onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>;
-        })()}
-      </>}
-
-      {isBig&&<>
-        {/* HIGH EFF: darker medium-gray unibody cabinet - a second pass
-            against the same American Standard reference photo, matching
-            its noticeably darker/richer gray (not the lighter tone this
-            used to be) so the two tiers read as clearly different grades:
-            fed-min's plain light gray vs. this darker, denser metal.
-            Rounded corners bumped to match fed-min's own rx (was a
-            flatter rx=5) and the cap picked up the same domed-highlight +
-            screw-ring treatment fed-min's reference pass added, for
-            visual consistency between the two tiers' cap designs. */}
-        <rect x={x} y={y} width={w} height={h} rx={10}
-          fill={active?(refReversed?"#767c8e":"#8c9096"):"#82868c"}
-          stroke={active?cc:"rgba(100,104,112,.85)"} strokeWidth={active?1.8:1.4}/>
-        {/* Slim corner posts -- narrower than the old chamfer strips, a
-            cleaner structural read instead of thick side blocks */}
-        <rect x={x} y={y+4} width={5} height={h-8} rx="1.5"
-          fill={active?"#6d7178":"#65686f"} stroke="rgba(50,54,60,.7)" strokeWidth="0.8"/>
-        <rect x={x+w-5} y={y+4} width={5} height={h-8} rx="1.5"
-          fill={active?"#6d7178":"#65686f"} stroke="rgba(50,54,60,.7)" strokeWidth="0.8"/>
-        {/* Dark rounded top cap with CapFan - tightened padding (vs.
-            fed-min's own x+2/w-4 inset) so the fan/hail-guard assembly
-            dominates the cap the way it does in the reference photo,
-            instead of sitting as a small oval within a mostly-empty
-            black cap. Stroke lightened to a metallic tone for a rounded
-            rim highlight where the cap meets the lighter body. */}
-        {(()=>{
-          const capH=Math.round(h*0.24);
-          return <>
-            <rect x={x} y={y} width={w} height={capH} rx={10}
-              fill="#1e2024" stroke="rgba(150,154,162,.55)" strokeWidth="1.2"/>
-            {/* Domed-cap illusion, same technique as fed-min's reference
-                pass - a flat rect can't curve in this front-on view, so a
-                light highlight arc on top + dark shadow arc on bottom
-                fakes it bulging toward the viewer. */}
-            <path d={`M${x+10} ${y+2} Q${x+w/2} ${y-1.5} ${x+w-10} ${y+2}`}
-              fill="none" stroke="rgba(150,155,165,.4)" strokeWidth="1.1" opacity="0.7"/>
-            <path d={`M${x+7} ${y+capH-1.5} Q${x+w/2} ${y+capH+2} ${x+w-7} ${y+capH-1.5}`}
-              fill="none" stroke="rgba(10,11,13,.6)" strokeWidth="1.3" opacity="0.6"/>
-            <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
-              bladeColor={active?(refReversed?"rgba(100,160,220,.7)":"rgba(220,90,90,.65)"):"rgba(40,44,52,.6)"}
-              slatFill={active?"rgba(24,27,33,.88)":"rgba(18,21,27,.92)"}
-              ringColor={active?cc:"rgba(100,105,115,.55)"}
-              slatCount={Math.max(9,Math.floor((capH-4)*0.72/2.6))}/>
-            {/* Screw ring around the cap's outer edge (8, matching
-                fed-min's reference pass) instead of the old 4 corner-only
-                rivets. */}
-            {Array.from({length:8},(_,i)=>{
-              const ang=(i/8)*Math.PI*2;
-              const rx=(w/2-3), ry=(capH/2-2.5);
-              return <circle key={i} cx={x+w/2+rx*Math.cos(ang)} cy={y+capH/2+ry*Math.sin(ang)} r={1.8}
-                fill="rgba(35,38,44,.9)" stroke="rgba(55,60,68,.5)" strokeWidth="0.5"/>;
-            })}
-          </>;
-        })()}
-        {/* Top-tier accent -- a slim pinstripe instead of the old thick
-            block band, a subtler premium cue */}
-        <rect x={x} y={y+Math.round(h*0.24)+2} width={w} height={2}
-          fill={active?cc:"rgba(120,128,145,.5)"} opacity={active?0.9:0.55}/>
-        {/* Vertical fin louvers -- tall, closely-pitched fins running
-            the full body height, alternating light/dark for a fluted
-            corrugated-metal read (replacing the old fine dot-mesh,
-            which doesn't match how a real high-eff cabinet's panel is
-            actually stamped) plus the same center reveal seam as
-            before for a two-panel unibody look. */}
-        {(()=>{
-          const capH=Math.round(h*0.24);
-          const bodyY=y+capH+5, bodyH=h-capH-11;
-          const midX=x+w/2;
-          const finW=2.2, finGap=0.9, step=finW+finGap;
-          const cols=Math.max(6,Math.floor((w-14)/step));
-          return <>
-            <rect x={x+6} y={bodyY} width={w-12} height={bodyH} rx="1.5"
-              fill={active?"rgba(120,124,130,.35)":"rgba(110,114,120,.32)"} stroke="rgba(80,84,90,.45)" strokeWidth="0.6"/>
-            {Array.from({length:cols},(_,c)=>{
-              const fx=x+7+c*step;
-              return <rect key={c} x={fx} y={bodyY+2} width={finW} height={bodyH-4} rx="0.6"
-                fill={c%2===0?"rgba(145,149,155,.55)":"rgba(70,74,80,.5)"}/>;
-            })}
-            <line x1={midX} y1={bodyY} x2={midX} y2={bodyY+bodyH}
-              stroke="rgba(55,59,65,.6)" strokeWidth="1.4"/>
-            <line x1={midX+1.2} y1={bodyY} x2={midX+1.2} y2={bodyY+bodyH}
-              stroke="rgba(170,174,180,.3)" strokeWidth="0.6"/>
-            {/* Round manufacturer badge, matching fed-min's reference
-                pass - deliberately blank (no text/logo), just the
-                generic medallion shape. */}
-            {(()=>{
-              const bcx=x+w/2, bcy=bodyY+bodyH*0.22;
-              const br=Math.round(Math.min(w,h)*0.085);
-              return <>
-                <ellipse cx={bcx} cy={bcy} rx={br} ry={br*0.78}
-                  fill="rgba(30,32,38,.6)" stroke="rgba(190,194,200,.5)" strokeWidth="1"/>
-                <ellipse cx={bcx} cy={bcy} rx={br*0.72} ry={br*0.58}
-                  fill="none" stroke="rgba(190,194,200,.32)" strokeWidth="0.6"/>
-              </>;
-            })()}
-          </>;
-        })()}
-        {active&&<rect x={x} y={y} width={w} height={h} rx={10}
-          fill={refReversed?"rgba(35,137,224,.04)":"rgba(239,68,68,.03)"} stroke="none"/>}
-        <rect x={x} y={y+h-6} width={w} height={6} rx={2}
-          fill="#14151a" stroke="rgba(20,22,28,.8)" strokeWidth="0.7"/>
-        {/* Compressor outline -- visible inside housing */}
-        {(()=>{
-          const capH=Math.round(h*0.24);
-          const bodyH=h-capH;
-          const cW=Math.round(w*0.28), cH=Math.round(bodyH*0.45);
-          const cX=x+w-cW-8, cY=y+capH+bodyH-cH-10;
-          const domeH=Math.round(cH*0.22);
-          return <g>
-            <rect x={cX} y={cY+domeH} width={cW} height={cH-domeH} rx="3"
-              fill="rgba(20,22,28,.65)" stroke={active?cc:"rgba(70,75,85,.4)"} strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
-            <ellipse cx={cX+cW/2} cy={cY+domeH} rx={cW/2} ry={domeH}
-              fill="rgba(25,28,35,.7)" stroke={active?cc:"rgba(70,75,85,.4)"} strokeWidth={active?1.2:0.7} opacity={active?0.9:0.55}/>
-            <rect x={cX+cW*0.6} y={cY-6} width={4} height={domeH+6} rx="1"
-              fill={active?line1C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
-            <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
-              fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
-            {/* y+h-22 -- see the fed-min compressor label's own note on
-                why the unclamped cY+cH+domeH+10 offset always falls domeH
-                px below the cabinet's own bottom edge. */}
-            <text x={cX+cW/2} y={y+h-22} textAnchor="middle"
-              fill={active?cc:"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
-            <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3}
-              vw={SVG_VW} vh={SVG_VH} title={T('compressor').title} text={T('compressor').text}
-              onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
-          </g>;
-        })()}
-      </>}
-    </g>;
-  }
+  // CapFan/Condenser now live at module scope, above Canvas.
 
   // rnd/OutsideZone now live at module scope, above Canvas - see the
   // comment there for why.
@@ -3135,8 +3276,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               is drawn much later, near the LIVE SYSTEM PREVIEW label below,
               not here alongside the bubbles/batting texture - see that spot
               for why. */}
+          {/* Purely decorative texture (spray-foam bubbles along the roof
+              slopes / fiberglass batting dots along the deck) - wrapped in
+              pointer-events:none since the fiberglass branch's full-width
+              band (DECK_Y-22 to DECK_Y+2) was found, via a hover sweep, to
+              overlap the return grille's own hover zone (DECK_Y-3 to
+              DECK_Y+27) in the few pixels where they meet, silently
+              swallowing that corner of the grille's hover - the same
+              "decorative fill with no pointer-events:none painted where a
+              HoverInfo zone also reaches" bug fixed elsewhere in this
+              file. */}
           {a.insulation&&(isSpray
-            ?<g>
+            ?<g style={{pointerEvents:'none'}}>
               {Array.from({length:20},(_,i)=>{
                 const t=i/19, sx=t*RIDGE_X, sy=EAVE_Y-(EAVE_Y-RIDGE_Y)*t;
                 const ang=-Math.atan2(EAVE_Y-RIDGE_Y,RIDGE_X)*180/Math.PI;
@@ -3152,7 +3303,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   transform={`rotate(${ang},${sx},${sy+7})`}/>;
               })}
             </g>
-            :<g>
+            :<g style={{pointerEvents:'none'}}>
               <rect x="0" y={DECK_Y-22} width={HOUSE_W} height={24} fill="rgba(255,130,170,.18)" stroke="rgba(255,140,180,.08)" strokeWidth="0.5"/>
               {Array.from({length:Math.floor(HOUSE_W/17)},(_,i)=>(
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-7} rx={11} ry={8}
@@ -3289,7 +3440,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               const flueRoofY=(flueX<=RIDGE_X
                 ?EAVE_Y-(flueX/RIDGE_X)*(EAVE_Y-RIDGE_Y)
                 :RIDGE_Y+((flueX-RIDGE_X)/(HOUSE_W-RIDGE_X))*(EAVE_Y-RIDGE_Y))+14;
-              return <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive} roofY={flueRoofY}/>;
+              return <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive} roofY={flueRoofY}
+                onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}
+                blowerActive={blowerActive} is90={is90} isComm={isComm} blowerMotorLabel={BLOWER_MOTOR}/>;
             })()}
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+13} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="13.5" fontFamily="monospace">FURNACE</text>
@@ -3345,8 +3498,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={UNIT_H} rx="4"
                   fill={active?"#050c1c":"#090909"}
                   stroke="url(#cabinet-edge)" strokeOpacity="0.8" strokeWidth="1.5"/>
+                {/* Faint active-state tint - see FurnaceH's own comment
+                    on the identical pattern for why this needs
+                    pointer-events:none. */}
                 {active&&<rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={UNIT_H} rx="4"
-                  fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
+                  fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
                 <rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={7} rx="4"
                   fill="url(#silver)" opacity=".65"/>
                 <CabinetStripBrushing x={ACOIL_X} y={UNIT_Y} w={ACOIL_W}/>
@@ -3358,7 +3514,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <CabinetRivet cx={ACOIL_X+18} cy={UNIT_Y+3.5}/>
                 <CabinetRivet cx={ACOIL_X+ACOIL_W-7} cy={UNIT_Y+3.5}/>
                 <CabinetLatch cx={ACOIL_X+ACOIL_W/2+5} cy={UNIT_Y+3.5} w={12}/>
-                <ACoilH x={ACOIL_X+8} y={UNIT_Y+12} w={ACOIL_W-16} h={UNIT_H-20} active={active}/>
+                <ACoilH x={ACOIL_X+8} y={UNIT_Y+12} w={ACOIL_W-16} h={UNIT_H-20} active={active}
+                  evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey()}
+                  onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
                 <rect x={ACOIL_X} y={UNIT_Y+UNIT_H-2} width={ACOIL_W} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.6"/>
                 {/* Label moved above the coil - the space below is now clear
                     for the supply ducts to drop straight down with nothing
@@ -3620,7 +3778,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
-              active={condenserActive} tierKey={a.cond_tier}/>}/>}
+              active={condenserActive} tierKey={a.cond_tier}
+              condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
+              fanFast={!heatMode||isMildHp} onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}/>}
           {hasCond&&<EditZone stepId="cond_tier" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}>
             {condenserSubHovers(COND_X,COND_Y,COND_W,COND_H,a.cond_tier)}
@@ -4052,9 +4212,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             </>;
           })()}
 
-          {/* Insulation - spray on ROOF UNDERSIDE, fiberglass on ATTIC FLOOR, only when selected */}
+          {/* Insulation - spray on ROOF UNDERSIDE, fiberglass on ATTIC FLOOR,
+              only when selected. Purely decorative texture, wrapped in
+              pointer-events:none - the attic layout's own equivalent
+              fiberglass texture was found (via a hover sweep) silently
+              swallowing part of the return grille's hover zone where its
+              band overlapped it; fixed defensively here too since this is
+              the same texture painted near the same deck-line hover zones. */}
           {a.insulation&&(isSpray
-            ?<>
+            ?<g style={{pointerEvents:'none'}}>
               {/* Spray foam follows roof pitch on underside */}
               {(()=>{
                 const rW=hasCond?HOUSE_W:VW-8;
@@ -4078,14 +4244,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   <text x="22" y={DECK_Y-24} fill="rgba(232,236,246,.3)" fontSize="12" fontFamily="monospace">SPRAY FOAM</text>
                 </>;
               })()}
-            </>
-            :<>
+            </g>
+            :<g style={{pointerEvents:'none'}}>
               {Array.from({length:Math.floor((hasCond?HOUSE_W:VW-8)/17)},(_,i)=>(
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-8} rx={11} ry={7}
                   fill="rgba(255,182,193,.15)" stroke="rgba(255,182,193,.19)" strokeWidth=".4"/>
               ))}
               <text x="22" y={DECK_Y-22} fill="rgba(255,182,193,.3)" fontSize="12" fontFamily="monospace">FIBERGLASS INSULATION</text>
-            </>
+            </g>
           )}
           {/* No EditZone covers this - free-standing hover, no onClick.
               One shared box covers either label, whichever is showing. */}
@@ -4286,8 +4452,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
                   fill={active?"#050c1c":"#090909"}
                   stroke="url(#cabinet-edge)" strokeOpacity="0.8" strokeWidth="1.5"/>
+                {/* Faint active-state tint - see FurnaceH's own comment
+                    on the identical pattern for why this needs
+                    pointer-events:none. */}
                 {active&&<rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
-                  fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
+                  fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={7} rx="5"
                   fill="url(#silver)" opacity=".65"/>
                 <CabinetStripBrushing x={UNIT_X} y={ACOIL_Y} w={UNIT_W}/>
@@ -4301,7 +4470,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     plate at this spot would sit on top of it. */}
                 {hasFurnace&&<CabinetPlate x={UNIT_X+8} y={ACOIL_Y+11} w={36}/>}
                 {hasFurnace
-                  ?<ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}/>
+                  ?<ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}
+                      evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey()}
+                      onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
                   :<>
                     {/* Sized by real proportion (A-coil 50% / blower 35% /
                         aux heat kit 15%) and ordered by airflow: A-coil is
@@ -4324,12 +4495,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <AuxHeatKit x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.09} w={UNIT_W-28} h={ACOIL_H*0.14} auxHeat={auxHeatActive}/>
                     <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.33}
                       r={Math.min(UNIT_W*0.24,ACOIL_H*0.105)}
-                      spd={blowerActive?1.4:0.4} active={blowerActive}/>
+                      spd={blowerActive?1.4:0.4} active={blowerActive}
+                      onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.465} textAnchor="middle"
                       fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.50} textAnchor="middle"
                       fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
-                    <ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}/>
+                    <ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}
+                      evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey()}
+                      onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
                   </>
                 }
                 {hasCond&&!hasFurnace&&<>
@@ -4378,8 +4552,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
               fill={furnaceActive?"#0e0606":"#090909"}
               stroke="url(#cabinet-edge)" strokeOpacity="0.85" strokeWidth="1.7"/>
+            {/* Faint active-state tint - see FurnaceH's own comment on
+                the identical pattern for why this needs
+                pointer-events:none. */}
             {furnaceActive&&<rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
-              fill={O+'.04)'} stroke="none"/>}
+              fill={O+'.04)'} stroke="none" style={{pointerEvents:'none'}}/>}
             <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={7} rx="5"
               fill="url(#silver)" opacity=".72"/>
             <CabinetStripBrushing x={UNIT_X} y={FURN_Y} w={UNIT_W}/>
@@ -4433,7 +4610,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             {/* BOTTOM: blower */}
             <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.70}
               r={Math.min(UNIT_W*0.32,FURN_H*0.155)}
-              spd={blowerActive?1.55:0.5} active={blowerActive}/>
+              spd={blowerActive?1.55:0.5} active={blowerActive}
+              onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-15} textAnchor="middle"
               fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
@@ -4470,7 +4648,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 return roofYAtX+14;
               })();
               const ELBOW_R=8; // elbow radius
-              return <>
+              // Purely decorative (no hover/click of its own), and unlike
+              // the attic layout's straight-up flue, this one is ROUTED
+              // sideways past the unit before turning up - the horizontal
+              // run crosses directly over the LEFT supply duct's own
+              // horizontal-leg HoverInfo box (both sit in the same x/y
+              // band to the left of the unit). Confirmed via
+              // elementsFromPoint that this pipe's opaque rect was the
+              // topmost element at that duct hover's own center point,
+              // silently swallowing it - the same "decorative shape
+              // painted on top of a HoverInfo zone" bug already fixed for
+              // the airflow/pulse animation classes in styles.css, found
+              // again here during a QA pass since this routed flue has no
+              // CSS class of its own to hang that fix on. Wrapping the
+              // whole routed run in pointer-events:none (matching the
+              // established fix for the three raw glow-duplicate <path>
+              // pairs elsewhere in this file) lets the duct hover
+              // underneath it work everywhere in its own box again.
+              return <g style={{pointerEvents:'none'}}>
                 {/* Vertical stub from furnace up to elbow 1 */}
                 <rect x={EXIT_X-PIPE_W/2} y={ELB1_Y+ELBOW_R} width={PIPE_W} height={EXIT_Y-ELB1_Y-ELBOW_R}
                   fill={PIPE_C} stroke={PIPE_S} strokeWidth="0.7"/>
@@ -4494,7 +4689,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">
                   {is90?'PVC':'B-VENT'}
                 </text>
-              </>;
+              </g>;
             })()}
             {isComm&&<><rect x={UNIT_X+4} y={FURN_Y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={UNIT_X+7} y={FURN_Y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">COMMUNICATING</text></>}
             {/* Kept at the original 9.5px, unlike its sibling "FURNACE"
@@ -4727,7 +4922,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
-              active={condenserActive} tierKey={a.cond_tier}/>}/>}
+              active={condenserActive} tierKey={a.cond_tier}
+              condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
+              fanFast={!heatMode||isMildHp} onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}/>}
           {hasCond&&<EditZone stepId="cond_tier" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}>
             {condenserSubHovers(COND_X,COND_Y,COND_W,COND_H,a.cond_tier)}

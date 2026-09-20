@@ -481,8 +481,8 @@
     condC,
     line1C,
     line2C,
-    G,
-    W,
+    G: G2,
+    W: W2,
     condenserEl,
     tierKey,
     eaveY,
@@ -956,7 +956,7 @@
           height: DH,
           rx: "4",
           fill: "#0c0d10",
-          stroke: G + ".65)",
+          stroke: G2 + ".65)",
           strokeWidth: "2"
         }
       ), /* @__PURE__ */ React.createElement(
@@ -979,8 +979,8 @@
           width: DW - 6,
           height: 16,
           rx: "2",
-          fill: G + ".14)",
-          stroke: G + ".32)",
+          fill: G2 + ".14)",
+          stroke: G2 + ".32)",
           strokeWidth: "0.8"
         }
       ), /* @__PURE__ */ React.createElement(
@@ -989,13 +989,13 @@
           x: DX + DW / 2,
           y: DY + 15.5,
           textAnchor: "middle",
-          fill: G + ".82)",
+          fill: G2 + ".82)",
           fontSize: "12",
           fontFamily: "monospace",
           fontWeight: "700"
         },
         "DISC."
-      ), [[DX + 4, DY + 4], [DX + DW - 4, DY + 4], [DX + 4, DY + DH - 4], [DX + DW - 4, DY + DH - 4]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("circle", { cx: sx, cy: sy, r: "1.5", fill: "rgba(28,30,36,.9)", stroke: G + ".4)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("line", { x1: sx - 0.85, y1: sy - 0.2, x2: sx + 0.85, y2: sy + 0.2, stroke: G + ".55)", strokeWidth: "0.4" }))), /* @__PURE__ */ React.createElement(
+      ), [[DX + 4, DY + 4], [DX + DW - 4, DY + 4], [DX + 4, DY + DH - 4], [DX + DW - 4, DY + DH - 4]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("circle", { cx: sx, cy: sy, r: "1.5", fill: "rgba(28,30,36,.9)", stroke: G2 + ".4)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("line", { x1: sx - 0.85, y1: sy - 0.2, x2: sx + 0.85, y2: sy + 0.2, stroke: G2 + ".55)", strokeWidth: "0.4" }))), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: DX + 5,
@@ -1004,7 +1004,7 @@
           height: 32,
           rx: "3",
           fill: active ? "rgba(239,68,68,.18)" : "rgba(35,38,62,.75)",
-          stroke: active ? condC : G + ".32)",
+          stroke: active ? condC : G2 + ".32)",
           strokeWidth: "1.1"
         }
       ), /* @__PURE__ */ React.createElement(
@@ -1024,7 +1024,7 @@
           height: 20,
           rx: "2.5",
           fill: active ? "rgba(239,68,68,.55)" : "rgba(55,58,90,.7)",
-          stroke: active ? condC : G + ".24)",
+          stroke: active ? condC : G2 + ".24)",
           strokeWidth: "1"
         }
       ), /* @__PURE__ */ React.createElement(
@@ -1034,7 +1034,7 @@
           y1: DY + 28,
           x2: DX + DW / 2,
           y2: DY + 44,
-          stroke: active ? condC : G + ".18)",
+          stroke: active ? condC : G2 + ".18)",
           strokeWidth: "1",
           strokeDasharray: "2 2"
         }
@@ -1053,7 +1053,7 @@
           cy: DY + 55.5,
           r: "4.5",
           fill: active ? "rgba(34,197,94,.6)" : "rgba(50,50,80,.6)",
-          stroke: active ? "#22c55e" : G + ".2)",
+          stroke: active ? "#22c55e" : G2 + ".2)",
           strokeWidth: "1"
         }
       ), active && /* @__PURE__ */ React.createElement(
@@ -1071,7 +1071,7 @@
           x: DX + DW / 2,
           y: DY + DH - 2.5,
           textAnchor: "middle",
-          fill: G + ".34)",
+          fill: G2 + ".34)",
           fontSize: "6",
           fontFamily: "monospace"
         },
@@ -1094,7 +1094,7 @@
           y1: DY + DH / 2,
           x2: condX,
           y2: DY + DH / 2,
-          stroke: G + ".48)",
+          stroke: G2 + ".48)",
           strokeWidth: "4",
           strokeLinecap: "round"
         }
@@ -1210,7 +1210,7 @@
         x: wallX + zoneW - 8,
         y: condY - 9,
         textAnchor: "end",
-        fill: active ? condC : G + ".55)",
+        fill: active ? condC : G2 + ".55)",
         fontSize: "13",
         fontFamily: "monospace"
       },
@@ -1221,7 +1221,7 @@
         x: wallX + zoneW / 2,
         y: 12,
         textAnchor: "middle",
-        fill: W + ".2)",
+        fill: W2 + ".2)",
         fontSize: "11.5",
         fontFamily: "monospace",
         letterSpacing: "1.2"
@@ -1375,14 +1375,14 @@
     } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
   }
   function DehumidistatWall({ x, y, lang, vw, vh }) {
-    const W = 44, H = 40;
+    const W2 = 44, H = 40;
     const info = partInfo("dehumidistat", lang);
-    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, "45%"), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT"), /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, "45%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT"), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x: -2,
         y: -2,
-        w: W + 4,
+        w: W2 + 4,
         h: H + 18,
         rx: 4,
         vw,
@@ -1645,6 +1645,1403 @@
         filter: "url(#glow-sm)"
       }
     ), children);
+  }
+  var G = "rgba(215,183,64,";
+  var B = "rgba(35,137,224,";
+  var W = "rgba(255,255,255,";
+  var O = "rgba(249,115,22,";
+  var S = "rgba(148,158,172,";
+  function CabinetRivet({ cx, cy }) {
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: "2.3", fill: "rgba(35,38,44,.85)", stroke: S + ".55)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: cx - 1.2, y1: cy - 0.3, x2: cx + 1.2, y2: cy + 0.3, stroke: S + ".75)", strokeWidth: "0.55", strokeLinecap: "round" }));
+  }
+  function CabinetLatch({ cx, cy, w }) {
+    w = w || 15;
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x: cx - w / 2,
+        y: cy - 3.4,
+        width: w,
+        height: 6.8,
+        rx: "1.6",
+        fill: "rgba(20,22,27,.85)",
+        stroke: S + ".4)",
+        strokeWidth: "0.6"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x: cx - w / 2 + 2.2,
+        y: cy - 1.3,
+        width: w - 4.4,
+        height: 2.6,
+        rx: "1.1",
+        fill: "rgba(60,65,75,.9)",
+        stroke: S + ".6)",
+        strokeWidth: "0.5"
+      }
+    ));
+  }
+  function CabinetPlate({ x, y, w, h }) {
+    h = h || 9;
+    return /* @__PURE__ */ React.createElement("g", { opacity: "0.85" }, /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y,
+        width: w,
+        height: h,
+        rx: "1",
+        fill: "rgba(18,20,25,.8)",
+        stroke: S + ".42)",
+        strokeWidth: "0.55"
+      }
+    ), /* @__PURE__ */ React.createElement("line", { x1: x + 2.5, y1: y + h * 0.36, x2: x + w - 2.5, y2: y + h * 0.36, stroke: S + ".5)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: x + 2.5, y1: y + h * 0.66, x2: x + w - 3.5 - w * 0.22, y2: y + h * 0.66, stroke: S + ".35)", strokeWidth: "0.6" }));
+  }
+  function CabinetStripBrushing({ x, y, w }) {
+    const n = Math.max(4, Math.min(10, Math.round(w / 26)));
+    return /* @__PURE__ */ React.createElement("g", { opacity: "0.3" }, Array.from({ length: n }, (_, i) => {
+      const lx = x + w * (i + 0.5) / n;
+      return /* @__PURE__ */ React.createElement("line", { key: i, x1: lx, y1: y + 1.2, x2: lx, y2: y + 7.8, stroke: "#fff", strokeWidth: "0.5" });
+    }));
+  }
+  function CoilTube({ cx, cy, rx, ry, rotate, fill, stroke, glow, active, delay }) {
+    rx = rx || 4;
+    ry = ry || 2;
+    return /* @__PURE__ */ React.createElement("g", { transform: `rotate(${rotate || 0},${cx},${cy})` }, /* @__PURE__ */ React.createElement("ellipse", { cx, cy, rx, ry, fill, stroke, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement(
+      "path",
+      {
+        d: `M${(cx - rx * 0.55).toFixed(1)} ${(cy - ry * 0.55).toFixed(1)} Q${cx.toFixed(1)} ${(cy - ry * 1.25).toFixed(1)} ${(cx + rx * 0.55).toFixed(1)} ${(cy - ry * 0.55).toFixed(1)}`,
+        fill: "none",
+        stroke: "rgba(255,255,255,.45)",
+        strokeWidth: "0.5",
+        strokeLinecap: "round"
+      }
+    ), active && glow && /* @__PURE__ */ React.createElement("circle", { cx, cy, r: Math.min(rx, ry) * 0.85, fill: glow, opacity: "0.7", className: "glow-pulse", style: { animationDelay: (delay || 0) + "s" } }));
+  }
+  function CoilSweat({ cx, cy, r, delay }) {
+    r = r || 1.7;
+    return /* @__PURE__ */ React.createElement("g", { style: { animationDelay: (delay || 0) + "s" }, className: "glow-pulse" }, /* @__PURE__ */ React.createElement("circle", { cx, cy, r, fill: "rgba(200,230,252,.85)", stroke: "rgba(235,246,255,.9)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("circle", { cx: cx - r * 0.35, cy: cy - r * 0.35, r: r * 0.32, fill: "rgba(255,255,255,.9)" }));
+  }
+  function UVRod({ x, y, len, vertical }) {
+    len = len || 56;
+    const x2 = vertical ? x : x + len, y2 = vertical ? y + len : y;
+    return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        x1: x,
+        y1: y,
+        x2,
+        y2,
+        stroke: "rgba(139,92,246,.55)",
+        strokeWidth: vertical ? 22 : 22,
+        strokeLinecap: "round",
+        filter: "url(#glow-uv)",
+        className: "glow-pulse"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        x1: x,
+        y1: y,
+        x2,
+        y2,
+        stroke: "rgba(167,139,250,.75)",
+        strokeWidth: vertical ? 10 : 10,
+        strokeLinecap: "round",
+        filter: "url(#glow-uv)"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        x1: x,
+        y1: y,
+        x2,
+        y2,
+        stroke: "rgba(216,180,254,.95)",
+        strokeWidth: vertical ? 3.5 : 3.5,
+        strokeLinecap: "round"
+      }
+    ), /* @__PURE__ */ React.createElement("circle", { cx: x, cy: y, r: "4", fill: "rgba(167,139,250,.9)", stroke: "rgba(216,180,254,.8)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: x2, cy: y2, r: "4", fill: "rgba(167,139,250,.9)", stroke: "rgba(216,180,254,.8)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        x1: x,
+        y1: y,
+        x2,
+        y2,
+        stroke: "rgba(233,213,255,.6)",
+        strokeWidth: vertical ? 2 : 2,
+        strokeLinecap: "round",
+        className: "glow-pulse"
+      }
+    ));
+  }
+  function BlowerWheel({ cx, cy, r, spd, active, onEditStep, lang, vw, vh }) {
+    r = r || 28;
+    spd = spd || 1;
+    active = active !== false;
+    const n = 22;
+    const innerR = r * 0.56, outerR = r * 0.92;
+    const bladeFill = active ? G + ".62)" : G + ".13)";
+    const bladeStroke = active ? G + ".82)" : G + ".24)";
+    const blades = Array.from({ length: n }, (_, i) => {
+      const ang = i * (Math.PI * 2 / n);
+      const sweep = 0.3, backSweep = 0.09;
+      const ax = cx + innerR * Math.cos(ang - backSweep), ay = cy + innerR * Math.sin(ang - backSweep);
+      const bx = cx + innerR * Math.cos(ang + backSweep), by = cy + innerR * Math.sin(ang + backSweep);
+      const tipAng = ang + sweep;
+      const cAng = ang + sweep * 0.55, cR = (innerR + outerR) / 2 * 1.04;
+      const cxm = cx + cR * Math.cos(cAng), cym = cy + cR * Math.sin(cAng);
+      const tx = cx + outerR * Math.cos(tipAng), ty = cy + outerR * Math.sin(tipAng);
+      const d = `M${ax.toFixed(1)} ${ay.toFixed(1)} Q${cxm.toFixed(1)} ${cym.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)} L${(tx - 1.2 * Math.cos(tipAng - 1.2)).toFixed(1)} ${(ty - 1.2 * Math.sin(tipAng - 1.2)).toFixed(1)} Q${(cx + cR * 0.82 * Math.cos(cAng)).toFixed(1)} ${(cy + cR * 0.82 * Math.sin(cAng)).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)} Z`;
+      return /* @__PURE__ */ React.createElement("path", { key: i, d, fill: bladeFill, stroke: bladeStroke, strokeWidth: "0.5" });
+    });
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 4, fill: "rgba(0,0,0,.5)", stroke: S + ".4)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r, fill: "#050505", stroke: G + ".3)", strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: outerR + 1, fill: "none", stroke: active ? G + ".4)" : G + ".12)", strokeWidth: "1" }), active ? /* @__PURE__ */ React.createElement("g", { className: "spin", style: { transformBox: "fill-box", transformOrigin: "center", animationDuration: 1 / spd + "s" } }, blades) : /* @__PURE__ */ React.createElement("g", null, blades), active ? /* @__PURE__ */ React.createElement("g", { className: "spin", style: { transformBox: "fill-box", transformOrigin: "center", animationDuration: 1 / spd + "s" } }, Array.from({ length: 4 }, (_, i) => {
+      const ang = i * (Math.PI / 2);
+      return /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          key: i,
+          x1: cx + r * 0.13 * Math.cos(ang),
+          y1: cy + r * 0.13 * Math.sin(ang),
+          x2: cx + innerR * Math.cos(ang),
+          y2: cy + innerR * Math.sin(ang),
+          stroke: G + ".2)",
+          strokeWidth: "1.1"
+        }
+      );
+    })) : Array.from({ length: 4 }, (_, i) => {
+      const ang = i * (Math.PI / 2);
+      return /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          key: i,
+          x1: cx + r * 0.13 * Math.cos(ang),
+          y1: cy + r * 0.13 * Math.sin(ang),
+          x2: cx + innerR * Math.cos(ang),
+          y2: cy + innerR * Math.sin(ang),
+          stroke: G + ".08)",
+          strokeWidth: "1.1"
+        }
+      );
+    }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.27, fill: "#090909", stroke: G + ".34)", strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.1, fill: "#111", stroke: G + ".42)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x: cx - r - 5,
+        y: cy - r - 5,
+        w: (r + 5) * 2,
+        h: (r + 5) * 2,
+        rx: r + 5,
+        vw,
+        vh,
+        title: partInfo("blower", lang).title,
+        text: partInfo("blower", lang).text,
+        onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+      }
+    ));
+  }
+  function CondenserFan({ cx, cy, r, active, fast, onEditStep, lang, vw, vh }) {
+    const bladeFill = active ? "#ccd3e0" : "#565c68";
+    const rim = active ? "#7fb8ff" : "rgba(70,76,90,.6)";
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 3, fill: "rgba(0,0,0,.55)", stroke: "rgba(60,65,78,.7)", strokeWidth: "1.2" }), active && /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 1, fill: "none", stroke: rim, strokeWidth: "1", opacity: "0.55", filter: "url(#glow-sm)" }), /* @__PURE__ */ React.createElement("g", { className: active ? "spin" : void 0, style: active ? { transformBox: "view-box", transformOrigin: cx + "px " + cy + "px", animationDuration: fast ? "0.45s" : "0.8s" } : {} }, Array.from({ length: 3 }, (_, i) => {
+      const ang = i * (Math.PI * 2 / 3);
+      const sweep = 1.4;
+      const hubR = r * 0.14, tipR = r * 0.94;
+      const ux = Math.cos(ang), uy = Math.sin(ang);
+      const px = -Math.sin(ang), py = Math.cos(ang);
+      const hubW = r * 0.38;
+      const hAx = cx + ux * hubR + px * hubW, hAy = cy + uy * hubR + py * hubW;
+      const hBx = cx + ux * hubR - px * hubW, hBy = cy + uy * hubR - py * hubW;
+      const tipAng = ang + sweep;
+      const tX = cx + Math.cos(tipAng) * tipR, tY = cy + Math.sin(tipAng) * tipR;
+      const c1Ang = ang + sweep * 0.42, c1R = r * 0.78;
+      const c1X = cx + Math.cos(c1Ang) * c1R + px * hubW * 0.78, c1Y = cy + Math.sin(c1Ang) * c1R + py * hubW * 0.78;
+      const c2Ang = ang + sweep * 0.78, c2R = r * 0.68;
+      const c2X = cx + Math.cos(c2Ang) * c2R - px * hubW * 0.6, c2Y = cy + Math.sin(c2Ang) * c2R - py * hubW * 0.6;
+      const d = `M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
+      return /* @__PURE__ */ React.createElement("path", { key: i, d, fill: bladeFill, stroke: active ? rim : "rgba(20,22,26,.7)", strokeWidth: "0.7", opacity: active ? 0.95 : 0.8 });
+    })), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.18, fill: "#16181c", stroke: active ? rim : "rgba(90,95,110,.6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.07, fill: active ? rim : "#3a3d44" }), /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x: cx - r - 4,
+        y: cy - r - 4,
+        w: (r + 4) * 2,
+        h: (r + 4) * 2,
+        rx: r + 4,
+        vw,
+        vh,
+        title: partInfo("condenser_fan", lang).title,
+        text: partInfo("condenser_fan", lang).text,
+        onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+      }
+    ));
+  }
+  function ACoilH({ x, y, w, h, active, evapC, evapC2, hasUV, infoKey, onEditStep, lang, vw, vh }) {
+    const peakX = x + w, peakY = y + h / 2;
+    const n = 8;
+    const tc = active ? evapC : "rgba(48,48,78,.8)";
+    const distX = peakX - 5, distY = peakY + 4;
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+      "polygon",
+      {
+        points: `${x},${y} ${peakX},${peakY} ${peakX},${peakY + 8} ${x},${y + 12}`,
+        fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
+        stroke: active ? evapC + "88" : G + ".22)",
+        strokeWidth: "0.9"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "polygon",
+      {
+        points: `${x},${y + h} ${peakX},${peakY} ${peakX},${peakY + 8} ${x},${y + h - 12}`,
+        fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
+        stroke: active ? evapC2 + "80" : G + ".18)",
+        strokeWidth: "0.9"
+      }
+    ), Array.from({ length: 20 }, (_, i) => /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        key: i,
+        x1: x + 4,
+        y1: y + h * (i + 0.5) / 20,
+        x2: x + w - 8,
+        y2: y + h * (i + 0.5) / 20,
+        stroke: i % 4 === 0 ? W + ".08)" : W + ".035)",
+        strokeWidth: "0.4"
+      }
+    )), Array.from({ length: n }, (_, i) => {
+      const t = (i + 0.5) / n, tx = x + (peakX - x) * t + 3, ty = y + (peakY - y) * t + 3;
+      return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: -22, fill: active ? evapC + "22" : "rgba(14,14,34,.8)", stroke: tc, glow: evapC, active, delay: i * 0.1 }), i % 2 === 0 && /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX - (distX - tx) * 0.5).toFixed(1)} ${(distY - 6).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`,
+          fill: "none",
+          stroke: active ? evapC + "55" : "rgba(110,110,140,.22)",
+          strokeWidth: "0.7"
+        }
+      ), active && i % 3 === 1 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx + 1.5, cy: ty + 3, delay: i * 0.35 }));
+    }), Array.from({ length: n }, (_, i) => {
+      const t = (i + 0.5) / n, tx = x + (peakX - x) * t + 3, ty = y + h + (peakY - (y + h)) * t - 3;
+      return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: 22, fill: active ? evapC2 + "22" : "rgba(14,14,34,.8)", stroke: active ? evapC2 : tc, glow: evapC2, active, delay: (i + n) * 0.1 }), active && i % 3 === 2 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx - 1.5, cy: ty + 3, delay: (i + n) * 0.3 }));
+    }), /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 5.5, fill: "#06061c", stroke: active ? evapC : G + ".3)", strokeWidth: "1.3" }), active && /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 2.5, fill: evapC, opacity: "0.85", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".2)", strokeWidth: "0.7" }), hasUV && (() => {
+      const rodLen = Math.min(w * 0.7, w - 12);
+      const rodCX = x + w * 0.48;
+      const rodCY = y + h / 2;
+      return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX - rodLen / 2, y: rodCY, len: rodLen });
+    })(), /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x,
+        y,
+        w,
+        h,
+        rx: 3,
+        vw,
+        vh,
+        title: partInfo(infoKey, lang).title,
+        text: partInfo(infoKey, lang).text,
+        onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+      }
+    ));
+  }
+  function ACoilV({ x, y, w, h, active, evapC, evapC2, hasUV, infoKey, onEditStep, lang, vw, vh }) {
+    const peakX = x + w / 2, peakY = y;
+    const n = 7;
+    const tc = active ? evapC : "rgba(48,48,78,.8)";
+    const distX = peakX + 4, distY = peakY + 6;
+    const angL = Math.atan2(peakY - (y + h), peakX - x) * 180 / Math.PI;
+    const angR = Math.atan2(peakY - (y + h), peakX - (x + w)) * 180 / Math.PI;
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+      "polygon",
+      {
+        points: `${x},${y + h} ${peakX},${peakY} ${peakX + 8},${peakY} ${x + 12},${y + h}`,
+        fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
+        stroke: active ? evapC + "88" : G + ".22)",
+        strokeWidth: "0.9"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "polygon",
+      {
+        points: `${x + w},${y + h} ${peakX},${peakY} ${peakX + 8},${peakY} ${x + w - 12},${y + h}`,
+        fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
+        stroke: active ? evapC2 + "80" : G + ".18)",
+        strokeWidth: "0.9"
+      }
+    ), Array.from({ length: 18 }, (_, i) => /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        key: i,
+        x1: x + w * (i + 0.5) / 18,
+        y1: y + 4,
+        x2: x + w * (i + 0.5) / 18,
+        y2: y + h - 4,
+        stroke: i % 4 === 0 ? W + ".08)" : W + ".035)",
+        strokeWidth: "0.4"
+      }
+    )), Array.from({ length: n }, (_, i) => {
+      const t = (i + 0.5) / n, tx = x + (peakX - x) * t + 3, ty = y + h + (peakY - (y + h)) * t + 3;
+      return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: angL, fill: active ? evapC + "22" : "rgba(14,14,34,.8)", stroke: tc, glow: evapC, active, delay: i * 0.11 }), i % 2 === 0 && /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX - (distX - tx) * 0.5).toFixed(1)} ${(distY + (ty - distY) * 0.4).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`,
+          fill: "none",
+          stroke: active ? evapC + "55" : "rgba(110,110,140,.22)",
+          strokeWidth: "0.7"
+        }
+      ), active && i % 3 === 1 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx + 1.5, cy: ty + 3, delay: i * 0.35 }));
+    }), Array.from({ length: n }, (_, i) => {
+      const t = (i + 0.5) / n, tx = x + w + (peakX - (x + w)) * t - 3, ty = y + h + (peakY - (y + h)) * t + 3;
+      return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: angR, fill: active ? evapC2 + "22" : "rgba(14,14,34,.8)", stroke: active ? evapC2 : tc, glow: evapC2, active, delay: (i + n) * 0.11 }), active && i % 3 === 2 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx - 1.5, cy: ty + 3, delay: (i + n) * 0.3 }));
+    }), /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 5.5, fill: "#06061c", stroke: active ? evapC : G + ".3)", strokeWidth: "1.3" }), active && /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 2.5, fill: evapC, opacity: "0.85", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".2)", strokeWidth: "0.7" }), hasUV && (() => {
+      const rodCX = x + w * 0.5;
+      const rodLen2 = Math.min(h * 0.75, h - 12);
+      const rodCY = y + h / 2;
+      return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX, y: rodCY - rodLen2 / 2, len: rodLen2, vertical: true });
+    })(), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.8 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC + "2a" : "rgba(22,22,44,.7)", stroke: evapC, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.88 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC2 + "2a" : "rgba(22,22,44,.7)", stroke: evapC2, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x,
+        y,
+        w,
+        h,
+        rx: 3,
+        vw,
+        vh,
+        title: partInfo(infoKey, lang).title,
+        text: partInfo(infoKey, lang).text,
+        onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+      }
+    ));
+  }
+  function FurnaceH({ x, y, w, h, active, roofY, onEditStep, lang, vw, vh, blowerActive, is90, isComm, blowerMotorLabel }) {
+    const mid = x + w / 2;
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x,
+        y,
+        w,
+        h,
+        rx: 4,
+        vw,
+        vh,
+        title: partInfo("furnace_cabinet", lang).title,
+        text: partInfo("furnace_cabinet", lang).text,
+        onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y,
+        width: w,
+        height: h,
+        rx: "4",
+        fill: active ? "#0d0606" : "#0a0a0a",
+        stroke: "url(#cabinet-edge)",
+        strokeOpacity: "0.85",
+        strokeWidth: "1.8"
+      }
+    ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: O + ".04)", stroke: "none", style: { pointerEvents: "none" } }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 7, rx: "4", fill: "url(#silver)", opacity: ".72" }), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetPlate, { x: x + w - 46, y: y + 11, w: 40 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: mid, cy: y + 3.5, w: 14 }), /* @__PURE__ */ React.createElement("line", { x1: mid, y1: y + 7, x2: mid, y2: y + h, stroke: S + ".28)", strokeWidth: "1", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        key: i,
+        x1: x + 3,
+        y1: y + 12 + i * (h - 18) / 7,
+        x2: x + 3,
+        y2: y + 18 + i * (h - 18) / 7,
+        stroke: S + ".42)",
+        strokeWidth: "3",
+        strokeLinecap: "round"
+      }
+    )), /* @__PURE__ */ React.createElement(
+      BlowerWheel,
+      {
+        cx: x + w * 0.25,
+        cy: y + h * 0.42,
+        r: Math.min(w * 0.21, h * 0.29),
+        spd: blowerActive ? 1.6 : 0.5,
+        active: blowerActive,
+        onEditStep,
+        lang,
+        vw,
+        vh
+      }
+    ), /* @__PURE__ */ React.createElement("text", { x: x + w * 0.25, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, "BLOWER"), /* @__PURE__ */ React.createElement("text", { x: x + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, blowerMotorLabel), Array.from({ length: 6 }, (_, i) => {
+      const gy = y + 10 + i * (h - 18) / 6;
+      const d = `M${mid + 6} ${gy + 6} Q${mid + w * 0.17} ${gy - 2} ${mid + w * 0.31} ${gy + 7} Q${mid + w * 0.41} ${gy + 14} ${mid + w * 0.31} ${gy + 18}`;
+      return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(249,115,22,.6)" : "rgba(108,44,8,.22)", strokeWidth: "2.8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(255,205,150,.45)" : "rgba(180,140,90,.14)", strokeWidth: "0.8", strokeLinecap: "round", transform: "translate(0,-0.9)" }), /* @__PURE__ */ React.createElement("circle", { cx: mid + 6, cy: gy + 6, r: "1.7", fill: active ? "rgba(249,115,22,.55)" : "rgba(80,40,10,.4)", stroke: active ? "rgba(255,205,150,.4)" : "rgba(150,100,60,.25)", strokeWidth: "0.4" }), /* @__PURE__ */ React.createElement("circle", { cx: mid + w * 0.31, cy: gy + 18, r: "1.7", fill: active ? "rgba(249,115,22,.55)" : "rgba(80,40,10,.4)", stroke: active ? "rgba(255,205,150,.4)" : "rgba(150,100,60,.25)", strokeWidth: "0.4" }));
+    }), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x: mid + 4,
+        y: y + h - 17,
+        width: w / 2 - 8,
+        height: 10,
+        rx: "2",
+        fill: active ? O + ".07)" : "rgba(5,5,13,.8)",
+        stroke: active ? "rgba(249,115,22,.42)" : S + ".2)",
+        strokeWidth: "0.6"
+      }
+    ), Array.from({ length: 4 }, (_, i) => {
+      const bx = mid + 6 + i * (w / 2 - 12) / 4, bw2 = (w / 2 - 14) / 4;
+      return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: bx,
+          y: y + h - 16,
+          width: bw2,
+          height: 8,
+          rx: "1",
+          fill: active ? "#100505" : "#09090f",
+          stroke: active ? "rgba(249,115,22,.36)" : "rgba(48,20,5,.2)",
+          strokeWidth: "0.5"
+        }
+      ), active && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("ellipse", { cx: bx + bw2 / 2, cy: y + h - 16, rx: bw2 / 2, ry: 4.5, fill: O + ".56)", className: "glow-pulse", style: { animationDelay: i * 0.12 + "s" } }), /* @__PURE__ */ React.createElement("ellipse", { cx: bx + bw2 / 2, cy: y + h - 18, rx: bw2 / 3, ry: 3.5, fill: "rgba(253,224,71,.64)", className: "glow-pulse", style: { animationDelay: i * 0.12 + 0.07 + "s" } })));
+    }), /* @__PURE__ */ React.createElement("text", { x: mid + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: active ? "rgba(249,115,22,.75)" : S + ".6)", fontSize: "13", fontFamily: "monospace" }, "HEAT EXCH."), /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x: mid,
+        y,
+        w: w / 2,
+        h,
+        vw,
+        vh,
+        title: partInfo("heat_exchanger", lang).title,
+        text: partInfo("heat_exchanger", lang).text,
+        onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+      }
+    ), (() => {
+      const pW = is90 ? 5 : 7;
+      const pC = is90 ? "#bfdbfe" : "#c0c0c0";
+      const pS = is90 ? "#93c5fd" : "#999";
+      const fX = mid + Math.round(w * 0.2);
+      const pipeTop = roofY - 12;
+      return /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: fX - pW / 2,
+          y: pipeTop,
+          width: pW,
+          height: Math.max(0, y - pipeTop),
+          rx: "1",
+          fill: pC,
+          stroke: pS,
+          strokeWidth: "0.7"
+        }
+      ), is90 ? /* @__PURE__ */ React.createElement("rect", { x: fX - pW - 1, y: pipeTop, width: pW * 2 + 2, height: 5, rx: "1", fill: pC, stroke: pS, strokeWidth: "0.7" }) : /* @__PURE__ */ React.createElement("path", { d: "M" + (fX - pW - 2) + " " + (pipeTop + 5) + " L" + fX + " " + (pipeTop - 3) + " L" + (fX + pW + 2) + " " + (pipeTop + 5), fill: pC, stroke: pS, strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          x: fX + 6,
+          y: y - 8,
+          textAnchor: "start",
+          fill: is90 ? "rgba(147,197,253,.5)" : "rgba(148,148,148,.44)",
+          fontSize: "11.5",
+          fontFamily: "monospace"
+        },
+        is90 ? "PVC" : "B-VENT"
+      ));
+    })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x + 4, y: y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: x + 7, y: y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement("rect", { x: mid + 4, y: y + 11, width: 36, height: "8", rx: "2", fill: is90 ? "rgba(35,137,224,.13)" : G + ".07)", stroke: is90 ? B + ".24)" : G + ".16)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: mid + 22, y: y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "11", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x: mid + 2,
+        y: y + 9,
+        w: 40,
+        h: 12,
+        rx: 2,
+        vw,
+        vh,
+        title: partInfo("afue_badge", lang).title,
+        text: partInfo("afue_badge", lang).text,
+        onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+      }
+    ));
+  }
+  function CapFan({ x, y, w, h, active, bladeColor, slatFill, slatCount, ringColor, onEditStep, lang, vw, vh }) {
+    const guardRings = Math.max(2, Math.min(5, Math.round((slatCount || 6) / 3)));
+    const cx = x + w / 2, cy = y + h / 2;
+    const fanRx = w * 0.46;
+    const fanRy = h * 0.38;
+    const spd = active ? 0.9 : 0;
+    const spinStyle = active ? {
+      transformBox: "fill-box",
+      transformOrigin: "center",
+      animation: "spin " + (1 / spd).toFixed(2) + "s linear infinite"
+    } : {};
+    const bC = bladeColor || (active ? "rgba(80,85,95,.75)" : "rgba(50,55,62,.5)");
+    const gC = slatFill || ringColor || bC;
+    const squash = fanRy / fanRx;
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      "ellipse",
+      {
+        cx,
+        cy,
+        rx: fanRx,
+        ry: fanRy,
+        fill: active ? "rgba(10,11,14,.95)" : "rgba(8,9,12,.9)",
+        stroke: "rgba(30,32,38,.6)",
+        strokeWidth: "0.7"
+      }
+    ), /* @__PURE__ */ React.createElement("g", { transform: "translate(" + cx + " " + cy + ") scale(1," + squash + ")" }, /* @__PURE__ */ React.createElement("g", { style: spinStyle }, Array.from({ length: 4 }, (_, i) => {
+      const ang = i * (Math.PI / 2);
+      const bx1 = fanRx * 0.15 * Math.cos(ang);
+      const by1 = fanRx * 0.15 * Math.sin(ang);
+      const bx2 = fanRx * 0.82 * Math.cos(ang + 0.55);
+      const by2 = fanRx * 0.82 * Math.sin(ang + 0.55);
+      const cpx = fanRx * 0.65 * Math.cos(ang + 0.28);
+      const cpy = fanRx * 0.65 * Math.sin(ang + 0.28);
+      return /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          key: i,
+          d: "M" + bx1 + " " + by1 + " Q" + cpx + " " + cpy + " " + bx2 + " " + by2,
+          fill: "none",
+          stroke: bC,
+          strokeWidth: "4",
+          strokeLinecap: "round",
+          opacity: "0.9"
+        }
+      );
+    }))), Array.from({ length: guardRings }, (_, i) => {
+      const t = (i + 1) / (guardRings + 0.3);
+      return /* @__PURE__ */ React.createElement(
+        "ellipse",
+        {
+          key: i,
+          cx,
+          cy,
+          rx: fanRx * t,
+          ry: fanRy * t,
+          fill: "none",
+          stroke: gC,
+          strokeWidth: active ? 0.9 : 0.7,
+          opacity: active ? 0.55 : 0.42
+        }
+      );
+    }), /* @__PURE__ */ React.createElement("line", { x1: cx - fanRx, y1: cy, x2: cx + fanRx, y2: cy, stroke: gC, strokeWidth: "0.8", opacity: active ? 0.45 : 0.34 }), /* @__PURE__ */ React.createElement("line", { x1: cx, y1: cy - fanRy, x2: cx, y2: cy + fanRy, stroke: gC, strokeWidth: "0.8", opacity: active ? 0.45 : 0.34 }), /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        x1: cx - fanRx * 0.7071,
+        y1: cy - fanRy * 0.7071,
+        x2: cx + fanRx * 0.7071,
+        y2: cy + fanRy * 0.7071,
+        stroke: gC,
+        strokeWidth: "0.65",
+        opacity: active ? 0.38 : 0.28
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "line",
+      {
+        x1: cx - fanRx * 0.7071,
+        y1: cy + fanRy * 0.7071,
+        x2: cx + fanRx * 0.7071,
+        y2: cy - fanRy * 0.7071,
+        stroke: gC,
+        strokeWidth: "0.65",
+        opacity: active ? 0.38 : 0.28
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "ellipse",
+      {
+        cx,
+        cy,
+        rx: fanRx * 0.98,
+        ry: fanRy * 0.98,
+        fill: "none",
+        stroke: ringColor || bC,
+        strokeWidth: "1.2",
+        opacity: active ? 0.6 : 0.45
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "path",
+      {
+        d: `M${cx - fanRx * 1.07} ${cy} A${fanRx * 1.07} ${fanRy * 1.07} 0 0 1 ${cx + fanRx * 1.07} ${cy}`,
+        fill: "none",
+        stroke: "rgba(165,170,180,.5)",
+        strokeWidth: "1",
+        opacity: active ? 0.55 : 0.42
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "path",
+      {
+        d: `M${cx - fanRx * 1.07} ${cy} A${fanRx * 1.07} ${fanRy * 1.07} 0 0 0 ${cx + fanRx * 1.07} ${cy}`,
+        fill: "none",
+        stroke: "rgba(8,9,11,.75)",
+        strokeWidth: "1",
+        opacity: active ? 0.6 : 0.5
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "ellipse",
+      {
+        cx,
+        cy,
+        rx: fanRx * 0.12,
+        ry: fanRy * 0.14,
+        fill: "#1a1c20",
+        stroke: "rgba(55,60,68,.6)",
+        strokeWidth: "0.8"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x,
+        y,
+        w,
+        h,
+        rx: 4,
+        vw,
+        vh,
+        title: partInfo("condenser_fan", lang).title,
+        text: partInfo("condenser_fan", lang).text,
+        onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+      }
+    ));
+  }
+  function Condenser({ x, y, w, h, active, tierKey, condC, refReversed, line1C, line2C, fanFast, onEditStep, lang, vw, vh }) {
+    const isMini = tierKey === "mid_ge15";
+    const isBig = tierKey === "high_ge18";
+    const isFed = tierKey === "fedmin";
+    const cc = active ? condC : refReversed ? "rgba(18,18,55,.5)" : "rgba(55,18,18,.5)";
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x,
+        y,
+        w,
+        h,
+        rx: 9,
+        vw,
+        vh,
+        title: partInfo("condenser_cabinet", lang).title,
+        text: partInfo("condenser_cabinet", lang).text,
+        onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+      }
+    ), isFed && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y,
+        width: w,
+        height: h,
+        rx: 9,
+        fill: active ? "#b9bdc5" : "#c4c8cf",
+        stroke: active ? "rgba(150,155,165,.9)" : "rgba(130,135,145,.8)",
+        strokeWidth: "1.2"
+      }
+    ), (() => {
+      const capH = Math.round(h * 0.2);
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x,
+          y,
+          width: w,
+          height: capH,
+          rx: 9,
+          fill: active ? "#3a3d42" : "#2e3035",
+          stroke: "rgba(20,22,26,.8)",
+          strokeWidth: "1"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${x + 9} ${y + 2} Q${x + w / 2} ${y - 1.5} ${x + w - 9} ${y + 2}`,
+          fill: "none",
+          stroke: "rgba(150,155,165,.4)",
+          strokeWidth: "1.1",
+          opacity: "0.7"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${x + 6} ${y + capH - 1.5} Q${x + w / 2} ${y + capH + 2} ${x + w - 6} ${y + capH - 1.5}`,
+          fill: "none",
+          stroke: "rgba(10,11,13,.6)",
+          strokeWidth: "1.3",
+          opacity: "0.6"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        CapFan,
+        {
+          x: x + 2,
+          y: y + 1,
+          w: w - 4,
+          h: capH - 2,
+          active,
+          bladeColor: active ? refReversed ? "rgba(100,160,220,.8)" : "rgba(220,90,90,.7)" : "rgba(45,48,55,.6)",
+          slatFill: active ? "rgba(44,47,54,.88)" : "rgba(36,39,46,.92)",
+          ringColor: "rgba(120,125,135,.55)",
+          slatCount: Math.max(3, Math.floor((capH - 2) * 0.7 / 6.5)),
+          onEditStep,
+          lang,
+          vw,
+          vh
+        }
+      ), Array.from({ length: 8 }, (_, i) => {
+        const ang = i / 8 * Math.PI * 2;
+        const rx = w / 2 - 3, ry = capH / 2 - 2.5;
+        return /* @__PURE__ */ React.createElement(
+          "circle",
+          {
+            key: i,
+            cx: x + w / 2 + rx * Math.cos(ang),
+            cy: y + capH / 2 + ry * Math.sin(ang),
+            r: 1.6,
+            fill: "rgba(50,55,62,.9)",
+            stroke: "rgba(80,85,95,.5)",
+            strokeWidth: "0.5"
+          }
+        );
+      }));
+    })(), (() => {
+      const capH = Math.round(h * 0.2);
+      const slotY = y + capH + 3, slotH = h - capH - 6;
+      const rowH = 5.5, toothW = 8;
+      const rows = Math.max(6, Math.floor(slotH / rowH));
+      const teeth = Math.floor((w - 8) / toothW);
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: x + 2,
+          y: slotY,
+          width: w - 4,
+          height: slotH,
+          rx: "1",
+          fill: active ? "rgba(150,154,162,.4)" : "rgba(160,164,172,.38)"
+        }
+      ), Array.from({ length: rows }, (_, r) => {
+        const rowY = slotY + 3 + r * rowH;
+        let d = `M${x + 4} ${rowY}`;
+        for (let t = 0; t < teeth; t++) {
+          const tx = x + 4 + t * toothW;
+          d += ` L${tx + toothW / 2} ${rowY - 1.7} L${tx + toothW} ${rowY}`;
+        }
+        return /* @__PURE__ */ React.createElement("g", { key: r }, /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(210,213,218,.55)" : "rgba(220,223,228,.5)", strokeWidth: "0.5", transform: "translate(0,-0.35)" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(90,95,105,.5)" : "rgba(80,85,95,.48)", strokeWidth: "0.5", transform: "translate(0,0.35)" }));
+      }));
+    })(), (() => {
+      const capH = Math.round(h * 0.2);
+      const bcx = x + w / 2, bcy = y + capH + Math.round((h - capH) * 0.38);
+      const br = Math.round(Math.min(w, h) * 0.09);
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        "ellipse",
+        {
+          cx: bcx,
+          cy: bcy,
+          rx: br,
+          ry: br * 0.82,
+          fill: "rgba(40,43,50,.6)",
+          stroke: "rgba(150,155,165,.55)",
+          strokeWidth: "1"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "ellipse",
+        {
+          cx: bcx,
+          cy: bcy,
+          rx: br * 0.72,
+          ry: br * 0.6,
+          fill: "none",
+          stroke: "rgba(150,155,165,.35)",
+          strokeWidth: "0.6"
+        }
+      ));
+    })(), [[x + 4, y + h - 4], [x + w - 4, y + h - 4]].map(([fx, fy], i) => /* @__PURE__ */ React.createElement(
+      "circle",
+      {
+        key: i,
+        cx: fx,
+        cy: fy,
+        r: 2.5,
+        fill: "rgba(90,95,105,.8)",
+        stroke: "rgba(60,65,75,.6)",
+        strokeWidth: "0.7"
+      }
+    )), (() => {
+      const capH = Math.round(h * 0.2);
+      const bodyH = h - capH;
+      const cW = Math.round(w * 0.3), cH = Math.round(bodyH * 0.42);
+      const cX = x + w - cW - 6, cY = y + capH + bodyH - cH - 10;
+      const domeH = Math.round(cH * 0.22);
+      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: cX,
+          y: cY + domeH,
+          width: cW,
+          height: cH - domeH,
+          rx: "3",
+          fill: "rgba(100,105,115,.18)",
+          stroke: active ? "rgba(180,80,80,.6)" : "rgba(70,75,85,.4)",
+          strokeWidth: active ? 1.2 : 0.7,
+          opacity: active ? 0.9 : 0.55
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "ellipse",
+        {
+          cx: cX + cW / 2,
+          cy: cY + domeH,
+          rx: cW / 2,
+          ry: domeH,
+          fill: "rgba(110,115,125,.2)",
+          stroke: active ? "rgba(180,80,80,.6)" : "rgba(70,75,85,.4)",
+          strokeWidth: active ? 1.2 : 0.7,
+          opacity: active ? 0.9 : 0.55
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: cX + cW * 0.6,
+          y: cY - 6,
+          width: 4,
+          height: domeH + 6,
+          rx: "1",
+          fill: active ? line1C : "rgba(60,65,75,.5)",
+          opacity: active ? 0.65 : 0.4
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: cX - 6,
+          y: cY + domeH + Math.round(cH * 0.25),
+          width: 8,
+          height: 4,
+          rx: "1",
+          fill: active ? line2C : "rgba(60,65,75,.5)",
+          opacity: active ? 0.65 : 0.4
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          x: cX + cW / 2,
+          y: y + h - 22,
+          textAnchor: "middle",
+          fill: active ? "rgba(180,80,80,.6)" : "rgba(80,85,95,.45)",
+          fontSize: "11",
+          fontFamily: "monospace"
+        },
+        "COMP."
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: cX - 6,
+          y: cY - 6,
+          w: cW + 12,
+          h: cH + domeH + 12,
+          rx: 3,
+          vw,
+          vh,
+          title: partInfo("compressor", lang).title,
+          text: partInfo("compressor", lang).text,
+          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
+          highlight: true
+        }
+      ));
+    })()), isMini && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y,
+        width: w,
+        height: h,
+        rx: 6,
+        fill: active ? refReversed ? "#a5aab4" : "#bec2c8" : "#b5b9bf",
+        stroke: active ? cc : "rgba(120,124,132,.8)",
+        strokeWidth: active ? 1.8 : 1.4
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x: x + 4,
+        y: y + 2,
+        width: w - 8,
+        height: Math.round(h * 0.1),
+        rx: "2",
+        fill: "rgba(20,22,26,.55)",
+        stroke: "rgba(150,154,162,.4)",
+        strokeWidth: "0.6"
+      }
+    ), Array.from({ length: 3 }, (_, i) => /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        key: i,
+        x: x + 6,
+        y: y + 4 + i * 4,
+        width: w - 12,
+        height: 2,
+        rx: "0.5",
+        fill: "rgba(15,17,20,.85)",
+        stroke: "rgba(90,95,105,.4)",
+        strokeWidth: "0.3"
+      }
+    )), (() => {
+      const fanAreaW = Math.round(w * 0.68);
+      const fanAreaH = h - Math.round(h * 0.1) - 4;
+      const fanAreaY = y + Math.round(h * 0.1) + 2;
+      const fCX = x + fanAreaW / 2, fCY = fanAreaY + fanAreaH / 2;
+      const fR = Math.round(Math.min(fanAreaW, fanAreaH) * 0.41);
+      const meshLines = [];
+      const pitch = 4.2;
+      for (let i = -Math.ceil((fanAreaW + fanAreaH) / pitch); i <= Math.ceil((fanAreaW + fanAreaH) / pitch); i++) {
+        meshLines.push(i);
+      }
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: x + 2,
+          y: fanAreaY,
+          width: fanAreaW - 2,
+          height: fanAreaH,
+          rx: "3",
+          fill: "rgba(10,11,14,.55)",
+          stroke: "rgba(150,154,162,.4)",
+          strokeWidth: "0.7"
+        }
+      ), [[x + 7, fanAreaY + 5], [x + fanAreaW - 6, fanAreaY + 5], [x + 7, fanAreaY + fanAreaH - 5], [x + fanAreaW - 6, fanAreaY + fanAreaH - 5]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement("circle", { key: i, cx: sx, cy: sy, r: 1.6, fill: "rgba(35,38,44,.9)", stroke: "rgba(150,154,162,.4)", strokeWidth: "0.4" })), /* @__PURE__ */ React.createElement("clipPath", { id: "midfan-clip-" + active }, /* @__PURE__ */ React.createElement("circle", { cx: fCX, cy: fCY, r: fR + 3 })), /* @__PURE__ */ React.createElement("g", { clipPath: `url(#midfan-clip-${active})`, opacity: "0.5" }, meshLines.map((i) => /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          key: "a" + i,
+          x1: fCX - fR - 3 + i * pitch,
+          y1: fCY - fR - 3,
+          x2: fCX - fR - 3 + i * pitch + 2 * (fR + 3),
+          y2: fCY + fR + 3,
+          stroke: "rgba(70,75,85,.7)",
+          strokeWidth: "0.4"
+        }
+      )), meshLines.map((i) => /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          key: "b" + i,
+          x1: fCX - fR - 3 + i * pitch,
+          y1: fCY + fR + 3,
+          x2: fCX - fR - 3 + i * pitch + 2 * (fR + 3),
+          y2: fCY - fR - 3,
+          stroke: "rgba(70,75,85,.7)",
+          strokeWidth: "0.4"
+        }
+      ))), /* @__PURE__ */ React.createElement("circle", { cx: fCX, cy: fCY, r: fR + 8, fill: "none", stroke: "rgba(160,164,172,.5)", strokeWidth: "2.5" }), /* @__PURE__ */ React.createElement(
+        CondenserFan,
+        {
+          cx: fCX,
+          cy: fCY,
+          r: fR,
+          active,
+          fast: fanFast,
+          onEditStep,
+          lang,
+          vw,
+          vh
+        }
+      ));
+    })(), (() => {
+      const panelX = x + Math.round(w * 0.7);
+      const panelW = w - Math.round(w * 0.7) - 2;
+      const panelY = y + Math.round(h * 0.1) + 4;
+      const panelH = h - Math.round(h * 0.1) - 8;
+      const br = Math.round(Math.min(w, h) * 0.09);
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: panelX,
+          y: panelY,
+          width: panelW,
+          height: panelH,
+          rx: "4",
+          fill: active ? "#b0b4ba" : "#a8acb2",
+          stroke: "rgba(90,94,102,.7)",
+          strokeWidth: "0.8"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "ellipse",
+        {
+          cx: panelX + panelW / 2,
+          cy: panelY + panelH * 0.28,
+          rx: br,
+          ry: br * 0.8,
+          fill: "rgba(30,32,38,.6)",
+          stroke: "rgba(190,194,200,.5)",
+          strokeWidth: "0.9"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "ellipse",
+        {
+          cx: panelX + panelW / 2,
+          cy: panelY + panelH * 0.28,
+          rx: br * 0.7,
+          ry: br * 0.56,
+          fill: "none",
+          stroke: "rgba(190,194,200,.3)",
+          strokeWidth: "0.5"
+        }
+      ), [0.5, 0.63].map((ty, i) => /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          key: i,
+          x1: panelX + 2,
+          y1: panelY + panelH * ty,
+          x2: panelX + panelW - 2,
+          y2: panelY + panelH * ty,
+          stroke: "rgba(80,84,90,.4)",
+          strokeWidth: "0.6"
+        }
+      )), /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: panelX + 3,
+          y: panelY + panelH * 0.7,
+          width: panelW - 6,
+          height: panelH * 0.2,
+          rx: "2",
+          fill: active ? "rgba(20,25,35,.85)" : "rgba(16,18,24,.75)",
+          stroke: "rgba(60,65,75,.5)",
+          strokeWidth: "0.6"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "circle",
+        {
+          cx: panelX + panelW / 2,
+          cy: panelY + panelH * 0.8,
+          r: 3,
+          fill: active ? cc : "rgba(40,45,55,.6)",
+          stroke: active ? cc : "rgba(90,95,105,.4)",
+          strokeWidth: "0.7"
+        }
+      ), active && /* @__PURE__ */ React.createElement(
+        "circle",
+        {
+          cx: panelX + panelW / 2,
+          cy: panelY + panelH * 0.8,
+          r: 1.7,
+          fill: "#fff",
+          className: "glow-pulse"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          x: panelX + panelW / 2,
+          y: panelY + panelH * 0.87,
+          textAnchor: "middle",
+          fill: active ? cc : "rgba(200,204,210,.6)",
+          fontSize: "8.5",
+          fontFamily: "sans-serif",
+          fontWeight: "700"
+        },
+        "VS"
+      ));
+    })(), (() => {
+      const panelX = x + Math.round(w * 0.7);
+      const panelW = w - Math.round(w * 0.7) - 2;
+      const panelY = y + Math.round(h * 0.1) + 4;
+      const panelH = h - Math.round(h * 0.1) - 8;
+      return /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: panelX - 4,
+          y: panelY - 4,
+          w: panelW + 8,
+          h: panelH + 8,
+          rx: 4,
+          vw,
+          vh,
+          title: partInfo("compressor", lang).title,
+          text: partInfo("compressor", lang).text,
+          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
+          highlight: true
+        }
+      );
+    })()), isBig && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y,
+        width: w,
+        height: h,
+        rx: 10,
+        fill: active ? refReversed ? "#767c8e" : "#8c9096" : "#82868c",
+        stroke: active ? cc : "rgba(100,104,112,.85)",
+        strokeWidth: active ? 1.8 : 1.4
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y: y + 4,
+        width: 5,
+        height: h - 8,
+        rx: "1.5",
+        fill: active ? "#6d7178" : "#65686f",
+        stroke: "rgba(50,54,60,.7)",
+        strokeWidth: "0.8"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x: x + w - 5,
+        y: y + 4,
+        width: 5,
+        height: h - 8,
+        rx: "1.5",
+        fill: active ? "#6d7178" : "#65686f",
+        stroke: "rgba(50,54,60,.7)",
+        strokeWidth: "0.8"
+      }
+    ), (() => {
+      const capH = Math.round(h * 0.24);
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x,
+          y,
+          width: w,
+          height: capH,
+          rx: 10,
+          fill: "#1e2024",
+          stroke: "rgba(150,154,162,.55)",
+          strokeWidth: "1.2"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${x + 10} ${y + 2} Q${x + w / 2} ${y - 1.5} ${x + w - 10} ${y + 2}`,
+          fill: "none",
+          stroke: "rgba(150,155,165,.4)",
+          strokeWidth: "1.1",
+          opacity: "0.7"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${x + 7} ${y + capH - 1.5} Q${x + w / 2} ${y + capH + 2} ${x + w - 7} ${y + capH - 1.5}`,
+          fill: "none",
+          stroke: "rgba(10,11,13,.6)",
+          strokeWidth: "1.3",
+          opacity: "0.6"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        CapFan,
+        {
+          x: x + 2,
+          y: y + 1,
+          w: w - 4,
+          h: capH - 2,
+          active,
+          bladeColor: active ? refReversed ? "rgba(100,160,220,.7)" : "rgba(220,90,90,.65)" : "rgba(40,44,52,.6)",
+          slatFill: active ? "rgba(24,27,33,.88)" : "rgba(18,21,27,.92)",
+          ringColor: active ? cc : "rgba(100,105,115,.55)",
+          slatCount: Math.max(9, Math.floor((capH - 4) * 0.72 / 2.6)),
+          onEditStep,
+          lang,
+          vw,
+          vh
+        }
+      ), Array.from({ length: 8 }, (_, i) => {
+        const ang = i / 8 * Math.PI * 2;
+        const rx = w / 2 - 3, ry = capH / 2 - 2.5;
+        return /* @__PURE__ */ React.createElement(
+          "circle",
+          {
+            key: i,
+            cx: x + w / 2 + rx * Math.cos(ang),
+            cy: y + capH / 2 + ry * Math.sin(ang),
+            r: 1.8,
+            fill: "rgba(35,38,44,.9)",
+            stroke: "rgba(55,60,68,.5)",
+            strokeWidth: "0.5"
+          }
+        );
+      }));
+    })(), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y: y + Math.round(h * 0.24) + 2,
+        width: w,
+        height: 2,
+        fill: active ? cc : "rgba(120,128,145,.5)",
+        opacity: active ? 0.9 : 0.55
+      }
+    ), (() => {
+      const capH = Math.round(h * 0.24);
+      const bodyY = y + capH + 5, bodyH = h - capH - 11;
+      const midX = x + w / 2;
+      const finW = 2.2, finGap = 0.9, step = finW + finGap;
+      const cols = Math.max(6, Math.floor((w - 14) / step));
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: x + 6,
+          y: bodyY,
+          width: w - 12,
+          height: bodyH,
+          rx: "1.5",
+          fill: active ? "rgba(120,124,130,.35)" : "rgba(110,114,120,.32)",
+          stroke: "rgba(80,84,90,.45)",
+          strokeWidth: "0.6"
+        }
+      ), Array.from({ length: cols }, (_, c) => {
+        const fx = x + 7 + c * step;
+        return /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            key: c,
+            x: fx,
+            y: bodyY + 2,
+            width: finW,
+            height: bodyH - 4,
+            rx: "0.6",
+            fill: c % 2 === 0 ? "rgba(145,149,155,.55)" : "rgba(70,74,80,.5)"
+          }
+        );
+      }), /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          x1: midX,
+          y1: bodyY,
+          x2: midX,
+          y2: bodyY + bodyH,
+          stroke: "rgba(55,59,65,.6)",
+          strokeWidth: "1.4"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          x1: midX + 1.2,
+          y1: bodyY,
+          x2: midX + 1.2,
+          y2: bodyY + bodyH,
+          stroke: "rgba(170,174,180,.3)",
+          strokeWidth: "0.6"
+        }
+      ), (() => {
+        const bcx = x + w / 2, bcy = bodyY + bodyH * 0.22;
+        const br = Math.round(Math.min(w, h) * 0.085);
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          "ellipse",
+          {
+            cx: bcx,
+            cy: bcy,
+            rx: br,
+            ry: br * 0.78,
+            fill: "rgba(30,32,38,.6)",
+            stroke: "rgba(190,194,200,.5)",
+            strokeWidth: "1"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "ellipse",
+          {
+            cx: bcx,
+            cy: bcy,
+            rx: br * 0.72,
+            ry: br * 0.58,
+            fill: "none",
+            stroke: "rgba(190,194,200,.32)",
+            strokeWidth: "0.6"
+          }
+        ));
+      })());
+    })(), active && /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y,
+        width: w,
+        height: h,
+        rx: 10,
+        fill: refReversed ? "rgba(35,137,224,.04)" : "rgba(239,68,68,.03)",
+        stroke: "none",
+        style: { pointerEvents: "none" }
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y: y + h - 6,
+        width: w,
+        height: 6,
+        rx: 2,
+        fill: "#14151a",
+        stroke: "rgba(20,22,28,.8)",
+        strokeWidth: "0.7"
+      }
+    ), (() => {
+      const capH = Math.round(h * 0.24);
+      const bodyH = h - capH;
+      const cW = Math.round(w * 0.28), cH = Math.round(bodyH * 0.45);
+      const cX = x + w - cW - 8, cY = y + capH + bodyH - cH - 10;
+      const domeH = Math.round(cH * 0.22);
+      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: cX,
+          y: cY + domeH,
+          width: cW,
+          height: cH - domeH,
+          rx: "3",
+          fill: "rgba(20,22,28,.65)",
+          stroke: active ? cc : "rgba(70,75,85,.4)",
+          strokeWidth: active ? 1.2 : 0.7,
+          opacity: active ? 0.9 : 0.55
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "ellipse",
+        {
+          cx: cX + cW / 2,
+          cy: cY + domeH,
+          rx: cW / 2,
+          ry: domeH,
+          fill: "rgba(25,28,35,.7)",
+          stroke: active ? cc : "rgba(70,75,85,.4)",
+          strokeWidth: active ? 1.2 : 0.7,
+          opacity: active ? 0.9 : 0.55
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: cX + cW * 0.6,
+          y: cY - 6,
+          width: 4,
+          height: domeH + 6,
+          rx: "1",
+          fill: active ? line1C : "rgba(60,65,75,.5)",
+          opacity: active ? 0.7 : 0.4
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: cX - 6,
+          y: cY + domeH + Math.round(cH * 0.25),
+          width: 8,
+          height: 4,
+          rx: "1",
+          fill: active ? line2C : "rgba(60,65,75,.5)",
+          opacity: active ? 0.7 : 0.4
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          x: cX + cW / 2,
+          y: y + h - 22,
+          textAnchor: "middle",
+          fill: active ? cc : "rgba(80,85,95,.45)",
+          fontSize: "11",
+          fontFamily: "monospace"
+        },
+        "COMP."
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: cX - 6,
+          y: cY - 6,
+          w: cW + 12,
+          h: cH + domeH + 12,
+          rx: 3,
+          vw,
+          vh,
+          title: partInfo("compressor", lang).title,
+          text: partInfo("compressor", lang).text,
+          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
+          highlight: true
+        }
+      ));
+    })()));
   }
   function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
     const T = (key) => partInfo(key, lang);
@@ -2096,11 +3493,6 @@
       ro.observe(el);
       return () => ro.disconnect();
     }, []);
-    const G = "rgba(215,183,64,";
-    const B = "rgba(35,137,224,";
-    const W = "rgba(255,255,255,";
-    const O = "rgba(249,115,22,";
-    const S = "rgba(148,158,172,";
     const OUTSIDE_SUNNY = "#465c8c";
     const OUTSIDE_OVERCAST = "#212b45";
     const OUTSIDE_COLD = "#141c2e";
@@ -2145,159 +3537,6 @@
     const line1C = refReversed ? "#2389e0" : "#ef4444";
     const line2C = refReversed ? "#ef4444" : "#2389e0";
     const BLOWER_MOTOR = { fedmin: "ECM MOTOR", mid_ge15: "VARIABLE SPEED", high_ge18: "MOD. VAR. SPEED" }[a.cond_tier] || "";
-    function BlowerWheel({ cx, cy, r, spd, active }) {
-      r = r || 28;
-      spd = spd || 1;
-      active = active !== false;
-      const n = 22;
-      const innerR = r * 0.56, outerR = r * 0.92;
-      const bladeFill = active ? G + ".62)" : G + ".13)";
-      const bladeStroke = active ? G + ".82)" : G + ".24)";
-      const blades = Array.from({ length: n }, (_, i) => {
-        const ang = i * (Math.PI * 2 / n);
-        const sweep = 0.3, backSweep = 0.09;
-        const ax = cx + innerR * Math.cos(ang - backSweep), ay = cy + innerR * Math.sin(ang - backSweep);
-        const bx = cx + innerR * Math.cos(ang + backSweep), by = cy + innerR * Math.sin(ang + backSweep);
-        const tipAng = ang + sweep;
-        const cAng = ang + sweep * 0.55, cR = (innerR + outerR) / 2 * 1.04;
-        const cxm = cx + cR * Math.cos(cAng), cym = cy + cR * Math.sin(cAng);
-        const tx = cx + outerR * Math.cos(tipAng), ty = cy + outerR * Math.sin(tipAng);
-        const d = `M${ax.toFixed(1)} ${ay.toFixed(1)} Q${cxm.toFixed(1)} ${cym.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)} L${(tx - 1.2 * Math.cos(tipAng - 1.2)).toFixed(1)} ${(ty - 1.2 * Math.sin(tipAng - 1.2)).toFixed(1)} Q${(cx + cR * 0.82 * Math.cos(cAng)).toFixed(1)} ${(cy + cR * 0.82 * Math.sin(cAng)).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)} Z`;
-        return /* @__PURE__ */ React.createElement("path", { key: i, d, fill: bladeFill, stroke: bladeStroke, strokeWidth: "0.5" });
-      });
-      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 4, fill: "rgba(0,0,0,.5)", stroke: S + ".4)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r, fill: "#050505", stroke: G + ".3)", strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: outerR + 1, fill: "none", stroke: active ? G + ".4)" : G + ".12)", strokeWidth: "1" }), active ? /* @__PURE__ */ React.createElement("g", { className: "spin", style: { transformBox: "fill-box", transformOrigin: "center", animationDuration: 1 / spd + "s" } }, blades) : /* @__PURE__ */ React.createElement("g", null, blades), active ? /* @__PURE__ */ React.createElement("g", { className: "spin", style: { transformBox: "fill-box", transformOrigin: "center", animationDuration: 1 / spd + "s" } }, Array.from({ length: 4 }, (_, i) => {
-        const ang = i * (Math.PI / 2);
-        return /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            key: i,
-            x1: cx + r * 0.13 * Math.cos(ang),
-            y1: cy + r * 0.13 * Math.sin(ang),
-            x2: cx + innerR * Math.cos(ang),
-            y2: cy + innerR * Math.sin(ang),
-            stroke: G + ".2)",
-            strokeWidth: "1.1"
-          }
-        );
-      })) : Array.from({ length: 4 }, (_, i) => {
-        const ang = i * (Math.PI / 2);
-        return /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            key: i,
-            x1: cx + r * 0.13 * Math.cos(ang),
-            y1: cy + r * 0.13 * Math.sin(ang),
-            x2: cx + innerR * Math.cos(ang),
-            y2: cy + innerR * Math.sin(ang),
-            stroke: G + ".08)",
-            strokeWidth: "1.1"
-          }
-        );
-      }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.27, fill: "#090909", stroke: G + ".34)", strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.1, fill: "#111", stroke: G + ".42)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: cx - r - 5,
-          y: cy - r - 5,
-          w: (r + 5) * 2,
-          h: (r + 5) * 2,
-          rx: r + 5,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("blower").title,
-          text: T("blower").text,
-          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
-        }
-      ));
-    }
-    function CondenserFan({ cx, cy, r, active, fast }) {
-      const bladeFill = active ? "#ccd3e0" : "#565c68";
-      const rim = active ? "#7fb8ff" : "rgba(70,76,90,.6)";
-      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 3, fill: "rgba(0,0,0,.55)", stroke: "rgba(60,65,78,.7)", strokeWidth: "1.2" }), active && /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 1, fill: "none", stroke: rim, strokeWidth: "1", opacity: "0.55", filter: "url(#glow-sm)" }), /* @__PURE__ */ React.createElement("g", { className: active ? "spin" : void 0, style: active ? { transformBox: "view-box", transformOrigin: cx + "px " + cy + "px", animationDuration: fast ? "0.45s" : "0.8s" } : {} }, Array.from({ length: 3 }, (_, i) => {
-        const ang = i * (Math.PI * 2 / 3);
-        const sweep = 1.4;
-        const hubR = r * 0.14, tipR = r * 0.94;
-        const ux = Math.cos(ang), uy = Math.sin(ang);
-        const px = -Math.sin(ang), py = Math.cos(ang);
-        const hubW = r * 0.38;
-        const hAx = cx + ux * hubR + px * hubW, hAy = cy + uy * hubR + py * hubW;
-        const hBx = cx + ux * hubR - px * hubW, hBy = cy + uy * hubR - py * hubW;
-        const tipAng = ang + sweep;
-        const tX = cx + Math.cos(tipAng) * tipR, tY = cy + Math.sin(tipAng) * tipR;
-        const c1Ang = ang + sweep * 0.42, c1R = r * 0.78;
-        const c1X = cx + Math.cos(c1Ang) * c1R + px * hubW * 0.78, c1Y = cy + Math.sin(c1Ang) * c1R + py * hubW * 0.78;
-        const c2Ang = ang + sweep * 0.78, c2R = r * 0.68;
-        const c2X = cx + Math.cos(c2Ang) * c2R - px * hubW * 0.6, c2Y = cy + Math.sin(c2Ang) * c2R - py * hubW * 0.6;
-        const d = `M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
-        return /* @__PURE__ */ React.createElement("path", { key: i, d, fill: bladeFill, stroke: active ? rim : "rgba(20,22,26,.7)", strokeWidth: "0.7", opacity: active ? 0.95 : 0.8 });
-      })), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.18, fill: "#16181c", stroke: active ? rim : "rgba(90,95,110,.6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.07, fill: active ? rim : "#3a3d44" }), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: cx - r - 4,
-          y: cy - r - 4,
-          w: (r + 4) * 2,
-          h: (r + 4) * 2,
-          rx: r + 4,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("condenser_fan").title,
-          text: T("condenser_fan").text,
-          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
-        }
-      ));
-    }
-    function UVRod({ x, y, len, vertical }) {
-      len = len || 56;
-      const x2 = vertical ? x : x + len, y2 = vertical ? y + len : y;
-      return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          x1: x,
-          y1: y,
-          x2,
-          y2,
-          stroke: "rgba(139,92,246,.55)",
-          strokeWidth: vertical ? 22 : 22,
-          strokeLinecap: "round",
-          filter: "url(#glow-uv)",
-          className: "glow-pulse"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          x1: x,
-          y1: y,
-          x2,
-          y2,
-          stroke: "rgba(167,139,250,.75)",
-          strokeWidth: vertical ? 10 : 10,
-          strokeLinecap: "round",
-          filter: "url(#glow-uv)"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          x1: x,
-          y1: y,
-          x2,
-          y2,
-          stroke: "rgba(216,180,254,.95)",
-          strokeWidth: vertical ? 3.5 : 3.5,
-          strokeLinecap: "round"
-        }
-      ), /* @__PURE__ */ React.createElement("circle", { cx: x, cy: y, r: "4", fill: "rgba(167,139,250,.9)", stroke: "rgba(216,180,254,.8)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: x2, cy: y2, r: "4", fill: "rgba(167,139,250,.9)", stroke: "rgba(216,180,254,.8)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          x1: x,
-          y1: y,
-          x2,
-          y2,
-          stroke: "rgba(233,213,255,.6)",
-          strokeWidth: vertical ? 2 : 2,
-          strokeLinecap: "round",
-          className: "glow-pulse"
-        }
-      ));
-    }
     function Ionizer({ bulbX, bulbY, rodLen }) {
       rodLen = rodLen || 55;
       const rodBot = bulbY + rodLen;
@@ -2404,214 +3643,6 @@
         "IONIZER"
       ));
     }
-    function CoilTube({ cx, cy, rx, ry, rotate, fill, stroke, glow, active, delay }) {
-      rx = rx || 4;
-      ry = ry || 2;
-      return /* @__PURE__ */ React.createElement("g", { transform: `rotate(${rotate || 0},${cx},${cy})` }, /* @__PURE__ */ React.createElement("ellipse", { cx, cy, rx, ry, fill, stroke, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${(cx - rx * 0.55).toFixed(1)} ${(cy - ry * 0.55).toFixed(1)} Q${cx.toFixed(1)} ${(cy - ry * 1.25).toFixed(1)} ${(cx + rx * 0.55).toFixed(1)} ${(cy - ry * 0.55).toFixed(1)}`,
-          fill: "none",
-          stroke: "rgba(255,255,255,.45)",
-          strokeWidth: "0.5",
-          strokeLinecap: "round"
-        }
-      ), active && glow && /* @__PURE__ */ React.createElement("circle", { cx, cy, r: Math.min(rx, ry) * 0.85, fill: glow, opacity: "0.7", className: "glow-pulse", style: { animationDelay: (delay || 0) + "s" } }));
-    }
-    function CoilSweat({ cx, cy, r, delay }) {
-      r = r || 1.7;
-      return /* @__PURE__ */ React.createElement("g", { style: { animationDelay: (delay || 0) + "s" }, className: "glow-pulse" }, /* @__PURE__ */ React.createElement("circle", { cx, cy, r, fill: "rgba(200,230,252,.85)", stroke: "rgba(235,246,255,.9)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("circle", { cx: cx - r * 0.35, cy: cy - r * 0.35, r: r * 0.32, fill: "rgba(255,255,255,.9)" }));
-    }
-    function ACoilH({ x, y, w, h, active }) {
-      const peakX = x + w, peakY = y + h / 2;
-      const n = 8;
-      const tc = active ? evapC : "rgba(48,48,78,.8)";
-      const distX = peakX - 5, distY = peakY + 4;
-      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
-        "polygon",
-        {
-          points: `${x},${y} ${peakX},${peakY} ${peakX},${peakY + 8} ${x},${y + 12}`,
-          fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
-          stroke: active ? evapC + "88" : G + ".22)",
-          strokeWidth: "0.9"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "polygon",
-        {
-          points: `${x},${y + h} ${peakX},${peakY} ${peakX},${peakY + 8} ${x},${y + h - 12}`,
-          fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
-          stroke: active ? evapC2 + "80" : G + ".18)",
-          strokeWidth: "0.9"
-        }
-      ), Array.from({ length: 20 }, (_, i) => /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          key: i,
-          x1: x + 4,
-          y1: y + h * (i + 0.5) / 20,
-          x2: x + w - 8,
-          y2: y + h * (i + 0.5) / 20,
-          stroke: i % 4 === 0 ? W + ".08)" : W + ".035)",
-          strokeWidth: "0.4"
-        }
-      )), Array.from({ length: n }, (_, i) => {
-        const t = (i + 0.5) / n, tx = x + (peakX - x) * t + 3, ty = y + (peakY - y) * t + 3;
-        return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: -22, fill: active ? evapC + "22" : "rgba(14,14,34,.8)", stroke: tc, glow: evapC, active, delay: i * 0.1 }), i % 2 === 0 && /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX - (distX - tx) * 0.5).toFixed(1)} ${(distY - 6).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`,
-            fill: "none",
-            stroke: active ? evapC + "55" : "rgba(110,110,140,.22)",
-            strokeWidth: "0.7"
-          }
-        ), active && i % 3 === 1 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx + 1.5, cy: ty + 3, delay: i * 0.35 }));
-      }), Array.from({ length: n }, (_, i) => {
-        const t = (i + 0.5) / n, tx = x + (peakX - x) * t + 3, ty = y + h + (peakY - (y + h)) * t - 3;
-        return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: 22, fill: active ? evapC2 + "22" : "rgba(14,14,34,.8)", stroke: active ? evapC2 : tc, glow: evapC2, active, delay: (i + n) * 0.1 }), active && i % 3 === 2 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx - 1.5, cy: ty + 3, delay: (i + n) * 0.3 }));
-      }), /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 5.5, fill: "#06061c", stroke: active ? evapC : G + ".3)", strokeWidth: "1.3" }), active && /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 2.5, fill: evapC, opacity: "0.85", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".2)", strokeWidth: "0.7" }), hasUV && (() => {
-        const rodLen = Math.min(w * 0.7, w - 12);
-        const rodCX = x + w * 0.48;
-        const rodCY = y + h / 2;
-        return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX - rodLen / 2, y: rodCY, len: rodLen });
-      })(), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x,
-          y,
-          w,
-          h,
-          rx: 3,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T(acoilInfoKey()).title,
-          text: T(acoilInfoKey()).text,
-          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
-        }
-      ));
-    }
-    function ACoilV({ x, y, w, h, active }) {
-      const peakX = x + w / 2, peakY = y;
-      const n = 7;
-      const tc = active ? evapC : "rgba(48,48,78,.8)";
-      const distX = peakX + 4, distY = peakY + 6;
-      const angL = Math.atan2(peakY - (y + h), peakX - x) * 180 / Math.PI;
-      const angR = Math.atan2(peakY - (y + h), peakX - (x + w)) * 180 / Math.PI;
-      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
-        "polygon",
-        {
-          points: `${x},${y + h} ${peakX},${peakY} ${peakX + 8},${peakY} ${x + 12},${y + h}`,
-          fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
-          stroke: active ? evapC + "88" : G + ".22)",
-          strokeWidth: "0.9"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "polygon",
-        {
-          points: `${x + w},${y + h} ${peakX},${peakY} ${peakX + 8},${peakY} ${x + w - 12},${y + h}`,
-          fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
-          stroke: active ? evapC2 + "80" : G + ".18)",
-          strokeWidth: "0.9"
-        }
-      ), Array.from({ length: 18 }, (_, i) => /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          key: i,
-          x1: x + w * (i + 0.5) / 18,
-          y1: y + 4,
-          x2: x + w * (i + 0.5) / 18,
-          y2: y + h - 4,
-          stroke: i % 4 === 0 ? W + ".08)" : W + ".035)",
-          strokeWidth: "0.4"
-        }
-      )), Array.from({ length: n }, (_, i) => {
-        const t = (i + 0.5) / n, tx = x + (peakX - x) * t + 3, ty = y + h + (peakY - (y + h)) * t + 3;
-        return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: angL, fill: active ? evapC + "22" : "rgba(14,14,34,.8)", stroke: tc, glow: evapC, active, delay: i * 0.11 }), i % 2 === 0 && /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX - (distX - tx) * 0.5).toFixed(1)} ${(distY + (ty - distY) * 0.4).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`,
-            fill: "none",
-            stroke: active ? evapC + "55" : "rgba(110,110,140,.22)",
-            strokeWidth: "0.7"
-          }
-        ), active && i % 3 === 1 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx + 1.5, cy: ty + 3, delay: i * 0.35 }));
-      }), Array.from({ length: n }, (_, i) => {
-        const t = (i + 0.5) / n, tx = x + w + (peakX - (x + w)) * t - 3, ty = y + h + (peakY - (y + h)) * t + 3;
-        return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: angR, fill: active ? evapC2 + "22" : "rgba(14,14,34,.8)", stroke: active ? evapC2 : tc, glow: evapC2, active, delay: (i + n) * 0.11 }), active && i % 3 === 2 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx - 1.5, cy: ty + 3, delay: (i + n) * 0.3 }));
-      }), /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 5.5, fill: "#06061c", stroke: active ? evapC : G + ".3)", strokeWidth: "1.3" }), active && /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 2.5, fill: evapC, opacity: "0.85", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".2)", strokeWidth: "0.7" }), hasUV && (() => {
-        const rodCX = x + w * 0.5;
-        const rodLen2 = Math.min(h * 0.75, h - 12);
-        const rodCY = y + h / 2;
-        return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX, y: rodCY - rodLen2 / 2, len: rodLen2, vertical: true });
-      })(), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.8 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC + "2a" : "rgba(22,22,44,.7)", stroke: evapC, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.88 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC2 + "2a" : "rgba(22,22,44,.7)", stroke: evapC2, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x,
-          y,
-          w,
-          h,
-          rx: 3,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T(acoilInfoKey()).title,
-          text: T(acoilInfoKey()).text,
-          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
-        }
-      ));
-    }
-    function CabinetRivet({ cx, cy }) {
-      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: "2.3", fill: "rgba(35,38,44,.85)", stroke: S + ".55)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: cx - 1.2, y1: cy - 0.3, x2: cx + 1.2, y2: cy + 0.3, stroke: S + ".75)", strokeWidth: "0.55", strokeLinecap: "round" }));
-    }
-    function CabinetLatch({ cx, cy, w }) {
-      w = w || 15;
-      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: cx - w / 2,
-          y: cy - 3.4,
-          width: w,
-          height: 6.8,
-          rx: "1.6",
-          fill: "rgba(20,22,27,.85)",
-          stroke: S + ".4)",
-          strokeWidth: "0.6"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: cx - w / 2 + 2.2,
-          y: cy - 1.3,
-          width: w - 4.4,
-          height: 2.6,
-          rx: "1.1",
-          fill: "rgba(60,65,75,.9)",
-          stroke: S + ".6)",
-          strokeWidth: "0.5"
-        }
-      ));
-    }
-    function CabinetPlate({ x, y, w, h }) {
-      h = h || 9;
-      return /* @__PURE__ */ React.createElement("g", { opacity: "0.85" }, /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y,
-          width: w,
-          height: h,
-          rx: "1",
-          fill: "rgba(18,20,25,.8)",
-          stroke: S + ".42)",
-          strokeWidth: "0.55"
-        }
-      ), /* @__PURE__ */ React.createElement("line", { x1: x + 2.5, y1: y + h * 0.36, x2: x + w - 2.5, y2: y + h * 0.36, stroke: S + ".5)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: x + 2.5, y1: y + h * 0.66, x2: x + w - 3.5 - w * 0.22, y2: y + h * 0.66, stroke: S + ".35)", strokeWidth: "0.6" }));
-    }
-    function CabinetStripBrushing({ x, y, w }) {
-      const n = Math.max(4, Math.min(10, Math.round(w / 26)));
-      return /* @__PURE__ */ React.createElement("g", { opacity: "0.3" }, Array.from({ length: n }, (_, i) => {
-        const lx = x + w * (i + 0.5) / n;
-        return /* @__PURE__ */ React.createElement("line", { key: i, x1: lx, y1: y + 1.2, x2: lx, y2: y + 7.8, stroke: "#fff", strokeWidth: "0.5" });
-      }));
-    }
     function DuctRibbing({ x, y, w, h, vertical }) {
       vertical = vertical !== false;
       const span = vertical ? h : w;
@@ -2702,146 +3733,6 @@
         }
       ));
     }
-    function FurnaceH({ x, y, w, h, active, roofY }) {
-      const mid = x + w / 2;
-      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x,
-          y,
-          w,
-          h,
-          rx: 4,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("furnace_cabinet").title,
-          text: T("furnace_cabinet").text,
-          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y,
-          width: w,
-          height: h,
-          rx: "4",
-          fill: active ? "#0d0606" : "#0a0a0a",
-          stroke: "url(#cabinet-edge)",
-          strokeOpacity: "0.85",
-          strokeWidth: "1.8"
-        }
-      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: O + ".04)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 7, rx: "4", fill: "url(#silver)", opacity: ".72" }), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetPlate, { x: x + w - 46, y: y + 11, w: 40 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: mid, cy: y + 3.5, w: 14 }), /* @__PURE__ */ React.createElement("line", { x1: mid, y1: y + 7, x2: mid, y2: y + h, stroke: S + ".28)", strokeWidth: "1", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          key: i,
-          x1: x + 3,
-          y1: y + 12 + i * (h - 18) / 7,
-          x2: x + 3,
-          y2: y + 18 + i * (h - 18) / 7,
-          stroke: S + ".42)",
-          strokeWidth: "3",
-          strokeLinecap: "round"
-        }
-      )), /* @__PURE__ */ React.createElement(
-        BlowerWheel,
-        {
-          cx: x + w * 0.25,
-          cy: y + h * 0.42,
-          r: Math.min(w * 0.21, h * 0.29),
-          spd: blowerActive ? 1.6 : 0.5,
-          active: blowerActive
-        }
-      ), /* @__PURE__ */ React.createElement("text", { x: x + w * 0.25, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, "BLOWER"), /* @__PURE__ */ React.createElement("text", { x: x + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, BLOWER_MOTOR), Array.from({ length: 6 }, (_, i) => {
-        const gy = y + 10 + i * (h - 18) / 6;
-        const d = `M${mid + 6} ${gy + 6} Q${mid + w * 0.17} ${gy - 2} ${mid + w * 0.31} ${gy + 7} Q${mid + w * 0.41} ${gy + 14} ${mid + w * 0.31} ${gy + 18}`;
-        return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(249,115,22,.6)" : "rgba(108,44,8,.22)", strokeWidth: "2.8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(255,205,150,.45)" : "rgba(180,140,90,.14)", strokeWidth: "0.8", strokeLinecap: "round", transform: "translate(0,-0.9)" }), /* @__PURE__ */ React.createElement("circle", { cx: mid + 6, cy: gy + 6, r: "1.7", fill: active ? "rgba(249,115,22,.55)" : "rgba(80,40,10,.4)", stroke: active ? "rgba(255,205,150,.4)" : "rgba(150,100,60,.25)", strokeWidth: "0.4" }), /* @__PURE__ */ React.createElement("circle", { cx: mid + w * 0.31, cy: gy + 18, r: "1.7", fill: active ? "rgba(249,115,22,.55)" : "rgba(80,40,10,.4)", stroke: active ? "rgba(255,205,150,.4)" : "rgba(150,100,60,.25)", strokeWidth: "0.4" }));
-      }), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: mid + 4,
-          y: y + h - 17,
-          width: w / 2 - 8,
-          height: 10,
-          rx: "2",
-          fill: active ? O + ".07)" : "rgba(5,5,13,.8)",
-          stroke: active ? "rgba(249,115,22,.42)" : S + ".2)",
-          strokeWidth: "0.6"
-        }
-      ), Array.from({ length: 4 }, (_, i) => {
-        const bx = mid + 6 + i * (w / 2 - 12) / 4, bw2 = (w / 2 - 14) / 4;
-        return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: bx,
-            y: y + h - 16,
-            width: bw2,
-            height: 8,
-            rx: "1",
-            fill: active ? "#100505" : "#09090f",
-            stroke: active ? "rgba(249,115,22,.36)" : "rgba(48,20,5,.2)",
-            strokeWidth: "0.5"
-          }
-        ), active && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("ellipse", { cx: bx + bw2 / 2, cy: y + h - 16, rx: bw2 / 2, ry: 4.5, fill: O + ".56)", className: "glow-pulse", style: { animationDelay: i * 0.12 + "s" } }), /* @__PURE__ */ React.createElement("ellipse", { cx: bx + bw2 / 2, cy: y + h - 18, rx: bw2 / 3, ry: 3.5, fill: "rgba(253,224,71,.64)", className: "glow-pulse", style: { animationDelay: i * 0.12 + 0.07 + "s" } })));
-      }), /* @__PURE__ */ React.createElement("text", { x: mid + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: active ? "rgba(249,115,22,.75)" : S + ".6)", fontSize: "13", fontFamily: "monospace" }, "HEAT EXCH."), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: mid,
-          y,
-          w: w / 2,
-          h,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("heat_exchanger").title,
-          text: T("heat_exchanger").text,
-          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
-        }
-      ), (() => {
-        const pW = is90 ? 5 : 7;
-        const pC = is90 ? "#bfdbfe" : "#c0c0c0";
-        const pS = is90 ? "#93c5fd" : "#999";
-        const fX = mid + Math.round(w * 0.2);
-        const pipeTop = roofY - 12;
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: fX - pW / 2,
-            y: pipeTop,
-            width: pW,
-            height: Math.max(0, y - pipeTop),
-            rx: "1",
-            fill: pC,
-            stroke: pS,
-            strokeWidth: "0.7"
-          }
-        ), is90 ? /* @__PURE__ */ React.createElement("rect", { x: fX - pW - 1, y: pipeTop, width: pW * 2 + 2, height: 5, rx: "1", fill: pC, stroke: pS, strokeWidth: "0.7" }) : /* @__PURE__ */ React.createElement("path", { d: "M" + (fX - pW - 2) + " " + (pipeTop + 5) + " L" + fX + " " + (pipeTop - 3) + " L" + (fX + pW + 2) + " " + (pipeTop + 5), fill: pC, stroke: pS, strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
-          "text",
-          {
-            x: fX + 6,
-            y: y - 8,
-            textAnchor: "start",
-            fill: is90 ? "rgba(147,197,253,.5)" : "rgba(148,148,148,.44)",
-            fontSize: "11.5",
-            fontFamily: "monospace"
-          },
-          is90 ? "PVC" : "B-VENT"
-        ));
-      })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x + 4, y: y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: x + 7, y: y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement("rect", { x: mid + 4, y: y + 11, width: 36, height: "8", rx: "2", fill: is90 ? "rgba(35,137,224,.13)" : G + ".07)", stroke: is90 ? B + ".24)" : G + ".16)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: mid + 22, y: y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "11", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: mid + 2,
-          y: y + 9,
-          w: 40,
-          h: 12,
-          rx: 2,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("afue_badge").title,
-          text: T("afue_badge").text,
-          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
-        }
-      ));
-    }
     function AirHandlerH({ x, y, w, h, active, auxHeat }) {
       const coilW = w * 0.5, blowerW = w * 0.35, auxW = w * 0.15;
       const c1 = x + coilW, c2 = x + coilW + blowerW;
@@ -2872,7 +3763,7 @@
           strokeOpacity: "0.8",
           strokeWidth: "1.5"
         }
-      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 7, rx: "4", fill: "url(#silver)", opacity: ".68" }), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 19, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: c1, cy: y + 3.5, w: 13 }), /* @__PURE__ */ React.createElement("line", { x1: c1, y1: y + 7, x2: c1, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), /* @__PURE__ */ React.createElement("line", { x1: c2, y1: y + 7, x2: c2, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
+      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)", stroke: "none", style: { pointerEvents: "none" } }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 7, rx: "4", fill: "url(#silver)", opacity: ".68" }), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 19, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: c1, cy: y + 3.5, w: 13 }), /* @__PURE__ */ React.createElement("line", { x1: c1, y1: y + 7, x2: c1, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), /* @__PURE__ */ React.createElement("line", { x1: c2, y1: y + 7, x2: c2, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
         "line",
         {
           key: i,
@@ -2884,14 +3775,35 @@
           strokeWidth: "3",
           strokeLinecap: "round"
         }
-      )), /* @__PURE__ */ React.createElement("rect", { x: x + 3, y: y + 8, width: coilW - 6, height: h - 14, rx: "2", fill: active ? "rgba(4,8,22,.7)" : "rgba(6,6,16,.7)" }), /* @__PURE__ */ React.createElement(ACoilH, { x: x + 9, y: y + 12, w: coilW - 19, h: h - 22, active }), /* @__PURE__ */ React.createElement("text", { x: x + coilW / 2, y: y + h - 4, textAnchor: "middle", fill: active ? evapC : S + ".6)", fontSize: "13", fontFamily: "monospace" }, "A-COIL"), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("rect", { x: x + 3, y: y + 8, width: coilW - 6, height: h - 14, rx: "2", fill: active ? "rgba(4,8,22,.7)" : "rgba(6,6,16,.7)" }), /* @__PURE__ */ React.createElement(
+        ACoilH,
+        {
+          x: x + 9,
+          y: y + 12,
+          w: coilW - 19,
+          h: h - 22,
+          active,
+          evapC,
+          evapC2,
+          hasUV,
+          infoKey: acoilInfoKey(),
+          onEditStep,
+          lang,
+          vw: SVG_VW,
+          vh: SVG_VH
+        }
+      ), /* @__PURE__ */ React.createElement("text", { x: x + coilW / 2, y: y + h - 4, textAnchor: "middle", fill: active ? evapC : S + ".6)", fontSize: "13", fontFamily: "monospace" }, "A-COIL"), /* @__PURE__ */ React.createElement(
         BlowerWheel,
         {
           cx: c1 + blowerW / 2,
           cy: y + h * 0.42,
           r: Math.min(blowerW * 0.32, h * 0.29),
           spd: blowerActive ? 1.5 : 0.45,
-          active: blowerActive
+          active: blowerActive,
+          onEditStep,
+          lang,
+          vw: SVG_VW,
+          vh: SVG_VH
         }
       ), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, "BLOWER"), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, BLOWER_MOTOR), /* @__PURE__ */ React.createElement("g", { transform: `translate(${c2 + 3} ${y + 8 + (h - 14)}) rotate(-90)` }, /* @__PURE__ */ React.createElement(AuxHeatKit, { x: 0, y: 0, w: h - 14, h: auxW - 6, auxHeat })), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.7" }));
     }
@@ -2952,871 +3864,6 @@
         },
         "AUX HEAT KIT"
       ));
-    }
-    function CapFan({ x, y, w, h, active, bladeColor, slatFill, slatCount, ringColor }) {
-      const guardRings = Math.max(2, Math.min(5, Math.round((slatCount || 6) / 3)));
-      const cx = x + w / 2, cy = y + h / 2;
-      const fanRx = w * 0.46;
-      const fanRy = h * 0.38;
-      const spd = active ? 0.9 : 0;
-      const spinStyle = active ? {
-        transformBox: "fill-box",
-        transformOrigin: "center",
-        animation: "spin " + (1 / spd).toFixed(2) + "s linear infinite"
-      } : {};
-      const bC = bladeColor || (active ? "rgba(80,85,95,.75)" : "rgba(50,55,62,.5)");
-      const gC = slatFill || ringColor || bC;
-      const squash = fanRy / fanRx;
-      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-        "ellipse",
-        {
-          cx,
-          cy,
-          rx: fanRx,
-          ry: fanRy,
-          fill: active ? "rgba(10,11,14,.95)" : "rgba(8,9,12,.9)",
-          stroke: "rgba(30,32,38,.6)",
-          strokeWidth: "0.7"
-        }
-      ), /* @__PURE__ */ React.createElement("g", { transform: "translate(" + cx + " " + cy + ") scale(1," + squash + ")" }, /* @__PURE__ */ React.createElement("g", { style: spinStyle }, Array.from({ length: 4 }, (_, i) => {
-        const ang = i * (Math.PI / 2);
-        const bx1 = fanRx * 0.15 * Math.cos(ang);
-        const by1 = fanRx * 0.15 * Math.sin(ang);
-        const bx2 = fanRx * 0.82 * Math.cos(ang + 0.55);
-        const by2 = fanRx * 0.82 * Math.sin(ang + 0.55);
-        const cpx = fanRx * 0.65 * Math.cos(ang + 0.28);
-        const cpy = fanRx * 0.65 * Math.sin(ang + 0.28);
-        return /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            key: i,
-            d: "M" + bx1 + " " + by1 + " Q" + cpx + " " + cpy + " " + bx2 + " " + by2,
-            fill: "none",
-            stroke: bC,
-            strokeWidth: "4",
-            strokeLinecap: "round",
-            opacity: "0.9"
-          }
-        );
-      }))), Array.from({ length: guardRings }, (_, i) => {
-        const t = (i + 1) / (guardRings + 0.3);
-        return /* @__PURE__ */ React.createElement(
-          "ellipse",
-          {
-            key: i,
-            cx,
-            cy,
-            rx: fanRx * t,
-            ry: fanRy * t,
-            fill: "none",
-            stroke: gC,
-            strokeWidth: active ? 0.9 : 0.7,
-            opacity: active ? 0.55 : 0.42
-          }
-        );
-      }), /* @__PURE__ */ React.createElement("line", { x1: cx - fanRx, y1: cy, x2: cx + fanRx, y2: cy, stroke: gC, strokeWidth: "0.8", opacity: active ? 0.45 : 0.34 }), /* @__PURE__ */ React.createElement("line", { x1: cx, y1: cy - fanRy, x2: cx, y2: cy + fanRy, stroke: gC, strokeWidth: "0.8", opacity: active ? 0.45 : 0.34 }), /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          x1: cx - fanRx * 0.7071,
-          y1: cy - fanRy * 0.7071,
-          x2: cx + fanRx * 0.7071,
-          y2: cy + fanRy * 0.7071,
-          stroke: gC,
-          strokeWidth: "0.65",
-          opacity: active ? 0.38 : 0.28
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "line",
-        {
-          x1: cx - fanRx * 0.7071,
-          y1: cy + fanRy * 0.7071,
-          x2: cx + fanRx * 0.7071,
-          y2: cy - fanRy * 0.7071,
-          stroke: gC,
-          strokeWidth: "0.65",
-          opacity: active ? 0.38 : 0.28
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "ellipse",
-        {
-          cx,
-          cy,
-          rx: fanRx * 0.98,
-          ry: fanRy * 0.98,
-          fill: "none",
-          stroke: ringColor || bC,
-          strokeWidth: "1.2",
-          opacity: active ? 0.6 : 0.45
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${cx - fanRx * 1.07} ${cy} A${fanRx * 1.07} ${fanRy * 1.07} 0 0 1 ${cx + fanRx * 1.07} ${cy}`,
-          fill: "none",
-          stroke: "rgba(165,170,180,.5)",
-          strokeWidth: "1",
-          opacity: active ? 0.55 : 0.42
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${cx - fanRx * 1.07} ${cy} A${fanRx * 1.07} ${fanRy * 1.07} 0 0 0 ${cx + fanRx * 1.07} ${cy}`,
-          fill: "none",
-          stroke: "rgba(8,9,11,.75)",
-          strokeWidth: "1",
-          opacity: active ? 0.6 : 0.5
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "ellipse",
-        {
-          cx,
-          cy,
-          rx: fanRx * 0.12,
-          ry: fanRy * 0.14,
-          fill: "#1a1c20",
-          stroke: "rgba(55,60,68,.6)",
-          strokeWidth: "0.8"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x,
-          y,
-          w,
-          h,
-          rx: 4,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("condenser_fan").title,
-          text: T("condenser_fan").text,
-          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
-        }
-      ));
-    }
-    function Condenser({ x, y, w, h, active, tierKey }) {
-      const isMini = tierKey === "mid_ge15";
-      const isBig = tierKey === "high_ge18";
-      const isFed = tierKey === "fedmin";
-      const cc = active ? condC : refReversed ? "rgba(18,18,55,.5)" : "rgba(55,18,18,.5)";
-      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x,
-          y,
-          w,
-          h,
-          rx: 9,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("condenser_cabinet").title,
-          text: T("condenser_cabinet").text,
-          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
-        }
-      ), isFed && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y,
-          width: w,
-          height: h,
-          rx: 9,
-          fill: active ? "#b9bdc5" : "#c4c8cf",
-          stroke: active ? "rgba(150,155,165,.9)" : "rgba(130,135,145,.8)",
-          strokeWidth: "1.2"
-        }
-      ), (() => {
-        const capH = Math.round(h * 0.2);
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x,
-            y,
-            width: w,
-            height: capH,
-            rx: 9,
-            fill: active ? "#3a3d42" : "#2e3035",
-            stroke: "rgba(20,22,26,.8)",
-            strokeWidth: "1"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${x + 9} ${y + 2} Q${x + w / 2} ${y - 1.5} ${x + w - 9} ${y + 2}`,
-            fill: "none",
-            stroke: "rgba(150,155,165,.4)",
-            strokeWidth: "1.1",
-            opacity: "0.7"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${x + 6} ${y + capH - 1.5} Q${x + w / 2} ${y + capH + 2} ${x + w - 6} ${y + capH - 1.5}`,
-            fill: "none",
-            stroke: "rgba(10,11,13,.6)",
-            strokeWidth: "1.3",
-            opacity: "0.6"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          CapFan,
-          {
-            x: x + 2,
-            y: y + 1,
-            w: w - 4,
-            h: capH - 2,
-            active,
-            bladeColor: active ? refReversed ? "rgba(100,160,220,.8)" : "rgba(220,90,90,.7)" : "rgba(45,48,55,.6)",
-            slatFill: active ? "rgba(44,47,54,.88)" : "rgba(36,39,46,.92)",
-            ringColor: "rgba(120,125,135,.55)",
-            slatCount: Math.max(3, Math.floor((capH - 2) * 0.7 / 6.5))
-          }
-        ), Array.from({ length: 8 }, (_, i) => {
-          const ang = i / 8 * Math.PI * 2;
-          const rx = w / 2 - 3, ry = capH / 2 - 2.5;
-          return /* @__PURE__ */ React.createElement(
-            "circle",
-            {
-              key: i,
-              cx: x + w / 2 + rx * Math.cos(ang),
-              cy: y + capH / 2 + ry * Math.sin(ang),
-              r: 1.6,
-              fill: "rgba(50,55,62,.9)",
-              stroke: "rgba(80,85,95,.5)",
-              strokeWidth: "0.5"
-            }
-          );
-        }));
-      })(), (() => {
-        const capH = Math.round(h * 0.2);
-        const slotY = y + capH + 3, slotH = h - capH - 6;
-        const rowH = 5.5, toothW = 8;
-        const rows = Math.max(6, Math.floor(slotH / rowH));
-        const teeth = Math.floor((w - 8) / toothW);
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: x + 2,
-            y: slotY,
-            width: w - 4,
-            height: slotH,
-            rx: "1",
-            fill: active ? "rgba(150,154,162,.4)" : "rgba(160,164,172,.38)"
-          }
-        ), Array.from({ length: rows }, (_, r) => {
-          const rowY = slotY + 3 + r * rowH;
-          let d = `M${x + 4} ${rowY}`;
-          for (let t = 0; t < teeth; t++) {
-            const tx = x + 4 + t * toothW;
-            d += ` L${tx + toothW / 2} ${rowY - 1.7} L${tx + toothW} ${rowY}`;
-          }
-          return /* @__PURE__ */ React.createElement("g", { key: r }, /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(210,213,218,.55)" : "rgba(220,223,228,.5)", strokeWidth: "0.5", transform: "translate(0,-0.35)" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(90,95,105,.5)" : "rgba(80,85,95,.48)", strokeWidth: "0.5", transform: "translate(0,0.35)" }));
-        }));
-      })(), (() => {
-        const capH = Math.round(h * 0.2);
-        const bcx = x + w / 2, bcy = y + capH + Math.round((h - capH) * 0.38);
-        const br = Math.round(Math.min(w, h) * 0.09);
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "ellipse",
-          {
-            cx: bcx,
-            cy: bcy,
-            rx: br,
-            ry: br * 0.82,
-            fill: "rgba(40,43,50,.6)",
-            stroke: "rgba(150,155,165,.55)",
-            strokeWidth: "1"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "ellipse",
-          {
-            cx: bcx,
-            cy: bcy,
-            rx: br * 0.72,
-            ry: br * 0.6,
-            fill: "none",
-            stroke: "rgba(150,155,165,.35)",
-            strokeWidth: "0.6"
-          }
-        ));
-      })(), [[x + 4, y + h - 4], [x + w - 4, y + h - 4]].map(([fx, fy], i) => /* @__PURE__ */ React.createElement(
-        "circle",
-        {
-          key: i,
-          cx: fx,
-          cy: fy,
-          r: 2.5,
-          fill: "rgba(90,95,105,.8)",
-          stroke: "rgba(60,65,75,.6)",
-          strokeWidth: "0.7"
-        }
-      )), (() => {
-        const capH = Math.round(h * 0.2);
-        const bodyH = h - capH;
-        const cW = Math.round(w * 0.3), cH = Math.round(bodyH * 0.42);
-        const cX = x + w - cW - 6, cY = y + capH + bodyH - cH - 10;
-        const domeH = Math.round(cH * 0.22);
-        return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: cX,
-            y: cY + domeH,
-            width: cW,
-            height: cH - domeH,
-            rx: "3",
-            fill: "rgba(100,105,115,.18)",
-            stroke: active ? "rgba(180,80,80,.6)" : "rgba(70,75,85,.4)",
-            strokeWidth: active ? 1.2 : 0.7,
-            opacity: active ? 0.9 : 0.55
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "ellipse",
-          {
-            cx: cX + cW / 2,
-            cy: cY + domeH,
-            rx: cW / 2,
-            ry: domeH,
-            fill: "rgba(110,115,125,.2)",
-            stroke: active ? "rgba(180,80,80,.6)" : "rgba(70,75,85,.4)",
-            strokeWidth: active ? 1.2 : 0.7,
-            opacity: active ? 0.9 : 0.55
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: cX + cW * 0.6,
-            y: cY - 6,
-            width: 4,
-            height: domeH + 6,
-            rx: "1",
-            fill: active ? line1C : "rgba(60,65,75,.5)",
-            opacity: active ? 0.65 : 0.4
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: cX - 6,
-            y: cY + domeH + Math.round(cH * 0.25),
-            width: 8,
-            height: 4,
-            rx: "1",
-            fill: active ? line2C : "rgba(60,65,75,.5)",
-            opacity: active ? 0.65 : 0.4
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "text",
-          {
-            x: cX + cW / 2,
-            y: y + h - 22,
-            textAnchor: "middle",
-            fill: active ? "rgba(180,80,80,.6)" : "rgba(80,85,95,.45)",
-            fontSize: "11",
-            fontFamily: "monospace"
-          },
-          "COMP."
-        ), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: cX - 6,
-            y: cY - 6,
-            w: cW + 12,
-            h: cH + domeH + 12,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("compressor").title,
-            text: T("compressor").text,
-            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
-            highlight: true
-          }
-        ));
-      })()), isMini && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y,
-          width: w,
-          height: h,
-          rx: 6,
-          fill: active ? refReversed ? "#a5aab4" : "#bec2c8" : "#b5b9bf",
-          stroke: active ? cc : "rgba(120,124,132,.8)",
-          strokeWidth: active ? 1.8 : 1.4
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: x + 4,
-          y: y + 2,
-          width: w - 8,
-          height: Math.round(h * 0.1),
-          rx: "2",
-          fill: "rgba(20,22,26,.55)",
-          stroke: "rgba(150,154,162,.4)",
-          strokeWidth: "0.6"
-        }
-      ), Array.from({ length: 3 }, (_, i) => /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          key: i,
-          x: x + 6,
-          y: y + 4 + i * 4,
-          width: w - 12,
-          height: 2,
-          rx: "0.5",
-          fill: "rgba(15,17,20,.85)",
-          stroke: "rgba(90,95,105,.4)",
-          strokeWidth: "0.3"
-        }
-      )), (() => {
-        const fanAreaW = Math.round(w * 0.68);
-        const fanAreaH = h - Math.round(h * 0.1) - 4;
-        const fanAreaY = y + Math.round(h * 0.1) + 2;
-        const fCX = x + fanAreaW / 2, fCY = fanAreaY + fanAreaH / 2;
-        const fR = Math.round(Math.min(fanAreaW, fanAreaH) * 0.41);
-        const meshLines = [];
-        const pitch = 4.2;
-        for (let i = -Math.ceil((fanAreaW + fanAreaH) / pitch); i <= Math.ceil((fanAreaW + fanAreaH) / pitch); i++) {
-          meshLines.push(i);
-        }
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: x + 2,
-            y: fanAreaY,
-            width: fanAreaW - 2,
-            height: fanAreaH,
-            rx: "3",
-            fill: "rgba(10,11,14,.55)",
-            stroke: "rgba(150,154,162,.4)",
-            strokeWidth: "0.7"
-          }
-        ), [[x + 7, fanAreaY + 5], [x + fanAreaW - 6, fanAreaY + 5], [x + 7, fanAreaY + fanAreaH - 5], [x + fanAreaW - 6, fanAreaY + fanAreaH - 5]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement("circle", { key: i, cx: sx, cy: sy, r: 1.6, fill: "rgba(35,38,44,.9)", stroke: "rgba(150,154,162,.4)", strokeWidth: "0.4" })), /* @__PURE__ */ React.createElement("clipPath", { id: "midfan-clip-" + active }, /* @__PURE__ */ React.createElement("circle", { cx: fCX, cy: fCY, r: fR + 3 })), /* @__PURE__ */ React.createElement("g", { clipPath: `url(#midfan-clip-${active})`, opacity: "0.5" }, meshLines.map((i) => /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            key: "a" + i,
-            x1: fCX - fR - 3 + i * pitch,
-            y1: fCY - fR - 3,
-            x2: fCX - fR - 3 + i * pitch + 2 * (fR + 3),
-            y2: fCY + fR + 3,
-            stroke: "rgba(70,75,85,.7)",
-            strokeWidth: "0.4"
-          }
-        )), meshLines.map((i) => /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            key: "b" + i,
-            x1: fCX - fR - 3 + i * pitch,
-            y1: fCY + fR + 3,
-            x2: fCX - fR - 3 + i * pitch + 2 * (fR + 3),
-            y2: fCY - fR - 3,
-            stroke: "rgba(70,75,85,.7)",
-            strokeWidth: "0.4"
-          }
-        ))), /* @__PURE__ */ React.createElement("circle", { cx: fCX, cy: fCY, r: fR + 8, fill: "none", stroke: "rgba(160,164,172,.5)", strokeWidth: "2.5" }), /* @__PURE__ */ React.createElement(CondenserFan, { cx: fCX, cy: fCY, r: fR, active, fast: !heatMode || isMildHp }));
-      })(), (() => {
-        const panelX = x + Math.round(w * 0.7);
-        const panelW = w - Math.round(w * 0.7) - 2;
-        const panelY = y + Math.round(h * 0.1) + 4;
-        const panelH = h - Math.round(h * 0.1) - 8;
-        const br = Math.round(Math.min(w, h) * 0.09);
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: panelX,
-            y: panelY,
-            width: panelW,
-            height: panelH,
-            rx: "4",
-            fill: active ? "#b0b4ba" : "#a8acb2",
-            stroke: "rgba(90,94,102,.7)",
-            strokeWidth: "0.8"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "ellipse",
-          {
-            cx: panelX + panelW / 2,
-            cy: panelY + panelH * 0.28,
-            rx: br,
-            ry: br * 0.8,
-            fill: "rgba(30,32,38,.6)",
-            stroke: "rgba(190,194,200,.5)",
-            strokeWidth: "0.9"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "ellipse",
-          {
-            cx: panelX + panelW / 2,
-            cy: panelY + panelH * 0.28,
-            rx: br * 0.7,
-            ry: br * 0.56,
-            fill: "none",
-            stroke: "rgba(190,194,200,.3)",
-            strokeWidth: "0.5"
-          }
-        ), [0.5, 0.63].map((ty, i) => /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            key: i,
-            x1: panelX + 2,
-            y1: panelY + panelH * ty,
-            x2: panelX + panelW - 2,
-            y2: panelY + panelH * ty,
-            stroke: "rgba(80,84,90,.4)",
-            strokeWidth: "0.6"
-          }
-        )), /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: panelX + 3,
-            y: panelY + panelH * 0.7,
-            width: panelW - 6,
-            height: panelH * 0.2,
-            rx: "2",
-            fill: active ? "rgba(20,25,35,.85)" : "rgba(16,18,24,.75)",
-            stroke: "rgba(60,65,75,.5)",
-            strokeWidth: "0.6"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "circle",
-          {
-            cx: panelX + panelW / 2,
-            cy: panelY + panelH * 0.8,
-            r: 3,
-            fill: active ? cc : "rgba(40,45,55,.6)",
-            stroke: active ? cc : "rgba(90,95,105,.4)",
-            strokeWidth: "0.7"
-          }
-        ), active && /* @__PURE__ */ React.createElement(
-          "circle",
-          {
-            cx: panelX + panelW / 2,
-            cy: panelY + panelH * 0.8,
-            r: 1.7,
-            fill: "#fff",
-            className: "glow-pulse"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "text",
-          {
-            x: panelX + panelW / 2,
-            y: panelY + panelH * 0.87,
-            textAnchor: "middle",
-            fill: active ? cc : "rgba(200,204,210,.6)",
-            fontSize: "8.5",
-            fontFamily: "sans-serif",
-            fontWeight: "700"
-          },
-          "VS"
-        ));
-      })(), (() => {
-        const panelX = x + Math.round(w * 0.7);
-        const panelW = w - Math.round(w * 0.7) - 2;
-        const panelY = y + Math.round(h * 0.1) + 4;
-        const panelH = h - Math.round(h * 0.1) - 8;
-        return /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: panelX - 4,
-            y: panelY - 4,
-            w: panelW + 8,
-            h: panelH + 8,
-            rx: 4,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("compressor").title,
-            text: T("compressor").text,
-            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
-            highlight: true
-          }
-        );
-      })()), isBig && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y,
-          width: w,
-          height: h,
-          rx: 10,
-          fill: active ? refReversed ? "#767c8e" : "#8c9096" : "#82868c",
-          stroke: active ? cc : "rgba(100,104,112,.85)",
-          strokeWidth: active ? 1.8 : 1.4
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y: y + 4,
-          width: 5,
-          height: h - 8,
-          rx: "1.5",
-          fill: active ? "#6d7178" : "#65686f",
-          stroke: "rgba(50,54,60,.7)",
-          strokeWidth: "0.8"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: x + w - 5,
-          y: y + 4,
-          width: 5,
-          height: h - 8,
-          rx: "1.5",
-          fill: active ? "#6d7178" : "#65686f",
-          stroke: "rgba(50,54,60,.7)",
-          strokeWidth: "0.8"
-        }
-      ), (() => {
-        const capH = Math.round(h * 0.24);
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x,
-            y,
-            width: w,
-            height: capH,
-            rx: 10,
-            fill: "#1e2024",
-            stroke: "rgba(150,154,162,.55)",
-            strokeWidth: "1.2"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${x + 10} ${y + 2} Q${x + w / 2} ${y - 1.5} ${x + w - 10} ${y + 2}`,
-            fill: "none",
-            stroke: "rgba(150,155,165,.4)",
-            strokeWidth: "1.1",
-            opacity: "0.7"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${x + 7} ${y + capH - 1.5} Q${x + w / 2} ${y + capH + 2} ${x + w - 7} ${y + capH - 1.5}`,
-            fill: "none",
-            stroke: "rgba(10,11,13,.6)",
-            strokeWidth: "1.3",
-            opacity: "0.6"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          CapFan,
-          {
-            x: x + 2,
-            y: y + 1,
-            w: w - 4,
-            h: capH - 2,
-            active,
-            bladeColor: active ? refReversed ? "rgba(100,160,220,.7)" : "rgba(220,90,90,.65)" : "rgba(40,44,52,.6)",
-            slatFill: active ? "rgba(24,27,33,.88)" : "rgba(18,21,27,.92)",
-            ringColor: active ? cc : "rgba(100,105,115,.55)",
-            slatCount: Math.max(9, Math.floor((capH - 4) * 0.72 / 2.6))
-          }
-        ), Array.from({ length: 8 }, (_, i) => {
-          const ang = i / 8 * Math.PI * 2;
-          const rx = w / 2 - 3, ry = capH / 2 - 2.5;
-          return /* @__PURE__ */ React.createElement(
-            "circle",
-            {
-              key: i,
-              cx: x + w / 2 + rx * Math.cos(ang),
-              cy: y + capH / 2 + ry * Math.sin(ang),
-              r: 1.8,
-              fill: "rgba(35,38,44,.9)",
-              stroke: "rgba(55,60,68,.5)",
-              strokeWidth: "0.5"
-            }
-          );
-        }));
-      })(), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y: y + Math.round(h * 0.24) + 2,
-          width: w,
-          height: 2,
-          fill: active ? cc : "rgba(120,128,145,.5)",
-          opacity: active ? 0.9 : 0.55
-        }
-      ), (() => {
-        const capH = Math.round(h * 0.24);
-        const bodyY = y + capH + 5, bodyH = h - capH - 11;
-        const midX = x + w / 2;
-        const finW = 2.2, finGap = 0.9, step = finW + finGap;
-        const cols = Math.max(6, Math.floor((w - 14) / step));
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: x + 6,
-            y: bodyY,
-            width: w - 12,
-            height: bodyH,
-            rx: "1.5",
-            fill: active ? "rgba(120,124,130,.35)" : "rgba(110,114,120,.32)",
-            stroke: "rgba(80,84,90,.45)",
-            strokeWidth: "0.6"
-          }
-        ), Array.from({ length: cols }, (_, c) => {
-          const fx = x + 7 + c * step;
-          return /* @__PURE__ */ React.createElement(
-            "rect",
-            {
-              key: c,
-              x: fx,
-              y: bodyY + 2,
-              width: finW,
-              height: bodyH - 4,
-              rx: "0.6",
-              fill: c % 2 === 0 ? "rgba(145,149,155,.55)" : "rgba(70,74,80,.5)"
-            }
-          );
-        }), /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: midX,
-            y1: bodyY,
-            x2: midX,
-            y2: bodyY + bodyH,
-            stroke: "rgba(55,59,65,.6)",
-            strokeWidth: "1.4"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: midX + 1.2,
-            y1: bodyY,
-            x2: midX + 1.2,
-            y2: bodyY + bodyH,
-            stroke: "rgba(170,174,180,.3)",
-            strokeWidth: "0.6"
-          }
-        ), (() => {
-          const bcx = x + w / 2, bcy = bodyY + bodyH * 0.22;
-          const br = Math.round(Math.min(w, h) * 0.085);
-          return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-            "ellipse",
-            {
-              cx: bcx,
-              cy: bcy,
-              rx: br,
-              ry: br * 0.78,
-              fill: "rgba(30,32,38,.6)",
-              stroke: "rgba(190,194,200,.5)",
-              strokeWidth: "1"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "ellipse",
-            {
-              cx: bcx,
-              cy: bcy,
-              rx: br * 0.72,
-              ry: br * 0.58,
-              fill: "none",
-              stroke: "rgba(190,194,200,.32)",
-              strokeWidth: "0.6"
-            }
-          ));
-        })());
-      })(), active && /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y,
-          width: w,
-          height: h,
-          rx: 10,
-          fill: refReversed ? "rgba(35,137,224,.04)" : "rgba(239,68,68,.03)",
-          stroke: "none"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x,
-          y: y + h - 6,
-          width: w,
-          height: 6,
-          rx: 2,
-          fill: "#14151a",
-          stroke: "rgba(20,22,28,.8)",
-          strokeWidth: "0.7"
-        }
-      ), (() => {
-        const capH = Math.round(h * 0.24);
-        const bodyH = h - capH;
-        const cW = Math.round(w * 0.28), cH = Math.round(bodyH * 0.45);
-        const cX = x + w - cW - 8, cY = y + capH + bodyH - cH - 10;
-        const domeH = Math.round(cH * 0.22);
-        return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: cX,
-            y: cY + domeH,
-            width: cW,
-            height: cH - domeH,
-            rx: "3",
-            fill: "rgba(20,22,28,.65)",
-            stroke: active ? cc : "rgba(70,75,85,.4)",
-            strokeWidth: active ? 1.2 : 0.7,
-            opacity: active ? 0.9 : 0.55
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "ellipse",
-          {
-            cx: cX + cW / 2,
-            cy: cY + domeH,
-            rx: cW / 2,
-            ry: domeH,
-            fill: "rgba(25,28,35,.7)",
-            stroke: active ? cc : "rgba(70,75,85,.4)",
-            strokeWidth: active ? 1.2 : 0.7,
-            opacity: active ? 0.9 : 0.55
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: cX + cW * 0.6,
-            y: cY - 6,
-            width: 4,
-            height: domeH + 6,
-            rx: "1",
-            fill: active ? line1C : "rgba(60,65,75,.5)",
-            opacity: active ? 0.7 : 0.4
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: cX - 6,
-            y: cY + domeH + Math.round(cH * 0.25),
-            width: 8,
-            height: 4,
-            rx: "1",
-            fill: active ? line2C : "rgba(60,65,75,.5)",
-            opacity: active ? 0.7 : 0.4
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "text",
-          {
-            x: cX + cW / 2,
-            y: y + h - 22,
-            textAnchor: "middle",
-            fill: active ? cc : "rgba(80,85,95,.45)",
-            fontSize: "11",
-            fontFamily: "monospace"
-          },
-          "COMP."
-        ), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: cX - 6,
-            y: cY - 6,
-            w: cW + 12,
-            h: cH + domeH + 12,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("compressor").title,
-            text: T("compressor").text,
-            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
-            highlight: true
-          }
-        ));
-      })()));
     }
     function CondensatePump({ x, y, w = 88, h = 28 }) {
       return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement(
@@ -4050,7 +4097,7 @@
           fill: "rgba(10,10,16,.6)",
           stroke: "none"
         }
-      ), a.insulation && (isSpray ? /* @__PURE__ */ React.createElement("g", null, Array.from({ length: 20 }, (_, i) => {
+      ), a.insulation && (isSpray ? /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, Array.from({ length: 20 }, (_, i) => {
         const t = i / 19, sx = t * RIDGE_X, sy = EAVE_Y - (EAVE_Y - RIDGE_Y) * t;
         const ang = -Math.atan2(EAVE_Y - RIDGE_Y, RIDGE_X) * 180 / Math.PI;
         return /* @__PURE__ */ React.createElement(
@@ -4084,7 +4131,7 @@
             transform: `rotate(${ang},${sx},${sy + 7})`
           }
         );
-      })) : /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("rect", { x: "0", y: DECK_Y - 22, width: HOUSE_W, height: 24, fill: "rgba(255,130,170,.18)", stroke: "rgba(255,140,180,.08)", strokeWidth: "0.5" }), Array.from({ length: Math.floor(HOUSE_W / 17) }, (_, i) => /* @__PURE__ */ React.createElement(
+      })) : /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement("rect", { x: "0", y: DECK_Y - 22, width: HOUSE_W, height: 24, fill: "rgba(255,130,170,.18)", stroke: "rgba(255,140,180,.08)", strokeWidth: "0.5" }), Array.from({ length: Math.floor(HOUSE_W / 17) }, (_, i) => /* @__PURE__ */ React.createElement(
         "ellipse",
         {
           key: i,
@@ -4331,7 +4378,25 @@
       )), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "fu" + a.stage + a.furnace_eff, filter: "url(#shadow)" }, (() => {
         const flueX = FURN_X + FURN_W * 0.7;
         const flueRoofY = (flueX <= RIDGE_X ? EAVE_Y - flueX / RIDGE_X * (EAVE_Y - RIDGE_Y) : RIDGE_Y + (flueX - RIDGE_X) / (HOUSE_W - RIDGE_X) * (EAVE_Y - RIDGE_Y)) + 14;
-        return /* @__PURE__ */ React.createElement(FurnaceH, { x: FURN_X, y: UNIT_Y, w: FURN_W, h: UNIT_H, active: furnaceActive, roofY: flueRoofY });
+        return /* @__PURE__ */ React.createElement(
+          FurnaceH,
+          {
+            x: FURN_X,
+            y: UNIT_Y,
+            w: FURN_W,
+            h: UNIT_H,
+            active: furnaceActive,
+            roofY: flueRoofY,
+            onEditStep,
+            lang,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            blowerActive,
+            is90,
+            isComm,
+            blowerMotorLabel: BLOWER_MOTOR
+          }
+        );
       })(), /* @__PURE__ */ React.createElement(
         "text",
         {
@@ -4397,7 +4462,8 @@
             height: UNIT_H,
             rx: "4",
             fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)",
-            stroke: "none"
+            stroke: "none",
+            style: { pointerEvents: "none" }
           }
         ), /* @__PURE__ */ React.createElement(
           "rect",
@@ -4410,7 +4476,24 @@
             fill: "url(#silver)",
             opacity: ".65"
           }
-        ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: ACOIL_X, y: UNIT_Y, w: ACOIL_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + 18, cy: UNIT_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + ACOIL_W - 7, cy: UNIT_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: ACOIL_X + ACOIL_W / 2 + 5, cy: UNIT_Y + 3.5, w: 12 }), /* @__PURE__ */ React.createElement(ACoilH, { x: ACOIL_X + 8, y: UNIT_Y + 12, w: ACOIL_W - 16, h: UNIT_H - 20, active }), /* @__PURE__ */ React.createElement("rect", { x: ACOIL_X, y: UNIT_Y + UNIT_H - 2, width: ACOIL_W, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: ACOIL_X, y: UNIT_Y, w: ACOIL_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + 18, cy: UNIT_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + ACOIL_W - 7, cy: UNIT_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: ACOIL_X + ACOIL_W / 2 + 5, cy: UNIT_Y + 3.5, w: 12 }), /* @__PURE__ */ React.createElement(
+          ACoilH,
+          {
+            x: ACOIL_X + 8,
+            y: UNIT_Y + 12,
+            w: ACOIL_W - 16,
+            h: UNIT_H - 20,
+            active,
+            evapC,
+            evapC2,
+            hasUV,
+            infoKey: acoilInfoKey(),
+            onEditStep,
+            lang,
+            vw: SVG_VW,
+            vh: SVG_VH
+          }
+        ), /* @__PURE__ */ React.createElement("rect", { x: ACOIL_X, y: UNIT_Y + UNIT_H - 2, width: ACOIL_W, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
           "text",
           {
             x: ACOIL_X + ACOIL_W / 2,
@@ -4769,7 +4852,16 @@
               w: COND_W,
               h: COND_H,
               active: condenserActive,
-              tierKey: a.cond_tier
+              tierKey: a.cond_tier,
+              condC,
+              refReversed,
+              line1C,
+              line2C,
+              fanFast: !heatMode || isMildHp,
+              onEditStep,
+              lang,
+              vw: SVG_VW,
+              vh: SVG_VH
             }
           )
         }
@@ -5290,7 +5382,7 @@
       ), (() => {
         const rW = ROOF_W, rEave = ROOF_EAVE_Y, rRidge = ROOF_RIDGE_Y, rMid = ROOF_MID_X;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("line", { x1: "0", y1: rEave, x2: rMid, y2: rRidge, stroke: "rgba(160,152,128,.55)", strokeWidth: "3" }), /* @__PURE__ */ React.createElement("line", { x1: rMid, y1: rRidge, x2: rW, y2: rEave, stroke: "rgba(160,152,128,.55)", strokeWidth: "3" }), /* @__PURE__ */ React.createElement("polygon", { points: `0,${rEave} ${rMid},${rRidge} ${rW},${rEave}`, fill: "rgba(10,10,16,.55)" }), /* @__PURE__ */ React.createElement("rect", { x: rMid - 5, y: rRidge - 2, width: "10", height: "7", rx: "2", fill: "rgba(160,155,135,.17)" }), [rW * 0.15, rW * 0.32].map((rx, i) => /* @__PURE__ */ React.createElement("line", { key: "lr" + i, x1: rx, y1: DECK_Y, x2: rMid, y2: rRidge, stroke: "rgba(88,68,32,.1)", strokeWidth: "1.5" })), [rW * 0.68, rW * 0.85].map((rx, i) => /* @__PURE__ */ React.createElement("line", { key: "rr" + i, x1: rx, y1: DECK_Y, x2: rMid, y2: rRidge, stroke: "rgba(88,68,32,.1)", strokeWidth: "1.5" })));
-      })(), a.insulation && (isSpray ? /* @__PURE__ */ React.createElement(React.Fragment, null, (() => {
+      })(), a.insulation && (isSpray ? /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, (() => {
         const rW = hasCond ? HOUSE_W : VW - 8;
         const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));
         const rEave = rRise + 12, rRidge = 8, rMid = rW / 2;
@@ -5329,7 +5421,7 @@
             }
           );
         }), /* @__PURE__ */ React.createElement("text", { x: "22", y: DECK_Y - 24, fill: "rgba(232,236,246,.3)", fontSize: "12", fontFamily: "monospace" }, "SPRAY FOAM"));
-      })()) : /* @__PURE__ */ React.createElement(React.Fragment, null, Array.from({ length: Math.floor((hasCond ? HOUSE_W : VW - 8) / 17) }, (_, i) => /* @__PURE__ */ React.createElement(
+      })()) : /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, Array.from({ length: Math.floor((hasCond ? HOUSE_W : VW - 8) / 17) }, (_, i) => /* @__PURE__ */ React.createElement(
         "ellipse",
         {
           key: i,
@@ -5614,7 +5706,8 @@
             height: ACOIL_H,
             rx: "5",
             fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)",
-            stroke: "none"
+            stroke: "none",
+            style: { pointerEvents: "none" }
           }
         ), /* @__PURE__ */ React.createElement(
           "rect",
@@ -5627,7 +5720,24 @@
             fill: "url(#silver)",
             opacity: ".65"
           }
-        ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: ACOIL_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: ACOIL_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: ACOIL_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: ACOIL_Y + 3.5, w: 13 }), hasFurnace && /* @__PURE__ */ React.createElement(CabinetPlate, { x: UNIT_X + 8, y: ACOIL_Y + 11, w: 36 }), hasFurnace ? /* @__PURE__ */ React.createElement(ACoilV, { x: UNIT_X + 8, y: COIL_BOX_Y, w: UNIT_W - 16, h: COIL_BOX_H, active }) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: ACOIL_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: ACOIL_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: ACOIL_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: ACOIL_Y + 3.5, w: 13 }), hasFurnace && /* @__PURE__ */ React.createElement(CabinetPlate, { x: UNIT_X + 8, y: ACOIL_Y + 11, w: 36 }), hasFurnace ? /* @__PURE__ */ React.createElement(
+          ACoilV,
+          {
+            x: UNIT_X + 8,
+            y: COIL_BOX_Y,
+            w: UNIT_W - 16,
+            h: COIL_BOX_H,
+            active,
+            evapC,
+            evapC2,
+            hasUV,
+            infoKey: acoilInfoKey(),
+            onEditStep,
+            lang,
+            vw: SVG_VW,
+            vh: SVG_VH
+          }
+        ) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "line",
           {
             x1: UNIT_X,
@@ -5656,7 +5766,11 @@
             cy: ACOIL_Y + ACOIL_H * 0.33,
             r: Math.min(UNIT_W * 0.24, ACOIL_H * 0.105),
             spd: blowerActive ? 1.4 : 0.4,
-            active: blowerActive
+            active: blowerActive,
+            onEditStep,
+            lang,
+            vw: SVG_VW,
+            vh: SVG_VH
           }
         ), /* @__PURE__ */ React.createElement(
           "text",
@@ -5680,7 +5794,24 @@
             fontFamily: "monospace"
           },
           BLOWER_MOTOR
-        ), /* @__PURE__ */ React.createElement(ACoilV, { x: UNIT_X + 8, y: COIL_BOX_Y, w: UNIT_W - 16, h: COIL_BOX_H, active })), hasCond && !hasFurnace && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement(
+          ACoilV,
+          {
+            x: UNIT_X + 8,
+            y: COIL_BOX_Y,
+            w: UNIT_W - 16,
+            h: COIL_BOX_H,
+            active,
+            evapC,
+            evapC2,
+            hasUV,
+            infoKey: acoilInfoKey(),
+            onEditStep,
+            lang,
+            vw: SVG_VW,
+            vh: SVG_VH
+          }
+        )), hasCond && !hasFurnace && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "path",
           {
             d: `M${UNIT_X + UNIT_W} ${LS_Y1} L${UNIT_X + UNIT_W + 28} ${LS_Y1}`,
@@ -5771,7 +5902,8 @@
           height: FURN_H,
           rx: "5",
           fill: O + ".04)",
-          stroke: "none"
+          stroke: "none",
+          style: { pointerEvents: "none" }
         }
       ), /* @__PURE__ */ React.createElement(
         "rect",
@@ -5880,7 +6012,11 @@
           cy: FURN_Y + FURN_H * 0.7,
           r: Math.min(UNIT_W * 0.32, FURN_H * 0.155),
           spd: blowerActive ? 1.55 : 0.5,
-          active: blowerActive
+          active: blowerActive,
+          onEditStep,
+          lang,
+          vw: SVG_VW,
+          vh: SVG_VH
         }
       ), /* @__PURE__ */ React.createElement(
         "text",
@@ -5921,7 +6057,7 @@
           return roofYAtX + 14;
         })();
         const ELBOW_R = 8;
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
           "rect",
           {
             x: EXIT_X - PIPE_W / 2,
@@ -6366,7 +6502,16 @@
               w: COND_W,
               h: COND_H,
               active: condenserActive,
-              tierKey: a.cond_tier
+              tierKey: a.cond_tier,
+              condC,
+              refReversed,
+              line1C,
+              line2C,
+              fanFast: !heatMode || isMildHp,
+              onEditStep,
+              lang,
+              vw: SVG_VW,
+              vh: SVG_VH
             }
           )
         }
