@@ -56,7 +56,7 @@ function getOpts(stepId, answers){
     case 'plenum':return[
       {v:'ductboard',label:'Ductboard plenum',  desc:'Standard choice, good insulation. Typical lifespan 10–15 years.'},
       {v:'metal',    label:'Sheet metal plenum',desc:'More durable, lasts 25+ years, better for indoor air quality.'},
-      {v:'none',     label:'Keep existing',     desc:'Good condition already - we connect directly, saving on labor.'},
+      {v:'none',     label:'Keep existing plenum', desc:'Good condition already - we connect directly, saving on labor.'},
     ];
     case 'thermostat':
       if(answers.cond_tier==='high_ge18')return[
