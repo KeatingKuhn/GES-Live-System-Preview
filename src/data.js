@@ -97,6 +97,82 @@ export function getOpts(stepId, answers){
   }
 }
 
+// ─── SPANISH TRANSLATIONS (wizard content only) ────────────────
+// Scoped deliberately: covers the splash screen, every step's question/
+// hint/options, info panels, nav/CTA copy, the done-screen review grid,
+// and the pricing flow - everything a homeowner reads while going
+// through the build. NOT translated: the live SVG diagram's own
+// technical zone labels (canvas.js - hundreds of fixed-width schematic
+// labels like "RETURN PLENUM"/"A-COIL", built for a fixed layout, not
+// meant to carry translated text; a Spanish speaker cares about the
+// questions and the price, not the wiring-diagram labels) and the
+// long-form ductwork "considerations" education block on the result
+// screen (supplementary, not part of the core flow). Same kind of
+// scoping call as leaving the diagram out of print output.
+// Overlaid onto the English STEPS/getOpts output at render time (see
+// the `lang` handling in app.js) rather than a parallel English dict,
+// so there's exactly one source of truth for English and no risk of the
+// two drifting apart - only the Spanish override needs to exist here.
+export const CHAPTERS_ES=['LO BÁSICO','EL MOTOR','CONFORT','TOQUES FINALES'];
+export const STEPS_ES={
+  location:   {q:'¿Dónde está su unidad interior?',      hint:'Define el diseño de todo su sistema.'},
+  indoor_type:{q:'¿Qué tipo de unidad interior?',          hint:'¿Horno o manejador de aire?\nHorno = Calefacción a gas.\nManejador de aire = Todo eléctrico.'},
+  insulation: {q:'¿Fibra de vidrio o espuma aislante?',    hint:'Determina la eficiencia de su horno.'},
+  plenum:     {q:'¿Necesita un plenum de suministro nuevo?', hint:'Alimenta aire acondicionado a sus ductos.'},
+  cond_tier:  {q:'Elija su nivel de eficiencia.',          hint:'Mayor eficiencia, facturas mensuales más bajas.'},
+  system_for: {q:'¿Bomba de calor o solo enfriamiento?',   hint:'La bomba de calor hace más; el A/C solo enfría.'},
+  thermostat: {q:'¿Qué termostato?',                       hint:'Los modelos Wi-Fi ahorran 10–15% en su factura.'},
+  purif:      {q:'¿Algún complemento?',                    hint:'La filtración viene incluida; agregue más aquí.'},
+  dehu:       {q:'¿Agregar un deshumidificador?',          hint:'Funciona solo; sin cubetas que vaciar.'},
+  extras:     {q:'¿Complementos finales?',                 hint:'Bomba de condensado o sistema de aire fresco ERV.'},
+};
+export const OPTS_ES={
+  location:{
+    attic: {label:'Ático',  desc:'Instalación horizontal, la más común en los áticos de Austin.'},
+    closet:{label:'Clóset', desc:'Unidad de flujo ascendente en un pasillo o clóset de servicio.'},
+  },
+  indoor_type:{
+    furnace:{label:'Horno - Calefacción a gas',           desc:'Lo más común en Austin'},
+    ah:     {label:'Manejador de Aire - Todo eléctrico',  desc:'Con calefacción auxiliar instalada'},
+  },
+  insulation:{
+    fiberglass:{label:'Fibra de vidrio',   desc:'Ático ventilado - se combina con un horno de 80% AFUE. La mayoría de las casas en Austin lo tienen.'},
+    spray:     {label:'Espuma aislante',   desc:'Ático sellado - requiere un horno de 90% AFUE con chimenea de PVC. Más fresco y eficiente.'},
+  },
+  plenum:{
+    ductboard:{label:'Plenum de ductboard',        desc:'Opción estándar, buen aislamiento. Vida útil típica de 10–15 años.'},
+    metal:    {label:'Plenum de lámina metálica',  desc:'Más duradero, dura 25+ años, mejor para la calidad del aire interior.'},
+    none:     {label:'Conservar el plenum actual', desc:'Ya está en buen estado - conectamos directamente, ahorrando en mano de obra.'},
+  },
+  thermostat:{
+    proprietary:{label:'Termostato Comunicante',  desc:'Requerido en este nivel para una gradación precisa y diagnósticos completos.'},
+    basic:      {label:'Programable Básico',      desc:'Confiable, sin app ni suscripción. Configure su horario y listo.'},
+    wifi:       {label:'Inteligente Wi-Fi',       desc:'Contrólelo desde su teléfono, aprende sus hábitos. Ahorra 10–15% en su factura.'},
+  },
+  purif:{
+    uv:     {label:'Sistema de Luz UV',          desc:'Mantiene limpio el serpentín evaporador para una eficiencia duradera.'},
+    ionizer:{label:'Ionizador / Plasma',         desc:'Neutraliza partículas, olores y COV en el aire de sus ductos.'},
+    surge:  {label:'Protector de Sobrevoltaje',  desc:'Protege el compresor de picos de voltaje y rayos.'},
+  },
+  system_for:{
+    hp:{label:'Combustible Dual (Bomba de calor + horno)', desc:'La bomba de calor cubre la mayor parte del año, hasta ~35°F. El horno se encarga del resto.'},
+    sc:{label:'Solo Enfriamiento',                          desc:'El A/C solo enfría - el horno se encarga de toda la calefacción. Más simple, menor costo inicial.'},
+  },
+  cond_tier:{
+    fedmin:   {label:'Mínimo Federal - 14 SEER2',  desc:'Cumple con el código energético federal de 2023. Garantía de fábrica de 12 años.'},
+    mid_ge15: {label:'Eficiencia Media - 18 SEER2', desc:'Velocidad variable, mejor control de humedad. Garantía de fábrica de 12 años.'},
+    high_ge18:{label:'Alta Eficiencia - 21 SEER2',  desc:'Nivel superior con tecnología Inverter. Garantía de fábrica de 10 años.'},
+  },
+  dehu:{
+    yes:{label:'Sí, agregarlo', desc:'Dimensionado a sus pies cuadrados, funciona automáticamente. Sin mantenimiento.'},
+    no: {label:'No, gracias',   desc:'Omitir por ahora - fácil de agregar después si la humedad se vuelve un problema.'},
+  },
+  extras:{
+    condensate:{label:'Bomba de Condensado',            desc:'Necesaria cuando no hay un drenaje por gravedad cerca. Común en instalaciones de clóset.'},
+    erv:       {label:'ERV (Recuperación de Energía)',  desc:'Aire fresco filtrado entra, aire viciado sale, recuperando la mayor parte de la energía.'},
+  },
+};
+
 // ─── PRICING DATA ───────────────────────────────────────────────
 // Not wired into any UI yet - pure data, captured as it's confirmed so the
 // schema only gets designed once. Whole dollars, complete installed bundle.
@@ -170,6 +246,12 @@ export const PRICING={
   // warranty, offered as a flat add-on at the end of pricing rather than
   // its own wizard question.
   laborWarranty10yr:1750,
+  // DRAFT PLACEHOLDER - price and plan structure are a starting draft, not
+  // confirmed numbers. First-year price + what's included below both need
+  // real figures before this ships live; swap them here, nothing else to
+  // change. $199/yr and the two-tune-up structure are typical of the
+  // industry, not anything GES-specific.
+  maintenancePlanAnnual:199,
 };
 
 // ─── PRICING CALCULATION ────────────────────────────────────────
@@ -231,22 +313,54 @@ function systemTypeKey(answers){
 }
 // ─── ANALYTICS ──────────────────────────────────────────────────
 // Fires custom events through whatever site-wide GA4 (gtag.js) / Meta
-// Pixel (fbq) install already exists on the host WordPress page - this
-// file never loads its own gtag.js/fbq snippet, since that's already
-// running once for the whole page and a second copy here would
-// double-count pageviews and need its own hardcoded Measurement ID/
-// Pixel ID baked into this file. Every call below is a silent no-op
-// until gtag/fbq actually exist on the page, so this is safe to ship
-// now and starts working automatically once the real site-wide
-// tracking snippets are installed - no code change needed at that point.
+// Pixel (fbq) install already exists - this file never loads its own
+// gtag.js/fbq snippet, since a second copy would double-count pageviews
+// and need its own hardcoded Measurement ID/Pixel ID baked into this
+// file. This widget runs as an iframe embed (see GATE_CONFIG's comment
+// below), so the real tracking snippets almost always live on the PARENT
+// WordPress page's document, not this one - gtag/fbq is checked on
+// window.parent FIRST (same-origin access, exactly like the lead-gate
+// detection below), falling back to this document's own window only if
+// that's unavailable (cross-origin, or a future non-iframe embed). A
+// cross-origin embed gets neither and needs the same kind of small
+// postMessage relay snippet as the lead gate - see the
+// GES_ANALYTICS_RELAY comment further down for that one-time WordPress-
+// side addition. Every call below is a silent no-op until a real gtag/fbq
+// is actually reachable, so this is safe to ship now and starts working
+// automatically once found - no code change needed at that point.
+function reachTracker(name){
+  try{
+    if(window.parent&&window.parent!==window&&typeof window.parent[name]==='function')return window.parent[name];
+  }catch(e){/* cross-origin - window.parent access throws */}
+  if(typeof window[name]==='function')return window[name];
+  return null;
+}
+// Cross-origin fallback: relays the same payload via postMessage so a
+// WordPress-side snippet (added once, not part of this repo) can fire it
+// against the parent page's own gtag/fbq. No-ops harmlessly if nothing on
+// the other end is listening yet - safe to always send.
+// GES_ANALYTICS_RELAY - add this once in a Script/Custom HTML block on the
+// same WordPress page as this widget's iframe:
+//   window.addEventListener('message', function(e){
+//     if(!e.data || e.data.gesAnalytics === undefined) return;
+//     var m = e.data.gesAnalytics;
+//     if(m.kind === 'event' && typeof gtag === 'function') gtag('event', m.name, m.params);
+//     if(m.kind === 'event' && typeof fbq === 'function') fbq('trackCustom', m.name, m.params);
+//     if(m.kind === 'lead' && typeof gtag === 'function') gtag('event', 'generate_lead', m.params);
+//     if(m.kind === 'lead' && typeof fbq === 'function') fbq('track', 'Lead', m.params);
+//   });
+function relayToParent(msg){
+  try{
+    if(window.parent&&window.parent!==window)window.parent.postMessage({gesAnalytics:msg},'*');
+  }catch(e){/* analytics must never break the build flow */}
+}
 export function trackEvent(eventName,params={}){
   try{
-    if(typeof window.gtag==='function'){
-      window.gtag('event',eventName,{event_category:'System Builder',...params});
-    }
-    if(typeof window.fbq==='function'){
-      window.fbq('trackCustom',eventName,params);
-    }
+    const gtag=reachTracker('gtag');
+    if(gtag)gtag('event',eventName,{event_category:'System Builder',...params});
+    const fbq=reachTracker('fbq');
+    if(fbq)fbq('trackCustom',eventName,params);
+    if(!gtag&&!fbq)relayToParent({kind:'event',name:eventName,params:{event_category:'System Builder',...params}});
   }catch(e){/* analytics must never break the build flow */}
 }
 // Contact-form submission fires as GA4's and Meta's own recommended/
@@ -256,12 +370,11 @@ export function trackEvent(eventName,params={}){
 // a custom event name can't do.
 export function trackLead(params={}){
   try{
-    if(typeof window.gtag==='function'){
-      window.gtag('event','generate_lead',{event_category:'System Builder',...params});
-    }
-    if(typeof window.fbq==='function'){
-      window.fbq('track','Lead',params);
-    }
+    const gtag=reachTracker('gtag');
+    if(gtag)gtag('event','generate_lead',{event_category:'System Builder',...params});
+    const fbq=reachTracker('fbq');
+    if(fbq)fbq('track','Lead',params);
+    if(!gtag&&!fbq)relayToParent({kind:'lead',params:{event_category:'System Builder',...params}});
   }catch(e){/* analytics must never break the build flow */}
 }
 export function trackBuildCompleted(answers){
@@ -341,6 +454,11 @@ export function calcEstimate(answers,pricingAnswers){
   // wizard question (see the comment on PRICING.laborWarranty10yr above).
   if(pricingAnswers.wantLaborWarranty){
     lines.push({label:'10-year labor warranty',price:PRICING.laborWarranty10yr});
+  }
+  // Annual maintenance plan - same treatment (see the DRAFT PLACEHOLDER
+  // comment on PRICING.maintenancePlanAnnual above).
+  if(pricingAnswers.wantMaintenancePlan){
+    lines.push({label:'Annual maintenance plan (1st year)',price:PRICING.maintenancePlanAnnual});
   }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);

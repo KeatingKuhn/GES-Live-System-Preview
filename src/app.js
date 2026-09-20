@@ -1,5 +1,5 @@
 const {useState,useMemo,useRef,useCallback}=React;
-import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS} from './data.js';
+import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,CHAPTERS_ES,STEPS_ES,OPTS_ES} from './data.js';
 import {Canvas,CountUp} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
@@ -90,6 +90,21 @@ function App(){
   const [pricingAnswers,setPricingAnswers]=useState({});
   const topRef=useRef(null);
   const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
+
+  // ─── LANGUAGE TOGGLE (EN/ES) ────────────────────────────────
+  // Scoped translation - see the big comment on CHAPTERS_ES/STEPS_ES/
+  // OPTS_ES in data.js for exactly what is and isn't covered. tr(en,es)
+  // is used inline everywhere a literal string appears in this file;
+  // STEPS/getOpts content (data-driven, not literal JSX text) is
+  // overlaid from the ES_* tables instead - see `t` and `opts` below.
+  const [lang,setLang]=useState(()=>{
+    try{return localStorage.getItem('gesLang_v1')==='es'?'es':'en';}catch(e){return 'en';}
+  });
+  const tr=(en,es)=>lang==='es'&&es!==undefined?es:en;
+  React.useEffect(()=>{
+    try{localStorage.setItem('gesLang_v1',lang);}catch(e){}
+    try{document.documentElement.lang=lang;}catch(e){}
+  },[lang]);
 
   // Contact-form gate: sits right at "Get Pricing" (before the sizing
   // questions even start), not at the price reveal itself - see where
@@ -298,7 +313,66 @@ function App(){
     saveBuild({answers,stepIdx,done,pricingFlow,pricingSubStep,pricingAnswers});
   },[answers,stepIdx,done,resumePending,pricingFlow,pricingSubStep,pricingAnswers]);
 
-  const opts=useMemo(()=>cur?getOpts(cur.id,answers):[], [cur,answers]);
+  const opts=useMemo(()=>{
+    const base=cur?getOpts(cur.id,answers):[];
+    if(lang!=='es')return base;
+    const overrides=OPTS_ES[cur.id]||{};
+    return base.map(o=>overrides[o.v]?{...o,...overrides[o.v]}:o);
+  },[cur,answers,lang]);
+  // Translated question/hint for the current step, falling back to the
+  // English STEPS content when no Spanish override exists for that id.
+  const curQ=cur?(lang==='es'&&STEPS_ES[cur.id]?STEPS_ES[cur.id].q:cur.q):"";
+  const curHint=cur?(lang==='es'&&STEPS_ES[cur.id]?STEPS_ES[cur.id].hint:cur.hint):"";
+  const chapterNames=lang==='es'?CHAPTERS_ES:CHAPTERS;
+
+  // Review-grid item list - what the done screen's review grid shows,
+  // pulled out to component level (was inline inside the review-grid JSX
+  // below) so the same list can also drive the "Email My Build" plain-
+  // text summary without duplicating these ten branches a second time.
+  const reviewItems=useMemo(()=>{
+    const es=lang==='es';
+    return[
+      {step:"location",label:tr("Location","Ubicación"),val:answers.location==="attic"?tr("Attic horizontal","Ático horizontal"):answers.location==="closet"?tr("Upflow closet","Clóset ascendente"):null},
+      {step:"indoor_type",label:tr("Indoor unit","Unidad interior"),val:answers.indoor_type==="furnace"?tr("Gas furnace","Horno a gas"):answers.indoor_type==="ah"?tr("Air handler","Manejador de aire"):null},
+      answers.furnace_eff?{step:"insulation",label:tr("Insulation","Aislamiento"),val:answers.furnace_eff==="e90"?tr("Spray foam - 90% AFUE","Espuma aislante - 90% AFUE"):tr("Fiberglass - 80% AFUE","Fibra de vidrio - 80% AFUE")}:null,
+      {step:"plenum",label:tr("Plenum","Plenum"),val:answers.plenum==="ductboard"?tr("New ductboard plenum","Nuevo plenum de ductboard"):answers.plenum==="metal"?tr("New sheet metal plenum","Nuevo plenum de lámina metálica"):answers.plenum==="none"?tr("Keep existing plenum","Conservar plenum actual"):null},
+      {step:"thermostat",label:tr("Thermostat","Termostato"),
+        val:answers.thermostat==="wifi"?tr("Wi-Fi smart thermostat","Termostato inteligente Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Proprietary communicating thermostat","Termostato comunicante propietario"):null,
+        short:answers.thermostat==="wifi"?tr("Wi-Fi smart t-stat","Termostato Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Proprietary t-stat","Termostato propietario"):null},
+      Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:tr("Add-ons","Complementos"),
+        val:answers.purif.map(v=>v==="aprilaire"?tr("Enhanced Filtration Cabinet","Gabinete de filtración mejorada"):v==="uv"?tr("UV Light","Luz UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge protector","Protector de sobrevoltaje"):v).join(" + "),
+        short:answers.purif.map(v=>v==="aprilaire"?tr("Filtration Cabinet","Gabinete de filtración"):v==="uv"?tr("UV Light","Luz UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge Protector","Protector de sobrevoltaje"):v).join(" + ")}:null,
+      {step:"cond_tier",label:tr("Efficiency","Eficiencia"),val:answers.cond_tier==="fedmin"?tr("Federal Minimum - 14 SEER2","Mínimo Federal - 14 SEER2"):answers.cond_tier==="mid_ge15"?tr("Mid Efficiency - 18 SEER2","Eficiencia Media - 18 SEER2"):answers.cond_tier==="high_ge18"?tr("High Efficiency - 21 SEER2","Alta Eficiencia - 21 SEER2"):null},
+      answers.system_for?{step:"system_for",label:tr("Heat source","Fuente de calor"),
+        val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - solo horno"),
+        short:answers.system_for==="hp"?tr("Dual Fuel (HP + furnace)","Combustible Dual (BC + horno)"):tr("Straight Cool (furnace)","Solo Enfriamiento (horno)")}:null,
+      {step:"dehu",label:tr("Dehumidifier","Deshumidificador"),val:answers.dehu==="yes"?tr("Yes - whole-home unit","Sí - unidad para toda la casa"):answers.dehu==="no"?tr("No","No"):null},
+      Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:tr("Final add-ons","Complementos finales"),val:answers.extras.map(v=>v==="condensate"?tr("Condensate pump","Bomba de condensado"):v==="erv"?"ERV":v).join(" + ")}:null,
+    ].filter(Boolean);
+  },[answers,lang]);
+
+  // Q14 - "Email My Build": a plain mailto: link, no backend needed. Reuses
+  // reviewItems (above) so the emailed summary always matches what the
+  // review grid shows on screen, and adds the price too once one's been
+  // calculated. Built fresh on every render (cheap - just string
+  // concatenation) rather than memoized, since it only actually runs when
+  // someone clicks the link.
+  const buildEmailHref=()=>{
+    const lines=[tr('Here is the system I built with Gold Eagle Services:','Este es el sistema que armé con Gold Eagle Services:'),''];
+    reviewItems.forEach(item=>{if(item&&item.val)lines.push(`${item.label}: ${item.val}`);});
+    if(pricingFlow==='result'){
+      const est=calcEstimate(answers,pricingAnswers);
+      if(est){
+        lines.push('');
+        lines.push(tr(`Estimated price: ~$${est.display.toLocaleString()}`,`Precio estimado: ~$${est.display.toLocaleString()}`));
+      }
+    }
+    lines.push('');
+    lines.push(tr('Built with the Gold Eagle Services online system builder.','Creado con el configurador de sistemas en línea de Gold Eagle Services.'));
+    const subject=encodeURIComponent(tr('My Gold Eagle Services HVAC Build','Mi Sistema HVAC de Gold Eagle Services'));
+    const body=encodeURIComponent(lines.join('\n'));
+    return `mailto:?subject=${subject}&body=${body}`;
+  };
 
   const [showInfo,setShowInfo]=React.useState(false);
   // Auto-open the info panel the first time someone lands on step 1, so
@@ -389,7 +463,23 @@ function App(){
     dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A dehumidifier ties into your ductwork and runs automatically, with no buckets and no upkeep from you.",
     extras:"A condensate pump handles drainage when there's no nearby gravity drain, which is common in closet installs. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange.",
   };
-  const infoText=cur&&INFO_TEXT[cur.id];
+  // Spanish overrides for the info-panel paragraphs - same scoped-
+  // translation approach as STEPS_ES/OPTS_ES in data.js (overlay, not a
+  // parallel English copy). Kept local to app.js since INFO_TEXT itself
+  // is local to app.js too.
+  const INFO_TEXT_ES={
+    location:"La ubicación de su unidad interior define el diseño de todo el sistema. Ático es la instalación más común en Austin, con la unidad en posición horizontal sobre el espacio habitable. Clóset es de flujo ascendente, en posición vertical en un pasillo o clóset de servicio. Ambas funcionan bien; las instalaciones de clóset son un poco más fáciles de dar servicio.",
+    indoor_type:"¿No está seguro cuál tiene? Una estufa o calentador de agua a gas usualmente significa que también tiene un horno, que quema gas para calefacción y se combina con A/C para enfriar. Un hogar totalmente eléctrico probablemente tiene un manejador de aire, combinado con una bomba de calor para calefacción y enfriamiento.",
+    insulation:"El aislamiento del ático determina qué horno le corresponde. Fibra de vidrio o soplada significa un ático ventilado, donde un horno estándar de 80% AFUE funciona bien con una chimenea metálica tipo B. Espuma aislante significa un ático sellado, que requiere un horno de condensación de 90% AFUE con chimenea de PVC hacia el techo.",
+    plenum:"El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitación. Si el suyo está dañado, con fugas, o tiene más de 15 años, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
+    thermostat:"Un termostato programable básico es confiable: configure su horario y olvídese de él. Un termostato inteligente Wi-Fi se conecta a su teléfono, aprende sus hábitos, y puede reducir su factura de energía entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
+    purif:"El gabinete de filtración mejorada viene incluido de fábrica en cada instalación, capturando ya mucho más polvo, polen y alérgenos que un filtro típico de 1 pulgada. Una luz UV mantiene limpio el serpentín. Un ionizador elimina partículas, olores y COV. Un protector de sobrevoltaje protege el condensador: un solo rayo puede destruir un compresor.",
+    cond_tier:"El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, así que más alto significa facturas más bajas. Mínimo Federal cumple con el código actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con elegibilidad para reembolsos y el mejor control de humedad.",
+    system_for:"Con un horno a gas, tiene dos opciones. Combustible Dual combina una bomba de calor con el horno: la bomba de calor se encarga del enfriamiento y la calefacción en clima templado, y el horno solo se enciende por debajo de aproximadamente 35 grados, la combinación más eficiente que ofrecemos. Solo Enfriamiento significa que el A/C solo enfría, y el horno se encarga de toda la calefacción.",
+    dehu:"La humedad de Austin hace que su hogar se sienta más caliente de lo que marca el termostato. Un deshumidificador se conecta a sus ductos y funciona automáticamente, sin cubetas ni mantenimiento de su parte.",
+    extras:"Una bomba de condensado maneja el drenaje cuando no hay un drenaje por gravedad cercano, algo común en instalaciones de clóset. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energía en el intercambio.",
+  };
+  const infoText=cur&&(lang==='es'?(INFO_TEXT_ES[cur.id]||INFO_TEXT[cur.id]):INFO_TEXT[cur.id]);
 
   // A short, specific acknowledgment of what was just picked - replaces
   // the generic instructional hint once there's an actual answer to react
@@ -593,7 +683,15 @@ function App(){
 
       {/* ── PROGRESS BAR - segmented by chapter, not a bare percentage ── */}
       <div className="prog-chapters" style={{position:"absolute",top:0,left:0,right:0,zIndex:30}}>
-        {CHAPTERS.map((name,i)=>{
+        {/* Language toggle - visible on every screen, top-right. Persists
+            via localStorage (see the `lang` state above) so a returning
+            visitor keeps their pick. */}
+        <button className="no-print lang-toggle-btn" onClick={()=>setLang(l=>l==='es'?'en':'es')}
+          aria-label={tr('Switch to Spanish','Cambiar a inglés')}
+          style={{position:"absolute",top:6,right:8,zIndex:31,fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
+          {lang==='es'?'EN':'ES'}
+        </button>
+        {chapterNames.map((name,i)=>{
           const segPct=done||i<curChapter?100:i>curChapter?0:
             chapterCounts[i]?Math.round((curChapterStepNum/chapterCounts[i])*100):0;
           return <div key={i} className={"prog-chapter"+(segPct>=100?" done":"")} title={name}>
@@ -621,15 +719,31 @@ function App(){
           all three needed this same guard against leaking into Tab order
           while hidden. */}
       <div ref={splashRef} className={"splash-screen"+(loc||done?" out":"")}>
-        <div className="splash-logo">BUILD YOUR OWN SYSTEM</div>
+        <div className="splash-logo">{tr('BUILD YOUR OWN SYSTEM','ARME SU PROPIO SISTEMA')}</div>
         <p style={{fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
-          Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.
+          {tr(<>Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.</>,
+              <>Díganos dónde vive su unidad interior y construiremos un <strong style={{color:"rgba(255,255,255,.8)"}}>diagrama en vivo y en tiempo real</strong> de su sistema HVAC completo - cada componente, cada conexión, dimensionado y etiquetado.</>)}
         </p>
+        {/* Q13 - differentiation copy, drafted per the roadmap tracker
+            ("good call, add it somewhere") - only claims already true
+            elsewhere in this app (Austin-based, no personal info required,
+            upfront pricing) rather than anything unverifiable. */}
+        <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px 18px",maxWidth:560,margin:"6px 0"}}>
+          {[
+            tr('See every component before anyone visits your home','Vea cada componente antes de que alguien visite su hogar'),
+            tr('Transparent pricing, zero pressure','Precios transparentes, sin presión'),
+            tr('Locally owned, Austin-based','Propiedad local, con sede en Austin'),
+          ].map((line,i)=>(
+            <span key={i} style={{fontFamily:"var(--fb)",fontSize:12.5,color:"rgba(255,255,255,.55)",display:"flex",alignItems:"center",gap:5}}>
+              <span style={{color:"var(--gl)"}}>✓</span>{line}
+            </span>
+          ))}
+        </div>
         {/* .55 measured 3.66:1 against the splash screen's #121212
             background - under the 4.5:1 body-text minimum. .75 clears it
             at 5.82:1 while staying visibly dimmer than the solid --gl used
             on the two cards below it. */}
-        <p style={{fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.75)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>SELECT YOUR SYSTEM LOCATION TO BEGIN</p>
+        <p style={{fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.75)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>{tr('SELECT YOUR SYSTEM LOCATION TO BEGIN','SELECCIONE LA UBICACIÓN DE SU SISTEMA PARA COMENZAR')}</p>
         {/* Both cards are plain divs (not <button>) for a free hand over
             layout, so keyboard reachability and semantics don't come for
             free the way they would on a real button - this is the very
@@ -643,26 +757,26 @@ function App(){
             picking up the same global :focus-visible ring for free. */}
         <div className="splash-cards">
           <div className="splash-card" role="button" tabIndex={0}
-            aria-label="Attic Horizontal - Unit lays on its side above the ceiling, most common in Austin. Air flows horizontally through ducts in the attic."
+            aria-label={tr('Attic Horizontal - Unit lays on its side above the ceiling, most common in Austin. Air flows horizontally through ducts in the attic.','Ático Horizontal - La unidad se acuesta de lado sobre el techo, lo más común en Austin. El aire fluye horizontalmente a través de ductos en el ático.')}
             onClick={()=>pickLocation("attic")}
             onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickLocation("attic");}}}>
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:4}}>
-              <div className="splash-card-title">Attic Horizontal</div>
-              <div className="splash-card-desc">Unit lays on its side above the ceiling - most common in Austin. Air flows horizontally through ducts in the attic.</div>
+              <div className="splash-card-title">{tr('Attic Horizontal','Ático Horizontal')}</div>
+              <div className="splash-card-desc">{tr('Unit lays on its side above the ceiling - most common in Austin. Air flows horizontally through ducts in the attic.','La unidad se acuesta de lado sobre el techo - lo más común en Austin. El aire fluye horizontalmente a través de ductos en el ático.')}</div>
             </div>
           </div>
           <div className="splash-card" role="button" tabIndex={0}
-            aria-label="Closet Upflow - Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil."
+            aria-label={tr('Closet Upflow - Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.','Clóset de Flujo Ascendente - La unidad se instala en posición vertical en un clóset de servicio o pasillo. El aire fluye verticalmente a través del serpentín.')}
             onClick={()=>pickLocation("closet")}
             onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickLocation("closet");}}}>
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:4}}>
-              <div className="splash-card-title">Closet Upflow</div>
-              <div className="splash-card-desc">Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.</div>
+              <div className="splash-card-title">{tr('Closet Upflow','Clóset de Flujo Ascendente')}</div>
+              <div className="splash-card-desc">{tr('Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.','La unidad se instala en posición vertical en un clóset de servicio o pasillo. El aire fluye verticalmente a través del serpentín.')}</div>
             </div>
           </div>
         </div>
         <p style={{fontFamily:"var(--fb)",fontSize:"14px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:460,lineHeight:1.6,marginTop:8}}>
-          Takes about 2 minutes. No personal info required. Your build saves automatically as you go.
+          {tr('Takes about 2 minutes. No personal info required. Your build saves automatically as you go.','Toma unos 2 minutos. No se requiere información personal. Su proceso se guarda automáticamente.')}
         </p>
       </div>
 
@@ -677,8 +791,8 @@ function App(){
         </div>
         <div className="attic-bar">
           {quickEdit&&<div className="quickedit-banner fadein">
-            <span>✎ Editing this answer only</span>
-            <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ Cancel, back to build</button>
+            <span>✎ {tr('Editing this answer only','Editando solo esta respuesta')}</span>
+            <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ {tr('Cancel, back to build','Cancelar, volver a la construcción')}</button>
           </div>}
           {/* .attic-bar-top/.attic-info-collapse are rendered AFTER
               .attic-bar-body below (still visually on top - see the
@@ -709,8 +823,8 @@ function App(){
                 React's reconciliation and produced duplicated/stale
                 nodes in testing) - prefixed per element instead. */}
             <div key={"info-"+stepIdx} className="attic-info fadein">
-              <div className="step-q" style={{marginBottom:2}}>{cur?cur.q:""}</div>
-              {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
+              <div className="step-q" style={{marginBottom:2}}>{curQ}</div>
+              {curHint&&<div className="step-hint">{curHint}</div>}
               {reactionText&&<div key={reactionText} className="reaction-line">✓ {reactionText}</div>}
             </div>
             <div key={"scroll-"+stepIdx} className="attic-scroll fadein">
@@ -719,16 +833,16 @@ function App(){
           </div>
           <div className="attic-bar-top">
             <span className="attic-step-label">
-              {cur ? <><span className="chapter-tag">{CHAPTERS[curChapter]}</span>{" · STEP "+stepIdx+(totalKnown?" OF "+totalSteps:"")+" · "+cur.q.toUpperCase()}</> : ""}
+              {cur ? <><span className="chapter-tag">{chapterNames[curChapter]}</span>{" · "+tr('STEP','PASO')+" "+stepIdx+(totalKnown?" "+tr('OF','DE')+" "+totalSteps:"")+" · "+curQ.toUpperCase()}</> : ""}
             </span>
-            {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} aria-expanded={showInfo}
+            {infoText&&<button className="info-btn" aria-label={showInfo?tr("Hide info","Ocultar información"):tr("More info","Más información")} aria-expanded={showInfo}
               onMouseEnter={()=>hoverCapable()&&setShowInfo(true)} onMouseLeave={()=>hoverCapable()&&setShowInfo(false)}
               onFocus={()=>setShowInfo(true)} onBlur={()=>setShowInfo(false)}
               onTouchEnd={e=>{e.preventDefault();setShowInfo(v=>!v);}}>i</button>}
-            {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
-            {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
+            {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ {tr('Back','Atrás')}</button>}
+            {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>{tr('Skip','Omitir')}</button>}
             <button className="btn-next" onClick={goNext} disabled={!canNext}>
-              {quickEdit?(quickEditWillFinish?"Save & Return →":"Next →"):(stepIdx===activeSteps.length-1?"Finish →":"Next →")}
+              {quickEdit?(quickEditWillFinish?tr("Save & Return →","Guardar y volver →"):tr("Next →","Siguiente →")):(stepIdx===activeSteps.length-1?tr("Finish →","Finalizar →"):tr("Next →","Siguiente →"))}
             </button>
           </div>
           <div className={"info-collapse attic-info-collapse"+(showInfo&&infoText?" open":"")+(autoInfoInstant.current?" no-anim":"")}><div className="info-collapse-inner">
@@ -748,8 +862,8 @@ function App(){
         </div>
         <div className="sidebar">
           {quickEdit&&<div className="quickedit-banner fadein">
-            <span>✎ Editing this answer only</span>
-            <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ Cancel, back to build</button>
+            <span>✎ {tr('Editing this answer only','Editando solo esta respuesta')}</span>
+            <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ {tr('Cancel, back to build','Cancelar, volver a la construcción')}</button>
           </div>}
           {/* A key derived from stepIdx forces a remount on every step
               change so the existing .fadein utility (already used for
@@ -764,14 +878,14 @@ function App(){
               (see the attic-info comment for what that broke). */}
           <div key={"hdr-"+stepIdx} className="step-hdr fadein">
             <div className="step-eyebrow">
-              <span>{cur&&<span className="chapter-tag">{CHAPTERS[curChapter]}</span>} Step {stepIdx}{totalKnown?` of ${totalSteps}`:''}</span>
-              {infoText&&<button className="info-btn" aria-label={showInfo?"Hide info":"More info"} aria-expanded={showInfo}
+              <span>{cur&&<span className="chapter-tag">{chapterNames[curChapter]}</span>} {tr('Step','Paso')} {stepIdx}{totalKnown?` ${tr('of','de')} ${totalSteps}`:''}</span>
+              {infoText&&<button className="info-btn" aria-label={showInfo?tr("Hide info","Ocultar información"):tr("More info","Más información")} aria-expanded={showInfo}
                 onMouseEnter={()=>hoverCapable()&&setShowInfo(true)} onMouseLeave={()=>hoverCapable()&&setShowInfo(false)}
                 onFocus={()=>setShowInfo(true)} onBlur={()=>setShowInfo(false)}
                 onTouchEnd={e=>{e.preventDefault();setShowInfo(v=>!v);}}>i</button>}
             </div>
-            <div className="step-q">{cur?cur.q:""}</div>
-            {cur&&cur.hint&&<div className="step-hint">{cur.hint}</div>}
+            <div className="step-q">{curQ}</div>
+            {curHint&&<div className="step-hint">{curHint}</div>}
           </div>
           {/* Deliberately OUTSIDE .step-hdr (unlike the attic layout's
               equivalent, where reaction-line lives inside .attic-info with
@@ -791,10 +905,10 @@ function App(){
           </div></div>
           <div key={"opts-"+stepIdx} className="opts fadein">{opts.map(opt=>makeOpt(opt,false))}</div>
           <div className="nav-row">
-            {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ Back</button>}
-            {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>Skip</button>}
+            {stepIdx>0&&<button className="btn-back" onClick={goBack}>‹ {tr('Back','Atrás')}</button>}
+            {cur&&(cur.optional||cur.multi)&&<button className="btn-skip" onClick={skip}>{tr('Skip','Omitir')}</button>}
             <button className="btn-next" onClick={goNext} disabled={!canNext}>
-              {quickEdit?(quickEditWillFinish?"Save & Return":"Next"):(stepIdx===activeSteps.length-1?"See Full Build":"Next")}
+              {quickEdit?(quickEditWillFinish?tr("Save & Return","Guardar y volver"):tr("Next","Siguiente")):(stepIdx===activeSteps.length-1?tr("See Full Build","Ver Sistema Completo"):tr("Next","Siguiente"))}
             </button>
           </div>
         </div>
@@ -822,14 +936,14 @@ function App(){
               lives here instead of costing the sidebar a row underneath. */}
           {isAtticMode&&(pricingFlow?
             <div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.7)",padding:"6px 10px"}}>
-              <span style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.8)"}}>✓ Your system is built</span>
-              <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-pricing-fine)"}}>Edit selections</button>
+              <span style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.8)"}}>✓ {tr('Your system is built','Su sistema está construido')}</span>
+              <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-pricing-fine)"}}>{tr('Edit selections','Editar selecciones')}</button>
             </div>
             :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.55)",padding:"6px 10px 6px 7px"}}>
               <div className="done-icon" style={{margin:0,width:28,height:28,fontSize:14,flexShrink:0}}>✓</div>
               <div>
-                <div className="done-title" style={{fontSize:14.5,marginBottom:0}}>Your System is Built</div>
-                <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>Review your selections below</div>
+                <div className="done-title" style={{fontSize:14.5,marginBottom:0}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
+                <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
               </div>
             </div>
           )}
@@ -858,24 +972,7 @@ function App(){
               // system spec on it at all, just the collapsed line.
               const reviewGrid=(
                 <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":" closet-mode-grid")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",display:"grid"}}>
-                  {[
-                    {step:"location",label:"Location",val:answers.location==="attic"?"Attic horizontal":answers.location==="closet"?"Upflow closet":null},
-                    {step:"indoor_type",label:"Indoor unit",val:answers.indoor_type==="furnace"?"Gas furnace":answers.indoor_type==="ah"?"Air handler":null},
-                    answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam - 90% AFUE":"Fiberglass - 80% AFUE"}:null,
-                    {step:"plenum",label:"Plenum",val:answers.plenum==="ductboard"?"New ductboard plenum":answers.plenum==="metal"?"New sheet metal plenum":answers.plenum==="none"?"Keep existing plenum":null},
-                    {step:"thermostat",label:"Thermostat",
-                      val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null,
-                      short:answers.thermostat==="wifi"?"Wi-Fi smart t-stat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary t-stat":null},
-                    Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Add-ons",
-                      val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge protector":v).join(" + "),
-                      short:answers.purif.map(v=>v==="aprilaire"?"Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge Protector":v).join(" + ")}:null,
-                    {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum - 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency - 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency - 21 SEER2":null},
-                    answers.system_for?{step:"system_for",label:"Heat source",
-                      val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only",
-                      short:answers.system_for==="hp"?"Dual Fuel (HP + furnace)":"Straight Cool (furnace)"}:null,
-                    {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes - whole-home unit":answers.dehu==="no"?"No":null},
-                    Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Final add-ons",val:answers.extras.map(v=>v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
-                  ].filter(Boolean).map((item,i)=>item&&item.val?(
+                  {reviewItems.map((item,i)=>item&&item.val?(
                     // Attic's grid cells live in the fixed 200px-tall panel
                     // (see .done-wrap-attic above), but unlike .opt-compact's
                     // fixed-height/zero-slack panel, this one's own container
@@ -895,7 +992,7 @@ function App(){
                     <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
                       <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
                       <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
-                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>EDIT</button>
+                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>{tr('EDIT','EDITAR')}</button>
                     </div>
                     :
                     // Closet's cell doesn't reserve a fixed right-hand gutter for
@@ -917,7 +1014,7 @@ function App(){
                           bottom-right, same as it already does for every other
                           value short enough to fit one line. */}
                       <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal"}} title={item.val}>{item.short||item.val}</span>
-                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",marginTop:1}}>EDIT</button>
+                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",marginTop:1}}>{tr('EDIT','EDITAR')}</button>
                     </div>
                   ):null)}
                 </div>
@@ -925,8 +1022,8 @@ function App(){
               return pricingFlow?
                 <>
                   <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
-                    <span style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-pricing-meta)",color:"rgba(255,255,255,.78)"}}>✓ Your system is built</span>
-                    <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)"}}>Edit selections</button>
+                    <span style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-pricing-meta)",color:"rgba(255,255,255,.78)"}}>✓ {tr('Your system is built','Su sistema está construido')}</span>
+                    <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)"}}>{tr('Edit selections','Editar selecciones')}</button>
                   </div>
                   {/* Hidden on-screen (see .print-only-grid in styles.css) -
                       exists purely so a printout taken while pricing is
@@ -939,8 +1036,8 @@ function App(){
                   <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
                     <div className="done-icon" style={{margin:0,width:isAtticMode?38:42,height:isAtticMode?38:42,fontSize:isAtticMode?17:19,flexShrink:0}}>✓</div>
                     <div>
-                      <div className="done-title" style={{fontSize:isAtticMode?17:19,marginBottom:1}}>Your System is Built</div>
-                      <div style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",color:"var(--mut)"}}>Review your selections below</div>
+                      <div className="done-title" style={{fontSize:isAtticMode?17:19,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
+                      <div style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
                     </div>
                   </div>
                   {reviewGrid}
@@ -983,13 +1080,13 @@ function App(){
                 const left=(
                   <div className={isAtticMode?"pricing-substep-left":undefined} style={{flex:isAtticMode?"0 0 420px":"1 1 auto"}}>
                     {subId==='sqft'&&<>
-                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>What size system does this area need?</div>
+                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{tr('What size system does this area need?','¿Qué tamaño de sistema necesita esta área?')}</div>
                       <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5}}>
                         {isAtticMode
-                          ?"Pick the tonnage for your home's sq ft, or enter it below for a suggestion."
-                          :"Pick the tonnage that best fits the square footage this system covers. Not sure? Enter your sq ft for a suggested starting point."}
+                          ?tr("Pick the tonnage for your home's sq ft, or enter it below for a suggestion.","Elija las toneladas según los pies cuadrados de su casa, o ingréselos abajo para una sugerencia.")
+                          :tr("Pick the tonnage that best fits the square footage this system covers. Not sure? Enter your sq ft for a suggested starting point.","Elija las toneladas que mejor se ajusten a los pies cuadrados que cubre este sistema. ¿No está seguro? Ingrese sus pies cuadrados para una sugerencia.")}
                       </div>
-                      <input type="number" min="200" max="10000" placeholder="Sq ft (optional)"
+                      <input type="number" min="200" max="10000" placeholder={tr("Sq ft (optional)","Pies cuadrados (opcional)")}
                         value={pricingAnswers.sqftInput||''}
                         onChange={e=>{
                           const val=e.target.value;
@@ -998,7 +1095,7 @@ function App(){
                         }}
                         className={"pricing-input"+(isAtticMode?" compact":"")}/>
                     </>}
-                    {subId==='ducts'&&<div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,fontFamily:"var(--ft)"}}>Want duct replacement priced too?</div>}
+                    {subId==='ducts'&&<div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,fontFamily:"var(--ft)"}}>{tr('Want duct replacement priced too?','¿Desea que también se cotice el reemplazo de ductos?')}</div>}
                   </div>
                 );
                 const right=(
@@ -1010,8 +1107,8 @@ function App(){
                         {TONNAGE_OPTIONS.map(o=>(
                           <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
                             <div className="opt-inner"><div className="opt-body">
-                              <span className="opt-label">{o.label}{recommended&&recommended.v===o.v&&<span className="opt-badge">SUGGESTED</span>}</span>
-                              <span className="opt-desc">{isAtticMode?o.sqftLabel:`Typical for ${o.sqftLabel} homes`}</span>
+                              <span className="opt-label">{o.label}{recommended&&recommended.v===o.v&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
+                              <span className="opt-desc">{isAtticMode?o.sqftLabel:tr(`Typical for ${o.sqftLabel} homes`,`Típico para casas de ${o.sqftLabel}`)}</span>
                             </div></div>
                           </button>
                         ))}
@@ -1019,13 +1116,13 @@ function App(){
                     })()}
                     {subId==='ducts'&&<div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                       <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===true?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:true}))}>
-                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">Yes</span></div></div>
+                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">{tr('Yes','Sí')}</span></div></div>
                       </button>
                       <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===false?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:false,ventCount:undefined}))}>
-                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">No / Skip</span></div></div>
+                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">{tr('No / Skip','No / Omitir')}</span></div></div>
                       </button>
                       {pricingAnswers.wantDucts&&<div style={{flex:1}}>
-                        <div style={{fontSize:isAtticMode?9.5:11,color:"var(--mut)",marginBottom:4}}>How many vents/registers?</div>
+                        <div style={{fontSize:isAtticMode?9.5:11,color:"var(--mut)",marginBottom:4}}>{tr('How many vents/registers?','¿Cuántas rejillas/registros?')}</div>
                         <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,parseInt(e.target.value)||0)}))}
                           className={"pricing-input"+(isAtticMode?" compact":"")}/>
                       </div>}
@@ -1042,7 +1139,7 @@ function App(){
                   {/* .5 measured 3.20:1 against the panel background this
                       sits on - under the 4.5:1 minimum for this 9-10.5px
                       label. .7 clears it at 5.06:1. */}
-                  <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>PRICING · STEP {pricingSubStep+1} OF {subSteps.length}</div>
+                  <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>{tr('PRICING','PRECIO')} · {tr('STEP','PASO')} {pricingSubStep+1} {tr('OF','DE')} {subSteps.length}</div>
 
                   {/* alignItems:"flex-start" only makes sense in ROW mode
                       (attic, wide) where it top-aligns two columns of
@@ -1062,9 +1159,9 @@ function App(){
                   </div>
 
                   <div style={{display:"flex",gap:8,marginTop:isAtticMode?8:12}}>
-                    <button className="btn-back" style={{flex:"0 0 auto",...(isAtticMode?{padding:"6px 16px",fontSize:14}:{})}} onClick={goSubBack}>‹ Back</button>
+                    <button className="btn-back" style={{flex:"0 0 auto",...(isAtticMode?{padding:"6px 16px",fontSize:14}:{})}} onClick={goSubBack}>‹ {tr('Back','Atrás')}</button>
                     <button className="btn-next" style={{flex:1,...(isAtticMode?{padding:"7px 16px",fontSize:15}:{})}} disabled={!canSubNext} onClick={goSubNext}>
-                      {pricingSubStep===subSteps.length-1?"Get My Estimate":"Next"}
+                      {pricingSubStep===subSteps.length-1?tr("Get My Estimate","Obtener Mi Estimado"):tr("Next","Siguiente")}
                     </button>
                   </div>
                 </div>;
@@ -1076,12 +1173,12 @@ function App(){
                   'result' the moment that flips true, so a homeowner who
                   submits the form never has to click anything in here. */}
               {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
-                <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:6,fontFamily:"var(--ft)"}}>Almost there - just one quick step</div>
+                <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
                 <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
-                  Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else.
+                  {tr('Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else.','Complete el formulario breve en esta página para desbloquear los precios - continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
                 </div>
                 <button className="btn-back" style={{padding:isAtticMode?"6px 16px":"8px 16px",fontSize:isAtticMode?14:"var(--fs-pricing-fine)"}}
-                  onClick={()=>setPricingFlow(null)}>‹ Back</button>
+                  onClick={()=>setPricingFlow(null)}>‹ {tr('Back','Atrás')}</button>
               </div>}
 
               {/* Wrapped in its own key'd+fadein div for the same reason as
@@ -1091,7 +1188,7 @@ function App(){
                   digits were the only thing that animated in). */}
               {pricingFlow==='result'&&<div key="result" className="fadein">{(()=>{
                 const est=calcEstimate(answers,pricingAnswers);
-                if(!est)return<div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.</div>;
+                if(!est)return<div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr("Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.","Aún no podemos calcular un estimado para esta combinación - llámenos y le daremos un número.")}</div>;
                 // Attic's wide-short panel doesn't need this stacked
                 // full-width - splitting the price card and the
                 // considerations panel into side-by-side columns cuts the
@@ -1099,12 +1196,12 @@ function App(){
                 // narrow sidebar keeps the original single-column stack.
                 const priceCard=(
                   <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>AS LOW AS</div>
-                    <div style={{fontFamily:"var(--fm)",fontSize:44,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/><span style={{fontSize:17,color:"var(--dim)",fontWeight:400}}>/mo</span></div>
-                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6,marginBottom:10}}>Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.</div>
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
+                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
+                    <div style={{fontFamily:"var(--fm)",fontSize:44,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/><span style={{fontSize:17,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
+                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6,marginBottom:10}}>{tr('Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.','Basado en 36 meses al 0% de interés a través del financiamiento de Wells Fargo, sujeto a aprobación de crédito.')}</div>
+                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
                     <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<CountUp value={est.display} format={n=>n.toLocaleString()}/></div>
-                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>Includes a {answers.cond_tier==='high_ge18'?'10':'12'}-year manufacturer warranty.</div>
+                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr(`Includes a ${answers.cond_tier==='high_ge18'?'10':'12'}-year manufacturer warranty.`,`Incluye una garantía de fábrica de ${answers.cond_tier==='high_ge18'?'10':'12'} años.`)}</div>
                     <div style={{marginBottom:10}}>
                       {est.lines.map((l,i)=>(
                         <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:"var(--fs-pricing-line)"}}>
@@ -1119,13 +1216,26 @@ function App(){
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantLaborWarranty}
                         onChange={e=>setPricingAnswers(p=>({...p,wantLaborWarranty:e.target.checked}))}/>
-                      Add a 10-year labor warranty (+${PRICING.laborWarranty10yr.toLocaleString()})
+                      {tr(`Add a 10-year labor warranty (+$${PRICING.laborWarranty10yr.toLocaleString()})`,`Agregar garantía de mano de obra de 10 años (+$${PRICING.laborWarranty10yr.toLocaleString()})`)}
                     </label>
-                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.68)",lineHeight:1.55,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
-                    <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ Adjust my answers</button>
+                    {/* Annual maintenance plan - draft add-on, see the
+                        PRICING.maintenancePlanAnnual comment in data.js for
+                        the placeholder-pricing caveat. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!pricingAnswers.wantMaintenancePlan}
+                        onChange={e=>setPricingAnswers(p=>({...p,wantMaintenancePlan:e.target.checked}))}/>
+                      {tr(`Add our annual maintenance plan (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/yr)`,`Agregar nuestro plan de mantenimiento anual (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/año)`)}
+                    </label>
+                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.68)",lineHeight:1.55,marginBottom:10}}>{tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")}</div>
+                    <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
                   </div>
                 );
                 // ── ADDITIONAL CONSIDERATIONS — education, not "choose your own" ──
+                // Deliberately left untranslated (English only) even under
+                // the Spanish toggle - long-form supplementary copy, not
+                // part of the core flow. Same scoping call as leaving the
+                // live diagram's own labels untranslated - see the big
+                // comment on CHAPTERS_ES in data.js.
                 const considerations=(
                   <div style={{width:"100%",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",...(isAtticMode?{}:{marginTop:12})}}>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.75)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
@@ -1153,7 +1263,7 @@ function App(){
               trackEvent('pricing_started');
               if(leadUnlocked){setPricingFlow('sizing');setPricingSubStep(0);}
               else{trackEvent('contact_form_shown');setPricingFlow('leadgate');}
-            }}>💰 Get Pricing</button>}
+            }}>💰 {tr('Get Pricing','Ver Precios')}</button>}
             {/* No Schedule Visit / phone CTA in this panel or the header -
                 both were dropped once this became an iframe embed on the
                 real site, which already has its own header with that CTA. */}
@@ -1179,9 +1289,12 @@ function App(){
               {FINANCING_OPTIONS.filter(f=>f.url).map(f=>(
                 <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {f.label}</a>
               ))}
-              <button onClick={()=>{trackEvent('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
-              <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
-              <button className="quick-restart-btn" style={{width:"100%",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",padding:"9px"}} onClick={restart}>Start Over</button>
+              <button onClick={()=>{trackEvent('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ {tr('Save / Print','Guardar / Imprimir')}</button>
+              {/* Q14 - mailto: link, no backend. Body built fresh per-click
+                  via buildEmailHref() above. */}
+              <a href={buildEmailHref()} onClick={()=>trackEvent('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box"}}>✉ {tr('Email My Build','Enviar por Correo')}</a>
+              <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ {tr('Back','Atrás')}</button>
+              <button className="quick-restart-btn" style={{width:"100%",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",padding:"9px"}} onClick={restart}>{tr('Start Over','Empezar de Nuevo')}</button>
             </div>
           </div>
         </div>

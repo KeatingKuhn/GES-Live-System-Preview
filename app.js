@@ -151,6 +151,65 @@
         return [];
     }
   }
+  var CHAPTERS_ES = ["LO B\xC1SICO", "EL MOTOR", "CONFORT", "TOQUES FINALES"];
+  var STEPS_ES = {
+    location: { q: "\xBFD\xF3nde est\xE1 su unidad interior?", hint: "Define el dise\xF1o de todo su sistema." },
+    indoor_type: { q: "\xBFQu\xE9 tipo de unidad interior?", hint: "\xBFHorno o manejador de aire?\nHorno = Calefacci\xF3n a gas.\nManejador de aire = Todo el\xE9ctrico." },
+    insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Determina la eficiencia de su horno." },
+    plenum: { q: "\xBFNecesita un plenum de suministro nuevo?", hint: "Alimenta aire acondicionado a sus ductos." },
+    cond_tier: { q: "Elija su nivel de eficiencia.", hint: "Mayor eficiencia, facturas mensuales m\xE1s bajas." },
+    system_for: { q: "\xBFBomba de calor o solo enfriamiento?", hint: "La bomba de calor hace m\xE1s; el A/C solo enfr\xEDa." },
+    thermostat: { q: "\xBFQu\xE9 termostato?", hint: "Los modelos Wi-Fi ahorran 10\u201315% en su factura." },
+    purif: { q: "\xBFAlg\xFAn complemento?", hint: "La filtraci\xF3n viene incluida; agregue m\xE1s aqu\xED." },
+    dehu: { q: "\xBFAgregar un deshumidificador?", hint: "Funciona solo; sin cubetas que vaciar." },
+    extras: { q: "\xBFComplementos finales?", hint: "Bomba de condensado o sistema de aire fresco ERV." }
+  };
+  var OPTS_ES = {
+    location: {
+      attic: { label: "\xC1tico", desc: "Instalaci\xF3n horizontal, la m\xE1s com\xFAn en los \xE1ticos de Austin." },
+      closet: { label: "Cl\xF3set", desc: "Unidad de flujo ascendente en un pasillo o cl\xF3set de servicio." }
+    },
+    indoor_type: {
+      furnace: { label: "Horno - Calefacci\xF3n a gas", desc: "Lo m\xE1s com\xFAn en Austin" },
+      ah: { label: "Manejador de Aire - Todo el\xE9ctrico", desc: "Con calefacci\xF3n auxiliar instalada" }
+    },
+    insulation: {
+      fiberglass: { label: "Fibra de vidrio", desc: "\xC1tico ventilado - se combina con un horno de 80% AFUE. La mayor\xEDa de las casas en Austin lo tienen." },
+      spray: { label: "Espuma aislante", desc: "\xC1tico sellado - requiere un horno de 90% AFUE con chimenea de PVC. M\xE1s fresco y eficiente." }
+    },
+    plenum: {
+      ductboard: { label: "Plenum de ductboard", desc: "Opci\xF3n est\xE1ndar, buen aislamiento. Vida \xFAtil t\xEDpica de 10\u201315 a\xF1os." },
+      metal: { label: "Plenum de l\xE1mina met\xE1lica", desc: "M\xE1s duradero, dura 25+ a\xF1os, mejor para la calidad del aire interior." },
+      none: { label: "Conservar el plenum actual", desc: "Ya est\xE1 en buen estado - conectamos directamente, ahorrando en mano de obra." }
+    },
+    thermostat: {
+      proprietary: { label: "Termostato Comunicante", desc: "Requerido en este nivel para una gradaci\xF3n precisa y diagn\xF3sticos completos." },
+      basic: { label: "Programable B\xE1sico", desc: "Confiable, sin app ni suscripci\xF3n. Configure su horario y listo." },
+      wifi: { label: "Inteligente Wi-Fi", desc: "Contr\xF3lelo desde su tel\xE9fono, aprende sus h\xE1bitos. Ahorra 10\u201315% en su factura." }
+    },
+    purif: {
+      uv: { label: "Sistema de Luz UV", desc: "Mantiene limpio el serpent\xEDn evaporador para una eficiencia duradera." },
+      ionizer: { label: "Ionizador / Plasma", desc: "Neutraliza part\xEDculas, olores y COV en el aire de sus ductos." },
+      surge: { label: "Protector de Sobrevoltaje", desc: "Protege el compresor de picos de voltaje y rayos." }
+    },
+    system_for: {
+      hp: { label: "Combustible Dual (Bomba de calor + horno)", desc: "La bomba de calor cubre la mayor parte del a\xF1o, hasta ~35\xB0F. El horno se encarga del resto." },
+      sc: { label: "Solo Enfriamiento", desc: "El A/C solo enfr\xEDa - el horno se encarga de toda la calefacci\xF3n. M\xE1s simple, menor costo inicial." }
+    },
+    cond_tier: {
+      fedmin: { label: "M\xEDnimo Federal - 14 SEER2", desc: "Cumple con el c\xF3digo energ\xE9tico federal de 2023. Garant\xEDa de f\xE1brica de 12 a\xF1os." },
+      mid_ge15: { label: "Eficiencia Media - 18 SEER2", desc: "Velocidad variable, mejor control de humedad. Garant\xEDa de f\xE1brica de 12 a\xF1os." },
+      high_ge18: { label: "Alta Eficiencia - 21 SEER2", desc: "Nivel superior con tecnolog\xEDa Inverter. Garant\xEDa de f\xE1brica de 10 a\xF1os." }
+    },
+    dehu: {
+      yes: { label: "S\xED, agregarlo", desc: "Dimensionado a sus pies cuadrados, funciona autom\xE1ticamente. Sin mantenimiento." },
+      no: { label: "No, gracias", desc: "Omitir por ahora - f\xE1cil de agregar despu\xE9s si la humedad se vuelve un problema." }
+    },
+    extras: {
+      condensate: { label: "Bomba de Condensado", desc: "Necesaria cuando no hay un drenaje por gravedad cerca. Com\xFAn en instalaciones de cl\xF3set." },
+      erv: { label: "ERV (Recuperaci\xF3n de Energ\xEDa)", desc: "Aire fresco filtrado entra, aire viciado sale, recuperando la mayor parte de la energ\xEDa." }
+    }
+  };
   var PRICING = {
     equipment: {
       // fedmin: 14 SEER2 - half-ton granularity, all three system types available
@@ -222,7 +281,13 @@
     // tier descriptions in getOpts). This is the optional EXTENDED labor
     // warranty, offered as a flat add-on at the end of pricing rather than
     // its own wizard question.
-    laborWarranty10yr: 1750
+    laborWarranty10yr: 1750,
+    // DRAFT PLACEHOLDER - price and plan structure are a starting draft, not
+    // confirmed numbers. First-year price + what's included below both need
+    // real figures before this ships live; swap them here, nothing else to
+    // change. $199/yr and the two-tune-up structure are typical of the
+    // industry, not anything GES-specific.
+    maintenancePlanAnnual: 199
   };
   var TONNAGE_OPTIONS = [
     { v: "t15", label: "1.5 Tons", sqftLabel: "~900 sq ft", tons: 1.5, sqftMid: 900 },
@@ -263,25 +328,37 @@
     if (answers.cond_tier === "mid_ge15") return "dual_fuel";
     return answers.system_for === "hp" ? "dual_fuel" : "straight_cool";
   }
+  function reachTracker(name) {
+    try {
+      if (window.parent && window.parent !== window && typeof window.parent[name] === "function") return window.parent[name];
+    } catch (e) {
+    }
+    if (typeof window[name] === "function") return window[name];
+    return null;
+  }
+  function relayToParent(msg) {
+    try {
+      if (window.parent && window.parent !== window) window.parent.postMessage({ gesAnalytics: msg }, "*");
+    } catch (e) {
+    }
+  }
   function trackEvent(eventName, params = {}) {
     try {
-      if (typeof window.gtag === "function") {
-        window.gtag("event", eventName, { event_category: "System Builder", ...params });
-      }
-      if (typeof window.fbq === "function") {
-        window.fbq("trackCustom", eventName, params);
-      }
+      const gtag = reachTracker("gtag");
+      if (gtag) gtag("event", eventName, { event_category: "System Builder", ...params });
+      const fbq = reachTracker("fbq");
+      if (fbq) fbq("trackCustom", eventName, params);
+      if (!gtag && !fbq) relayToParent({ kind: "event", name: eventName, params: { event_category: "System Builder", ...params } });
     } catch (e) {
     }
   }
   function trackLead(params = {}) {
     try {
-      if (typeof window.gtag === "function") {
-        window.gtag("event", "generate_lead", { event_category: "System Builder", ...params });
-      }
-      if (typeof window.fbq === "function") {
-        window.fbq("track", "Lead", params);
-      }
+      const gtag = reachTracker("gtag");
+      if (gtag) gtag("event", "generate_lead", { event_category: "System Builder", ...params });
+      const fbq = reachTracker("fbq");
+      if (fbq) fbq("track", "Lead", params);
+      if (!gtag && !fbq) relayToParent({ kind: "lead", params: { event_category: "System Builder", ...params } });
     } catch (e) {
     }
   }
@@ -332,6 +409,9 @@
     }
     if (pricingAnswers.wantLaborWarranty) {
       lines.push({ label: "10-year labor warranty", price: PRICING.laborWarranty10yr });
+    }
+    if (pricingAnswers.wantMaintenancePlan) {
+      lines.push({ label: "Annual maintenance plan (1st year)", price: PRICING.maintenancePlanAnnual });
     }
     const subtotal = lines.reduce((s, l) => s + l.price, 0);
     const linesRounded = lines.map((l) => ({ ...l, display: roundTo25(l.price) }));
@@ -4779,6 +4859,24 @@
     const [pricingAnswers, setPricingAnswers] = useState2({});
     const topRef = useRef2(null);
     const scrollTop = useCallback2(() => setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50), []);
+    const [lang, setLang] = useState2(() => {
+      try {
+        return localStorage.getItem("gesLang_v1") === "es" ? "es" : "en";
+      } catch (e) {
+        return "en";
+      }
+    });
+    const tr = (en, es) => lang === "es" && es !== void 0 ? es : en;
+    React.useEffect(() => {
+      try {
+        localStorage.setItem("gesLang_v1", lang);
+      } catch (e) {
+      }
+      try {
+        document.documentElement.lang = lang;
+      } catch (e) {
+      }
+    }, [lang]);
     const [leadUnlocked, setLeadUnlocked] = useState2(() => !GATE_CONFIG.gravityFormId || hasSubmittedLead());
     React.useEffect(() => {
       if (!GATE_CONFIG.gravityFormId || leadUnlocked) return;
@@ -4951,7 +5049,63 @@
       if (resumePending || !answers.location) return;
       saveBuild({ answers, stepIdx, done, pricingFlow, pricingSubStep, pricingAnswers });
     }, [answers, stepIdx, done, resumePending, pricingFlow, pricingSubStep, pricingAnswers]);
-    const opts = useMemo2(() => cur ? getOpts(cur.id, answers) : [], [cur, answers]);
+    const opts = useMemo2(() => {
+      const base = cur ? getOpts(cur.id, answers) : [];
+      if (lang !== "es") return base;
+      const overrides = OPTS_ES[cur.id] || {};
+      return base.map((o) => overrides[o.v] ? { ...o, ...overrides[o.v] } : o);
+    }, [cur, answers, lang]);
+    const curQ = cur ? lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].q : cur.q : "";
+    const curHint = cur ? lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].hint : cur.hint : "";
+    const chapterNames = lang === "es" ? CHAPTERS_ES : CHAPTERS;
+    const reviewItems = useMemo2(() => {
+      const es = lang === "es";
+      return [
+        { step: "location", label: tr("Location", "Ubicaci\xF3n"), val: answers.location === "attic" ? tr("Attic horizontal", "\xC1tico horizontal") : answers.location === "closet" ? tr("Upflow closet", "Cl\xF3set ascendente") : null },
+        { step: "indoor_type", label: tr("Indoor unit", "Unidad interior"), val: answers.indoor_type === "furnace" ? tr("Gas furnace", "Horno a gas") : answers.indoor_type === "ah" ? tr("Air handler", "Manejador de aire") : null },
+        answers.furnace_eff ? { step: "insulation", label: tr("Insulation", "Aislamiento"), val: answers.furnace_eff === "e90" ? tr("Spray foam - 90% AFUE", "Espuma aislante - 90% AFUE") : tr("Fiberglass - 80% AFUE", "Fibra de vidrio - 80% AFUE") } : null,
+        { step: "plenum", label: tr("Plenum", "Plenum"), val: answers.plenum === "ductboard" ? tr("New ductboard plenum", "Nuevo plenum de ductboard") : answers.plenum === "metal" ? tr("New sheet metal plenum", "Nuevo plenum de l\xE1mina met\xE1lica") : answers.plenum === "none" ? tr("Keep existing plenum", "Conservar plenum actual") : null },
+        {
+          step: "thermostat",
+          label: tr("Thermostat", "Termostato"),
+          val: answers.thermostat === "wifi" ? tr("Wi-Fi smart thermostat", "Termostato inteligente Wi-Fi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Proprietary communicating thermostat", "Termostato comunicante propietario") : null,
+          short: answers.thermostat === "wifi" ? tr("Wi-Fi smart t-stat", "Termostato Wi-Fi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Proprietary t-stat", "Termostato propietario") : null
+        },
+        Array.isArray(answers.purif) && answers.purif.length > 0 ? {
+          step: "purif",
+          label: tr("Add-ons", "Complementos"),
+          val: answers.purif.map((v) => v === "aprilaire" ? tr("Enhanced Filtration Cabinet", "Gabinete de filtraci\xF3n mejorada") : v === "uv" ? tr("UV Light", "Luz UV") : v === "ionizer" ? tr("Ionizer", "Ionizador") : v === "surge" ? tr("Surge protector", "Protector de sobrevoltaje") : v).join(" + "),
+          short: answers.purif.map((v) => v === "aprilaire" ? tr("Filtration Cabinet", "Gabinete de filtraci\xF3n") : v === "uv" ? tr("UV Light", "Luz UV") : v === "ionizer" ? tr("Ionizer", "Ionizador") : v === "surge" ? tr("Surge Protector", "Protector de sobrevoltaje") : v).join(" + ")
+        } : null,
+        { step: "cond_tier", label: tr("Efficiency", "Eficiencia"), val: answers.cond_tier === "fedmin" ? tr("Federal Minimum - 14 SEER2", "M\xEDnimo Federal - 14 SEER2") : answers.cond_tier === "mid_ge15" ? tr("Mid Efficiency - 18 SEER2", "Eficiencia Media - 18 SEER2") : answers.cond_tier === "high_ge18" ? tr("High Efficiency - 21 SEER2", "Alta Eficiencia - 21 SEER2") : null },
+        answers.system_for ? {
+          step: "system_for",
+          label: tr("Heat source", "Fuente de calor"),
+          val: answers.system_for === "hp" ? tr("Dual Fuel - heat pump + furnace", "Combustible Dual - bomba de calor + horno") : tr("Straight cool - furnace only", "Solo enfriamiento - solo horno"),
+          short: answers.system_for === "hp" ? tr("Dual Fuel (HP + furnace)", "Combustible Dual (BC + horno)") : tr("Straight Cool (furnace)", "Solo Enfriamiento (horno)")
+        } : null,
+        { step: "dehu", label: tr("Dehumidifier", "Deshumidificador"), val: answers.dehu === "yes" ? tr("Yes - whole-home unit", "S\xED - unidad para toda la casa") : answers.dehu === "no" ? tr("No", "No") : null },
+        Array.isArray(answers.extras) && answers.extras.length > 0 ? { step: "extras", label: tr("Final add-ons", "Complementos finales"), val: answers.extras.map((v) => v === "condensate" ? tr("Condensate pump", "Bomba de condensado") : v === "erv" ? "ERV" : v).join(" + ") } : null
+      ].filter(Boolean);
+    }, [answers, lang]);
+    const buildEmailHref = () => {
+      const lines = [tr("Here is the system I built with Gold Eagle Services:", "Este es el sistema que arm\xE9 con Gold Eagle Services:"), ""];
+      reviewItems.forEach((item) => {
+        if (item && item.val) lines.push(`${item.label}: ${item.val}`);
+      });
+      if (pricingFlow === "result") {
+        const est = calcEstimate(answers, pricingAnswers);
+        if (est) {
+          lines.push("");
+          lines.push(tr(`Estimated price: ~$${est.display.toLocaleString()}`, `Precio estimado: ~$${est.display.toLocaleString()}`));
+        }
+      }
+      lines.push("");
+      lines.push(tr("Built with the Gold Eagle Services online system builder.", "Creado con el configurador de sistemas en l\xEDnea de Gold Eagle Services."));
+      const subject = encodeURIComponent(tr("My Gold Eagle Services HVAC Build", "Mi Sistema HVAC de Gold Eagle Services"));
+      const body = encodeURIComponent(lines.join("\n"));
+      return `mailto:?subject=${subject}&body=${body}`;
+    };
     const [showInfo, setShowInfo] = React.useState(false);
     const autoInfoShown = React.useRef(false);
     const autoInfoInstant = React.useRef(false);
@@ -4996,7 +5150,19 @@
       dehu: "Austin humidity makes your home feel warmer than the thermostat reads. A dehumidifier ties into your ductwork and runs automatically, with no buckets and no upkeep from you.",
       extras: "A condensate pump handles drainage when there's no nearby gravity drain, which is common in closet installs. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange."
     };
-    const infoText = cur && INFO_TEXT[cur.id];
+    const INFO_TEXT_ES = {
+      location: "La ubicaci\xF3n de su unidad interior define el dise\xF1o de todo el sistema. \xC1tico es la instalaci\xF3n m\xE1s com\xFAn en Austin, con la unidad en posici\xF3n horizontal sobre el espacio habitable. Cl\xF3set es de flujo ascendente, en posici\xF3n vertical en un pasillo o cl\xF3set de servicio. Ambas funcionan bien; las instalaciones de cl\xF3set son un poco m\xE1s f\xE1ciles de dar servicio.",
+      indoor_type: "\xBFNo est\xE1 seguro cu\xE1l tiene? Una estufa o calentador de agua a gas usualmente significa que tambi\xE9n tiene un horno, que quema gas para calefacci\xF3n y se combina con A/C para enfriar. Un hogar totalmente el\xE9ctrico probablemente tiene un manejador de aire, combinado con una bomba de calor para calefacci\xF3n y enfriamiento.",
+      insulation: "El aislamiento del \xE1tico determina qu\xE9 horno le corresponde. Fibra de vidrio o soplada significa un \xE1tico ventilado, donde un horno est\xE1ndar de 80% AFUE funciona bien con una chimenea met\xE1lica tipo B. Espuma aislante significa un \xE1tico sellado, que requiere un horno de condensaci\xF3n de 90% AFUE con chimenea de PVC hacia el techo.",
+      plenum: "El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitaci\xF3n. Si el suyo est\xE1 da\xF1ado, con fugas, o tiene m\xE1s de 15 a\xF1os, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
+      thermostat: "Un termostato programable b\xE1sico es confiable: configure su horario y olv\xEDdese de \xE9l. Un termostato inteligente Wi-Fi se conecta a su tel\xE9fono, aprende sus h\xE1bitos, y puede reducir su factura de energ\xEDa entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
+      purif: "El gabinete de filtraci\xF3n mejorada viene incluido de f\xE1brica en cada instalaci\xF3n, capturando ya mucho m\xE1s polvo, polen y al\xE9rgenos que un filtro t\xEDpico de 1 pulgada. Una luz UV mantiene limpio el serpent\xEDn. Un ionizador elimina part\xEDculas, olores y COV. Un protector de sobrevoltaje protege el condensador: un solo rayo puede destruir un compresor.",
+      cond_tier: "El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, as\xED que m\xE1s alto significa facturas m\xE1s bajas. M\xEDnimo Federal cumple con el c\xF3digo actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con elegibilidad para reembolsos y el mejor control de humedad.",
+      system_for: "Con un horno a gas, tiene dos opciones. Combustible Dual combina una bomba de calor con el horno: la bomba de calor se encarga del enfriamiento y la calefacci\xF3n en clima templado, y el horno solo se enciende por debajo de aproximadamente 35 grados, la combinaci\xF3n m\xE1s eficiente que ofrecemos. Solo Enfriamiento significa que el A/C solo enfr\xEDa, y el horno se encarga de toda la calefacci\xF3n.",
+      dehu: "La humedad de Austin hace que su hogar se sienta m\xE1s caliente de lo que marca el termostato. Un deshumidificador se conecta a sus ductos y funciona autom\xE1ticamente, sin cubetas ni mantenimiento de su parte.",
+      extras: "Una bomba de condensado maneja el drenaje cuando no hay un drenaje por gravedad cercano, algo com\xFAn en instalaciones de cl\xF3set. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio."
+    };
+    const infoText = cur && (lang === "es" ? INFO_TEXT_ES[cur.id] || INFO_TEXT[cur.id] : INFO_TEXT[cur.id]);
     const REACTION = {
       // indoor_type has no entry here on purpose - its hint is forced to 3
       // lines (see STEPS above), already 2 lines taller than every other
@@ -5076,16 +5242,32 @@
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
       const savedCur = savedSteps[savedBuild.stepIdx];
       return savedBuild.done ? "You already finished building a system. Pick up right where you left off?" : savedCur ? /* @__PURE__ */ React.createElement(React.Fragment, null, "You were on ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.85)" } }, '"', savedCur.q, '"'), " - want to keep going?") : "You have a build in progress. Want to keep going?";
-    })()), /* @__PURE__ */ React.createElement("button", { className: "done-cta", style: { width: 220 }, onClick: resumeBuild }, "Resume My Build"), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: discardSavedBuild }, "Start Fresh Instead")), /* @__PURE__ */ React.createElement("div", { className: "prog-chapters", style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 30 } }, CHAPTERS.map((name, i) => {
+    })()), /* @__PURE__ */ React.createElement("button", { className: "done-cta", style: { width: 220 }, onClick: resumeBuild }, "Resume My Build"), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: discardSavedBuild }, "Start Fresh Instead")), /* @__PURE__ */ React.createElement("div", { className: "prog-chapters", style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 30 } }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        className: "no-print lang-toggle-btn",
+        onClick: () => setLang((l) => l === "es" ? "en" : "es"),
+        "aria-label": tr("Switch to Spanish", "Cambiar a ingl\xE9s"),
+        style: { position: "absolute", top: 6, right: 8, zIndex: 31, fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
+      },
+      lang === "es" ? "EN" : "ES"
+    ), chapterNames.map((name, i) => {
       const segPct = done || i < curChapter ? 100 : i > curChapter ? 0 : chapterCounts[i] ? Math.round(curChapterStepNum / chapterCounts[i] * 100) : 0;
       return /* @__PURE__ */ React.createElement("div", { key: i, className: "prog-chapter" + (segPct >= 100 ? " done" : ""), title: name }, /* @__PURE__ */ React.createElement("div", { className: "prog-chapter-fill", style: { width: segPct + "%" } }));
-    })), /* @__PURE__ */ React.createElement("div", { ref: splashRef, className: "splash-screen" + (loc || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo" }, "BUILD YOUR OWN SYSTEM"), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, "Tell us where your indoor unit lives and we will build a ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "live, real-time diagram"), " of your complete HVAC system - every component, every connection, sized and labeled."), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fm)", fontSize: "14px", color: "rgba(215,183,64,.75)", textAlign: "center", letterSpacing: ".1em", margin: "0 0 6px" } }, "SELECT YOUR SYSTEM LOCATION TO BEGIN"), /* @__PURE__ */ React.createElement("div", { className: "splash-cards" }, /* @__PURE__ */ React.createElement(
+    })), /* @__PURE__ */ React.createElement("div", { ref: splashRef, className: "splash-screen" + (loc || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo" }, tr("BUILD YOUR OWN SYSTEM", "ARME SU PROPIO SISTEMA")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, tr(
+      /* @__PURE__ */ React.createElement(React.Fragment, null, "Tell us where your indoor unit lives and we will build a ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "live, real-time diagram"), " of your complete HVAC system - every component, every connection, sized and labeled."),
+      /* @__PURE__ */ React.createElement(React.Fragment, null, "D\xEDganos d\xF3nde vive su unidad interior y construiremos un ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "diagrama en vivo y en tiempo real"), " de su sistema HVAC completo - cada componente, cada conexi\xF3n, dimensionado y etiquetado.")
+    )), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 18px", maxWidth: 560, margin: "6px 0" } }, [
+      tr("See every component before anyone visits your home", "Vea cada componente antes de que alguien visite su hogar"),
+      tr("Transparent pricing, zero pressure", "Precios transparentes, sin presi\xF3n"),
+      tr("Locally owned, Austin-based", "Propiedad local, con sede en Austin")
+    ].map((line, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontFamily: "var(--fb)", fontSize: 12.5, color: "rgba(255,255,255,.55)", display: "flex", alignItems: "center", gap: 5 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--gl)" } }, "\u2713"), line))), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fm)", fontSize: "14px", color: "rgba(215,183,64,.75)", textAlign: "center", letterSpacing: ".1em", margin: "0 0 6px" } }, tr("SELECT YOUR SYSTEM LOCATION TO BEGIN", "SELECCIONE LA UBICACI\xD3N DE SU SISTEMA PARA COMENZAR")), /* @__PURE__ */ React.createElement("div", { className: "splash-cards" }, /* @__PURE__ */ React.createElement(
       "div",
       {
         className: "splash-card",
         role: "button",
         tabIndex: 0,
-        "aria-label": "Attic Horizontal - Unit lays on its side above the ceiling, most common in Austin. Air flows horizontally through ducts in the attic.",
+        "aria-label": tr("Attic Horizontal - Unit lays on its side above the ceiling, most common in Austin. Air flows horizontally through ducts in the attic.", "\xC1tico Horizontal - La unidad se acuesta de lado sobre el techo, lo m\xE1s com\xFAn en Austin. El aire fluye horizontalmente a trav\xE9s de ductos en el \xE1tico."),
         onClick: () => pickLocation("attic"),
         onKeyDown: (e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -5094,14 +5276,14 @@
           }
         }
       },
-      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { className: "splash-card-title" }, "Attic Horizontal"), /* @__PURE__ */ React.createElement("div", { className: "splash-card-desc" }, "Unit lays on its side above the ceiling - most common in Austin. Air flows horizontally through ducts in the attic."))
+      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { className: "splash-card-title" }, tr("Attic Horizontal", "\xC1tico Horizontal")), /* @__PURE__ */ React.createElement("div", { className: "splash-card-desc" }, tr("Unit lays on its side above the ceiling - most common in Austin. Air flows horizontally through ducts in the attic.", "La unidad se acuesta de lado sobre el techo - lo m\xE1s com\xFAn en Austin. El aire fluye horizontalmente a trav\xE9s de ductos en el \xE1tico.")))
     ), /* @__PURE__ */ React.createElement(
       "div",
       {
         className: "splash-card",
         role: "button",
         tabIndex: 0,
-        "aria-label": "Closet Upflow - Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.",
+        "aria-label": tr("Closet Upflow - Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.", "Cl\xF3set de Flujo Ascendente - La unidad se instala en posici\xF3n vertical en un cl\xF3set de servicio o pasillo. El aire fluye verticalmente a trav\xE9s del serpent\xEDn."),
         onClick: () => pickLocation("closet"),
         onKeyDown: (e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -5110,15 +5292,15 @@
           }
         }
       },
-      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { className: "splash-card-title" }, "Closet Upflow"), /* @__PURE__ */ React.createElement("div", { className: "splash-card-desc" }, "Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil."))
-    )), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, "Takes about 2 minutes. No personal info required. Your build saves automatically as you go.")), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E Editing this answer only"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { className: "splash-card-title" }, tr("Closet Upflow", "Cl\xF3set de Flujo Ascendente")), /* @__PURE__ */ React.createElement("div", { className: "splash-card-desc" }, tr("Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.", "La unidad se instala en posici\xF3n vertical en un cl\xF3set de servicio o pasillo. El aire fluye verticalmente a trav\xE9s del serpent\xEDn.")))
+    )), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su proceso se guarda autom\xE1ticamente."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setQuickEdit(false);
       setDone(true);
-    } }, "\u2039 Cancel, back to build")), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, cur ? cur.q : ""), cur && cur.hint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, cur.hint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, CHAPTERS[curChapter]), " \xB7 STEP " + stepIdx + (totalKnown ? " OF " + totalSteps : "") + " \xB7 " + cur.q.toUpperCase()) : ""), infoText && /* @__PURE__ */ React.createElement(
+    } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + tr("STEP", "PASO") + " " + stepIdx + (totalKnown ? " " + tr("OF", "DE") + " " + totalSteps : "") + " \xB7 " + curQ.toUpperCase()) : ""), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
-        "aria-label": showInfo ? "Hide info" : "More info",
+        "aria-label": showInfo ? tr("Hide info", "Ocultar informaci\xF3n") : tr("More info", "M\xE1s informaci\xF3n"),
         "aria-expanded": showInfo,
         onMouseEnter: () => hoverCapable() && setShowInfo(true),
         onMouseLeave: () => hoverCapable() && setShowInfo(false),
@@ -5130,14 +5312,14 @@
         }
       },
       "i"
-    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 Back"), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, "Skip"), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? "Save & Return \u2192" : "Next \u2192" : stepIdx === activeSteps.length - 1 ? "Finish \u2192" : "Next \u2192")), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E Editing this answer only"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setQuickEdit(false);
       setDone(true);
-    } }, "\u2039 Cancel, back to build")), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, CHAPTERS[curChapter]), " Step ", stepIdx, totalKnown ? ` of ${totalSteps}` : ""), infoText && /* @__PURE__ */ React.createElement(
+    } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " ", tr("Step", "Paso"), " ", stepIdx, totalKnown ? ` ${tr("of", "de")} ${totalSteps}` : ""), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
-        "aria-label": showInfo ? "Hide info" : "More info",
+        "aria-label": showInfo ? tr("Hide info", "Ocultar informaci\xF3n") : tr("More info", "M\xE1s informaci\xF3n"),
         "aria-expanded": showInfo,
         onMouseEnter: () => hoverCapable() && setShowInfo(true),
         onMouseLeave: () => hoverCapable() && setShowInfo(false),
@@ -5149,34 +5331,8 @@
         }
       },
       "i"
-    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, cur ? cur.q : ""), cur && cur.hint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, cur.hint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 Back"), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, "Skip"), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? "Save & Return" : "Next" : stepIdx === activeSteps.length - 1 ? "See Full Build" : "Next")))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { flex: 1, minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" }), isAtticMode && (pricingFlow ? /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.7)", padding: "6px 10px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.8)" } }, "\u2713 Your system is built"), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-pricing-fine)" } }, "Edit selections")) : /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.55)", padding: "6px 10px 6px 7px" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 28, height: 28, fontSize: 14, flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 14.5, marginBottom: 0 } }, "Your System is Built"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, "Review your selections below"))))), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
-      const reviewGrid = /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, [
-        { step: "location", label: "Location", val: answers.location === "attic" ? "Attic horizontal" : answers.location === "closet" ? "Upflow closet" : null },
-        { step: "indoor_type", label: "Indoor unit", val: answers.indoor_type === "furnace" ? "Gas furnace" : answers.indoor_type === "ah" ? "Air handler" : null },
-        answers.furnace_eff ? { step: "insulation", label: "Insulation", val: answers.furnace_eff === "e90" ? "Spray foam - 90% AFUE" : "Fiberglass - 80% AFUE" } : null,
-        { step: "plenum", label: "Plenum", val: answers.plenum === "ductboard" ? "New ductboard plenum" : answers.plenum === "metal" ? "New sheet metal plenum" : answers.plenum === "none" ? "Keep existing plenum" : null },
-        {
-          step: "thermostat",
-          label: "Thermostat",
-          val: answers.thermostat === "wifi" ? "Wi-Fi smart thermostat" : answers.thermostat === "basic" ? "Basic programmable" : answers.thermostat === "proprietary" ? "Proprietary communicating thermostat" : null,
-          short: answers.thermostat === "wifi" ? "Wi-Fi smart t-stat" : answers.thermostat === "basic" ? "Basic programmable" : answers.thermostat === "proprietary" ? "Proprietary t-stat" : null
-        },
-        Array.isArray(answers.purif) && answers.purif.length > 0 ? {
-          step: "purif",
-          label: "Add-ons",
-          val: answers.purif.map((v) => v === "aprilaire" ? "Enhanced Filtration Cabinet" : v === "uv" ? "UV Light" : v === "ionizer" ? "Ionizer" : v === "surge" ? "Surge protector" : v).join(" + "),
-          short: answers.purif.map((v) => v === "aprilaire" ? "Filtration Cabinet" : v === "uv" ? "UV Light" : v === "ionizer" ? "Ionizer" : v === "surge" ? "Surge Protector" : v).join(" + ")
-        } : null,
-        { step: "cond_tier", label: "Efficiency", val: answers.cond_tier === "fedmin" ? "Federal Minimum - 14 SEER2" : answers.cond_tier === "mid_ge15" ? "Mid Efficiency - 18 SEER2" : answers.cond_tier === "high_ge18" ? "High Efficiency - 21 SEER2" : null },
-        answers.system_for ? {
-          step: "system_for",
-          label: "Heat source",
-          val: answers.system_for === "hp" ? "Dual Fuel - heat pump + furnace" : "Straight cool - furnace only",
-          short: answers.system_for === "hp" ? "Dual Fuel (HP + furnace)" : "Straight Cool (furnace)"
-        } : null,
-        { step: "dehu", label: "Dehumidifier", val: answers.dehu === "yes" ? "Yes - whole-home unit" : answers.dehu === "no" ? "No" : null },
-        Array.isArray(answers.extras) && answers.extras.length > 0 ? { step: "extras", label: "Final add-ons", val: answers.extras.map((v) => v === "condensate" ? "Condensate pump" : v === "erv" ? "ERV" : v).join(" + ") } : null
-      ].filter(Boolean).map((item, i) => item && item.val ? (
+    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { flex: 1, minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" }), isAtticMode && (pricingFlow ? /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.7)", padding: "6px 10px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.8)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-pricing-fine)" } }, tr("Edit selections", "Editar selecciones"))) : /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.55)", padding: "6px 10px 6px 7px" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 28, height: 28, fontSize: 14, flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 14.5, marginBottom: 0 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))))), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
+      const reviewGrid = /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, reviewItems.map((item, i) => item && item.val ? (
         // Attic's grid cells live in the fixed 200px-tall panel
         // (see .done-wrap-attic above), but unlike .opt-compact's
         // fixed-height/zero-slack panel, this one's own container
@@ -5192,7 +5348,7 @@
         // "short" wording where one exists (full detail is still
         // one hover/tap away via the native title tooltip, same
         // place attic's ellipsis-clipped cells already send it).
-        isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, title: item.val }, item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "3px 6px" } }, "EDIT")) : (
+        isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, title: item.val }, item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "3px 6px" } }, tr("EDIT", "EDITAR"))) : (
           // Closet's cell doesn't reserve a fixed right-hand gutter for
           // an absolutely-positioned EDIT chip (that's what attic does
           // above) - at 2-column width the chip's real rendered width
@@ -5200,10 +5356,10 @@
           // of the label text. Putting EDIT in normal flow next to the
           // value instead means it can never overlap anything: the
           // value just wraps in whatever width is left beside it.
-          /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "4px 7px", marginTop: 1 } }, "EDIT"))
+          /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "4px 7px", marginTop: 1 } }, tr("EDIT", "EDITAR")))
         )
       ) : null));
-      return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "done-header-mobile-only" : void 0, style: { display: isAtticMode ? void 0 : "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 Your system is built"), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, "Edit selections")), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid)) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "done-header-mobile-only" : void 0, style: { display: isAtticMode ? void 0 : "flex", alignItems: "center", gap: 10, marginBottom: 12, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: isAtticMode ? 38 : 42, height: isAtticMode ? 38 : 42, fontSize: isAtticMode ? 17 : 19, flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: isAtticMode ? 17 : 19, marginBottom: 1 } }, "Your System is Built"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-review-label-lg)", color: "var(--mut)" } }, "Review your selections below"))), reviewGrid);
+      return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "done-header-mobile-only" : void 0, style: { display: isAtticMode ? void 0 : "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid)) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "done-header-mobile-only" : void 0, style: { display: isAtticMode ? void 0 : "flex", alignItems: "center", gap: 10, marginBottom: 12, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: isAtticMode ? 38 : 42, height: isAtticMode ? 38 : 42, fontSize: isAtticMode ? 17 : 19, flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: isAtticMode ? 17 : 19, marginBottom: 1 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-review-label-lg)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))), reviewGrid);
     })(), pricingFlow !== null && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", marginBottom: 12 } }, pricingFlow === "sizing" && (() => {
       const subSteps = ["sqft", "ducts"];
       const subId = subSteps[pricingSubStep];
@@ -5220,13 +5376,13 @@
         else setPricingFlow(null);
       };
       const canSubNext = subId === "sqft" ? !!pricingAnswers.tonnageChoice : subId === "ducts" ? pricingAnswers.wantDucts === false || pricingAnswers.wantDucts === true && pricingAnswers.ventCount > 0 : true;
-      const left = /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-left" : void 0, style: { flex: isAtticMode ? "0 0 420px" : "1 1 auto" } }, subId === "sqft" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: isAtticMode ? 2 : 4, lineHeight: isAtticMode ? 1.15 : "normal", fontFamily: "var(--ft)" } }, "What size system does this area need?"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", marginBottom: isAtticMode ? 3 : 8, lineHeight: isAtticMode ? 1.15 : 1.5 } }, isAtticMode ? "Pick the tonnage for your home's sq ft, or enter it below for a suggestion." : "Pick the tonnage that best fits the square footage this system covers. Not sure? Enter your sq ft for a suggested starting point."), /* @__PURE__ */ React.createElement(
+      const left = /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-left" : void 0, style: { flex: isAtticMode ? "0 0 420px" : "1 1 auto" } }, subId === "sqft" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: isAtticMode ? 2 : 4, lineHeight: isAtticMode ? 1.15 : "normal", fontFamily: "var(--ft)" } }, tr("What size system does this area need?", "\xBFQu\xE9 tama\xF1o de sistema necesita esta \xE1rea?")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", marginBottom: isAtticMode ? 3 : 8, lineHeight: isAtticMode ? 1.15 : 1.5 } }, isAtticMode ? tr("Pick the tonnage for your home's sq ft, or enter it below for a suggestion.", "Elija las toneladas seg\xFAn los pies cuadrados de su casa, o ingr\xE9selos abajo para una sugerencia.") : tr("Pick the tonnage that best fits the square footage this system covers. Not sure? Enter your sq ft for a suggested starting point.", "Elija las toneladas que mejor se ajusten a los pies cuadrados que cubre este sistema. \xBFNo est\xE1 seguro? Ingrese sus pies cuadrados para una sugerencia.")), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
           min: "200",
           max: "10000",
-          placeholder: "Sq ft (optional)",
+          placeholder: tr("Sq ft (optional)", "Pies cuadrados (opcional)"),
           value: pricingAnswers.sqftInput || "",
           onChange: (e) => {
             const val = e.target.value;
@@ -5235,12 +5391,12 @@
           },
           className: "pricing-input" + (isAtticMode ? " compact" : "")
         }
-      )), subId === "ducts" && /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, fontFamily: "var(--ft)" } }, "Want duct replacement priced too?"));
+      )), subId === "ducts" && /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, fontFamily: "var(--ft)" } }, tr("Want duct replacement priced too?", "\xBFDesea que tambi\xE9n se cotice el reemplazo de ductos?")));
       const right = /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, subId === "sqft" && (() => {
         const sqftNum = parseInt(pricingAnswers.sqftInput) || 0;
         const recommended = nearestTonnageOption(sqftNum);
-        return /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-opts-sqft" : void 0, style: { display: "grid", gridTemplateColumns: isAtticMode ? "repeat(7,1fr)" : "repeat(auto-fit,minmax(160px,1fr))", gap: 6 } }, TONNAGE_OPTIONS.map((o) => /* @__PURE__ */ React.createElement("button", { key: o.v, className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.tonnageChoice === o.v ? " sel" : ""), onClick: () => setPricingAnswers((p) => ({ ...p, tonnageChoice: o.v })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, o.label, recommended && recommended.v === o.v && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, "SUGGESTED")), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, isAtticMode ? o.sqftLabel : `Typical for ${o.sqftLabel} homes`))))));
-      })(), subId === "ducts" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === true ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: true })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, "Yes")))), /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === false ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: false, ventCount: void 0 })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, "No / Skip")))), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9.5 : 11, color: "var(--mut)", marginBottom: 4 } }, "How many vents/registers?"), /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-opts-sqft" : void 0, style: { display: "grid", gridTemplateColumns: isAtticMode ? "repeat(7,1fr)" : "repeat(auto-fit,minmax(160px,1fr))", gap: 6 } }, TONNAGE_OPTIONS.map((o) => /* @__PURE__ */ React.createElement("button", { key: o.v, className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.tonnageChoice === o.v ? " sel" : ""), onClick: () => setPricingAnswers((p) => ({ ...p, tonnageChoice: o.v })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, o.label, recommended && recommended.v === o.v && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, isAtticMode ? o.sqftLabel : tr(`Typical for ${o.sqftLabel} homes`, `T\xEDpico para casas de ${o.sqftLabel}`)))))));
+      })(), subId === "ducts" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === true ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: true })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("Yes", "S\xED"))))), /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === false ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: false, ventCount: void 0 })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("No / Skip", "No / Omitir"))))), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9.5 : 11, color: "var(--mut)", marginBottom: 4 } }, tr("How many vents/registers?", "\xBFCu\xE1ntas rejillas/registros?")), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
@@ -5253,29 +5409,37 @@
       ))));
       {
       }
-      return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: isAtticMode ? 4 : 8, fontFamily: "var(--fm)" } }, "PRICING \xB7 STEP ", pricingSubStep + 1, " OF ", subSteps.length), /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-row" : void 0, style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 Back"), /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? "Get My Estimate" : "Next")));
-    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, "Almost there - just one quick step"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 12 } }, "Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else."), /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: isAtticMode ? 4 : 8, fontFamily: "var(--fm)" } }, tr("PRICING", "PRECIO"), " \xB7 ", tr("STEP", "PASO"), " ", pricingSubStep + 1, " ", tr("OF", "DE"), " ", subSteps.length), /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-row" : void 0, style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? tr("Get My Estimate", "Obtener Mi Estimado") : tr("Next", "Siguiente"))));
+    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, tr("Almost there - just one quick step", "Ya casi termina - solo un paso r\xE1pido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 12 } }, tr("Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else.", "Complete el formulario breve en esta p\xE1gina para desbloquear los precios - continuar\xE1 aqu\xED autom\xE1ticamente, sin necesidad de hacer clic en nada m\xE1s.")), /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "btn-back",
         style: { padding: isAtticMode ? "6px 16px" : "8px 16px", fontSize: isAtticMode ? 14 : "var(--fs-pricing-fine)" },
         onClick: () => setPricingFlow(null)
       },
-      "\u2039 Back"
+      "\u2039 ",
+      tr("Back", "Atr\xE1s")
     )), pricingFlow === "result" && /* @__PURE__ */ React.createElement("div", { key: "result", className: "fadein" }, (() => {
       const est = calcEstimate(answers, pricingAnswers);
-      if (!est) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, "Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.");
-      const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, "AS LOW AS"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 44, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 17, color: "var(--dim)", fontWeight: 400 } }, "/mo")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6, marginBottom: 10 } }, "Based on 36 months at 0% APR through Wells Fargo financing, on approved credit."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, "ESTIMATED PRICE"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, "Includes a ", answers.cond_tier === "high_ge18" ? "10" : "12", "-year manufacturer warranty."), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, l.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      if (!est) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.", "A\xFAn no podemos calcular un estimado para esta combinaci\xF3n - ll\xE1menos y le daremos un n\xFAmero."));
+      const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("AS LOW AS", "DESDE")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 44, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 17, color: "var(--dim)", fontWeight: 400 } }, tr("/mo", "/mes"))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6, marginBottom: 10 } }, tr("Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.", "Basado en 36 meses al 0% de inter\xE9s a trav\xE9s del financiamiento de Wells Fargo, sujeto a aprobaci\xF3n de cr\xE9dito.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr(`Includes a ${answers.cond_tier === "high_ge18" ? "10" : "12"}-year manufacturer warranty.`, `Incluye una garant\xEDa de f\xE1brica de ${answers.cond_tier === "high_ge18" ? "10" : "12"} a\xF1os.`)), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, l.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantLaborWarranty,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantLaborWarranty: e.target.checked }))
         }
-      ), "Add a 10-year labor warranty (+$", PRICING.laborWarranty10yr.toLocaleString(), ")"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, "This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for."), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
+      ), tr(`Add a 10-year labor warranty (+$${PRICING.laborWarranty10yr.toLocaleString()})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+$${PRICING.laborWarranty10yr.toLocaleString()})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "checkbox",
+          checked: !!pricingAnswers.wantMaintenancePlan,
+          onChange: (e) => setPricingAnswers((p) => ({ ...p, wantMaintenancePlan: e.target.checked }))
+        }
+      ), tr(`Add our annual maintenance plan (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/yr)`, `Agregar nuestro plan de mantenimiento anual (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/a\xF1o)`)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
         setPricingFlow("sizing");
         setPricingSubStep(0);
-      } }, "\u2039 Adjust my answers"));
+      } }, "\u2039 ", tr("Adjust my answers", "Ajustar mis respuestas")));
       const considerations = /* @__PURE__ */ React.createElement("div", { style: { width: "100%", padding: "10px 12px", background: "rgba(215,183,64,.05)", border: "1px solid rgba(215,183,64,.15)", ...isAtticMode ? {} : { marginTop: 12 } } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.75)", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 6, fontFamily: "var(--fm)" } }, "A Few Other Things We Commonly Find"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "Return plenum/ductwork"), " - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "New return duct run"), " - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "New supply duct runs"), " - new duct, boot, and grille together for a single run. ", pricingAnswers.ventCount > 0 ? `You mentioned ${pricingAnswers.ventCount} vents - most homes only need a few of those runs redone, not all of them.` : "Ask us how many runs your home is likely to need."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "Duct cleaning"), " - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 6, fontStyle: "italic" } }, "These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit."));
       if (!isAtticMode) return /* @__PURE__ */ React.createElement(React.Fragment, null, priceCard, considerations);
       return /* @__PURE__ */ React.createElement("div", { className: "pricing-result-row", style: { display: "flex", gap: 16, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, priceCard), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, considerations));
@@ -5288,13 +5452,13 @@
         trackEvent("contact_form_shown");
         setPricingFlow("leadgate");
       }
-    } }, "\u{1F4B0} Get Pricing"), /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, width: "100%", marginBottom: 8 } }, FINANCING_OPTIONS.filter((f) => f.url).map((f) => /* @__PURE__ */ React.createElement("a", { key: f.key, href: f.url, target: "_blank", rel: "noopener", onClick: () => trackEvent("financing_clicked", { lender: f.key }), className: "quick-financing-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", textDecoration: "none", textAlign: "center", boxSizing: "border-box" } }, "\u{1F4B3} ", f.label)), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    } }, "\u{1F4B0} ", tr("Get Pricing", "Ver Precios")), /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, width: "100%", marginBottom: 8 } }, FINANCING_OPTIONS.filter((f) => f.url).map((f) => /* @__PURE__ */ React.createElement("a", { key: f.key, href: f.url, target: "_blank", rel: "noopener", onClick: () => trackEvent("financing_clicked", { lender: f.key }), className: "quick-financing-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", textDecoration: "none", textAlign: "center", boxSizing: "border-box" } }, "\u{1F4B3} ", f.label)), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       trackEvent("print_clicked");
       window.print();
-    }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 Save / Print"), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
+    }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 ", tr("Save / Print", "Guardar / Imprimir")), /* @__PURE__ */ React.createElement("a", { href: buildEmailHref(), onClick: () => trackEvent("email_build_clicked"), className: "quick-print-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em", textDecoration: "none", boxSizing: "border-box" } }, "\u2709 ", tr("Email My Build", "Enviar por Correo")), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
       setDone(false);
       setStepIdx(activeSteps.length - 1);
-    } }, "\u2039 Back"), /* @__PURE__ */ React.createElement("button", { className: "quick-restart-btn", style: { width: "100%", fontFamily: "var(--fb)", fontSize: "var(--fs-restart)", padding: "9px" }, onClick: restart }, "Start Over")))))));
+    } }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "quick-restart-btn", style: { width: "100%", fontFamily: "var(--fb)", fontSize: "var(--fs-restart)", padding: "9px" }, onClick: restart }, tr("Start Over", "Empezar de Nuevo"))))))));
   }
   ReactDOM.createRoot(document.getElementById("root")).render(/* @__PURE__ */ React.createElement(App, null));
 })();
