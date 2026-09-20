@@ -1218,11 +1218,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
       })}
       <line x1={cx-fanRx} y1={cy} x2={cx+fanRx} y2={cy} stroke={gC} strokeWidth="0.8" opacity={active?0.45:0.34}/>
       <line x1={cx} y1={cy-fanRy} x2={cx} y2={cy+fanRy} stroke={gC} strokeWidth="0.8" opacity={active?0.45:0.34}/>
+      {/* Two more spokes at +-45deg - six total, closer to a real woven-
+          wire hail guard's diagonal ribs than the original plain cross. */}
+      <line x1={cx-fanRx*0.7071} y1={cy-fanRy*0.7071} x2={cx+fanRx*0.7071} y2={cy+fanRy*0.7071}
+        stroke={gC} strokeWidth="0.65" opacity={active?0.38:0.28}/>
+      <line x1={cx-fanRx*0.7071} y1={cy+fanRy*0.7071} x2={cx+fanRx*0.7071} y2={cy-fanRy*0.7071}
+        stroke={gC} strokeWidth="0.65" opacity={active?0.38:0.28}/>
       {/* Outer rim bezel -- the visible edge of the guard cage/fan
           housing, brighter than the inner rings so the whole assembly
           still reads as one fan at a glance. */}
       <ellipse cx={cx} cy={cy} rx={fanRx*0.98} ry={fanRy*0.98} fill="none"
         stroke={ringColor||bC} strokeWidth="1.2" opacity={active?0.6:0.45}/>
+      {/* Hail guard flange -- a raised dome/lip sitting proud of the flat
+          cap surface, the way a real hail guard bulges outward over the
+          fan opening (emulating a reference photo of a real fed-min
+          condenser). A flat single-color ring can't fake a bevel; split
+          into a lighter top-half arc and a darker bottom-half arc so it
+          reads as catching light from above instead of a flat painted
+          circle. */}
+      <path d={`M${cx-fanRx*1.07} ${cy} A${fanRx*1.07} ${fanRy*1.07} 0 0 1 ${cx+fanRx*1.07} ${cy}`}
+        fill="none" stroke="rgba(165,170,180,.5)" strokeWidth="1" opacity={active?0.55:0.42}/>
+      <path d={`M${cx-fanRx*1.07} ${cy} A${fanRx*1.07} ${fanRy*1.07} 0 0 0 ${cx+fanRx*1.07} ${cy}`}
+        fill="none" stroke="rgba(8,9,11,.75)" strokeWidth="1" opacity={active?0.6:0.5}/>
       <ellipse cx={cx} cy={cy} rx={fanRx*0.12} ry={fanRy*0.14}
         fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
     </>;
@@ -1261,25 +1278,38 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             ))}
           </>;
         })()}
-        {/* Flat panel body -- one stamped seam splits it into two plain
-            panels (a plain flat-sheet builder-grade cabinet), with a
-            sparse, coarse-pitch perforation patch as this tier's basic
-            intake venting -- fewer, bigger holes than the high-eff
-            cabinet's finer mesh below, reading as the plainer unit. */}
+        {/* Flat panel body -- a continuous chevron-louver ribbon pattern
+            (real 14 SEER2 builder-grade condensers - GE, Goodman, Amana -
+            are almost always stamped this way top to bottom, not the flat
+            sheet + sparse dot-perforation patch this used to be) matched
+            against a reference photo of a real fed-min cabinet. Each row
+            is a shallow repeating "V" tooth - a cheap approximation of the
+            real die-stamped wave/louver slot, dense enough to read as
+            "corrugated sheet metal" at diagram scale without the cost of
+            an actually-perforated real vent (which would need a genuine
+            hole through the cabinet). */}
         {(()=>{
           const capH=Math.round(h*0.20);
-          const slotY=y+capH+2, slotH=h-capH-4;
-          const seamY=slotY+slotH*0.5;
-          const rows=Math.max(3,Math.floor(slotH/11)), cols=Math.max(5,Math.floor((w-8)/11));
+          const slotY=y+capH+3, slotH=h-capH-6;
+          const rowH=5.5, toothW=8;
+          const rows=Math.max(6,Math.floor(slotH/rowH));
+          // Teeth start at x+4 (2px clear of the body rect's x+2 edge) and
+          // stop at x+w-4 - never offset per-row, so every tooth stays
+          // safely inside the panel with no per-row edge-overhang risk.
+          const teeth=Math.floor((w-8)/toothW);
           return <>
             <rect x={x+2} y={slotY} width={w-4} height={slotH} rx="1"
               fill={active?"rgba(150,154,162,.4)":"rgba(160,164,172,.38)"}/>
-            <line x1={x+2} y1={seamY} x2={x+w-2} y2={seamY} stroke="rgba(95,100,110,.5)" strokeWidth="1.3"/>
-            <line x1={x+2} y1={seamY+1.4} x2={x+w-2} y2={seamY+1.4} stroke="rgba(232,235,240,.45)" strokeWidth="0.8"/>
-            {Array.from({length:rows},(_,r)=>Array.from({length:cols},(_,c)=>(
-              <circle key={r+'-'+c} cx={x+6+c*((w-12)/cols)} cy={slotY+5+r*(slotH/rows)} r="1"
-                fill="rgba(70,75,85,.45)"/>
-            )))}
+            {Array.from({length:rows},(_,r)=>{
+              const rowY=slotY+3+r*rowH;
+              let d=`M${x+4} ${rowY}`;
+              for(let t=0;t<teeth;t++){
+                const tx=x+4+t*toothW;
+                d+=` L${tx+toothW/2} ${rowY-1.7} L${tx+toothW} ${rowY}`;
+              }
+              return <path key={r} d={d} fill="none"
+                stroke={active?"rgba(100,105,115,.4)":"rgba(90,95,105,.38)"} strokeWidth="0.65"/>;
+            })}
           </>;
         })()}
         {/* Manufacturer data/rating plate, centered on the door panel -- a

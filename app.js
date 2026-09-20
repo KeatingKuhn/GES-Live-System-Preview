@@ -1796,6 +1796,28 @@
           }
         );
       }), /* @__PURE__ */ React.createElement("line", { x1: cx - fanRx, y1: cy, x2: cx + fanRx, y2: cy, stroke: gC, strokeWidth: "0.8", opacity: active ? 0.45 : 0.34 }), /* @__PURE__ */ React.createElement("line", { x1: cx, y1: cy - fanRy, x2: cx, y2: cy + fanRy, stroke: gC, strokeWidth: "0.8", opacity: active ? 0.45 : 0.34 }), /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          x1: cx - fanRx * 0.7071,
+          y1: cy - fanRy * 0.7071,
+          x2: cx + fanRx * 0.7071,
+          y2: cy + fanRy * 0.7071,
+          stroke: gC,
+          strokeWidth: "0.65",
+          opacity: active ? 0.38 : 0.28
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          x1: cx - fanRx * 0.7071,
+          y1: cy + fanRy * 0.7071,
+          x2: cx + fanRx * 0.7071,
+          y2: cy - fanRy * 0.7071,
+          stroke: gC,
+          strokeWidth: "0.65",
+          opacity: active ? 0.38 : 0.28
+        }
+      ), /* @__PURE__ */ React.createElement(
         "ellipse",
         {
           cx,
@@ -1806,6 +1828,24 @@
           stroke: ringColor || bC,
           strokeWidth: "1.2",
           opacity: active ? 0.6 : 0.45
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${cx - fanRx * 1.07} ${cy} A${fanRx * 1.07} ${fanRy * 1.07} 0 0 1 ${cx + fanRx * 1.07} ${cy}`,
+          fill: "none",
+          stroke: "rgba(165,170,180,.5)",
+          strokeWidth: "1",
+          opacity: active ? 0.55 : 0.42
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${cx - fanRx * 1.07} ${cy} A${fanRx * 1.07} ${fanRy * 1.07} 0 0 0 ${cx + fanRx * 1.07} ${cy}`,
+          fill: "none",
+          stroke: "rgba(8,9,11,.75)",
+          strokeWidth: "1",
+          opacity: active ? 0.6 : 0.5
         }
       ), /* @__PURE__ */ React.createElement(
         "ellipse",
@@ -1878,9 +1918,10 @@
         )));
       })(), (() => {
         const capH = Math.round(h * 0.2);
-        const slotY = y + capH + 2, slotH = h - capH - 4;
-        const seamY = slotY + slotH * 0.5;
-        const rows = Math.max(3, Math.floor(slotH / 11)), cols = Math.max(5, Math.floor((w - 8) / 11));
+        const slotY = y + capH + 3, slotH = h - capH - 6;
+        const rowH = 5.5, toothW = 8;
+        const rows = Math.max(6, Math.floor(slotH / rowH));
+        const teeth = Math.floor((w - 8) / toothW);
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {
@@ -1891,16 +1932,24 @@
             rx: "1",
             fill: active ? "rgba(150,154,162,.4)" : "rgba(160,164,172,.38)"
           }
-        ), /* @__PURE__ */ React.createElement("line", { x1: x + 2, y1: seamY, x2: x + w - 2, y2: seamY, stroke: "rgba(95,100,110,.5)", strokeWidth: "1.3" }), /* @__PURE__ */ React.createElement("line", { x1: x + 2, y1: seamY + 1.4, x2: x + w - 2, y2: seamY + 1.4, stroke: "rgba(232,235,240,.45)", strokeWidth: "0.8" }), Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_2, c) => /* @__PURE__ */ React.createElement(
-          "circle",
-          {
-            key: r + "-" + c,
-            cx: x + 6 + c * ((w - 12) / cols),
-            cy: slotY + 5 + r * (slotH / rows),
-            r: "1",
-            fill: "rgba(70,75,85,.45)"
+        ), Array.from({ length: rows }, (_, r) => {
+          const rowY = slotY + 3 + r * rowH;
+          let d = `M${x + 4} ${rowY}`;
+          for (let t = 0; t < teeth; t++) {
+            const tx = x + 4 + t * toothW;
+            d += ` L${tx + toothW / 2} ${rowY - 1.7} L${tx + toothW} ${rowY}`;
           }
-        ))));
+          return /* @__PURE__ */ React.createElement(
+            "path",
+            {
+              key: r,
+              d,
+              fill: "none",
+              stroke: active ? "rgba(100,105,115,.4)" : "rgba(90,95,105,.38)",
+              strokeWidth: "0.65"
+            }
+          );
+        }));
       })(), (() => {
         const capH = Math.round(h * 0.2);
         const by = y + capH + Math.round((h - capH) * 0.36);
