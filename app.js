@@ -1222,19 +1222,19 @@
       const rim = active ? "#7fb8ff" : "rgba(70,76,90,.6)";
       return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 3, fill: "rgba(0,0,0,.55)", stroke: "rgba(60,65,78,.7)", strokeWidth: "1.2" }), active && /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 1, fill: "none", stroke: rim, strokeWidth: "1", opacity: "0.55", filter: "url(#glow-sm)" }), /* @__PURE__ */ React.createElement("g", { className: active ? "spin" : void 0, style: active ? { transformBox: "view-box", transformOrigin: cx + "px " + cy + "px", animationDuration: fast ? "0.45s" : "0.8s" } : {} }, Array.from({ length: 3 }, (_, i) => {
         const ang = i * (Math.PI * 2 / 3);
-        const sweep = 0.95;
-        const hubR = r * 0.16, tipR = r * 0.95;
+        const sweep = 1.4;
+        const hubR = r * 0.14, tipR = r * 0.94;
         const ux = Math.cos(ang), uy = Math.sin(ang);
         const px = -Math.sin(ang), py = Math.cos(ang);
-        const hubW = r * 0.19;
+        const hubW = r * 0.38;
         const hAx = cx + ux * hubR + px * hubW, hAy = cy + uy * hubR + py * hubW;
         const hBx = cx + ux * hubR - px * hubW, hBy = cy + uy * hubR - py * hubW;
         const tipAng = ang + sweep;
         const tX = cx + Math.cos(tipAng) * tipR, tY = cy + Math.sin(tipAng) * tipR;
-        const c1Ang = ang + sweep * 0.4, c1R = r * 0.64;
-        const c1X = cx + Math.cos(c1Ang) * c1R + px * hubW * 0.5, c1Y = cy + Math.sin(c1Ang) * c1R + py * hubW * 0.5;
-        const c2Ang = ang + sweep * 0.62, c2R = r * 0.56;
-        const c2X = cx + Math.cos(c2Ang) * c2R - px * hubW * 0.32, c2Y = cy + Math.sin(c2Ang) * c2R - py * hubW * 0.32;
+        const c1Ang = ang + sweep * 0.42, c1R = r * 0.78;
+        const c1X = cx + Math.cos(c1Ang) * c1R + px * hubW * 0.78, c1Y = cy + Math.sin(c1Ang) * c1R + py * hubW * 0.78;
+        const c2Ang = ang + sweep * 0.78, c2R = r * 0.68;
+        const c2X = cx + Math.cos(c2Ang) * c2R - px * hubW * 0.6, c2Y = cy + Math.sin(c2Ang) * c2R - py * hubW * 0.6;
         const d = `M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
         return /* @__PURE__ */ React.createElement("path", { key: i, d, fill: bladeFill, stroke: active ? rim : "rgba(20,22,26,.7)", strokeWidth: "0.7", opacity: active ? 0.95 : 0.8 });
       })), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.18, fill: "#16181c", stroke: active ? rim : "rgba(90,95,110,.6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.07, fill: active ? rim : "#3a3d44" }));
@@ -1741,8 +1741,8 @@
       const fanRy = h * 0.38;
       const spd = active ? 0.9 : 0;
       const spinStyle = active ? {
-        transformBox: "view-box",
-        transformOrigin: "0px 0px",
+        transformBox: "fill-box",
+        transformOrigin: "center",
         animation: "spin " + (1 / spd).toFixed(2) + "s linear infinite"
       } : {};
       const bC = bladeColor || (active ? "rgba(80,85,95,.75)" : "rgba(50,55,62,.5)");
@@ -1759,31 +1759,24 @@
           stroke: "rgba(30,32,38,.6)",
           strokeWidth: "0.7"
         }
-      ), /* @__PURE__ */ React.createElement("g", { transform: "translate(" + cx + " " + cy + ") scale(1," + squash + ")" }, /* @__PURE__ */ React.createElement("g", { style: spinStyle }, Array.from({ length: 3 }, (_, i) => {
-        const ang = i * (Math.PI * 2 / 3);
-        const sweep = 0.95;
-        const hubR = fanRx * 0.15, tipR = fanRx * 0.92;
-        const ux = Math.cos(ang), uy = Math.sin(ang);
-        const px = -Math.sin(ang), py = Math.cos(ang);
-        const hubW = fanRx * 0.17;
-        const hAx = ux * hubR + px * hubW, hAy = uy * hubR + py * hubW;
-        const hBx = ux * hubR - px * hubW, hBy = uy * hubR - py * hubW;
-        const tipAng = ang + sweep;
-        const tX = Math.cos(tipAng) * tipR, tY = Math.sin(tipAng) * tipR;
-        const c1Ang = ang + sweep * 0.4, c1R = fanRx * 0.62;
-        const c1X = Math.cos(c1Ang) * c1R + px * hubW * 0.5, c1Y = Math.sin(c1Ang) * c1R + py * hubW * 0.5;
-        const c2Ang = ang + sweep * 0.62, c2R = fanRx * 0.54;
-        const c2X = Math.cos(c2Ang) * c2R - px * hubW * 0.32, c2Y = Math.sin(c2Ang) * c2R - py * hubW * 0.32;
-        const d = `M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
+      ), /* @__PURE__ */ React.createElement("g", { transform: "translate(" + cx + " " + cy + ") scale(1," + squash + ")" }, /* @__PURE__ */ React.createElement("g", { style: spinStyle }, Array.from({ length: 4 }, (_, i) => {
+        const ang = i * (Math.PI / 2);
+        const bx1 = fanRx * 0.15 * Math.cos(ang);
+        const by1 = fanRx * 0.15 * Math.sin(ang);
+        const bx2 = fanRx * 0.82 * Math.cos(ang + 0.55);
+        const by2 = fanRx * 0.82 * Math.sin(ang + 0.55);
+        const cpx = fanRx * 0.65 * Math.cos(ang + 0.28);
+        const cpy = fanRx * 0.65 * Math.sin(ang + 0.28);
         return /* @__PURE__ */ React.createElement(
           "path",
           {
             key: i,
-            d,
-            fill: bC,
-            stroke: active ? ringColor || bC : "rgba(20,22,26,.7)",
-            strokeWidth: "0.5",
-            opacity: active ? 0.92 : 0.85
+            d: "M" + bx1 + " " + by1 + " Q" + cpx + " " + cpy + " " + bx2 + " " + by2,
+            fill: "none",
+            stroke: bC,
+            strokeWidth: "4",
+            strokeLinecap: "round",
+            opacity: "0.9"
           }
         );
       }))), Array.from({ length: guardRings }, (_, i) => {
@@ -1859,20 +1852,11 @@
         {
           cx,
           cy,
-          rx: fanRx * 0.17,
-          ry: fanRy * 0.2,
-          fill: "#16181c",
-          stroke: active ? ringColor || bC : "rgba(90,95,110,.6)",
-          strokeWidth: "0.9"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "ellipse",
-        {
-          cx,
-          cy,
-          rx: fanRx * 0.065,
-          ry: fanRy * 0.08,
-          fill: active ? ringColor || bC : "#3a3d44"
+          rx: fanRx * 0.12,
+          ry: fanRy * 0.14,
+          fill: "#1a1c20",
+          stroke: "rgba(55,60,68,.6)",
+          strokeWidth: "0.8"
         }
       ));
     }

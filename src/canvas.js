@@ -741,21 +741,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           the actual hub coordinate instead, regardless of the blades'
           bounding box. */}
       <g className={active?"spin":undefined} style={active?{transformBox:'view-box',transformOrigin:cx+'px '+cy+'px',animationDuration:(fast?'0.45s':'0.8s')}:{}}>
+        {/* Broad sickle blades - widened per a reference photo of a real
+            3-blade condenser fan, where the blades themselves (not gaps)
+            cover most of the disc, maybe ~60% blade / ~40% visible gap,
+            not a thin airplane-propeller silhouette. Wider hub base, a
+            bigger sweep angle, and control points pushed further out
+            (both edges, not just the leading one) keep the blade fuller
+            for more of its length instead of tapering to a point early. */}
         {Array.from({length:3},(_,i)=>{
           const ang=i*(Math.PI*2/3);
-          const sweep=0.95;
-          const hubR=r*0.16, tipR=r*0.95;
+          const sweep=1.4;
+          const hubR=r*0.14, tipR=r*0.94;
           const ux=Math.cos(ang), uy=Math.sin(ang);
           const px=-Math.sin(ang), py=Math.cos(ang);
-          const hubW=r*0.19;
+          const hubW=r*0.38;
           const hAx=cx+ux*hubR+px*hubW, hAy=cy+uy*hubR+py*hubW;
           const hBx=cx+ux*hubR-px*hubW, hBy=cy+uy*hubR-py*hubW;
           const tipAng=ang+sweep;
           const tX=cx+Math.cos(tipAng)*tipR, tY=cy+Math.sin(tipAng)*tipR;
-          const c1Ang=ang+sweep*0.4, c1R=r*0.64;
-          const c1X=cx+Math.cos(c1Ang)*c1R+px*hubW*0.5, c1Y=cy+Math.sin(c1Ang)*c1R+py*hubW*0.5;
-          const c2Ang=ang+sweep*0.62, c2R=r*0.56;
-          const c2X=cx+Math.cos(c2Ang)*c2R-px*hubW*0.32, c2Y=cy+Math.sin(c2Ang)*c2R-py*hubW*0.32;
+          const c1Ang=ang+sweep*0.42, c1R=r*0.78;
+          const c1X=cx+Math.cos(c1Ang)*c1R+px*hubW*0.78, c1Y=cy+Math.sin(c1Ang)*c1R+py*hubW*0.78;
+          const c2Ang=ang+sweep*0.78, c2R=r*0.68;
+          const c2X=cx+Math.cos(c2Ang)*c2R-px*hubW*0.6, c2Y=cy+Math.sin(c2Ang)*c2R-py*hubW*0.6;
           const d=`M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
           return <path key={i} d={d} fill={bladeFill} stroke={active?rim:'rgba(20,22,26,.7)'} strokeWidth="0.7" opacity={active?0.95:0.8}/>;
         })}
@@ -1171,17 +1178,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const fanRx=w*0.46;
     const fanRy=h*0.38;
     const spd=active?0.9:0;
-    // transformBox:'view-box' + an explicit 0,0 origin (not 'fill-box'/
-    // 'center') - same fix, same reason, as CondenserFan's own blade spin
-    // a few hundred lines up: 3 blades all swept the same rotational
-    // direction have no bounding-box symmetry around the hub, so a
-    // fill-box/center rotation orbits the whole fan instead of spinning
-    // it in place. The blade group below is already pre-translated to
-    // (cx,cy) by its own wrapper <g>, so its LOCAL origin 0,0 already IS
-    // the hub - this animates around that local origin.
     const spinStyle=active?{
-      transformBox:'view-box',
-      transformOrigin:'0px 0px',
+      transformBox:'fill-box',
+      transformOrigin:'center',
       animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
     }:{};
     const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
@@ -1202,28 +1201,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         stroke="rgba(30,32,38,.6)" strokeWidth="0.7"/>
       <g transform={'translate('+cx+' '+cy+') scale(1,'+squash+')'}>
         <g style={spinStyle}>
-          {/* Real, filled tapered blades (wide at the hub, sweeping to a
-              near-point tip) instead of the old thin curved-line strokes,
-              matching CondenserFan's blade shape/quality - a stroked line
-              has no taper and reads as a flailing wire, not a blade. */}
-          {Array.from({length:3},(_,i)=>{
-            const ang=i*(Math.PI*2/3);
-            const sweep=0.95;
-            const hubR=fanRx*0.15, tipR=fanRx*0.92;
-            const ux=Math.cos(ang), uy=Math.sin(ang);
-            const px=-Math.sin(ang), py=Math.cos(ang);
-            const hubW=fanRx*0.17;
-            const hAx=ux*hubR+px*hubW, hAy=uy*hubR+py*hubW;
-            const hBx=ux*hubR-px*hubW, hBy=uy*hubR-py*hubW;
-            const tipAng=ang+sweep;
-            const tX=Math.cos(tipAng)*tipR, tY=Math.sin(tipAng)*tipR;
-            const c1Ang=ang+sweep*0.4, c1R=fanRx*0.62;
-            const c1X=Math.cos(c1Ang)*c1R+px*hubW*0.5, c1Y=Math.sin(c1Ang)*c1R+py*hubW*0.5;
-            const c2Ang=ang+sweep*0.62, c2R=fanRx*0.54;
-            const c2X=Math.cos(c2Ang)*c2R-px*hubW*0.32, c2Y=Math.sin(c2Ang)*c2R-py*hubW*0.32;
-            const d=`M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
-            return <path key={i} d={d} fill={bC}
-              stroke={active?(ringColor||bC):'rgba(20,22,26,.7)'} strokeWidth="0.5" opacity={active?0.92:0.85}/>;
+          {Array.from({length:4},(_,i)=>{
+            const ang=i*(Math.PI/2);
+            const bx1=fanRx*0.15*Math.cos(ang);
+            const by1=fanRx*0.15*Math.sin(ang);
+            const bx2=fanRx*0.82*Math.cos(ang+0.55);
+            const by2=fanRx*0.82*Math.sin(ang+0.55);
+            const cpx=fanRx*0.65*Math.cos(ang+0.28);
+            const cpy=fanRx*0.65*Math.sin(ang+0.28);
+            return <path key={i} d={'M'+bx1+' '+by1+' Q'+cpx+' '+cpy+' '+bx2+' '+by2}
+              fill="none" stroke={bC} strokeWidth="4" strokeLinecap="round" opacity="0.9"/>;
           })}
         </g>
       </g>
@@ -1263,16 +1250,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         fill="none" stroke="rgba(165,170,180,.5)" strokeWidth="1" opacity={active?0.55:0.42}/>
       <path d={`M${cx-fanRx*1.07} ${cy} A${fanRx*1.07} ${fanRy*1.07} 0 0 0 ${cx+fanRx*1.07} ${cy}`}
         fill="none" stroke="rgba(8,9,11,.75)" strokeWidth="1" opacity={active?0.6:0.5}/>
-      {/* Motor hub - a distinct housing (dark ring + bright center dot),
-          matching CondenserFan's own hub treatment (was a single flat
-          decorative cap before this pass). Drawn last, on top of the
-          guard cage/spokes, exactly where the old decorative cap sat -
-          it's what should visually cover the spokes' crossing point at
-          center, not something the spokes get drawn over. */}
-      <ellipse cx={cx} cy={cy} rx={fanRx*0.17} ry={fanRy*0.2}
-        fill="#16181c" stroke={active?(ringColor||bC):"rgba(90,95,110,.6)"} strokeWidth="0.9"/>
-      <ellipse cx={cx} cy={cy} rx={fanRx*0.065} ry={fanRy*0.08}
-        fill={active?(ringColor||bC):"#3a3d44"}/>
+      <ellipse cx={cx} cy={cy} rx={fanRx*0.12} ry={fanRy*0.14}
+        fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
     </>;
   }
 
