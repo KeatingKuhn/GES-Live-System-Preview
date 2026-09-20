@@ -4084,13 +4084,21 @@
             h: THERM_H + 4
           }
         ), /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: 0, y: wireY, w: 64, letters: wireLetters, note: wireNote })));
-      })(), hasDehu && hasTstat && THERM_IN_MARGIN && /* @__PURE__ */ React.createElement(
-        DehumidistatWall,
-        {
-          x: THERM_TX + 32 * THERM_SCALE - 22,
-          y: THERM_TY + THERM_H + 14
-        }
-      ), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
+      })(), hasDehu && hasTstat && THERM_IN_MARGIN && (() => {
+        const isProprietaryD = a.thermostat === "proprietary";
+        const isWifiD = a.thermostat === "wifi" && !isProprietaryD;
+        const btnYD = isProprietaryD ? 76 : isWifiD ? 74 : 56;
+        const { letters: wireLettersD, note: wireNoteD } = thermWireLetters(a.thermostat, isDualFuel);
+        const wireYD = btnYD + 15 + 16;
+        const hoverLocalHD = wireYD + thermWireLayout(wireLettersD, wireNoteD).h + 8;
+        return /* @__PURE__ */ React.createElement(
+          DehumidistatWall,
+          {
+            x: THERM_TX + 32 * THERM_SCALE - 22,
+            y: THERM_TY + hoverLocalHD * THERM_SCALE + 14
+          }
+        );
+      })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
         const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;

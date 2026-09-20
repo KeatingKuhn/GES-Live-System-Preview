@@ -3220,9 +3220,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               footprint without touching LIVING_SPACE. Skipped in the
               narrow-margin fallback (THERM_IN_MARGIN false), where the
               thermostat itself is already squeezed into the living-space
-              band with no room to spare below it. */}
-          {hasDehu&&hasTstat&&THERM_IN_MARGIN&&<DehumidistatWall
-            x={THERM_TX+32*THERM_SCALE-22} y={THERM_TY+THERM_H+14}/>}
+              band with no room to spare below it. Positioned off the same
+              hoverLocalH the thermostat's own hover hit-rect uses (not
+              just THERM_H) - THERM_H alone is only the always-visible
+              footprint; the wire-backplate panel reveals BELOW that on
+              hover, and this used to sit right where that panel pops out
+              to, blocking it. Recomputes the same btnY/wire numbers the
+              thermostat block above already derives (not threaded out of
+              that IIFE) rather than restructure it. */}
+          {hasDehu&&hasTstat&&THERM_IN_MARGIN&&(()=>{
+            const isProprietaryD=a.thermostat==='proprietary';
+            const isWifiD=a.thermostat==='wifi'&&!isProprietaryD;
+            const btnYD=isProprietaryD?76:isWifiD?74:56;
+            const {letters:wireLettersD,note:wireNoteD}=thermWireLetters(a.thermostat,isDualFuel);
+            const wireYD=btnYD+15+16;
+            const hoverLocalHD=wireYD+thermWireLayout(wireLettersD,wireNoteD).h+8;
+            return <DehumidistatWall
+              x={THERM_TX+32*THERM_SCALE-22} y={THERM_TY+hoverLocalHD*THERM_SCALE+14}/>;
+          })()}
 
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
