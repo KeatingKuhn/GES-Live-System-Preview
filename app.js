@@ -257,21 +257,37 @@
     if (answers.cond_tier === "mid_ge15") return "dual_fuel";
     return answers.system_for === "hp" ? "dual_fuel" : "straight_cool";
   }
-  function trackBuildCompleted(answers) {
+  function trackEvent(eventName, params = {}) {
     try {
       if (typeof window.gtag === "function") {
-        window.gtag("event", "build_completed", {
-          event_category: "System Builder",
-          indoor_type: answers.indoor_type || "",
-          efficiency_tier: answers.cond_tier || ""
-        });
+        window.gtag("event", eventName, { event_category: "System Builder", ...params });
       }
       if (typeof window.fbq === "function") {
-        window.fbq("trackCustom", "BuildCompleted");
+        window.fbq("trackCustom", eventName, params);
       }
     } catch (e) {
     }
   }
+  function trackLead(params = {}) {
+    try {
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "generate_lead", { event_category: "System Builder", ...params });
+      }
+      if (typeof window.fbq === "function") {
+        window.fbq("track", "Lead", params);
+      }
+    } catch (e) {
+    }
+  }
+  function trackBuildCompleted(answers) {
+    trackEvent("build_completed", {
+      indoor_type: answers.indoor_type || "",
+      efficiency_tier: answers.cond_tier || ""
+    });
+  }
+  var GATE_CONFIG = {
+    gravityFormId: 0
+  };
   var TIER_LABEL = { fedmin: "Federal Minimum - 14 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
   function calcEstimate(answers, pricingAnswers) {
     const tier = answers.cond_tier;
@@ -4698,6 +4714,20 @@
     } catch (e) {
     }
   }
+  var LEAD_KEY = "gesLead_v1";
+  function hasSubmittedLead() {
+    try {
+      return !!JSON.parse(localStorage.getItem(LEAD_KEY) || "null")?.submitted;
+    } catch (e) {
+      return false;
+    }
+  }
+  function markLeadSubmitted() {
+    try {
+      localStorage.setItem(LEAD_KEY, JSON.stringify({ submitted: true, ts: Date.now() }));
+    } catch (e) {
+    }
+  }
   function hoverCapable() {
     try {
       return window.matchMedia("(hover: hover)").matches;
@@ -4728,6 +4758,42 @@
     const [pricingAnswers, setPricingAnswers] = useState2({});
     const topRef = useRef2(null);
     const scrollTop = useCallback2(() => setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50), []);
+    const [leadUnlocked, setLeadUnlocked] = useState2(() => !GATE_CONFIG.gravityFormId || hasSubmittedLead());
+    React.useEffect(() => {
+      if (!GATE_CONFIG.gravityFormId || leadUnlocked) return;
+      const unlock = () => {
+        markLeadSubmitted();
+        setLeadUnlocked(true);
+        trackLead({ form_id: GATE_CONFIG.gravityFormId });
+      };
+      let parentJQ = null;
+      try {
+        if (window.parent && window.parent !== window && window.parent.jQuery) parentJQ = window.parent.jQuery;
+      } catch (e) {
+      }
+      if (parentJQ) {
+        parentJQ(window.parent.document).on("gform_confirmation_loaded.gesGate", (e, formId) => {
+          if (String(formId) === String(GATE_CONFIG.gravityFormId)) unlock();
+        });
+      }
+      const onMessage = (e) => {
+        if (e.data && e.data.gesLeadFormId !== void 0 && String(e.data.gesLeadFormId) === String(GATE_CONFIG.gravityFormId)) unlock();
+      };
+      window.addEventListener("message", onMessage);
+      return () => {
+        window.removeEventListener("message", onMessage);
+        try {
+          parentJQ && parentJQ(window.parent.document).off(".gesGate");
+        } catch (e) {
+        }
+      };
+    }, [leadUnlocked]);
+    React.useEffect(() => {
+      if (leadUnlocked && pricingFlow === "leadgate") {
+        trackEvent("price_revealed");
+        setPricingFlow("result");
+      }
+    }, [leadUnlocked, pricingFlow]);
     const activeSteps = useMemo2(() => STEPS.filter((s) => !s.showIf || s.showIf(answers)), [answers]);
     const totalSteps = activeSteps.length - 1;
     const totalKnown = !!answers.indoor_type;
@@ -4752,11 +4818,17 @@
     const jumpToStep = useCallback2((id) => {
       const i = activeSteps.findIndex((s) => s.id === id);
       if (i >= 0) {
+        trackEvent("quick_edit_used", { step_id: id });
         setDone(false);
         setStepIdx(i);
         setQuickEdit(true);
       }
     }, [activeSteps]);
+    const pickLocation = (loc2) => {
+      trackEvent("wizard_started", { location: loc2 });
+      setA("location", loc2);
+      setStepIdx(1);
+    };
     const sel = (id) => answers[id];
     const msel = (id) => Array.isArray(answers[id]) ? answers[id] : [];
     const setA = (k, v) => setAnswers((p) => {
@@ -4810,6 +4882,7 @@
         }
         return;
       }
+      if (cur) trackEvent("step_completed", { step_id: cur.id, step_number: stepIdx + 1, total_steps: activeSteps.length });
       if (stepIdx < activeSteps.length - 1) {
         setStepIdx((s) => s + 1);
         scrollTop();
@@ -4830,6 +4903,7 @@
       goNext();
     };
     const restart = () => {
+      trackEvent("restart_clicked");
       clearSavedBuild();
       setAnswers(defaultAnswers());
       setStepIdx(0);
@@ -4991,15 +5065,11 @@
         role: "button",
         tabIndex: 0,
         "aria-label": "Attic Horizontal - Unit lays on its side above the ceiling, most common in Austin. Air flows horizontally through ducts in the attic.",
-        onClick: () => {
-          setA("location", "attic");
-          setStepIdx(1);
-        },
+        onClick: () => pickLocation("attic"),
         onKeyDown: (e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setA("location", "attic");
-            setStepIdx(1);
+            pickLocation("attic");
           }
         }
       },
@@ -5011,15 +5081,11 @@
         role: "button",
         tabIndex: 0,
         "aria-label": "Closet Upflow - Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.",
-        onClick: () => {
-          setA("location", "closet");
-          setStepIdx(1);
-        },
+        onClick: () => pickLocation("closet"),
         onKeyDown: (e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setA("location", "closet");
-            setStepIdx(1);
+            pickLocation("closet");
           }
         }
       },
@@ -5118,8 +5184,17 @@
       const subSteps = ["systems", "sqft", "ducts"];
       const subId = subSteps[pricingSubStep];
       const goSubNext = () => {
-        if (pricingSubStep < subSteps.length - 1) setPricingSubStep((s) => s + 1);
-        else setPricingFlow("result");
+        if (pricingSubStep < subSteps.length - 1) {
+          setPricingSubStep((s) => s + 1);
+          return;
+        }
+        if (leadUnlocked) {
+          trackEvent("price_revealed");
+          setPricingFlow("result");
+        } else {
+          trackEvent("contact_form_shown");
+          setPricingFlow("leadgate");
+        }
       };
       const goSubBack = () => {
         if (pricingSubStep > 0) setPricingSubStep((s) => s - 1);
@@ -5160,7 +5235,15 @@
       {
       }
       return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: isAtticMode ? 4 : 8, fontFamily: "var(--fm)" } }, "PRICING \xB7 STEP ", pricingSubStep + 1, " OF ", subSteps.length), /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-row" : void 0, style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 Back"), /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? "Get My Estimate" : "Next")));
-    })(), pricingFlow === "result" && /* @__PURE__ */ React.createElement("div", { key: "result", className: "fadein" }, (() => {
+    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, "Almost there - just one quick step"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 12 } }, "Fill out the short form on this page and your full price appears right here automatically - no need to click anything else."), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        className: "btn-back",
+        style: { padding: isAtticMode ? "6px 16px" : "8px 16px", fontSize: isAtticMode ? 14 : "var(--fs-pricing-fine)" },
+        onClick: () => setPricingFlow("sizing")
+      },
+      "\u2039 Back"
+    )), pricingFlow === "result" && /* @__PURE__ */ React.createElement("div", { key: "result", className: "fadein" }, (() => {
       const est = calcEstimate(answers, pricingAnswers);
       if (!est) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, "Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.");
       const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, "AS LOW AS"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 44, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 17, color: "var(--dim)", fontWeight: 400 } }, "/mo")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6, marginBottom: 10 } }, "Based on 36 months at 0% APR through Wells Fargo financing, on approved credit."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, "ESTIMATED PRICE"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), pricingAnswers.systemsCount && pricingAnswers.systemsCount !== "1" && /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(215,183,64,.7)", marginBottom: 10 } }, "Since your home has ", pricingAnswers.systemsCount === "2" ? "2 systems" : "3+ systems", ", this estimate covers just the one you built here."), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, l.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, "This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for."), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
@@ -5171,9 +5254,13 @@
       if (!isAtticMode) return /* @__PURE__ */ React.createElement(React.Fragment, null, priceCard, considerations);
       return /* @__PURE__ */ React.createElement("div", { className: "pricing-result-row", style: { display: "flex", gap: 16, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, priceCard), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, considerations));
     })())), pricingFlow === null && /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: "none", margin: 0, width: "100%", marginBottom: 6, padding: "12px", fontSize: 16 }, onClick: () => {
+      trackEvent("pricing_started");
       setPricingFlow("sizing");
       setPricingSubStep(0);
-    } }, "\u{1F4B0} Get Pricing"), /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, width: "100%", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("a", { href: "https://wisetack.us/#/hyhu11w/prequalify", target: "_blank", rel: "noopener", className: "quick-financing-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", textDecoration: "none", textAlign: "center", boxSizing: "border-box" } }, "\u{1F4B3} Financing"), /* @__PURE__ */ React.createElement("button", { onClick: () => window.print(), className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 Save / Print"), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
+    } }, "\u{1F4B0} Get Pricing"), /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, width: "100%", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("a", { href: "https://wisetack.us/#/hyhu11w/prequalify", target: "_blank", rel: "noopener", onClick: () => trackEvent("financing_clicked"), className: "quick-financing-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", textDecoration: "none", textAlign: "center", boxSizing: "border-box" } }, "\u{1F4B3} Financing"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      trackEvent("print_clicked");
+      window.print();
+    }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 Save / Print"), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
       setDone(false);
       setStepIdx(activeSteps.length - 1);
     } }, "\u2039 Back"), /* @__PURE__ */ React.createElement("button", { className: "quick-restart-btn", style: { width: "100%", fontFamily: "var(--fb)", fontSize: "var(--fs-restart)", padding: "9px" }, onClick: restart }, "Start Over")))))));

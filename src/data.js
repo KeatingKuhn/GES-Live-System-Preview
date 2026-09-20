@@ -223,25 +223,60 @@ function systemTypeKey(answers){
   if(answers.cond_tier==='mid_ge15')return'dual_fuel';
   return answers.system_for==='hp'?'dual_fuel':'straight_cool';
 }
-// Fires a "build completed" conversion event through whatever site-wide GA4 /
-// Meta Pixel install already exists on the host page - this file never loads
-// its own gtag.js or fbq snippet (embedded on the WordPress site, those are
-// already running once for the whole page, and installing a second copy here
-// would double-count pageviews and require hardcoding IDs into this file).
-export function trackBuildCompleted(answers){
+// ─── ANALYTICS ──────────────────────────────────────────────────
+// Fires custom events through whatever site-wide GA4 (gtag.js) / Meta
+// Pixel (fbq) install already exists on the host WordPress page - this
+// file never loads its own gtag.js/fbq snippet, since that's already
+// running once for the whole page and a second copy here would
+// double-count pageviews and need its own hardcoded Measurement ID/
+// Pixel ID baked into this file. Every call below is a silent no-op
+// until gtag/fbq actually exist on the page, so this is safe to ship
+// now and starts working automatically once the real site-wide
+// tracking snippets are installed - no code change needed at that point.
+export function trackEvent(eventName,params={}){
   try{
     if(typeof window.gtag==='function'){
-      window.gtag('event','build_completed',{
-        event_category:'System Builder',
-        indoor_type:answers.indoor_type||'',
-        efficiency_tier:answers.cond_tier||'',
-      });
+      window.gtag('event',eventName,{event_category:'System Builder',...params});
     }
     if(typeof window.fbq==='function'){
-      window.fbq('trackCustom','BuildCompleted');
+      window.fbq('trackCustom',eventName,params);
     }
   }catch(e){/* analytics must never break the build flow */}
 }
+// Contact-form submission fires as GA4's and Meta's own recommended/
+// standard lead events (generate_lead / Lead) instead of a custom name -
+// both platforms treat these specifically as conversion signals and can
+// optimize ad delivery or build retargeting audiences around them, which
+// a custom event name can't do.
+export function trackLead(params={}){
+  try{
+    if(typeof window.gtag==='function'){
+      window.gtag('event','generate_lead',{event_category:'System Builder',...params});
+    }
+    if(typeof window.fbq==='function'){
+      window.fbq('track','Lead',params);
+    }
+  }catch(e){/* analytics must never break the build flow */}
+}
+export function trackBuildCompleted(answers){
+  trackEvent('build_completed',{
+    indoor_type:answers.indoor_type||'',
+    efficiency_tier:answers.cond_tier||'',
+  });
+}
+
+// ─── CONTACT-FORM GATE ──────────────────────────────────────────
+// Gates the final price reveal behind a Gravity Forms submission.
+// gravityFormId at 0/falsy means the gate is fully disabled - "Get
+// Pricing" works exactly as it does today, straight through to the
+// estimate. Flip this on once the Gravity Forms form is live on the
+// WordPress page and you have its numeric form ID (shown in its row
+// under Forms in wp-admin). See the gate detection logic and the
+// required WordPress-side snippet in src/app.js, right where this is
+// imported and used.
+export const GATE_CONFIG={
+  gravityFormId:0,
+};
 const TIER_LABEL={fedmin:'Federal Minimum - 14 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
 // given the wizard's own filtering, but guards against stale/edge-case answers).

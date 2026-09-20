@@ -1,5 +1,5 @@
 const {useState,useMemo,useRef,useCallback}=React;
-import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted} from './data.js';
+import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG} from './data.js';
 import {Canvas,CountUp} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
@@ -21,6 +21,18 @@ function saveBuild(state){
 }
 function clearSavedBuild(){
   try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+}
+
+// ─── CONTACT-FORM GATE (lead capture before the price reveal) ───
+// Once a homeowner submits the Gravity Forms form, remember it locally
+// so they're not asked again on this device if they come back to adjust
+// their build - matches the same "don't nag twice" spirit as autosave.
+const LEAD_KEY='gesLead_v1';
+function hasSubmittedLead(){
+  try{return !!JSON.parse(localStorage.getItem(LEAD_KEY)||'null')?.submitted;}catch(e){return false;}
+}
+function markLeadSubmitted(){
+  try{localStorage.setItem(LEAD_KEY,JSON.stringify({submitted:true,ts:Date.now()}));}catch(e){}
 }
 // A tap on a touchscreen fires a synthetic mouseenter -> click -> mouseleave
 // sequence right after touchend (standard mobile Safari/Chrome behavior, not
@@ -71,12 +83,67 @@ function App(){
   // snaps straight back to done, only pausing on a step the edit actually
   // invalidated (e.g. a thermostat pick that no longer fits the new tier).
   const [quickEdit,setQuickEdit]=useState(false);
-  // Post-build pricing: null=not asked, 'sizing'=sub-questions, 'result'=estimate shown
+  // Post-build pricing: null=not asked, 'sizing'=sub-questions,
+  // 'leadgate'=waiting on the contact form, 'result'=estimate shown
   const [pricingFlow,setPricingFlow]=useState(null);
   const [pricingSubStep,setPricingSubStep]=useState(0);
   const [pricingAnswers,setPricingAnswers]=useState({});
   const topRef=useRef(null);
   const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
+
+  // Contact-form gate: skipped entirely (leadUnlocked stays true) when
+  // GATE_CONFIG.gravityFormId is unset - see the comment on GATE_CONFIG
+  // in data.js. Two independent detection paths listen for the Gravity
+  // Forms submission, since this widget is an iframe embed and the form
+  // itself lives on the PARENT WordPress page, not inside this document:
+  //  1) Same-origin direct access - if the iframe and the WordPress page
+  //     are on the same domain, the browser allows reaching into
+  //     window.parent directly, so this binds Gravity Forms' own
+  //     gform_confirmation_loaded jQuery event straight off the parent
+  //     document.
+  //  2) postMessage - works regardless of same/cross-origin, but needs a
+  //     small snippet added to the WordPress page (NOT part of this
+  //     repo) that relays that same gform_confirmation_loaded event into
+  //     this iframe, e.g.:
+  //       jQuery(document).on('gform_confirmation_loaded', function(e, formId){
+  //         document.querySelectorAll('iframe').forEach(f=>{
+  //           try{f.contentWindow.postMessage({gesLeadFormId:formId},'*');}catch(err){}
+  //         });
+  //       });
+  //     Add that inside a Script tag/Custom HTML block on the same page
+  //     as the Gravity Forms form and this widget's iframe.
+  const [leadUnlocked,setLeadUnlocked]=useState(()=>!GATE_CONFIG.gravityFormId||hasSubmittedLead());
+  React.useEffect(()=>{
+    if(!GATE_CONFIG.gravityFormId||leadUnlocked)return;
+    const unlock=()=>{markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});};
+    let parentJQ=null;
+    try{
+      if(window.parent&&window.parent!==window&&window.parent.jQuery) parentJQ=window.parent.jQuery;
+    }catch(e){/* cross-origin - window.parent access throws, rely on postMessage below */}
+    if(parentJQ){
+      parentJQ(window.parent.document).on('gform_confirmation_loaded.gesGate',(e,formId)=>{
+        if(String(formId)===String(GATE_CONFIG.gravityFormId))unlock();
+      });
+    }
+    const onMessage=e=>{
+      if(e.data&&e.data.gesLeadFormId!==undefined&&String(e.data.gesLeadFormId)===String(GATE_CONFIG.gravityFormId))unlock();
+    };
+    window.addEventListener('message',onMessage);
+    return ()=>{
+      window.removeEventListener('message',onMessage);
+      try{parentJQ&&parentJQ(window.parent.document).off('.gesGate');}catch(e){}
+    };
+  },[leadUnlocked]);
+  // Moves straight to the price the instant the gate unlocks, whether
+  // that's the effect above detecting a real submission mid-wait or the
+  // gate never having been shown at all this session (returning with it
+  // already unlocked from a previous visit).
+  React.useEffect(()=>{
+    if(leadUnlocked&&pricingFlow==='leadgate'){
+      trackEvent('price_revealed');
+      setPricingFlow('result');
+    }
+  },[leadUnlocked,pricingFlow]);
 
   const activeSteps=useMemo(()=>STEPS.filter(s=>!s.showIf||s.showIf(answers)),[answers]);
   const totalSteps=activeSteps.length-1;
@@ -110,8 +177,12 @@ function App(){
   // an inert picture that only ever changes through the grid below it.
   const jumpToStep=useCallback(id=>{
     const i=activeSteps.findIndex(s=>s.id===id);
-    if(i>=0){setDone(false);setStepIdx(i);setQuickEdit(true);}
+    if(i>=0){trackEvent('quick_edit_used',{step_id:id});setDone(false);setStepIdx(i);setQuickEdit(true);}
   },[activeSteps]);
+  // Splash-card pick - the real start of the funnel. Landing on the splash
+  // screen doesn't itself mean engagement (a bounced visitor never fires
+  // this), but committing to a location does.
+  const pickLocation=loc=>{trackEvent('wizard_started',{location:loc});setA("location",loc);setStepIdx(1);};
   const sel=id=>answers[id];
   const msel=id=>Array.isArray(answers[id])?answers[id]:[];
   const setA=(k,v)=>setAnswers(p=>{
@@ -186,6 +257,11 @@ function App(){
       else{setStepIdx(i);scrollTop();}
       return;
     }
+    // Funnel visibility per step, first-time-through only (quick-edit's own
+    // branch above skips this - re-editing an already-answered step isn't
+    // new progress through the wizard, and would double-count the same
+    // step_id every time someone tweaks an earlier answer).
+    if(cur)trackEvent('step_completed',{step_id:cur.id,step_number:stepIdx+1,total_steps:activeSteps.length});
     if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}else{setDone(true);scrollTop();trackBuildCompleted(answers);}
   };
   const goBack=()=>{
@@ -199,6 +275,7 @@ function App(){
   // no such standard-included default, so [] is still correct there.
   const skip=()=>{if(cur.multi)setA(cur.id,cur.id==='purif'?['aprilaire']:[]);goNext();};
   const restart=()=>{
+    trackEvent('restart_clicked');
     clearSavedBuild();setAnswers(defaultAnswers());setStepIdx(0);setDone(false);setQuickEdit(false);
     setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});
   };
@@ -564,8 +641,8 @@ function App(){
         <div className="splash-cards">
           <div className="splash-card" role="button" tabIndex={0}
             aria-label="Attic Horizontal - Unit lays on its side above the ceiling, most common in Austin. Air flows horizontally through ducts in the attic."
-            onClick={()=>{setA("location","attic");setStepIdx(1);}}
-            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setA("location","attic");setStepIdx(1);}}}>
+            onClick={()=>pickLocation("attic")}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickLocation("attic");}}}>
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:4}}>
               <div className="splash-card-title">Attic Horizontal</div>
               <div className="splash-card-desc">Unit lays on its side above the ceiling - most common in Austin. Air flows horizontally through ducts in the attic.</div>
@@ -573,8 +650,8 @@ function App(){
           </div>
           <div className="splash-card" role="button" tabIndex={0}
             aria-label="Closet Upflow - Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil."
-            onClick={()=>{setA("location","closet");setStepIdx(1);}}
-            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setA("location","closet");setStepIdx(1);}}}>
+            onClick={()=>pickLocation("closet")}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickLocation("closet");}}}>
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:4}}>
               <div className="splash-card-title">Closet Upflow</div>
               <div className="splash-card-desc">Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.</div>
@@ -852,8 +929,14 @@ function App(){
                 const subSteps=['systems','sqft','ducts'];
                 const subId=subSteps[pricingSubStep];
                 const goSubNext=()=>{
-                  if(pricingSubStep<subSteps.length-1)setPricingSubStep(s=>s+1);
-                  else setPricingFlow('result');
+                  if(pricingSubStep<subSteps.length-1){setPricingSubStep(s=>s+1);return;}
+                  if(leadUnlocked){
+                    trackEvent('price_revealed');
+                    setPricingFlow('result');
+                  }else{
+                    trackEvent('contact_form_shown');
+                    setPricingFlow('leadgate');
+                  }
                 };
                 const goSubBack=()=>{
                   if(pricingSubStep>0)setPricingSubStep(s=>s-1);
@@ -975,6 +1058,20 @@ function App(){
                 </div>;
               })()}
 
+              {/* Contact-form gate - only reachable when GATE_CONFIG.gravityFormId
+                  is set (see goSubNext above and data.js). Waits on the
+                  leadUnlocked detection effect above; auto-advances to
+                  'result' the moment that flips true, so a homeowner who
+                  submits the form never has to click anything in here. */}
+              {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
+                <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:6,fontFamily:"var(--ft)"}}>Almost there - just one quick step</div>
+                <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
+                  Fill out the short form on this page and your full price appears right here automatically - no need to click anything else.
+                </div>
+                <button className="btn-back" style={{padding:isAtticMode?"6px 16px":"8px 16px",fontSize:isAtticMode?14:"var(--fs-pricing-fine)"}}
+                  onClick={()=>setPricingFlow('sizing')}>‹ Back</button>
+              </div>}
+
               {/* Wrapped in its own key'd+fadein div for the same reason as
                   the sizing sub-steps above - this result panel replaces
                   the sizing UI in place with no DOM identity change, so
@@ -1032,7 +1129,7 @@ function App(){
             {/* ── QUICK ACTIONS - one compact button grid instead of five
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
-            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"12px",fontSize:16}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>💰 Get Pricing</button>}
+            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"12px",fontSize:16}} onClick={()=>{trackEvent('pricing_started');setPricingFlow('sizing');setPricingSubStep(0);}}>💰 Get Pricing</button>}
             {/* No Schedule Visit / phone CTA in this panel or the header -
                 both were dropped once this became an iframe embed on the
                 real site, which already has its own header with that CTA. */}
@@ -1052,8 +1149,8 @@ function App(){
                 rgba(255,255,255,.68) the class encodes, it's just no
                 longer re-typed inline every render. */}
             <div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
-              <button onClick={()=>window.print()} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
+              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked')} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
+              <button onClick={()=>{trackEvent('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
               <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
               <button className="quick-restart-btn" style={{width:"100%",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",padding:"9px"}} onClick={restart}>Start Over</button>
             </div>
