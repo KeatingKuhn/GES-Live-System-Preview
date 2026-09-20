@@ -1171,9 +1171,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const fanRx=w*0.46;
     const fanRy=h*0.38;
     const spd=active?0.9:0;
+    // transformBox:'view-box' + an explicit 0,0 origin (not 'fill-box'/
+    // 'center') - same fix, same reason, as CondenserFan's own blade spin
+    // a few hundred lines up: 3 blades all swept the same rotational
+    // direction have no bounding-box symmetry around the hub, so a
+    // fill-box/center rotation orbits the whole fan instead of spinning
+    // it in place. The blade group below is already pre-translated to
+    // (cx,cy) by its own wrapper <g>, so its LOCAL origin 0,0 already IS
+    // the hub - this animates around that local origin.
     const spinStyle=active?{
-      transformBox:'fill-box',
-      transformOrigin:'center',
+      transformBox:'view-box',
+      transformOrigin:'0px 0px',
       animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
     }:{};
     const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
@@ -1194,16 +1202,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         stroke="rgba(30,32,38,.6)" strokeWidth="0.7"/>
       <g transform={'translate('+cx+' '+cy+') scale(1,'+squash+')'}>
         <g style={spinStyle}>
-          {Array.from({length:4},(_,i)=>{
-            const ang=i*(Math.PI/2);
-            const bx1=fanRx*0.15*Math.cos(ang);
-            const by1=fanRx*0.15*Math.sin(ang);
-            const bx2=fanRx*0.82*Math.cos(ang+0.55);
-            const by2=fanRx*0.82*Math.sin(ang+0.55);
-            const cpx=fanRx*0.65*Math.cos(ang+0.28);
-            const cpy=fanRx*0.65*Math.sin(ang+0.28);
-            return <path key={i} d={'M'+bx1+' '+by1+' Q'+cpx+' '+cpy+' '+bx2+' '+by2}
-              fill="none" stroke={bC} strokeWidth="4" strokeLinecap="round" opacity="0.9"/>;
+          {/* Real, filled tapered blades (wide at the hub, sweeping to a
+              near-point tip) instead of the old thin curved-line strokes,
+              matching CondenserFan's blade shape/quality - a stroked line
+              has no taper and reads as a flailing wire, not a blade. */}
+          {Array.from({length:3},(_,i)=>{
+            const ang=i*(Math.PI*2/3);
+            const sweep=0.95;
+            const hubR=fanRx*0.15, tipR=fanRx*0.92;
+            const ux=Math.cos(ang), uy=Math.sin(ang);
+            const px=-Math.sin(ang), py=Math.cos(ang);
+            const hubW=fanRx*0.17;
+            const hAx=ux*hubR+px*hubW, hAy=uy*hubR+py*hubW;
+            const hBx=ux*hubR-px*hubW, hBy=uy*hubR-py*hubW;
+            const tipAng=ang+sweep;
+            const tX=Math.cos(tipAng)*tipR, tY=Math.sin(tipAng)*tipR;
+            const c1Ang=ang+sweep*0.4, c1R=fanRx*0.62;
+            const c1X=Math.cos(c1Ang)*c1R+px*hubW*0.5, c1Y=Math.sin(c1Ang)*c1R+py*hubW*0.5;
+            const c2Ang=ang+sweep*0.62, c2R=fanRx*0.54;
+            const c2X=Math.cos(c2Ang)*c2R-px*hubW*0.32, c2Y=Math.sin(c2Ang)*c2R-py*hubW*0.32;
+            const d=`M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
+            return <path key={i} d={d} fill={bC}
+              stroke={active?(ringColor||bC):'rgba(20,22,26,.7)'} strokeWidth="0.5" opacity={active?0.92:0.85}/>;
           })}
         </g>
       </g>
@@ -1243,8 +1263,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         fill="none" stroke="rgba(165,170,180,.5)" strokeWidth="1" opacity={active?0.55:0.42}/>
       <path d={`M${cx-fanRx*1.07} ${cy} A${fanRx*1.07} ${fanRy*1.07} 0 0 0 ${cx+fanRx*1.07} ${cy}`}
         fill="none" stroke="rgba(8,9,11,.75)" strokeWidth="1" opacity={active?0.6:0.5}/>
-      <ellipse cx={cx} cy={cy} rx={fanRx*0.12} ry={fanRy*0.14}
-        fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
+      {/* Motor hub - a distinct housing (dark ring + bright center dot),
+          matching CondenserFan's own hub treatment (was a single flat
+          decorative cap before this pass). Drawn last, on top of the
+          guard cage/spokes, exactly where the old decorative cap sat -
+          it's what should visually cover the spokes' crossing point at
+          center, not something the spokes get drawn over. */}
+      <ellipse cx={cx} cy={cy} rx={fanRx*0.17} ry={fanRy*0.2}
+        fill="#16181c" stroke={active?(ringColor||bC):"rgba(90,95,110,.6)"} strokeWidth="0.9"/>
+      <ellipse cx={cx} cy={cy} rx={fanRx*0.065} ry={fanRy*0.08}
+        fill={active?(ringColor||bC):"#3a3d44"}/>
     </>;
   }
 
@@ -1425,7 +1453,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           const fanAreaH=h-Math.round(h*0.1)-4;
           const fanAreaY=y+Math.round(h*0.1)+2;
           const fCX=x+fanAreaW/2, fCY=fanAreaY+fanAreaH/2;
-          const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.43);
+          // Slightly smaller per direct feedback - was 0.43.
+          const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.39);
           // Woven-wire crosshatch mesh (two crossing diagonal line sets,
           // clipped to the grille circle) instead of the old sparse dot
           // pattern - closer to how a real fan guard mesh actually reads,
