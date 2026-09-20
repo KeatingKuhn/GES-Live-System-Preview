@@ -1005,7 +1005,12 @@ function App(){
           against outside that one closing beat. Same reasoning as the
           .splash-screen comment above. */}
       {doneVisible&&<div ref={doneScreenRef} className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
-        <div className="canvas-frame done-canvas-frame" style={{flex:1,minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
+        {/* flex itself lives in styles.css (.done-canvas-frame), not here -
+            an inline style always wins over any stylesheet rule regardless
+            of specificity, which silently defeated the mobile height cap
+            .done-screen.attic-mode .done-canvas-frame needs (see its
+            comment) when flex:1 was set right here instead. */}
+        <div className="canvas-frame done-canvas-frame" style={{minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
           <div className="canvas-zoom">
             <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
           </div>

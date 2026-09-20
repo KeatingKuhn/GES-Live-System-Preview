@@ -3488,7 +3488,7 @@
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
-            x: ACOIL_X + ACOIL_W / 2,
+            x: ACOIL_X + ACOIL_W / 2 + 6,
             y: UNIT_Y - 5,
             textAnchor: "middle",
             fill: active ? refReversed ? "rgba(239,68,68,.5)" : "rgba(35,137,224,.46)" : "rgba(255,255,255,.14)",
@@ -3908,7 +3908,7 @@
       )), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
-        const dehuBX = sysX + 44;
+        const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
         const ervBX = Math.max(8, RET_X - BW + 80);
         return /* @__PURE__ */ React.createElement(
           DehuErvBoxes,

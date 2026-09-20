@@ -372,7 +372,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    other step gets. A brightness flash on the frame plus a diagonal light
    sweep over it, both one-shot on mount (this whole block only exists in
    the DOM once done=true, so there's no need to re-trigger manually). */
-.done-canvas-frame{animation:canvasPowerOn .7s ease-out both}
+/* flex:1 lives here (not as an inline style in app.js) specifically so the
+   mobile media query below can override it with flex:none - an inline
+   style always beats a stylesheet rule regardless of specificity, which
+   would otherwise silently defeat that override. */
+.done-canvas-frame{flex:1;animation:canvasPowerOn .7s ease-out both}
 @keyframes canvasPowerOn{0%{filter:brightness(1.7) saturate(1.35)}100%{filter:brightness(1) saturate(1)}}
 .done-canvas-sweep{position:absolute;inset:0;pointer-events:none;z-index:6;
   background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.22) 47%,rgba(240,214,78,.4) 50%,rgba(255,255,255,.22) 53%,transparent 65%);
@@ -804,12 +808,29 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      why this used to be a no-op attribute-selector hack for the closet
      layout - flexDirection is no longer set inline at all. */
   .done-screen.attic-mode,.done-screen.closet-mode{flex-direction:column}
+  /* Attic's done-screen canvas wrapper (.done-canvas-frame) has no height
+     rule of its own - unlike the wizard's .attic-canvas-area above, it's
+     bare flex:1 (see app.js), which happily fills whatever's left after
+     the sidebar's fixed 200px (also set in app.js, for the review grid -
+     see .done-wrap-attic). In this column layout that's most of the
+     screen, but the attic diagram keeps a fixed ~2.5:1 aspect regardless
+     of how tall its box is, so the extra height past what that aspect
+     needs just sat there as dead black canvas background - pushing the
+     "Your System is Built" header, review grid and every CTA below it
+     (Get Pricing, Save/Print, Start Over) down past a phone screen's
+     worth of empty scrolling before any of it was reachable. Capping it
+     at the same 52vh the wizard's own canvas uses stops it from
+     outgrowing what the diagram actually needs. Closet's done-screen
+     canvas doesn't get this because its own diagram is tall/narrow, not
+     short/wide - flex:1 there already lands close to what it needs. */
+  .done-screen.attic-mode .done-canvas-frame{flex:none;height:52vh;min-height:220px}
 }
 
 @media(max-width:600px){
   /* Phone: smaller canvas, single-column options */
   .attic-canvas-area{height:45vh}
   .closet-canvas-area{height:45vh}
+  .done-screen.attic-mode .done-canvas-frame{height:45vh}
   .sidebar{max-height:50vh}
   .opts .opt{min-width:100%;max-width:100%}
   .attic-opt{min-width:100%;max-width:100%}

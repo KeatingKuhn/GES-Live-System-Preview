@@ -2678,21 +2678,20 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                     (ACOIL_W, much tighter than the standalone air
                     handler's AH_W), and the refrigerant line's riser
                     (RL_START_X=ACOIL_X+8, see its own comment above) sits
-                    almost exactly under where the text's left edge
-                    already lands even at this original size - a
-                    pre-existing, very marginal overlap (confirmed against
-                    the unmodified file, not introduced by this pass) that
-                    the "AB" of "ABSORBING HEAT" sometimes loses to the
-                    pipe's foam-sleeve stroke. Enlarging this text the same
-                    amount as its siblings widens it enough to make that
-                    overlap worse/consistent, and the box is too narrow
-                    (with the supply plenum starting only a few px past
-                    its right edge) to shift the text clear on both sides
-                    at a larger size without restructuring the box widths
-                    - out of scope for a font-size-only pass, so this one
-                    is left at its original size rather than compounding
-                    the existing issue. */}
-                <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-5} textAnchor="middle"
+                    almost exactly under where the text's left edge would
+                    otherwise land - a pre-existing, very marginal overlap
+                    that the "AB" of "ABSORBING HEAT"/"RE" of "REJECTING
+                    HEAT" sometimes lost to the pipe's foam-sleeve stroke
+                    (measured: the sleeve's right edge sits ~2px right of
+                    where this text's left edge lands at dead center).
+                    Nudging the label 6px right of true center clears the
+                    sleeve with margin to spare while staying well short of
+                    the coil box's own right edge (the supply plenum starts
+                    just past it) - cheaper than restructuring the box
+                    widths, and doesn't touch the "A-COIL" title above,
+                    which is short enough to already clear the pipe at
+                    dead center. */}
+                <text x={ACOIL_X+ACOIL_W/2+6} y={UNIT_Y-5} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="10" fontFamily="monospace">
                   {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
                 </text>
@@ -2960,8 +2959,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
             const sysX=hasFurnace?FURN_X:AH_X;
             const BW=80;
-            // Dehu: left of furnace center (clear of flue which is on right side)
-            const dehuBX=sysX+44;
+            // Dehu: left of furnace center (clear of flue which is on right
+            // side) - furnace's own "FURNACE" title sits BELOW the unit, not
+            // above it, so there's nothing up here to dodge but the flue.
+            // Air handler is the opposite: no flue, but "AIR HANDLER"/its
+            // status line ARE centered above the cabinet - the same
+            // furnace-tuned offset landed this box under the left half of
+            // that title (measured: ~20px of real overlap with a hasCond
+            // AH_W). Anchoring off the cabinet's own right portion instead
+            // clears the (narrower, centered) title with room to spare on
+            // every tier/condenser state, and stays clear of the supply
+            // plenum starting just past the cabinet's right edge.
+            const dehuBX=hasFurnace?sysX+44:sysX+AH_W-BW-8;
             // ERV: far left of return plenum
             const ervBX=Math.max(8, RET_X-BW+80);
             return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} BY={UNIT_Y-48-14} roofY={EAVE_Y+14}
