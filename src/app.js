@@ -232,15 +232,13 @@ function App(){
     // stale "Heat source" row in the review grid.
     if(k==='indoor_type'){
       if(v==='furnace'&&p.cond_tier==='mid_ge15') next.system_for='hp';
-      else if(v==='ah'){
-        delete next.system_for;
-        // Air handlers have no furnace/attic-insulation step at all (its
-        // showIf excludes them) - clear a leftover furnace_eff/insulation
-        // pick too, so the review grid doesn't keep showing a stale
-        // "Insulation" row for a system that no longer has a furnace.
-        delete next.insulation;
-        delete next.furnace_eff;
-      }
+      // Air handlers have no furnace to pair with, so clear a leftover
+      // system_for value instead of leaving a stale "Heat source" row in
+      // the review grid. insulation/furnace_eff stay untouched either way
+      // now - insulation is asked regardless of indoor_type (it's the
+      // attic's own construction, not the furnace's), so switching indoor
+      // types shouldn't clear an already-answered pick.
+      else if(v==='ah') delete next.system_for;
     }
     return next;
   });
@@ -360,7 +358,14 @@ function App(){
     const base=cur?getOpts(cur.id,answers):[];
     if(lang!=='es')return base;
     const overrides=OPTS_ES[cur.id]||{};
-    return base.map(o=>overrides[o.v]?{...o,...overrides[o.v]}:o);
+    // insulation's override is a function of the live answers (its desc
+    // varies by indoor_type - see its own comment in data.js), not the
+    // plain {label,desc} object every other step's override is.
+    return base.map(o=>{
+      const ov=overrides[o.v];
+      if(!ov)return o;
+      return {...o,...(typeof ov==='function'?ov(answers):ov)};
+    });
   },[cur,answers,lang]);
   // Translated question/hint for the current step, falling back to the
   // English STEPS content when no Spanish override exists for that id.
@@ -377,7 +382,13 @@ function App(){
     return[
       {step:"location",label:tr("Location","Ubicación"),val:answers.location==="attic"?tr("Attic horizontal","Ático horizontal"):answers.location==="closet"?tr("Upflow closet","Clóset ascendente"):null},
       {step:"indoor_type",label:tr("Indoor unit","Unidad interior"),val:answers.indoor_type==="furnace"?tr("Gas furnace","Horno a gas"):answers.indoor_type==="ah"?tr("Air handler","Manejador de aire"):null},
-      answers.furnace_eff?{step:"insulation",label:tr("Insulation","Aislamiento"),val:answers.furnace_eff==="e90"?tr("Spray foam - 90% AFUE","Espuma aislante - 90% AFUE"):tr("Fiberglass - 80% AFUE","Fibra de vidrio - 80% AFUE")}:null,
+      // AFUE only means anything for a furnace - an air handler still
+      // answers this step (attic construction shows in the diagram either
+      // way), but the row drops the AFUE suffix since there's no furnace
+      // for it to describe.
+      answers.furnace_eff?{step:"insulation",label:tr("Insulation","Aislamiento"),val:answers.indoor_type==="furnace"
+        ?(answers.furnace_eff==="e90"?tr("Spray foam - 90% AFUE","Espuma aislante - 90% AFUE"):tr("Fiberglass - 80% AFUE","Fibra de vidrio - 80% AFUE"))
+        :(answers.furnace_eff==="e90"?tr("Spray foam","Espuma aislante"):tr("Fiberglass","Fibra de vidrio"))}:null,
       {step:"plenum",label:tr("Plenum","Plenum"),val:answers.plenum==="ductboard"?tr("New ductboard plenum","Nuevo plenum de ductboard"):answers.plenum==="metal"?tr("New sheet metal plenum","Nuevo plenum de lámina metálica"):answers.plenum==="none"?tr("Keep existing plenum","Conservar plenum actual"):null},
       {step:"thermostat",label:tr("Thermostat","Termostato"),
         val:answers.thermostat==="wifi"?tr("Wi-Fi smart thermostat","Termostato inteligente Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Proprietary communicating thermostat","Termostato comunicante propietario"):null,
@@ -531,6 +542,9 @@ function App(){
     location:"Your indoor unit's location sets the whole system layout. Attic is the most common setup in Austin, with the unit sitting horizontally above the living space. Closet is upflow, standing vertically in a hallway or utility closet. Both work well; closet installs are a bit easier to service.",
     indoor_type:"Not sure which you have? A gas stove or gas water heater usually means a furnace too, burning gas for heat and pairing with AC for cooling. An all-electric home likely has an air handler instead, paired with a heat pump for both heating and cooling.",
     insulation:"Attic insulation determines which furnace fits. Fiberglass or blown-in means a vented attic, where a standard 80% AFUE furnace works fine with a metal B-vent flue. Spray foam means a sealed attic, which needs a 90% AFUE condensing furnace with a PVC flue through the roof.",
+    // Air-handler version - no furnace to fit, so this drops the AFUE/flue
+    // detail and just covers the attic construction/comfort side instead.
+    insulation_ah:"Attic insulation shows up in your diagram either way, even without a furnace to size. Fiberglass or blown-in means a vented attic, the most common setup in Austin. Spray foam means a sealed attic, which runs cooler and more efficiently.",
     plenum:"The supply plenum connects your indoor unit to your ductwork, so conditioned air can reach every room. If yours is damaged, leaking, or over 15 years old, replacing it improves both efficiency and airflow.",
     thermostat:"A basic programmable thermostat is reliable -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
     purif:"The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer clears particles, odors, and VOCs. A surge protector guards the condenser -- one lightning strike can destroy a compressor.",
@@ -547,6 +561,7 @@ function App(){
     location:"La ubicación de su unidad interior define el diseño de todo el sistema. Ático es la instalación más común en Austin, con la unidad en posición horizontal sobre el espacio habitable. Clóset es de flujo ascendente, en posición vertical en un pasillo o clóset de servicio. Ambas funcionan bien; las instalaciones de clóset son un poco más fáciles de dar servicio.",
     indoor_type:"¿No está seguro cuál tiene? Una estufa o calentador de agua a gas usualmente significa que también tiene un horno, que quema gas para calefacción y se combina con A/C para enfriar. Un hogar totalmente eléctrico probablemente tiene un manejador de aire, combinado con una bomba de calor para calefacción y enfriamiento.",
     insulation:"El aislamiento del ático determina qué horno le corresponde. Fibra de vidrio o soplada significa un ático ventilado, donde un horno estándar de 80% AFUE funciona bien con una chimenea metálica tipo B. Espuma aislante significa un ático sellado, que requiere un horno de condensación de 90% AFUE con chimenea de PVC hacia el techo.",
+    insulation_ah:"El aislamiento del ático aparece en su diagrama de cualquier forma, aunque no haya un horno que dimensionar. Fibra de vidrio o soplada significa un ático ventilado, la instalación más común en Austin. Espuma aislante significa un ático sellado, que funciona más fresco y eficiente.",
     plenum:"El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitación. Si el suyo está dañado, con fugas, o tiene más de 15 años, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
     thermostat:"Un termostato programable básico es confiable: configure su horario y olvídese de él. Un termostato inteligente Wi-Fi se conecta a su teléfono, aprende sus hábitos, y puede reducir su factura de energía entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
     purif:"El gabinete de filtración mejorada viene incluido de fábrica en cada instalación, capturando ya mucho más polvo, polen y alérgenos que un filtro típico de 1 pulgada. Una luz UV mantiene limpio el serpentín. Un ionizador elimina partículas, olores y COV. Un protector de sobrevoltaje protege el condensador: un solo rayo puede destruir un compresor.",
@@ -555,7 +570,10 @@ function App(){
     dehu:"La humedad de Austin hace que su hogar se sienta más caliente de lo que marca el termostato. Un deshumidificador se conecta a sus ductos y funciona automáticamente, sin cubetas ni mantenimiento de su parte.",
     extras:"Una bomba de condensado maneja el drenaje cuando no hay un drenaje por gravedad cercano, algo común en instalaciones de clóset. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energía en el intercambio.",
   };
-  const infoText=cur&&(lang==='es'?(INFO_TEXT_ES[cur.id]||INFO_TEXT[cur.id]):INFO_TEXT[cur.id]);
+  // insulation's info text has an air-handler variant (no furnace/AFUE to
+  // describe) - every other step's id maps straight to its own entry.
+  const infoTextId=cur&&cur.id==='insulation'&&answers.indoor_type!=='furnace'?'insulation_ah':cur&&cur.id;
+  const infoText=infoTextId&&(lang==='es'?(INFO_TEXT_ES[infoTextId]||INFO_TEXT[infoTextId]):INFO_TEXT[infoTextId]);
 
   // A short, specific acknowledgment of what was just picked - replaces
   // the generic instructional hint once there's an actual answer to react

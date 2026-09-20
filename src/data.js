@@ -9,8 +9,7 @@ export const STEPS=[
   {id:'indoor_type', q:'What Type of Indoor Unit?', chapter:0,
     hint:'Furnace or air handler?\nFurnace = Gas Heat.\nAir Handler = All-Electric.', optional:false},
   {id:'insulation',  q:'Fiberglass or spray foam?', chapter:0,
-    hint:'Determines your furnace efficiency.', optional:false,
-    showIf:a=>a.indoor_type==='furnace'},
+    hint:"Determines your attic's construction - and furnace efficiency, if you have one.", optional:false},
   {id:'plenum',      q:'New supply plenum needed?', chapter:1,
     hint:'Feeds conditioned air to your ductwork.', optional:false},
   {id:'cond_tier',   q:'Pick your efficiency tier.', chapter:1,
@@ -46,10 +45,21 @@ export function getOpts(stepId, answers){
       {v:'furnace',label:'Furnace - Gas Heat',      desc:'Most common in Austin'},
       {v:'ah',     label:'Air Handler - All Electric', desc:'Auxiliary heat installed'},
     ];
-    case 'insulation':return[
-      {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Vented attic - pairs with an 80% AFUE furnace. Most Austin homes have this.'},
-      {v:'spray',     label:'Spray foam',               desc:'Sealed attic - needs a 90% AFUE furnace with a PVC flue. Cooler, more efficient.'},
-    ];
+    case 'insulation':{
+      // Insulation is asked regardless of indoor_type - it's a property of
+      // the attic itself, not the furnace (the diagram's roofline/texture
+      // reads off it either way, see a.insulation in canvas.js) - but the
+      // AFUE/flue detail below is only true for furnace systems, so it
+      // drops out entirely for an air handler instead of describing
+      // equipment that build doesn't have.
+      const isFurnace=answers.indoor_type==='furnace';
+      return[
+        {v:'fiberglass',label:'Fiberglass batts / blown',
+          desc:isFurnace?'Vented attic - pairs with an 80% AFUE furnace. Most Austin homes have this.':'Vented attic - most Austin homes have this.'},
+        {v:'spray',     label:'Spray foam',
+          desc:isFurnace?'Sealed attic - needs a 90% AFUE furnace with a PVC flue. Cooler, more efficient.':'Sealed attic - cooler, more efficient.'},
+      ];
+    }
     case 'plenum':return[
       {v:'ductboard',label:'Ductboard plenum',  desc:'Standard choice, good insulation. Typical lifespan 10–15 years.'},
       {v:'metal',    label:'Sheet metal plenum',desc:'More durable, lasts 25+ years, better for indoor air quality.'},
@@ -117,7 +127,7 @@ export const CHAPTERS_ES=['LO BÁSICO','EL MOTOR','CONFORT','TOQUES FINALES'];
 export const STEPS_ES={
   location:   {q:'¿Dónde está su unidad interior?',      hint:'Define el diseño de todo su sistema.'},
   indoor_type:{q:'¿Qué tipo de unidad interior?',          hint:'¿Horno o manejador de aire?\nHorno = Calefacción a gas.\nManejador de aire = Todo eléctrico.'},
-  insulation: {q:'¿Fibra de vidrio o espuma aislante?',    hint:'Determina la eficiencia de su horno.'},
+  insulation: {q:'¿Fibra de vidrio o espuma aislante?',    hint:'Determina la construcción de su ático - y la eficiencia de su horno, si tiene uno.'},
   plenum:     {q:'¿Necesita un plenum de suministro nuevo?', hint:'Alimenta aire acondicionado a sus ductos.'},
   cond_tier:  {q:'Elija su nivel de eficiencia.',          hint:'Mayor eficiencia, facturas mensuales más bajas.'},
   system_for: {q:'¿Bomba de calor o solo enfriamiento?',   hint:'La bomba de calor hace más; el A/C solo enfría.'},
@@ -135,9 +145,15 @@ export const OPTS_ES={
     furnace:{label:'Horno - Calefacción a gas',           desc:'Lo más común en Austin'},
     ah:     {label:'Manejador de Aire - Todo eléctrico',  desc:'Con calefacción auxiliar instalada'},
   },
+  // insulation's own desc varies by indoor_type (see getOpts' matching
+  // English case) - a function here instead of the plain {label,desc}
+  // shape every other step uses, resolved against the live answers by
+  // the opts useMemo in app.js right where it merges this override in.
   insulation:{
-    fiberglass:{label:'Fibra de vidrio',   desc:'Ático ventilado - se combina con un horno de 80% AFUE. La mayoría de las casas en Austin lo tienen.'},
-    spray:     {label:'Espuma aislante',   desc:'Ático sellado - requiere un horno de 90% AFUE con chimenea de PVC. Más fresco y eficiente.'},
+    fiberglass:a=>({label:'Fibra de vidrio',
+      desc:a.indoor_type==='furnace'?'Ático ventilado - se combina con un horno de 80% AFUE. La mayoría de las casas en Austin lo tienen.':'Ático ventilado - la mayoría de las casas en Austin lo tienen.'}),
+    spray:a=>({label:'Espuma aislante',
+      desc:a.indoor_type==='furnace'?'Ático sellado - requiere un horno de 90% AFUE con chimenea de PVC. Más fresco y eficiente.':'Ático sellado - más fresco y eficiente.'}),
   },
   plenum:{
     ductboard:{label:'Plenum de ductboard',        desc:'Opción estándar, buen aislamiento. Vida útil típica de 10–15 años.'},

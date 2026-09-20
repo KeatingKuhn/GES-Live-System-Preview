@@ -21,9 +21,8 @@
       id: "insulation",
       q: "Fiberglass or spray foam?",
       chapter: 0,
-      hint: "Determines your furnace efficiency.",
-      optional: false,
-      showIf: (a) => a.indoor_type === "furnace"
+      hint: "Determines your attic's construction - and furnace efficiency, if you have one.",
+      optional: false
     },
     {
       id: "plenum",
@@ -95,11 +94,21 @@
           { v: "furnace", label: "Furnace - Gas Heat", desc: "Most common in Austin" },
           { v: "ah", label: "Air Handler - All Electric", desc: "Auxiliary heat installed" }
         ];
-      case "insulation":
+      case "insulation": {
+        const isFurnace = answers.indoor_type === "furnace";
         return [
-          { v: "fiberglass", label: "Fiberglass batts / blown", desc: "Vented attic - pairs with an 80% AFUE furnace. Most Austin homes have this." },
-          { v: "spray", label: "Spray foam", desc: "Sealed attic - needs a 90% AFUE furnace with a PVC flue. Cooler, more efficient." }
+          {
+            v: "fiberglass",
+            label: "Fiberglass batts / blown",
+            desc: isFurnace ? "Vented attic - pairs with an 80% AFUE furnace. Most Austin homes have this." : "Vented attic - most Austin homes have this."
+          },
+          {
+            v: "spray",
+            label: "Spray foam",
+            desc: isFurnace ? "Sealed attic - needs a 90% AFUE furnace with a PVC flue. Cooler, more efficient." : "Sealed attic - cooler, more efficient."
+          }
         ];
+      }
       case "plenum":
         return [
           { v: "ductboard", label: "Ductboard plenum", desc: "Standard choice, good insulation. Typical lifespan 10\u201315 years." },
@@ -155,7 +164,7 @@
   var STEPS_ES = {
     location: { q: "\xBFD\xF3nde est\xE1 su unidad interior?", hint: "Define el dise\xF1o de todo su sistema." },
     indoor_type: { q: "\xBFQu\xE9 tipo de unidad interior?", hint: "\xBFHorno o manejador de aire?\nHorno = Calefacci\xF3n a gas.\nManejador de aire = Todo el\xE9ctrico." },
-    insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Determina la eficiencia de su horno." },
+    insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Determina la construcci\xF3n de su \xE1tico - y la eficiencia de su horno, si tiene uno." },
     plenum: { q: "\xBFNecesita un plenum de suministro nuevo?", hint: "Alimenta aire acondicionado a sus ductos." },
     cond_tier: { q: "Elija su nivel de eficiencia.", hint: "Mayor eficiencia, facturas mensuales m\xE1s bajas." },
     system_for: { q: "\xBFBomba de calor o solo enfriamiento?", hint: "La bomba de calor hace m\xE1s; el A/C solo enfr\xEDa." },
@@ -173,9 +182,19 @@
       furnace: { label: "Horno - Calefacci\xF3n a gas", desc: "Lo m\xE1s com\xFAn en Austin" },
       ah: { label: "Manejador de Aire - Todo el\xE9ctrico", desc: "Con calefacci\xF3n auxiliar instalada" }
     },
+    // insulation's own desc varies by indoor_type (see getOpts' matching
+    // English case) - a function here instead of the plain {label,desc}
+    // shape every other step uses, resolved against the live answers by
+    // the opts useMemo in app.js right where it merges this override in.
     insulation: {
-      fiberglass: { label: "Fibra de vidrio", desc: "\xC1tico ventilado - se combina con un horno de 80% AFUE. La mayor\xEDa de las casas en Austin lo tienen." },
-      spray: { label: "Espuma aislante", desc: "\xC1tico sellado - requiere un horno de 90% AFUE con chimenea de PVC. M\xE1s fresco y eficiente." }
+      fiberglass: (a) => ({
+        label: "Fibra de vidrio",
+        desc: a.indoor_type === "furnace" ? "\xC1tico ventilado - se combina con un horno de 80% AFUE. La mayor\xEDa de las casas en Austin lo tienen." : "\xC1tico ventilado - la mayor\xEDa de las casas en Austin lo tienen."
+      }),
+      spray: (a) => ({
+        label: "Espuma aislante",
+        desc: a.indoor_type === "furnace" ? "\xC1tico sellado - requiere un horno de 90% AFUE con chimenea de PVC. M\xE1s fresco y eficiente." : "\xC1tico sellado - m\xE1s fresco y eficiente."
+      })
     },
     plenum: {
       ductboard: { label: "Plenum de ductboard", desc: "Opci\xF3n est\xE1ndar, buen aislamiento. Vida \xFAtil t\xEDpica de 10\u201315 a\xF1os." },
@@ -5507,11 +5526,7 @@
       }
       if (k === "indoor_type") {
         if (v === "furnace" && p.cond_tier === "mid_ge15") next.system_for = "hp";
-        else if (v === "ah") {
-          delete next.system_for;
-          delete next.insulation;
-          delete next.furnace_eff;
-        }
+        else if (v === "ah") delete next.system_for;
       }
       return next;
     });
@@ -5613,7 +5628,11 @@
       const base = cur ? getOpts(cur.id, answers) : [];
       if (lang !== "es") return base;
       const overrides = OPTS_ES[cur.id] || {};
-      return base.map((o) => overrides[o.v] ? { ...o, ...overrides[o.v] } : o);
+      return base.map((o) => {
+        const ov = overrides[o.v];
+        if (!ov) return o;
+        return { ...o, ...typeof ov === "function" ? ov(answers) : ov };
+      });
     }, [cur, answers, lang]);
     const curQ = cur ? lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].q : cur.q : "";
     const curHint = cur ? lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].hint : cur.hint : "";
@@ -5623,7 +5642,11 @@
       return [
         { step: "location", label: tr("Location", "Ubicaci\xF3n"), val: answers.location === "attic" ? tr("Attic horizontal", "\xC1tico horizontal") : answers.location === "closet" ? tr("Upflow closet", "Cl\xF3set ascendente") : null },
         { step: "indoor_type", label: tr("Indoor unit", "Unidad interior"), val: answers.indoor_type === "furnace" ? tr("Gas furnace", "Horno a gas") : answers.indoor_type === "ah" ? tr("Air handler", "Manejador de aire") : null },
-        answers.furnace_eff ? { step: "insulation", label: tr("Insulation", "Aislamiento"), val: answers.furnace_eff === "e90" ? tr("Spray foam - 90% AFUE", "Espuma aislante - 90% AFUE") : tr("Fiberglass - 80% AFUE", "Fibra de vidrio - 80% AFUE") } : null,
+        // AFUE only means anything for a furnace - an air handler still
+        // answers this step (attic construction shows in the diagram either
+        // way), but the row drops the AFUE suffix since there's no furnace
+        // for it to describe.
+        answers.furnace_eff ? { step: "insulation", label: tr("Insulation", "Aislamiento"), val: answers.indoor_type === "furnace" ? answers.furnace_eff === "e90" ? tr("Spray foam - 90% AFUE", "Espuma aislante - 90% AFUE") : tr("Fiberglass - 80% AFUE", "Fibra de vidrio - 80% AFUE") : answers.furnace_eff === "e90" ? tr("Spray foam", "Espuma aislante") : tr("Fiberglass", "Fibra de vidrio") } : null,
         { step: "plenum", label: tr("Plenum", "Plenum"), val: answers.plenum === "ductboard" ? tr("New ductboard plenum", "Nuevo plenum de ductboard") : answers.plenum === "metal" ? tr("New sheet metal plenum", "Nuevo plenum de l\xE1mina met\xE1lica") : answers.plenum === "none" ? tr("Keep existing plenum", "Conservar plenum actual") : null },
         {
           step: "thermostat",
@@ -5738,6 +5761,9 @@
       location: "Your indoor unit's location sets the whole system layout. Attic is the most common setup in Austin, with the unit sitting horizontally above the living space. Closet is upflow, standing vertically in a hallway or utility closet. Both work well; closet installs are a bit easier to service.",
       indoor_type: "Not sure which you have? A gas stove or gas water heater usually means a furnace too, burning gas for heat and pairing with AC for cooling. An all-electric home likely has an air handler instead, paired with a heat pump for both heating and cooling.",
       insulation: "Attic insulation determines which furnace fits. Fiberglass or blown-in means a vented attic, where a standard 80% AFUE furnace works fine with a metal B-vent flue. Spray foam means a sealed attic, which needs a 90% AFUE condensing furnace with a PVC flue through the roof.",
+      // Air-handler version - no furnace to fit, so this drops the AFUE/flue
+      // detail and just covers the attic construction/comfort side instead.
+      insulation_ah: "Attic insulation shows up in your diagram either way, even without a furnace to size. Fiberglass or blown-in means a vented attic, the most common setup in Austin. Spray foam means a sealed attic, which runs cooler and more efficiently.",
       plenum: "The supply plenum connects your indoor unit to your ductwork, so conditioned air can reach every room. If yours is damaged, leaking, or over 15 years old, replacing it improves both efficiency and airflow.",
       thermostat: "A basic programmable thermostat is reliable -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
       purif: "The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer clears particles, odors, and VOCs. A surge protector guards the condenser -- one lightning strike can destroy a compressor.",
@@ -5750,6 +5776,7 @@
       location: "La ubicaci\xF3n de su unidad interior define el dise\xF1o de todo el sistema. \xC1tico es la instalaci\xF3n m\xE1s com\xFAn en Austin, con la unidad en posici\xF3n horizontal sobre el espacio habitable. Cl\xF3set es de flujo ascendente, en posici\xF3n vertical en un pasillo o cl\xF3set de servicio. Ambas funcionan bien; las instalaciones de cl\xF3set son un poco m\xE1s f\xE1ciles de dar servicio.",
       indoor_type: "\xBFNo est\xE1 seguro cu\xE1l tiene? Una estufa o calentador de agua a gas usualmente significa que tambi\xE9n tiene un horno, que quema gas para calefacci\xF3n y se combina con A/C para enfriar. Un hogar totalmente el\xE9ctrico probablemente tiene un manejador de aire, combinado con una bomba de calor para calefacci\xF3n y enfriamiento.",
       insulation: "El aislamiento del \xE1tico determina qu\xE9 horno le corresponde. Fibra de vidrio o soplada significa un \xE1tico ventilado, donde un horno est\xE1ndar de 80% AFUE funciona bien con una chimenea met\xE1lica tipo B. Espuma aislante significa un \xE1tico sellado, que requiere un horno de condensaci\xF3n de 90% AFUE con chimenea de PVC hacia el techo.",
+      insulation_ah: "El aislamiento del \xE1tico aparece en su diagrama de cualquier forma, aunque no haya un horno que dimensionar. Fibra de vidrio o soplada significa un \xE1tico ventilado, la instalaci\xF3n m\xE1s com\xFAn en Austin. Espuma aislante significa un \xE1tico sellado, que funciona m\xE1s fresco y eficiente.",
       plenum: "El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitaci\xF3n. Si el suyo est\xE1 da\xF1ado, con fugas, o tiene m\xE1s de 15 a\xF1os, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
       thermostat: "Un termostato programable b\xE1sico es confiable: configure su horario y olv\xEDdese de \xE9l. Un termostato inteligente Wi-Fi se conecta a su tel\xE9fono, aprende sus h\xE1bitos, y puede reducir su factura de energ\xEDa entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
       purif: "El gabinete de filtraci\xF3n mejorada viene incluido de f\xE1brica en cada instalaci\xF3n, capturando ya mucho m\xE1s polvo, polen y al\xE9rgenos que un filtro t\xEDpico de 1 pulgada. Una luz UV mantiene limpio el serpent\xEDn. Un ionizador elimina part\xEDculas, olores y COV. Un protector de sobrevoltaje protege el condensador: un solo rayo puede destruir un compresor.",
@@ -5758,7 +5785,8 @@
       dehu: "La humedad de Austin hace que su hogar se sienta m\xE1s caliente de lo que marca el termostato. Un deshumidificador se conecta a sus ductos y funciona autom\xE1ticamente, sin cubetas ni mantenimiento de su parte.",
       extras: "Una bomba de condensado maneja el drenaje cuando no hay un drenaje por gravedad cercano, algo com\xFAn en instalaciones de cl\xF3set. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio."
     };
-    const infoText = cur && (lang === "es" ? INFO_TEXT_ES[cur.id] || INFO_TEXT[cur.id] : INFO_TEXT[cur.id]);
+    const infoTextId = cur && cur.id === "insulation" && answers.indoor_type !== "furnace" ? "insulation_ah" : cur && cur.id;
+    const infoText = infoTextId && (lang === "es" ? INFO_TEXT_ES[infoTextId] || INFO_TEXT[infoTextId] : INFO_TEXT[infoTextId]);
     const REACTION = {
       // indoor_type has no entry here on purpose - its hint is forced to 3
       // lines (see STEPS above), already 2 lines taller than every other
