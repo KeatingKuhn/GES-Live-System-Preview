@@ -1763,11 +1763,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     if(compactToggle){
       const modes=isDualFuel?[
         {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
         {key:'furnace',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='furnace',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}},
       ]:!hasFurnace?[
         {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
         {key:'aux',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='aux',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}},
       ]:[
         {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
@@ -1811,8 +1811,8 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         ?<>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
             padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
-            background:heatMode&&heatSubMode==='hp'?'rgba(35,137,224,.18)':'transparent',
-            color:heatMode&&heatSubMode==='hp'?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
+            background:heatMode&&heatSubMode==='hp'?'rgba(249,115,22,.18)':'transparent',
+            color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span>🔥</span>
             <span>HEAT PUMP</span>
@@ -1834,8 +1834,8 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
         ?<>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
             padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
-            background:heatMode&&heatSubMode==='hp'?'rgba(35,137,224,.18)':'transparent',
-            color:heatMode&&heatSubMode==='hp'?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
+            background:heatMode&&heatSubMode==='hp'?'rgba(249,115,22,.18)':'transparent',
+            color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span>🔥</span>
             <span>HEAT PUMP</span>
@@ -2121,6 +2121,21 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             ))}
             <text x={RET_X+RET_PLEN_W/2} y={DECK_Y+21} textAnchor="middle"
               fill="rgba(255,182,193,.6)" fontSize="10" fontFamily="monospace">RETURN</text>
+            {/* Return airflow arrow, up from the grille into the plenum -
+                same bold glow+dash+arrowhead treatment as the supply
+                plenum's own flow arrows below, so return air reads as
+                clearly directional as supply air does, not just a static
+                grille. Opposite heat/cool coloring from supply on purpose -
+                this air hasn't been conditioned yet, it's on its way TO the
+                coil/furnace, so it's colored the temperature it's about to
+                be corrected FROM, not the temperature supply air already IS. */}
+            {DECK_Y-(UNIT_Y+UNIT_H)>16&&<>
+              <path d={`M${RET_X+RET_PLEN_W/2} ${DECK_Y-4} L${RET_X+RET_PLEN_W/2} ${UNIT_Y+UNIT_H+4}`}
+                fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
+              <path d={`M${RET_X+RET_PLEN_W/2} ${DECK_Y-4} L${RET_X+RET_PLEN_W/2} ${UNIT_Y+UNIT_H+4}`}
+                fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
+                strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+            </>}
           </g>}
 
           {/* Return plenum */}
@@ -2140,9 +2155,6 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 x2={RET_X+2} y2={UNIT_Y+18+i*(UNIT_H-24)/8}
                 stroke="rgba(255,182,193,.32)" strokeWidth="2.8" strokeLinecap="round"/>
             ))}
-            <path d={`M${RET_X+RET_PLEN_W+2} ${UNIT_Y+UNIT_H/2} L${APR_X+APR_W+2} ${UNIT_Y+UNIT_H/2}`}
-              fill="none" stroke={W+'.07)'} strokeWidth="1.1"
-              strokeDasharray="5 3" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
           </g>}
 
           {/* Aprilaire */}
@@ -2158,6 +2170,24 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               fill="#22c55e" fontSize="11" fontFamily="monospace"
               transform={`rotate(-90,${APR_X+APR_W/2},${UNIT_Y+UNIT_H/2})`}>FILTRATION</text>
           </g>}
+
+          {/* Return airflow arrow, plenum into the filter/coil - same bold
+              treatment as the vertical grille-to-plenum arrow above and the
+              supply plenum's own arrows, instead of the thin static
+              connector this used to be. Rendered here (after Aprilaire,
+              not inside the return-plenum group above) specifically so it
+              paints ON TOP of the filtration cabinet when one's present -
+              its endpoint spans the full return-plenum-to-unit gap, which
+              the filtration cabinet sits inside when selected, and this
+              used to render first (underneath it), making the arrow
+              invisible whenever filtration was on. Opposite heat/cool
+              coloring from supply on purpose - see the comment on the
+              grille-to-plenum arrow above. */}
+          {hasCoil&&<path d={`M${RET_X+RET_PLEN_W+2} ${UNIT_Y+UNIT_H/2} L${APR_X+APR_W+2} ${UNIT_Y+UNIT_H/2}`}
+            fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>}
+          {hasCoil&&<path d={`M${RET_X+RET_PLEN_W+2} ${UNIT_Y+UNIT_H/2} L${APR_X+APR_W+2} ${UNIT_Y+UNIT_H/2}`}
+            fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
+            strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>}
 
           {/* Furnace */}
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu'+a.stage+a.furnace_eff} filter="url(#shadow)">
@@ -2312,9 +2342,21 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   <text x={cx} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="9.5" fontFamily="monospace">SUPPLY</text>
                 </>
               );
+              // Airflow arrow down the center of a duct stem - same idea as
+              // the supply plenum's own internal arrows just above, so flow
+              // reads continuously from plenum through the duct to the
+              // grille instead of stopping at the plenum. Kept to a single
+              // thin dashed line (no glow underlay) since these stems are
+              // only 14px wide - the bold treatment used elsewhere would
+              // overwhelm a duct this narrow.
+              const ductArrow=(d,key)=>(
+                <path key={key} d={d} fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
+                  strokeDasharray="5 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+              );
               const straight=(cx,key)=>(
                 <g key={key}>
                   <rect x={cx-DW/2} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
+                  {DECK_Y-pBot>10&&ductArrow(`M${cx},${pBot+3} L${cx},${DECK_Y-4}`,'arrow')}
                   {grille(cx)}
                 </g>
               );
@@ -2326,6 +2368,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   <g key={key}>
                     <path d={d} fill="none" stroke={DS} strokeWidth={DW+2} strokeLinejoin="round" strokeLinecap="square"/>
                     <path d={d} fill="none" stroke={DC} strokeWidth={DW} strokeLinejoin="round" strokeLinecap="square"/>
+                    {ductArrow(`M${topX},${pBot+3} L${botX},${bendY} L${botX},${DECK_Y-4}`,'arrow')}
                     {grille(botX)}
                   </g>
                 );
@@ -2808,6 +2851,16 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               // How far out before dropping - well past unit edges
               const leftDropX=UNIT_X-120;
               const rightDropX=UNIT_X+PLEN_W+120;
+              // Airflow arrow along a duct's own horizontal-then-vertical
+              // path - same idea as the supply plenum's own internal
+              // arrows, so flow reads continuously from plenum through the
+              // duct to the grille. Thin/no-glow, matching the attic
+              // layout's own duct stems (13-14px ducts are too narrow for
+              // the bolder plenum-arrow treatment).
+              const ductArrow=(d,key)=>(
+                <path key={key} d={d} fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
+                  strokeDasharray="5 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+              );
               // Vertical drop goes from exitY down to DECK_Y
               return <>
                 {/* ── LEFT DUCT ── */}
@@ -2815,6 +2868,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 <rect x={leftDropX} y={exitY} width={UNIT_X-leftDropX} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
                 {/* Vertical drop from horizontal run down to deck */}
                 <rect x={leftDropX} y={exitY} width={DW} height={DECK_Y-exitY} fill={DC} stroke={DS} strokeWidth="1"/>
+                {ductArrow(`M${UNIT_X-3},${exitY+DW/2} L${leftDropX+DW/2},${exitY+DW/2} L${leftDropX+DW/2},${DECK_Y-4}`,'la')}
                 {/* Ceiling grille at DECK_Y */}
                 <rect x={leftDropX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1"
                   fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
@@ -2831,6 +2885,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 <rect x={UNIT_X+PLEN_W} y={exitY} width={rightDropX-(UNIT_X+PLEN_W)+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
                 {/* Vertical drop down to deck */}
                 <rect x={rightDropX} y={exitY} width={DW} height={DECK_Y-exitY} fill={DC} stroke={DS} strokeWidth="1"/>
+                {ductArrow(`M${UNIT_X+PLEN_W+3},${exitY+DW/2} L${rightDropX+DW/2},${exitY+DW/2} L${rightDropX+DW/2},${DECK_Y-4}`,'ra')}
                 {/* Ceiling grille at DECK_Y */}
                 <rect x={rightDropX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1"
                   fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
@@ -3061,9 +3116,19 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             ))}
             <rect x={UNIT_X-24} y={CHASE_Y+4} width={UNIT_W+48} height={VH-CHASE_Y-8}
               fill="rgba(35,137,224,.03)" stroke={B+'.1)'} strokeWidth="0.5" strokeDasharray="4 3"/>
+            {/* Return airflow arrow, up the chase into the unit - same bold
+                glow+dash+arrowhead treatment as the supply plenum's own
+                flow arrows above, instead of the thin static line this
+                used to be. Opposite heat/cool coloring from supply on
+                purpose - this air hasn't been conditioned yet, it's on its
+                way TO the coil/furnace, so it's colored the temperature
+                it's about to be corrected FROM, not the temperature supply
+                air already IS. */}
             <path d={`M${UNIT_X+UNIT_W/2} ${VH-20} L${UNIT_X+UNIT_W/2} ${CHASE_Y+10}`}
-              fill="none" stroke={W+'.09)'} strokeWidth="1"
-              strokeDasharray="5 3" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+              fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
+            <path d={`M${UNIT_X+UNIT_W/2} ${VH-20} L${UNIT_X+UNIT_W/2} ${CHASE_Y+10}`}
+              fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
+              strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
             <text x={UNIT_X+UNIT_W/2} y={VH-8} textAnchor="middle"
               fill="rgba(138,98,42,.62)" fontSize="9.5" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
           </g>}
