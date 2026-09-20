@@ -2023,11 +2023,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
           </g>;
         })()}
-        {/* SEER badge */}
+        {/* SEER badge - same active/refReversed-tinted treatment as the
+            mid/high tiers' own badge below (isMini/isBig), which this one
+            used to skip entirely (a flat dark-gray fill regardless of
+            mode) - fed-min was the only tier whose SEER badge never
+            actually reflected whether the system was running, or which
+            direction it was running in. */}
         <rect x={x+3} y={y+h-18} width={w-6} height={15} rx="2"
-          fill="rgba(40,43,50,.82)" opacity="0.95"/>
+          fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
         <text x={x+w/2} y={y+h-6} textAnchor="middle"
-          fill="rgba(195,200,210,.9)" fontSize="12.5" fontFamily="monospace" fontWeight="700">{TL}</text>
+          fill="#fff" fontSize="12.5" fontFamily="monospace" fontWeight="700">{TL}</text>
       </>}
 
       {isMini&&<>

@@ -80,11 +80,12 @@ export function getOpts(stepId, answers){
       {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Neutralizes airborne particles, odors, and VOCs in your ducts.'},
       {v:'surge',    label:'Surge Protector',    desc:'Shields the compressor from voltage spikes and lightning.'},
     ];
-    case 'system_for':
-      if(answers.cond_tier==='mid_ge15')return[
-        {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Mid efficiency is dual fuel only - heat pump to ~35°F, then the furnace takes over.'},
-      ];
-      return[
+    // No mid_ge15 branch here - the system_for STEP itself is hidden for
+    // mid_ge15 (see its showIf above, which forces 'hp' directly instead),
+    // so getOpts is never actually called for this id while cond_tier is
+    // mid_ge15. A conditional single-option branch used to sit here anyway
+    // and was pure dead code.
+    case 'system_for':return[
       {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Heat pump handles most of the year, down to ~35°F. Furnace covers the rest.'},
       {v:'sc', label:'Straight Cool',        desc:'AC cools only - furnace handles all heating. Simpler, lower upfront cost.'},
     ];

@@ -371,6 +371,17 @@ function App(){
   // English STEPS content when no Spanish override exists for that id.
   const curQ=cur?(lang==='es'&&STEPS_ES[cur.id]?STEPS_ES[cur.id].q:cur.q):"";
   const curHint=cur?(lang==='es'&&STEPS_ES[cur.id]?STEPS_ES[cur.id].hint:cur.hint):"";
+  // "location" is stepIdx 0 and deliberately left out of every step count
+  // elsewhere (chapterCounts above, totalSteps itself) - normally that's
+  // moot, since location only ever renders as the splash screen, which has
+  // no step counter at all. Quick-editing it from the done screen's review
+  // grid (jumpToStep('location')) is the one path that lands stepIdx on 0
+  // for real, which used to print a bare, nonsensical "STEP 0 OF n" - the
+  // same stray-counter problem goBack's own stepIdx-0 special case (above)
+  // was written to avoid for the Back-button path, just missed here since
+  // jumpToStep reaches stepIdx 0 directly instead of going through goBack.
+  // Blank instead of a number that was never meant to be shown.
+  const stepCountText=cur&&cur.id!=='location'?tr('STEP','PASO')+" "+stepIdx+(totalKnown?" "+tr('OF','DE')+" "+totalSteps:""):"";
   const chapterNames=lang==='es'?CHAPTERS_ES:CHAPTERS;
 
   // Review-grid item list - what the done screen's review grid shows,
@@ -956,8 +967,8 @@ function App(){
           <div className="attic-bar-top">
             <span className="attic-step-label">
               {cur ? <>
-                <span className="attic-step-label-fixed">{tr('STEP','PASO')+" "+stepIdx+(totalKnown?" "+tr('OF','DE')+" "+totalSteps:"")}</span>
-                <span className="attic-step-label-rest">{" · "}<span className="chapter-tag">{chapterNames[curChapter]}</span>{" · "+curQ.toUpperCase()}</span>
+                <span className="attic-step-label-fixed">{stepCountText}</span>
+                <span className="attic-step-label-rest">{stepCountText&&" · "}<span className="chapter-tag">{chapterNames[curChapter]}</span>{" · "+curQ.toUpperCase()}</span>
               </> : ""}
             </span>
             {infoText&&<button className="info-btn" aria-label={showInfo?tr("Hide info","Ocultar información"):tr("More info","Más información")} aria-expanded={showInfo}
@@ -1003,7 +1014,7 @@ function App(){
               (see the attic-info comment for what that broke). */}
           <div key={"hdr-"+stepIdx} className="step-hdr fadein">
             <div className="step-eyebrow">
-              <span>{cur&&<span className="chapter-tag">{chapterNames[curChapter]}</span>} {tr('Step','Paso')} {stepIdx}{totalKnown?` ${tr('of','de')} ${totalSteps}`:''}</span>
+              <span>{cur&&<span className="chapter-tag">{chapterNames[curChapter]}</span>}{stepCountText&&` ${stepCountText}`}</span>
               {infoText&&<button className="info-btn" aria-label={showInfo?tr("Hide info","Ocultar información"):tr("More info","Más información")} aria-expanded={showInfo}
                 onMouseEnter={()=>hoverCapable()&&setShowInfo(true)} onMouseLeave={()=>hoverCapable()&&setShowInfo(false)}
                 onFocus={()=>setShowInfo(true)} onBlur={()=>setShowInfo(false)}
