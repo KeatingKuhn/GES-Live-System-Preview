@@ -919,7 +919,7 @@ function App(){
       <div ref={atticLayoutRef} className={"attic-layout"+(!isAtticMode||done?" out":"")}>
         <div className="attic-canvas-area canvas-frame">
           <div className="canvas-zoom">
-            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
+            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} lang={lang}/>
           </div>
         </div>
         <div className="attic-bar">
@@ -993,7 +993,7 @@ function App(){
       <div ref={closetLayoutRef} className={"closet-layout"+(!isClosetMode||done?" out":"")}>
         <div className="closet-canvas-area canvas-frame">
           <div className="canvas-zoom">
-            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps}/>
+            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} lang={lang}/>
           </div>
         </div>
         <div className="sidebar">
@@ -1068,7 +1068,7 @@ function App(){
             comment) when flex:1 was set right here instead. */}
         <div className="canvas-frame done-canvas-frame" style={{minWidth:0,minHeight:0,position:"relative",overflow:"hidden"}}>
           <div className="canvas-zoom">
-            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep}/>
+            <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep} lang={lang}/>
           </div>
           <div className="done-canvas-sweep"/>
           {/* Attic layout's diagram never fills the full frame width (it

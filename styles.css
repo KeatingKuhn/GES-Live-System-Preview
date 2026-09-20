@@ -362,6 +362,21 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .therm-wire-backing{opacity:0;transition:opacity .18s ease-out;pointer-events:none}
 .therm-hover-zone:hover .therm-wire-backing{opacity:1}
 
+/* Generic "what is this" hover tooltip (HoverInfo/HoverCtx/HoverPanel in
+   canvas.js) - every individually-hoverable diagram part, in both the
+   wizard and the done screen, at all times (not gated behind the diagram
+   being finished). Unlike .edit-zone-ring/.therm-wire-backing above, the
+   panel itself isn't CSS-revealed here - each hover zone reports its own
+   mouseenter/mouseleave to one shared piece of React state (Canvas's own
+   hoverPart) instead, so the single resulting panel can be rendered as
+   the very last element in the whole <svg> and stay topmost regardless of
+   which component triggered it (see that module comment for why a CSS
+   sibling-reveal, which only stays on top of content painted BEFORE it,
+   isn't enough here). This rule just keeps the panel from ever intercepting
+   the pointer itself, as a defensive backstop alongside the inline style
+   HoverPanel already sets.*/
+.hover-info-panel{pointer-events:none}
+
 /* SIDEBAR - overflow-y:auto, not hidden: the wizard sidebar (unlike the
    done-screen one, which gets an inline overflowY:auto override) had no
    scroll at all here, so a step with a lot of option text - or the info

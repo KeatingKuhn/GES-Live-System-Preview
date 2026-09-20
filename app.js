@@ -485,7 +485,10 @@
     W,
     condenserEl,
     tierKey,
-    eaveY
+    eaveY,
+    lang,
+    vw,
+    vh
   }) {
     const groundY = zoneH - 28;
     const padY = groundY - 10;
@@ -913,7 +916,33 @@
         const toCondenser = isLine1 ? !refReversed : refReversed;
         const p = toCondenser ? `M${wx} ${topY} L${wx} ${botY} L${condX} ${botY}` : `M${condX} ${botY} L${wx} ${botY} L${wx} ${topY}`;
         return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 2.2 + i % 3 * 0.5 + "s", repeatCount: "indefinite", begin: i * 0.7 + "s", path: p }));
-      }));
+      }), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: Math.min(px1, px2) - 6,
+          y: Math.min(lineY1, lineY2) - 4,
+          w: Math.abs(px2 - px1) + 12,
+          h: exitY1 - Math.min(lineY1, lineY2) + 4,
+          rx: 3,
+          vw,
+          vh,
+          title: partInfo("lineset", lang).title,
+          text: partInfo("lineset", lang).text
+        }
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: Math.min(px1, px2) - 6,
+          y: Math.min(exitY1, exitY2) - 6,
+          w: condX - Math.min(px1, px2) + 6,
+          h: Math.abs(exitY2 - exitY1) + 12,
+          rx: 3,
+          vw,
+          vh,
+          title: partInfo("lineset", lang).title,
+          text: partInfo("lineset", lang).text
+        }
+      ));
     })(), (() => {
       const DX = sidingX + wallThick + 4;
       const DY = Math.round(groundY * 0.62) - 34;
@@ -1138,7 +1167,33 @@
           fontFamily: "monospace"
         },
         "PROTECTOR"
-      )));
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: DX,
+          y: DY + DH + 6,
+          w: DW,
+          h: 52,
+          rx: 4,
+          vw,
+          vh,
+          title: partInfo("surge_protector", lang).title,
+          text: partInfo("surge_protector", lang).text
+        }
+      )), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: DX,
+          y: DY,
+          w: DW,
+          h: DH,
+          rx: 4,
+          vw,
+          vh,
+          title: partInfo("disconnect", lang).title,
+          text: partInfo("disconnect", lang).text
+        }
+      ));
     })(), condenserEl, /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity .8s ease" } }, (() => {
       const segs = 6;
       let d = `M${condX} ${condY}`;
@@ -1388,14 +1443,211 @@
       note
     ));
   }
-  function DehumidistatWall({ x, y }) {
+  function DehumidistatWall({ x, y, lang, vw, vh }) {
     const W = 44, H = 40;
-    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, "45%"), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT")));
+    const info = partInfo("dehumidistat", lang);
+    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, "45%"), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT"), /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x: -2,
+        y: -2,
+        w: W + 4,
+        h: H + 18,
+        rx: 4,
+        vw,
+        vh,
+        title: info.title,
+        text: info.text
+      }
+    )));
   }
-  function Canvas({ a, stepIdx, activeSteps, onEditStep }) {
+  var HoverCtx = React.createContext(null);
+  function hiWrapText(text, maxChars) {
+    const words = (text || "").split(" ");
+    const lines = [];
+    let cur = "";
+    for (const w of words) {
+      const next = cur ? cur + " " + w : w;
+      if (next.length > maxChars && cur) {
+        lines.push(cur);
+        cur = w;
+      } else cur = next;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+  function HoverPanel({ part }) {
+    const { x, y, w, h, vw, vh, title, text } = part;
+    const FONT = 9.3, LINE_H = 12, PAD = 8, PANEL_W = 172, TITLE_H = 19;
+    const maxChars = Math.max(10, Math.floor((PANEL_W - PAD * 2) / (FONT * 0.56)));
+    const lines = hiWrapText(text, maxChars);
+    const panelH = TITLE_H + lines.length * LINE_H + 7;
+    let px = x + w / 2 - PANEL_W / 2;
+    let py = y - panelH - 9;
+    if (vh && py < 4) py = y + h + 9;
+    if (vh && py + panelH > vh - 4) py = Math.max(4, vh - 4 - panelH);
+    if (vw) {
+      if (px < 4) px = 4;
+      if (px + PANEL_W > vw - 4) px = Math.max(4, vw - 4 - PANEL_W);
+    }
+    return /* @__PURE__ */ React.createElement(
+      "g",
+      {
+        className: "hover-info-panel",
+        transform: `translate(${px} ${py})`,
+        style: { pointerEvents: "none" }
+      },
+      /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: 0,
+          y: 0,
+          width: PANEL_W,
+          height: panelH,
+          rx: "5",
+          fill: "#14110a",
+          stroke: "rgba(215,183,64,.55)",
+          strokeWidth: "1",
+          filter: "url(#shadow)"
+        }
+      ),
+      /* @__PURE__ */ React.createElement("text", { x: PAD, y: 13, fill: "#d7b740", fontSize: "10.5", fontFamily: "monospace", fontWeight: "700" }, title),
+      /* @__PURE__ */ React.createElement("line", { x1: PAD, y1: TITLE_H - 2, x2: PANEL_W - PAD, y2: TITLE_H - 2, stroke: "rgba(215,183,64,.25)", strokeWidth: "0.6" }),
+      lines.map((ln, i) => /* @__PURE__ */ React.createElement("text", { key: i, x: PAD, y: TITLE_H + 9 + i * LINE_H, fill: "rgba(240,242,248,.86)", fontSize: FONT, fontFamily: "sans-serif" }, ln))
+    );
+  }
+  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick }) {
+    const setHover = React.useContext(HoverCtx);
+    if (!title) return null;
+    const part = { x, y, w, h, vw, vh, title, text };
+    return /* @__PURE__ */ React.createElement("g", { className: "hover-info-zone" }, /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x,
+        y,
+        width: w,
+        height: h,
+        rx: rx || 3,
+        fill: "transparent",
+        style: { pointerEvents: "all", cursor: onClick ? "pointer" : "default" },
+        onClick,
+        onMouseEnter: () => setHover && setHover(part),
+        onMouseLeave: () => setHover && setHover(null)
+      }
+    ));
+  }
+  var PART_INFO = {
+    furnace_cabinet: {
+      en: { title: "FURNACE", text: "Burns gas to heat your home, then hands that warmed air to the blower to push through your ductwork." },
+      es: { title: "HORNO", text: "Quema gas para calentar su hogar, y entrega ese aire caliente al motor para que lo distribuya por sus ductos." }
+    },
+    blower: {
+      en: { title: "BLOWER", text: "The squirrel-cage wheel that actually moves air through your whole system, whether it's heating or cooling." },
+      es: { title: "MOTOR SOPLADOR", text: "La rueda tipo jaula de ardilla que realmente mueve el aire por todo su sistema, tanto en calefacci\xF3n como en enfriamiento." }
+    },
+    heat_exchanger: {
+      en: { title: "HEAT EXCHANGER", text: "Where the flame actually heats the air, while keeping combustion gases completely sealed away from the air you breathe." },
+      es: { title: "INTERCAMBIADOR DE CALOR", text: "Donde la llama realmente calienta el aire, manteniendo los gases de combusti\xF3n completamente sellados del aire que usted respira." }
+    },
+    afue_badge: {
+      en: { title: "AFUE RATING", text: "The share of every dollar of gas that becomes usable heat. 90% AFUE wastes less than 80%, using a sealed PVC flue instead of metal." },
+      es: { title: "CLASIFICACI\xD3N AFUE", text: "La parte de cada d\xF3lar de gas que se convierte en calor \xFAtil. 90% AFUE desperdicia menos que 80%, usando una chimenea de PVC sellada en vez de metal." }
+    },
+    acoil: {
+      en: { title: "A-COIL", text: "Refrigerant flows through it to pull heat and humidity out of the air your blower pushes across it, cooling your home." },
+      es: { title: "SERPENT\xCDN EN A", text: "El refrigerante fluye a trav\xE9s de \xE9l para extraer calor y humedad del aire que el motor empuja sobre \xE9l, enfriando su hogar." }
+    },
+    air_handler_cabinet: {
+      en: { title: "AIR HANDLER", text: "The indoor half of a heat-pump-only system - no gas furnace here, just a blower and coil moving air for both heating and cooling." },
+      es: { title: "MANEJADOR DE AIRE", text: "La mitad interior de un sistema de solo bomba de calor - sin horno de gas aqu\xED, solo un motor y un serpent\xEDn moviendo aire para calefacci\xF3n y enfriamiento." }
+    },
+    condenser_cabinet: {
+      en: { title: "CONDENSER", text: "Your outdoor unit. It releases heat outside to cool your home, or, with a heat pump, pulls heat from the outside air to warm it." },
+      es: { title: "CONDENSADOR", text: "Su unidad exterior. Libera calor afuera para enfriar su hogar, o, con una bomba de calor, extrae calor del aire exterior para calentarlo." }
+    },
+    condenser_fan: {
+      en: { title: "CONDENSER FAN", text: "Pulls outside air across the coil so it can release or collect heat, depending on the mode." },
+      es: { title: "VENTILADOR DEL CONDENSADOR", text: "Jala aire exterior a trav\xE9s del serpent\xEDn para que pueda liberar o captar calor, seg\xFAn el modo." }
+    },
+    compressor: {
+      en: { title: "COMPRESSOR", text: "Pressurizes the refrigerant - the part that does the actual work of moving heat in or out of your home." },
+      es: { title: "COMPRESOR", text: "Presuriza el refrigerante - la parte que realiza el trabajo real de mover el calor dentro o fuera de su hogar." }
+    },
+    seer_badge: {
+      en: { title: "SEER2 RATING", text: "Measures cooling efficiency - higher means more cooling for the same electricity, and lower bills." },
+      es: { title: "CLASIFICACI\xD3N SEER2", text: "Mide la eficiencia de enfriamiento - m\xE1s alto significa m\xE1s enfriamiento con la misma electricidad, y facturas m\xE1s bajas." }
+    },
+    disconnect: {
+      en: { title: "DISCONNECT BOX", text: "Lets a technician cut power to the condenser right at the unit before servicing it - a safety requirement on every install." },
+      es: { title: "CAJA DE DESCONEXI\xD3N", text: "Permite a un t\xE9cnico cortar la energ\xEDa al condensador justo en la unidad antes de darle servicio - un requisito de seguridad en toda instalaci\xF3n." }
+    },
+    surge_protector: {
+      en: { title: "SURGE PROTECTOR", text: "Shields the condenser's electronics from lightning and power spikes - a single nearby strike can destroy a compressor." },
+      es: { title: "PROTECTOR DE SOBREVOLTAJE", text: "Protege la electr\xF3nica del condensador de rayos y picos de energ\xEDa - un solo rayo cercano puede destruir un compresor." }
+    },
+    supply_plenum: {
+      en: { title: "SUPPLY PLENUM", text: "Where conditioned air leaves your indoor unit and splits off into the ductwork that feeds every room." },
+      es: { title: "PLENUM DE SUMINISTRO", text: "Donde el aire acondicionado sale de su unidad interior y se distribuye hacia los ductos que alimentan cada habitaci\xF3n." }
+    },
+    supply_register: {
+      en: { title: "SUPPLY REGISTER", text: "Where conditioned air actually enters the room, at the end of a duct run off the supply plenum." },
+      es: { title: "REJILLA DE SUMINISTRO", text: "Donde el aire acondicionado realmente entra a la habitaci\xF3n, al final de un ducto que sale del plenum de suministro." }
+    },
+    return_plenum: {
+      en: { title: "RETURN PLENUM", text: "Pulls room air back into the system so it can be filtered and reconditioned again." },
+      es: { title: "PLENUM DE RETORNO", text: "Jala el aire de la habitaci\xF3n de vuelta al sistema para que pueda ser filtrado y acondicionado de nuevo." }
+    },
+    return_grille: {
+      en: { title: "RETURN GRILLE", text: "Where room air is pulled back into the ductwork, on its way to the filter and the indoor unit." },
+      es: { title: "REJILLA DE RETORNO", text: "Donde el aire de la habitaci\xF3n es jalado de vuelta hacia los ductos, camino al filtro y a la unidad interior." }
+    },
+    filtration_cabinet: {
+      en: { title: "FILTRATION CABINET", text: "Standard on every install - traps far more dust, pollen, and allergens than a typical 1 inch filter." },
+      es: { title: "GABINETE DE FILTRACI\xD3N", text: "Incluido de f\xE1brica en toda instalaci\xF3n - atrapa mucho m\xE1s polvo, polen y al\xE9rgenos que un filtro t\xEDpico de 1 pulgada." }
+    },
+    thermostat_general: {
+      en: { title: "THERMOSTAT", text: "The control for your whole system - set a temperature here and every part of this diagram responds to what it takes to hold it." },
+      es: { title: "TERMOSTATO", text: "El control de todo su sistema - configure una temperatura aqu\xED y cada parte de este diagrama responde a lo que se necesita para mantenerla." }
+    },
+    dehumidistat: {
+      en: { title: "DEHUMIDISTAT", text: "A wall control that lets your whole-home dehumidifier hold a target humidity automatically, separate from your thermostat." },
+      es: { title: "DESHUMIDISTATO", text: "Un control de pared que permite que su deshumidificador de toda la casa mantenga una humedad objetivo autom\xE1ticamente, separado de su termostato." }
+    },
+    dehu_box: {
+      en: { title: "DEHUMIDIFIER", text: "Ties into your ductwork and pulls extra moisture out of the air system-wide - no buckets to empty, no upkeep from you." },
+      es: { title: "DESHUMIDIFICADOR", text: "Se conecta a sus ductos y extrae el exceso de humedad del aire en toda la casa - sin cubetas que vaciar, sin mantenimiento de su parte." }
+    },
+    erv_box: {
+      en: { title: "ERV", text: "Energy recovery ventilator - brings in fresh outdoor air while venting stale air out, recovering most of the energy either way." },
+      es: { title: "ERV", text: "Ventilador de recuperaci\xF3n de energ\xEDa - introduce aire fresco del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio." }
+    },
+    lineset: {
+      en: { title: "LINE SET", text: "The two insulated copper lines carrying refrigerant between the indoor coil and the outdoor condenser." },
+      es: { title: "L\xCDNEAS DE REFRIGERANTE", text: "Las dos l\xEDneas de cobre aisladas que transportan refrigerante entre el serpent\xEDn interior y el condensador exterior." }
+    },
+    condensate_drain: {
+      en: { title: "CONDENSATE DRAIN", text: "Carries the water that condenses off the coil safely out of the house, the same way a window A/C drips outside." },
+      es: { title: "DRENAJE DE CONDENSADO", text: "Lleva el agua que se condensa en el serpent\xEDn de forma segura fuera de la casa, igual que un A/C de ventana gotea al exterior." }
+    },
+    condensate_pump: {
+      en: { title: "CONDENSATE PUMP", text: "Pumps that condensate out when there's no nearby gravity drain to rely on - common in closet installs." },
+      es: { title: "BOMBA DE CONDENSADO", text: "Bombea el condensado hacia afuera cuando no hay un drenaje por gravedad cercano - com\xFAn en instalaciones de cl\xF3set." }
+    },
+    insulation: {
+      en: { title: "ATTIC INSULATION", text: "Keeps conditioned air at the right temperature instead of leaking it away through the attic above your ductwork." },
+      es: { title: "AISLAMIENTO DEL \xC1TICO", text: "Mantiene el aire acondicionado a la temperatura correcta en lugar de perderlo a trav\xE9s del \xE1tico sobre sus ductos." }
+    }
+  };
+  function partInfo(key, lang) {
+    const e = PART_INFO[key];
+    if (!e) return { title: "", text: "" };
+    return lang === "es" && e.es ? e.es : e.en;
+  }
+  function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
+    const T = (key) => partInfo(key, lang);
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
     const MIN_EDIT_PX = 28;
-    const EditZone = ({ x, y, w, h, stepId, rx }) => {
+    const EditZone = ({ x, y, w, h, stepId, rx, children }) => {
       if (!onEditStep) return null;
       const minUnits = SVG_SCALE > 0 ? MIN_EDIT_PX / SVG_SCALE : 0;
       let ex = x, ey = y, ew = w, eh = h;
@@ -1428,6 +1680,326 @@
           stroke: G + ".95)",
           strokeWidth: "2.5",
           filter: "url(#glow-sm)"
+        }
+      ), children);
+    };
+    const indoorSubHoversH = (hasFurnaceLocal, FURN_X, FURN_W, ACOIL_X, ACOIL_W, AH_X, AH_W, UNIT_Y, UNIT_H) => {
+      const go = () => onEditStep("indoor_type");
+      if (hasFurnaceLocal) {
+        const mid = FURN_X + FURN_W / 2;
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: FURN_X,
+            y: UNIT_Y,
+            w: FURN_W,
+            h: UNIT_H,
+            rx: 4,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("furnace_cabinet").title,
+            text: T("furnace_cabinet").text,
+            onClick: go
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: FURN_X,
+            y: UNIT_Y,
+            w: FURN_W * 0.44,
+            h: UNIT_H,
+            rx: 4,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("blower").title,
+            text: T("blower").text,
+            onClick: go
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: mid,
+            y: UNIT_Y,
+            w: FURN_W / 2,
+            h: UNIT_H,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("heat_exchanger").title,
+            text: T("heat_exchanger").text,
+            onClick: go
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: mid + 2,
+            y: UNIT_Y + 9,
+            w: 40,
+            h: 12,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("afue_badge").title,
+            text: T("afue_badge").text,
+            onClick: go
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: ACOIL_X,
+            y: UNIT_Y,
+            w: ACOIL_W,
+            h: UNIT_H,
+            rx: 4,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("acoil").title,
+            text: T("acoil").text,
+            onClick: go
+          }
+        ));
+      }
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: AH_X,
+          y: UNIT_Y,
+          w: AH_W,
+          h: UNIT_H,
+          rx: 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("air_handler_cabinet").title,
+          text: T("air_handler_cabinet").text,
+          onClick: go
+        }
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: AH_X,
+          y: UNIT_Y,
+          w: AH_W * 0.5,
+          h: UNIT_H,
+          rx: 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("acoil").title,
+          text: T("acoil").text,
+          onClick: go
+        }
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: AH_X + AH_W * 0.5,
+          y: UNIT_Y,
+          w: AH_W * 0.5,
+          h: UNIT_H,
+          rx: 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("blower").title,
+          text: T("blower").text,
+          onClick: go
+        }
+      ));
+    };
+    const indoorSubHoversV = (hasFurnaceLocal, UNIT_X, UNIT_W, ACOIL_Y, ACOIL_H, FURN_Y, FURN_H) => {
+      const go = () => onEditStep("indoor_type");
+      if (hasFurnaceLocal) {
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X,
+            y: ACOIL_Y,
+            w: UNIT_W,
+            h: ACOIL_H,
+            rx: 5,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("acoil").title,
+            text: T("acoil").text,
+            onClick: go
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X,
+            y: FURN_Y,
+            w: UNIT_W,
+            h: FURN_H,
+            rx: 5,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("furnace_cabinet").title,
+            text: T("furnace_cabinet").text,
+            onClick: go
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X,
+            y: FURN_Y,
+            w: UNIT_W,
+            h: FURN_H / 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("heat_exchanger").title,
+            text: T("heat_exchanger").text,
+            onClick: go
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X + UNIT_W - 48,
+            y: FURN_Y + 9,
+            w: 44,
+            h: 13,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("afue_badge").title,
+            text: T("afue_badge").text,
+            onClick: go
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X,
+            y: FURN_Y + FURN_H / 2,
+            w: UNIT_W,
+            h: FURN_H / 2,
+            rx: 5,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("blower").title,
+            text: T("blower").text,
+            onClick: go
+          }
+        ));
+      }
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X,
+          y: ACOIL_Y,
+          w: UNIT_W,
+          h: ACOIL_H,
+          rx: 5,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("air_handler_cabinet").title,
+          text: T("air_handler_cabinet").text,
+          onClick: go
+        }
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X,
+          y: ACOIL_Y,
+          w: UNIT_W,
+          h: ACOIL_H * 0.5,
+          rx: 5,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("blower").title,
+          text: T("blower").text,
+          onClick: go
+        }
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X,
+          y: ACOIL_Y + ACOIL_H * 0.5,
+          w: UNIT_W,
+          h: ACOIL_H * 0.5,
+          rx: 5,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("acoil").title,
+          text: T("acoil").text,
+          onClick: go
+        }
+      ));
+    };
+    const condenserSubHovers = (x, y, w, h, tierKey) => {
+      const go = () => onEditStep("cond_tier");
+      const isBig = tierKey === "high_ge18", isMini = tierKey === "mid_ge15";
+      const capH = Math.round(h * (isBig ? 0.24 : 0.2));
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h,
+          rx: 9,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condenser_cabinet").title,
+          text: T("condenser_cabinet").text,
+          onClick: go
+        }
+      ), isMini ? (() => {
+        const fanAreaW = Math.round(w * 0.68), fanAreaH = h - Math.round(h * 0.1) - 4, fanAreaY = y + Math.round(h * 0.1) + 2;
+        return /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x,
+            y: fanAreaY,
+            w: fanAreaW,
+            h: fanAreaH,
+            rx: 4,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condenser_fan").title,
+            text: T("condenser_fan").text,
+            onClick: go
+          }
+        );
+      })() : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h: capH,
+          rx: 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condenser_fan").title,
+          text: T("condenser_fan").text,
+          onClick: go
+        }
+      ), (() => {
+        const cW = Math.round(w * (isBig ? 0.28 : 0.3)), cH = Math.round((h - capH) * (isBig ? 0.45 : 0.42));
+        const cX = x + w - cW - (isBig ? 8 : 6), cY = y + capH + (h - capH) - cH - 10, domeH = Math.round(cH * 0.22);
+        return /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: cX - 6,
+            y: cY - 6,
+            w: cW + 12,
+            h: cH + domeH + 12,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("compressor").title,
+            text: T("compressor").text,
+            onClick: go
+          }
+        );
+      })()), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: x + 3,
+          y: y + h - 18,
+          w: w - 6,
+          h: 15,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("seer_badge").title,
+          text: T("seer_badge").text,
+          onClick: go
         }
       ));
     };
@@ -1534,6 +2106,7 @@
     const isHeatingSeason = CURRENT_MONTH <= 1 || CURRENT_MONTH >= 10;
     const isDeepWinter = CURRENT_MONTH <= 1 || CURRENT_MONTH === 11;
     const [heatMode, setHeatMode] = React.useState(isHeatingSeason);
+    const [hoverPart, setHoverPart] = React.useState(null);
     const [heatSubMode, setHeatSubMode] = React.useState(
       // 'hp'/'furnace' for dual fuel, 'hp'/'aux' for a heat-pump-only air
       // handler - irrelevant (never shown) for straight-cool furnace systems.
@@ -1650,7 +2223,21 @@
             strokeWidth: "1.1"
           }
         );
-      }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.27, fill: "#090909", stroke: G + ".34)", strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.1, fill: "#111", stroke: G + ".42)", strokeWidth: "0.6" }));
+      }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.27, fill: "#090909", stroke: G + ".34)", strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.1, fill: "#111", stroke: G + ".42)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: cx - r - 5,
+          y: cy - r - 5,
+          w: (r + 5) * 2,
+          h: (r + 5) * 2,
+          rx: r + 5,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("blower").title,
+          text: T("blower").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ));
     }
     function CondenserFan({ cx, cy, r, active, fast }) {
       const bladeFill = active ? "#ccd3e0" : "#565c68";
@@ -1672,7 +2259,21 @@
         const c2X = cx + Math.cos(c2Ang) * c2R - px * hubW * 0.6, c2Y = cy + Math.sin(c2Ang) * c2R - py * hubW * 0.6;
         const d = `M${hAx.toFixed(1)} ${hAy.toFixed(1)} Q${c1X.toFixed(1)} ${c1Y.toFixed(1)} ${tX.toFixed(1)} ${tY.toFixed(1)} Q${c2X.toFixed(1)} ${c2Y.toFixed(1)} ${hBx.toFixed(1)} ${hBy.toFixed(1)} Z`;
         return /* @__PURE__ */ React.createElement("path", { key: i, d, fill: bladeFill, stroke: active ? rim : "rgba(20,22,26,.7)", strokeWidth: "0.7", opacity: active ? 0.95 : 0.8 });
-      })), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.18, fill: "#16181c", stroke: active ? rim : "rgba(90,95,110,.6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.07, fill: active ? rim : "#3a3d44" }));
+      })), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.18, fill: "#16181c", stroke: active ? rim : "rgba(90,95,110,.6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r * 0.07, fill: active ? rim : "#3a3d44" }), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: cx - r - 4,
+          y: cy - r - 4,
+          w: (r + 4) * 2,
+          h: (r + 4) * 2,
+          rx: r + 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condenser_fan").title,
+          text: T("condenser_fan").text,
+          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+        }
+      ));
     }
     function UVRod({ x, y, len, vertical }) {
       len = len || 56;
@@ -1902,7 +2503,21 @@
         const rodCX = x + w * 0.48;
         const rodCY = y + h / 2;
         return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX - rodLen / 2, y: rodCY, len: rodLen });
-      })());
+      })(), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("acoil").title,
+          text: T("acoil").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ));
     }
     function ACoilV({ x, y, w, h, active }) {
       const peakX = x + w / 2, peakY = y;
@@ -1957,7 +2572,21 @@
         const rodLen2 = Math.min(h * 0.75, h - 12);
         const rodCY = y + h / 2;
         return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX, y: rodCY - rodLen2 / 2, len: rodLen2, vertical: true });
-      })(), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.8 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC + "2a" : "rgba(22,22,44,.7)", stroke: evapC, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.88 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC2 + "2a" : "rgba(22,22,44,.7)", stroke: evapC2, strokeWidth: "0.9" }));
+      })(), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.8 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC + "2a" : "rgba(22,22,44,.7)", stroke: evapC, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.88 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC2 + "2a" : "rgba(22,22,44,.7)", stroke: evapC2, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("acoil").title,
+          text: T("acoil").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ));
     }
     function CabinetRivet({ cx, cy }) {
       return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: "2.3", fill: "rgba(35,38,44,.85)", stroke: S + ".55)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: cx - 1.2, y1: cy - 0.3, x2: cx + 1.2, y2: cy + 0.3, stroke: S + ".75)", strokeWidth: "0.55", strokeLinecap: "round" }));
@@ -2088,11 +2717,38 @@
       return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("rect", { x: cx - w / 2, y, width: w, height: h, rx: "1.5", fill: "rgba(0,0,0,.78)", stroke: dc, strokeWidth: "1.2" }), /* @__PURE__ */ React.createElement("line", { x1: cx - w / 2 + 2, y1: y + 1, x2: cx + w / 2 - 2, y2: y + 1, stroke: "rgba(255,255,255,.16)", strokeWidth: "0.6" }), Array.from({ length: 5 }, (_, j) => {
         const lx = cx - w / 2 + 3 + j * (w - 6) / 4;
         return /* @__PURE__ */ React.createElement("line", { key: j, x1: lx - 1.4, y1: y + 1.5, x2: lx + 1.4, y2: y + h - 1.5, stroke: dc, strokeWidth: "0.9" });
-      }), /* @__PURE__ */ React.createElement("circle", { cx: cx - w / 2 + 2.2, cy: y + 2, r: "0.8", fill: "rgba(40,42,48,.9)", stroke: ds, strokeWidth: "0.35" }), /* @__PURE__ */ React.createElement("circle", { cx: cx + w / 2 - 2.2, cy: y + 2, r: "0.8", fill: "rgba(40,42,48,.9)", stroke: ds, strokeWidth: "0.35" }), label && /* @__PURE__ */ React.createElement("text", { x: cx, y: y + h + 9, textAnchor: "middle", fill: dc, fontSize: "11", fontFamily: "monospace" }, label));
+      }), /* @__PURE__ */ React.createElement("circle", { cx: cx - w / 2 + 2.2, cy: y + 2, r: "0.8", fill: "rgba(40,42,48,.9)", stroke: ds, strokeWidth: "0.35" }), /* @__PURE__ */ React.createElement("circle", { cx: cx + w / 2 - 2.2, cy: y + 2, r: "0.8", fill: "rgba(40,42,48,.9)", stroke: ds, strokeWidth: "0.35" }), label && /* @__PURE__ */ React.createElement("text", { x: cx, y: y + h + 9, textAnchor: "middle", fill: dc, fontSize: "11", fontFamily: "monospace" }, label), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: cx - w / 2 - 2,
+          y: y - 2,
+          w: w + 4,
+          h: h + 13,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("supply_register").title,
+          text: T("supply_register").text
+        }
+      ));
     }
     function FurnaceH({ x, y, w, h, active, roofY }) {
       const mid = x + w / 2;
       return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h,
+          rx: 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("furnace_cabinet").title,
+          text: T("furnace_cabinet").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x,
@@ -2157,7 +2813,20 @@
             strokeWidth: "0.5"
           }
         ), active && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("ellipse", { cx: bx + bw2 / 2, cy: y + h - 16, rx: bw2 / 2, ry: 4.5, fill: O + ".56)", className: "glow-pulse", style: { animationDelay: i * 0.12 + "s" } }), /* @__PURE__ */ React.createElement("ellipse", { cx: bx + bw2 / 2, cy: y + h - 18, rx: bw2 / 3, ry: 3.5, fill: "rgba(253,224,71,.64)", className: "glow-pulse", style: { animationDelay: i * 0.12 + 0.07 + "s" } })));
-      }), /* @__PURE__ */ React.createElement("text", { x: mid + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: active ? "rgba(249,115,22,.75)" : S + ".6)", fontSize: "13", fontFamily: "monospace" }, "HEAT EXCH."), (() => {
+      }), /* @__PURE__ */ React.createElement("text", { x: mid + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: active ? "rgba(249,115,22,.75)" : S + ".6)", fontSize: "13", fontFamily: "monospace" }, "HEAT EXCH."), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: mid,
+          y,
+          w: w / 2,
+          h,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("heat_exchanger").title,
+          text: T("heat_exchanger").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ), (() => {
         const pW = is90 ? 5 : 7;
         const pC = is90 ? "#bfdbfe" : "#c0c0c0";
         const pS = is90 ? "#93c5fd" : "#999";
@@ -2187,12 +2856,40 @@
           },
           is90 ? "PVC" : "B-VENT"
         ));
-      })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x + 4, y: y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: x + 7, y: y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement("rect", { x: mid + 4, y: y + 11, width: 36, height: "8", rx: "2", fill: is90 ? "rgba(35,137,224,.13)" : G + ".07)", stroke: is90 ? B + ".24)" : G + ".16)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: mid + 22, y: y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "11", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"));
+      })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x + 4, y: y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: x + 7, y: y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement("rect", { x: mid + 4, y: y + 11, width: 36, height: "8", rx: "2", fill: is90 ? "rgba(35,137,224,.13)" : G + ".07)", stroke: is90 ? B + ".24)" : G + ".16)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: mid + 22, y: y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "11", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: mid + 2,
+          y: y + 9,
+          w: 40,
+          h: 12,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("afue_badge").title,
+          text: T("afue_badge").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ));
     }
     function AirHandlerH({ x, y, w, h, active, auxHeat }) {
       const coilW = w * 0.5, blowerW = w * 0.35, auxW = w * 0.15;
       const c1 = x + coilW, c2 = x + coilW + blowerW;
       return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h,
+          rx: 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("air_handler_cabinet").title,
+          text: T("air_handler_cabinet").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x,
@@ -2410,6 +3107,20 @@
           stroke: "rgba(55,60,68,.6)",
           strokeWidth: "0.8"
         }
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h,
+          rx: 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condenser_fan").title,
+          text: T("condenser_fan").text,
+          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+        }
       ));
     }
     function Condenser({ x, y, w, h, active, tierKey }) {
@@ -2417,7 +3128,21 @@
       const isBig = tierKey === "high_ge18";
       const isFed = tierKey === "fedmin";
       const cc = active ? condC : refReversed ? "rgba(18,18,55,.5)" : "rgba(55,18,18,.5)";
-      return /* @__PURE__ */ React.createElement("g", null, isFed && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h,
+          rx: 9,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condenser_cabinet").title,
+          text: T("condenser_cabinet").text,
+          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+        }
+      ), isFed && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         "rect",
         {
           x,
@@ -2617,6 +3342,20 @@
             fontFamily: "monospace"
           },
           "COMP."
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: cX - 6,
+            y: cY - 6,
+            w: cW + 12,
+            h: cH + domeH + 12,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("compressor").title,
+            text: T("compressor").text,
+            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+          }
         ));
       })(), /* @__PURE__ */ React.createElement(
         "rect",
@@ -3115,6 +3854,20 @@
             fontFamily: "monospace"
           },
           "COMP."
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: cX - 6,
+            y: cY - 6,
+            w: cW + 12,
+            h: cH + domeH + 12,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("compressor").title,
+            text: T("compressor").text,
+            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+          }
         ));
       })(), /* @__PURE__ */ React.createElement(
         "rect",
@@ -3139,7 +3892,21 @@
           fontWeight: "700"
         },
         TL
-      )));
+      )), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: x + 3,
+          y: y + h - 18,
+          w: w - 6,
+          h: 15,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("seer_badge").title,
+          text: T("seer_badge").text,
+          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+        }
+      ));
     }
     function CondensatePump({ x, y, w = 88, h = 28 }) {
       return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement(
@@ -3176,6 +3943,19 @@
           fontFamily: "monospace"
         },
         "condensate"
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x,
+          y,
+          w,
+          h,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condensate_pump").title,
+          text: T("condensate_pump").text
+        }
       ));
     }
     function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, hasDehu: hasDehu2, hasERV, snap }) {
@@ -3212,7 +3992,20 @@
             fill: isDehu ? "rgba(34,197,94,.3)" : G + ".25)",
             stroke: "none"
           }
-        ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH / 2 - 1, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH / 2 + 12, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace" }, "DEHU")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + BW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + BW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + BW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: "14.5", fontFamily: "monospace" }, "ERV")));
+        ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH / 2 - 1, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH / 2 + 12, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace" }, "DEHU")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + BW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + BW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + BW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: "14.5", fontFamily: "monospace" }, "ERV")), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: BX,
+            y: BY,
+            w: BW,
+            h: BH,
+            rx: 4,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T(isDehu ? "dehu_box" : "erv_box").title,
+            text: T(isDehu ? "dehu_box" : "erv_box").text
+          }
+        ));
       }));
     }
     const Defs = () => /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("linearGradient", { id: "gold", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#f0d64e" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ab8024" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "silver", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#e4e7ed" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#8b93a3" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "cabinet-edge", x1: "0", y1: "0", x2: "1", y2: "1" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ccd2dc" }), /* @__PURE__ */ React.createElement("stop", { offset: "45%", stopColor: "#8b93a3" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#4d5361" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "blue", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#1a6cb5" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#2389e0" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "red-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#b91c1c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ef4444" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "orange-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ea580c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#f97316" })), /* @__PURE__ */ React.createElement("filter", { id: "glow" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "2.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-sm" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "1.2", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-uv" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "3.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "shadow", x: "-60%", y: "-60%", width: "220%", height: "220%" }, /* @__PURE__ */ React.createElement("feDropShadow", { dx: "0", dy: "2", stdDeviation: "3", floodColor: "rgba(0,0,0,.55)" })), /* @__PURE__ */ React.createElement("marker", { id: "arr", viewBox: "0 0 8 8", refX: "6", refY: "4", markerWidth: "4", markerHeight: "4", orient: "auto-start-reverse" }, /* @__PURE__ */ React.createElement("path", { d: "M1 1L6 4L1 7", fill: "none", stroke: "context-stroke", strokeWidth: "1.5" })));
@@ -3284,7 +4077,7 @@
       const DISC_ZONE = 52;
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const COND_Y = VH - 28 - 10 - COND_H;
-      return /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: EXT_WALL_X,
@@ -3473,6 +4266,19 @@
           fontFamily: "monospace"
         },
         "RETURN"
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: RET_X,
+          y: DECK_Y - 3,
+          w: RET_PLEN_W,
+          h: 30,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("return_grille").title,
+          text: T("return_grille").text
+        }
       )), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "retplen" }, /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -3537,7 +4343,20 @@
           style: { strokeDashoffset: 0 },
           markerEnd: "url(#arr)"
         }
-      ))), hasCoil && hasAprilaire && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "apr" }, /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: RET_X,
+          y: UNIT_Y,
+          w: RET_PLEN_W,
+          h: UNIT_H,
+          rx: 4,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("return_plenum").title,
+          text: T("return_plenum").text
+        }
+      )), hasCoil && hasAprilaire && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "apr" }, /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: APR_X,
@@ -3573,6 +4392,19 @@
           transform: `rotate(-90,${APR_X + APR_W / 2},${UNIT_Y + UNIT_H / 2})`
         },
         "FILTRATION"
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: APR_X,
+          y: UNIT_Y,
+          w: APR_W,
+          h: UNIT_H,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("filtration_cabinet").title,
+          text: T("filtration_cabinet").text
+        }
       )), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "fu" + a.stage + a.furnace_eff, filter: "url(#shadow)" }, (() => {
         const flueX = FURN_X + FURN_W * 0.7;
         const flueRoofY = (flueX <= RIDGE_X ? EAVE_Y - flueX / RIDGE_X * (EAVE_Y - RIDGE_Y) : RIDGE_Y + (flueX - RIDGE_X) / (HOUSE_W - RIDGE_X) * (EAVE_Y - RIDGE_Y)) + 14;
@@ -3607,6 +4439,20 @@
       })(), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac" + a.cond_tier, style: { animationDelay: ".08s" }, filter: "url(#shadow)" }, (() => {
         const active = evapActive;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: ACOIL_X,
+            y: UNIT_Y,
+            w: ACOIL_W,
+            h: UNIT_H,
+            rx: 4,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("acoil").title,
+            text: T("acoil").text,
+            onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+          }
+        ), /* @__PURE__ */ React.createElement(
           "rect",
           {
             x: ACOIL_X,
@@ -3695,7 +4541,8 @@
           rx: 6,
           w: (hasFurnace ? ACOIL_X + ACOIL_W - FURN_X : AH_W) + 8,
           h: UNIT_H + 4
-        }
+        },
+        indoorSubHoversH(hasFurnace, FURN_X, FURN_W, ACOIL_X, ACOIL_W, AH_X, AH_W, UNIT_Y, UNIT_H)
       ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "spl", style: { animationDelay: ".12s" } }, (() => {
         const isExisting = a.plenum === "none";
         const isMetal = a.plenum === "metal";
@@ -3782,6 +4629,20 @@
           w: SUP_PLEN_W + 4,
           h: SUP_PLEN_H + 4,
           rx: 5
+        }
+      ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: SUP_X - 2,
+          y: SUP_PLEN_Y - 2,
+          w: SUP_PLEN_W + 4,
+          h: SUP_PLEN_H + 4,
+          rx: 5,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("supply_plenum").title,
+          text: T("supply_plenum").text,
+          onClick: onEditStep ? () => onEditStep("plenum") : void 0
         }
       ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
         const DW = 14;
@@ -3870,7 +4731,33 @@
           const toWall = isLine1 ? !refReversed : refReversed;
           const p = toWall ? `M${sx} ${sy} L${sx} ${rY} L${wallX} ${rY}` : `M${wallX} ${rY} L${sx} ${rY} L${sx} ${sy}`;
           return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 2.2 + i % 3 * 0.5 + "s", repeatCount: "indefinite", begin: i * 0.7 + "s", path: p }));
-        }));
+        }), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: RL_START_X - 7,
+            y: Math.min(ry1, RL_ROOF_Y) - 6,
+            w: 14,
+            h: ry2 - Math.min(ry1, RL_ROOF_Y) + 6,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("lineset").title,
+            text: T("lineset").text
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: RL_START_X - 7,
+            y: RL_ROOF_Y - 6,
+            w: wallX - RL_START_X + 14,
+            h: 21,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("lineset").title,
+            text: T("lineset").text
+          }
+        ));
       })()), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
@@ -3895,6 +4782,9 @@
           line2C,
           G,
           W,
+          lang,
+          vw: SVG_VW,
+          vh: SVG_VH,
           condenserEl: /* @__PURE__ */ React.createElement(
             Condenser,
             {
@@ -3916,7 +4806,8 @@
           w: COND_W + 4,
           h: COND_H + 4,
           rx: 5
-        }
+        },
+        condenserSubHovers(COND_X, COND_Y, COND_W, COND_H, a.cond_tier)
       ), hasTstat && (() => {
         const isProprietary = a.thermostat === "proprietary";
         const isWifi = a.thermostat === "wifi" && !isProprietary;
@@ -3927,168 +4818,190 @@
         const hoverLocalH = wireY + wirePanelH + 8;
         const showRange = heatMode && isMildHp;
         const tempDisplay = showRange ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
-        return /* @__PURE__ */ React.createElement("g", { className: "snap therm-hover-zone", key: "tstat", style: { animationDelay: ".26s" } }, /* @__PURE__ */ React.createElement(
-          "rect",
+        return /* @__PURE__ */ React.createElement(
+          "g",
           {
-            x: THERM_TX - 2,
-            y: THERM_TY - 2,
-            width: THERM_W + 4,
-            height: hoverLocalH * THERM_SCALE + 4,
-            fill: "transparent",
-            style: { pointerEvents: "all" }
-          }
-        ), /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, (() => {
-          const TX = 0, TY = 0;
-          const modeColor = heatMode ? "#f97316" : "#2389e0";
-          return isProprietary ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+            className: "snap therm-hover-zone",
+            key: "tstat",
+            style: { animationDelay: ".26s" },
+            onMouseEnter: () => setHoverPart({
+              x: THERM_TX,
+              y: THERM_TY,
+              w: THERM_W,
+              h: THERM_H,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("thermostat_general").title,
+              text: T("thermostat_general").text
+            }),
+            onMouseLeave: () => setHoverPart(null)
+          },
+          /* @__PURE__ */ React.createElement(
             "rect",
             {
-              x: TX,
-              y: TY,
-              width: 64,
-              height: 58,
-              rx: "9",
-              fill: "#0a0a0d",
-              stroke: G + ".6)",
-              strokeWidth: "1.4"
+              x: THERM_TX - 2,
+              y: THERM_TY - 2,
+              width: THERM_W + 4,
+              height: hoverLocalH * THERM_SCALE + 4,
+              fill: "transparent",
+              style: { pointerEvents: "all" }
             }
-          ), /* @__PURE__ */ React.createElement(
-            "rect",
+          ),
+          /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, (() => {
+            const TX = 0, TY = 0;
+            const modeColor = heatMode ? "#f97316" : "#2389e0";
+            return isProprietary ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                x: TX,
+                y: TY,
+                width: 64,
+                height: 58,
+                rx: "9",
+                fill: "#0a0a0d",
+                stroke: G + ".6)",
+                strokeWidth: "1.4"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                x: TX + 2.5,
+                y: TY + 2.5,
+                width: 59,
+                height: 45,
+                rx: "6.5",
+                fill: "#050810",
+                stroke: B + ".3)",
+                strokeWidth: "0.7"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "text",
+              {
+                x: TX + 32,
+                y: TY + 30,
+                textAnchor: "middle",
+                fill: B + ".95)",
+                fontSize: showRange ? "12.5" : "20.5",
+                fontFamily: "monospace",
+                filter: "url(#glow)"
+              },
+              tempDisplay
+            ), /* @__PURE__ */ React.createElement(
+              "text",
+              {
+                x: TX + 32,
+                y: TY + 41,
+                textAnchor: "middle",
+                fill: B + ".55)",
+                fontSize: "8",
+                fontFamily: "monospace"
+              },
+              heatMode ? "HEAT" : "COOL",
+              " \xB7 AUTO"
+            ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 56, cy: TY + 9, r: 1.6, fill: B + ".55)" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 5, y: TY + 50, width: 54, height: "3", rx: "1.5", fill: modeColor, opacity: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 70, textAnchor: "middle", fill: G + ".5)", fontSize: "10.5", fontFamily: "monospace" }, "COMMUNICATING")) : isWifi ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 30, r: 28, fill: "#0d0d0d", stroke: G + ".65)", strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 30, r: 22, fill: "#060e1c", stroke: B + ".45)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement(
+              "text",
+              {
+                x: TX + 32,
+                y: TY + 35,
+                textAnchor: "middle",
+                fill: B + ".95)",
+                fontSize: showRange ? "11.5" : "18",
+                fontFamily: "monospace",
+                filter: "url(#glow)"
+              },
+              tempDisplay
+            ), /* @__PURE__ */ React.createElement(
+              "path",
+              {
+                d: `M${TX + 11} ${TY + 30} A21 21 0 0 1 ${TX + 53} ${TY + 30}`,
+                fill: "none",
+                stroke: modeColor,
+                strokeWidth: "2.2",
+                strokeLinecap: "round",
+                opacity: "0.55"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "path",
+              {
+                d: `M${TX + 21} ${TY + 48} Q${TX + 32} ${TY + 41} ${TX + 43} ${TY + 48}`,
+                fill: "none",
+                stroke: B + ".5)",
+                strokeWidth: "1.5",
+                strokeLinecap: "round"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "path",
+              {
+                d: `M${TX + 24} ${TY + 52} Q${TX + 32} ${TY + 47} ${TX + 40} ${TY + 52}`,
+                fill: "none",
+                stroke: B + ".7)",
+                strokeWidth: "1.5",
+                strokeLinecap: "round"
+              }
+            ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 56, r: 2.2, fill: B + ".8)" }), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 68, textAnchor: "middle", fill: G + ".5)", fontSize: "10.5", fontFamily: "monospace" }, "WI-FI SMART")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                x: TX,
+                y: TY,
+                width: 64,
+                height: 54,
+                rx: "3",
+                fill: "#0d0d0d",
+                stroke: G + ".58)",
+                strokeWidth: "1.4"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                x: TX + 4,
+                y: TY + 5,
+                width: 56,
+                height: 28,
+                rx: "2",
+                fill: "#050d18",
+                stroke: B + ".38)",
+                strokeWidth: "0.8"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "text",
+              {
+                x: TX + 32,
+                y: TY + 24,
+                textAnchor: "middle",
+                fill: B + ".92)",
+                fontSize: "20",
+                fontFamily: "monospace",
+                filter: "url(#glow)"
+              },
+              thermostatTemp,
+              "\xB0"
+            ), [7, 18, 29, 40, 51].map((bx, i) => /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                key: i,
+                x: TX + bx,
+                y: TY + 38,
+                width: "7",
+                height: "4",
+                rx: "1",
+                fill: G + ".22)",
+                stroke: G + ".12)",
+                strokeWidth: "0.4"
+              }
+            )), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 50, textAnchor: "middle", fill: G + ".42)", fontSize: "10", fontFamily: "monospace" }, "BASIC PROGRAMMABLE"));
+          })()),
+          /* @__PURE__ */ React.createElement(
+            EditZone,
             {
-              x: TX + 2.5,
-              y: TY + 2.5,
-              width: 59,
-              height: 45,
-              rx: "6.5",
-              fill: "#050810",
-              stroke: B + ".3)",
-              strokeWidth: "0.7"
+              stepId: "thermostat",
+              x: THERM_TX - 2,
+              y: THERM_TY - 2,
+              w: THERM_W + 4,
+              h: THERM_H + 4
             }
-          ), /* @__PURE__ */ React.createElement(
-            "text",
-            {
-              x: TX + 32,
-              y: TY + 30,
-              textAnchor: "middle",
-              fill: B + ".95)",
-              fontSize: showRange ? "12.5" : "20.5",
-              fontFamily: "monospace",
-              filter: "url(#glow)"
-            },
-            tempDisplay
-          ), /* @__PURE__ */ React.createElement(
-            "text",
-            {
-              x: TX + 32,
-              y: TY + 41,
-              textAnchor: "middle",
-              fill: B + ".55)",
-              fontSize: "8",
-              fontFamily: "monospace"
-            },
-            heatMode ? "HEAT" : "COOL",
-            " \xB7 AUTO"
-          ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 56, cy: TY + 9, r: 1.6, fill: B + ".55)" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 5, y: TY + 50, width: 54, height: "3", rx: "1.5", fill: modeColor, opacity: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 70, textAnchor: "middle", fill: G + ".5)", fontSize: "10.5", fontFamily: "monospace" }, "COMMUNICATING")) : isWifi ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 30, r: 28, fill: "#0d0d0d", stroke: G + ".65)", strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 30, r: 22, fill: "#060e1c", stroke: B + ".45)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement(
-            "text",
-            {
-              x: TX + 32,
-              y: TY + 35,
-              textAnchor: "middle",
-              fill: B + ".95)",
-              fontSize: showRange ? "11.5" : "18",
-              fontFamily: "monospace",
-              filter: "url(#glow)"
-            },
-            tempDisplay
-          ), /* @__PURE__ */ React.createElement(
-            "path",
-            {
-              d: `M${TX + 11} ${TY + 30} A21 21 0 0 1 ${TX + 53} ${TY + 30}`,
-              fill: "none",
-              stroke: modeColor,
-              strokeWidth: "2.2",
-              strokeLinecap: "round",
-              opacity: "0.55"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "path",
-            {
-              d: `M${TX + 21} ${TY + 48} Q${TX + 32} ${TY + 41} ${TX + 43} ${TY + 48}`,
-              fill: "none",
-              stroke: B + ".5)",
-              strokeWidth: "1.5",
-              strokeLinecap: "round"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "path",
-            {
-              d: `M${TX + 24} ${TY + 52} Q${TX + 32} ${TY + 47} ${TX + 40} ${TY + 52}`,
-              fill: "none",
-              stroke: B + ".7)",
-              strokeWidth: "1.5",
-              strokeLinecap: "round"
-            }
-          ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 56, r: 2.2, fill: B + ".8)" }), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 68, textAnchor: "middle", fill: G + ".5)", fontSize: "10.5", fontFamily: "monospace" }, "WI-FI SMART")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-            "rect",
-            {
-              x: TX,
-              y: TY,
-              width: 64,
-              height: 54,
-              rx: "3",
-              fill: "#0d0d0d",
-              stroke: G + ".58)",
-              strokeWidth: "1.4"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "rect",
-            {
-              x: TX + 4,
-              y: TY + 5,
-              width: 56,
-              height: 28,
-              rx: "2",
-              fill: "#050d18",
-              stroke: B + ".38)",
-              strokeWidth: "0.8"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "text",
-            {
-              x: TX + 32,
-              y: TY + 24,
-              textAnchor: "middle",
-              fill: B + ".92)",
-              fontSize: "20",
-              fontFamily: "monospace",
-              filter: "url(#glow)"
-            },
-            thermostatTemp,
-            "\xB0"
-          ), [7, 18, 29, 40, 51].map((bx, i) => /* @__PURE__ */ React.createElement(
-            "rect",
-            {
-              key: i,
-              x: TX + bx,
-              y: TY + 38,
-              width: "7",
-              height: "4",
-              rx: "1",
-              fill: G + ".22)",
-              stroke: G + ".12)",
-              strokeWidth: "0.4"
-            }
-          )), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 50, textAnchor: "middle", fill: G + ".42)", fontSize: "10", fontFamily: "monospace" }, "BASIC PROGRAMMABLE"));
-        })()), /* @__PURE__ */ React.createElement(
-          EditZone,
-          {
-            stepId: "thermostat",
-            x: THERM_TX - 2,
-            y: THERM_TY - 2,
-            w: THERM_W + 4,
-            h: THERM_H + 4
-          }
-        ), /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: 0, y: wireY, w: 64, letters: wireLetters, note: wireNote })));
+          ),
+          /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: 0, y: wireY, w: 64, letters: wireLetters, note: wireNote }))
+        );
       })(), hasDehu && hasTstat && THERM_IN_MARGIN && (() => {
         const isProprietaryD = a.thermostat === "proprietary";
         const isWifiD = a.thermostat === "wifi" && !isProprietaryD;
@@ -4100,7 +5013,10 @@
           DehumidistatWall,
           {
             x: THERM_TX + 32 * THERM_SCALE - 22,
-            y: THERM_TY + hoverLocalHD * THERM_SCALE + 14
+            y: THERM_TY + hoverLocalHD * THERM_SCALE + 14,
+            lang,
+            vw: SVG_VW,
+            vh: SVG_VH
           }
         );
       })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
@@ -4137,7 +5053,20 @@
               strokeWidth: "1.5",
               strokeDasharray: "3 2"
             }
-          ), /* @__PURE__ */ React.createElement(CondensatePump, { x: pX, y: pY, w: pW, h: pH }));
+          ), /* @__PURE__ */ React.createElement(CondensatePump, { x: pX, y: pY, w: pW, h: pH }), /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: coilCX - 6,
+              y: drainTopY - 4,
+              w: 12,
+              h: pY - drainTopY + 8,
+              rx: 3,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("condensate_drain").title,
+              text: T("condensate_drain").text
+            }
+          ));
         } else {
           return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
             "line",
@@ -4162,9 +5091,22 @@
               fontFamily: "monospace"
             },
             "DRAIN"
+          ), /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: coilCX - 6,
+              y: drainTopY - 4,
+              w: 80,
+              h: DECK_Y + 20 - drainTopY + 8,
+              rx: 3,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("condensate_drain").title,
+              text: T("condensate_drain").text
+            }
           ));
         }
-      })()), a.insulation && /* @__PURE__ */ React.createElement(
+      })()), a.insulation && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
         "text",
         {
           x: RIDGE_X,
@@ -4175,7 +5117,20 @@
           fontFamily: "monospace"
         },
         isSpray ? "SPRAY FOAM - SEALED ATTIC" : "FIBERGLASS INSULATION"
-      ), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: EAVE_Y - 4, fill: G + ".22)", fontSize: "11", fontFamily: "monospace", letterSpacing: ".18em" }, "LIVE SYSTEM PREVIEW"), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, "Choose your location to begin building"), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, "Components assemble here in real time \u2192")), /* @__PURE__ */ React.createElement(
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: RIDGE_X - 70,
+          y: RIDGE_Y + 12,
+          w: 140,
+          h: 18,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("insulation").title,
+          text: T("insulation").text
+        }
+      )), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: EAVE_Y - 4, fill: G + ".22)", fontSize: "11", fontFamily: "monospace", letterSpacing: ".18em" }, "LIVE SYSTEM PREVIEW"), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, "Choose your location to begin building"), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, "Components assemble here in real time \u2192")), /* @__PURE__ */ React.createElement(
         StepFocusRing,
         {
           stepId: "indoor_type",
@@ -4254,7 +5209,7 @@
           h: 48,
           rx: 4
         }
-      )));
+      ), hoverPart && /* @__PURE__ */ React.createElement(HoverPanel, { part: hoverPart }))));
     }
     if (isCloset) {
       const BASE_VW = 1e3, VH = 820;
@@ -4310,7 +5265,7 @@
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const GROUND_Y = VH - 40;
       const COND_Y = GROUND_Y - COND_H;
-      return /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: HOUSE_W,
@@ -4414,7 +5369,20 @@
           stroke: "rgba(255,182,193,.19)",
           strokeWidth: ".4"
         }
-      )), /* @__PURE__ */ React.createElement("text", { x: "22", y: DECK_Y - 22, fill: "rgba(255,182,193,.3)", fontSize: "12", fontFamily: "monospace" }, "FIBERGLASS INSULATION"))), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("text", { x: "22", y: DECK_Y - 22, fill: "rgba(255,182,193,.3)", fontSize: "12", fontFamily: "monospace" }, "FIBERGLASS INSULATION"))), a.insulation && /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: 16,
+          y: DECK_Y - 40,
+          w: 150,
+          h: 22,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("insulation").title,
+          text: T("insulation").text
+        }
+      ), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: "0",
@@ -4543,6 +5511,20 @@
           h: PLEN_TOTAL + 4,
           rx: 5
         }
+      ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X - 2,
+          y: PLEN_TOP - 2,
+          w: PLEN_W + 4,
+          h: PLEN_TOTAL + 4,
+          rx: 5,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("supply_plenum").title,
+          text: T("supply_plenum").text,
+          onClick: onEditStep ? () => onEditStep("plenum") : void 0
+        }
       ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "upflow-ducts", style: { animationDelay: ".2s" } }, (() => {
         const DW = 13;
         const DC = G + ".30)";
@@ -4569,6 +5551,20 @@
       })()), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac-c" + a.cond_tier, style: { animationDelay: ".07s" } }, (() => {
         const active = evapActive;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X,
+            y: ACOIL_Y,
+            w: UNIT_W,
+            h: ACOIL_H,
+            rx: 5,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T(hasFurnace ? "acoil" : "air_handler_cabinet").title,
+            text: T(hasFurnace ? "acoil" : "air_handler_cabinet").text,
+            onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+          }
+        ), /* @__PURE__ */ React.createElement(
           "rect",
           {
             x: UNIT_X,
@@ -4712,6 +5708,20 @@
           active ? refReversed ? "REJECTING HEAT" : "ABSORBING HEAT" : auxHeatActive ? "AUX HEAT ONLY" : "STANDBY"
         ));
       })()), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "fu-c" + a.stage }, /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X,
+          y: FURN_Y,
+          w: UNIT_W,
+          h: FURN_H,
+          rx: 5,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("furnace_cabinet").title,
+          text: T("furnace_cabinet").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: UNIT_X,
@@ -4759,6 +5769,20 @@
           strokeWidth: "0.5"
         }
       ), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + UNIT_W - 26, y: FURN_Y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "9.5", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X + UNIT_W - 48,
+          y: FURN_Y + 9,
+          w: 44,
+          h: 13,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("afue_badge").title,
+          text: T("afue_badge").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ), /* @__PURE__ */ React.createElement(
         "line",
         {
           x1: UNIT_X,
@@ -4768,6 +5792,19 @@
           stroke: S + ".28)",
           strokeWidth: "0.9",
           strokeDasharray: "4 3"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X,
+          y: FURN_Y,
+          w: UNIT_W,
+          h: FURN_H / 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("heat_exchanger").title,
+          text: T("heat_exchanger").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
         }
       ), Array.from({ length: 5 }, (_, i) => {
         const gy = FURN_Y + 12 + i * ((FURN_H / 2 - 20) / 5), gyTop = FURN_Y + 6 + i * ((FURN_H / 2 - 20) / 5);
@@ -4983,7 +6020,8 @@
           rx: 6,
           w: UNIT_W + 8,
           h: (hasFurnace ? FURN_Y + FURN_H - ACOIL_Y : ACOIL_H) + 4
-        }
+        },
+        indoorSubHoversV(hasFurnace, UNIT_X, UNIT_W, ACOIL_Y, ACOIL_H, FURN_Y, FURN_H)
       ), hasCoil && hasAprilaire && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "apr-c" }, /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -5020,6 +6058,19 @@
           fontFamily: "monospace"
         },
         "FILTRATION CABINET"
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X,
+          y: APR_Y,
+          w: UNIT_W,
+          h: APR_H,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("filtration_cabinet").title,
+          text: T("filtration_cabinet").text
+        }
       )), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "chase" }, /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -5089,6 +6140,19 @@
           fontFamily: "monospace"
         },
         "2\xD74 RETURN AIR CHASE"
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X - 28,
+          y: VH - 40,
+          w: UNIT_W + 56,
+          h: 30,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("return_grille").title,
+          text: T("return_grille").text
+        }
       )), hasCoil && (() => {
         const hasPump = Array.isArray(a.extras) && a.extras.includes("condensate");
         const exitX = UNIT_X + UNIT_W;
@@ -5139,6 +6203,19 @@
             strokeWidth: "1.8",
             strokeDasharray: "5 3",
             strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: Math.min(exitX, pt3X) - 4,
+            y: Math.min(exitY, pt2Y) - 4,
+            w: Math.max(exitX, pt1X) - Math.min(exitX, pt3X) + 8,
+            h: Math.max(pt2Y, pt3Y) - Math.min(exitY, pt2Y) + 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condensate_drain").title,
+            text: T("condensate_drain").text
           }
         ), !hasPump && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "text",
@@ -5209,7 +6286,20 @@
         const toWall = isLine1 ? !refReversed : refReversed;
         const p = toWall ? `M${UNIT_X + UNIT_W} ${lY} L${EXT_WALL_X} ${lY}` : `M${EXT_WALL_X} ${lY} L${UNIT_X + UNIT_W} ${lY}`;
         return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 1.8 + i % 3 * 0.4 + "s", repeatCount: "indefinite", begin: i * 0.55 + "s", path: p }));
-      })), hasCond && /* @__PURE__ */ React.createElement(
+      }), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X + UNIT_W,
+          y: Math.min(LS_Y1, LS_Y2) - 6,
+          w: EXT_WALL_X - (UNIT_X + UNIT_W),
+          h: Math.abs(LS_Y2 - LS_Y1) + 12,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("lineset").title,
+          text: T("lineset").text
+        }
+      )), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
           wallX: EXT_WALL_X,
@@ -5233,6 +6323,9 @@
           line2C,
           G,
           W,
+          lang,
+          vw: SVG_VW,
+          vh: SVG_VH,
           condenserEl: /* @__PURE__ */ React.createElement(
             Condenser,
             {
@@ -5254,7 +6347,8 @@
           w: COND_W + 4,
           h: COND_H + 4,
           rx: 5
-        }
+        },
+        condenserSubHovers(COND_X, COND_Y, COND_W, COND_H, a.cond_tier)
       ), hasTstat && (() => {
         const gapLeft = UNIT_X + UNIT_W + 16, gapRight = EXT_WALL_X - 16;
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
@@ -5268,162 +6362,185 @@
         const hoverHC = Math.max(116, wireYC - TY + wirePanelHC + 10);
         const showRangeC = heatMode && isMildHp;
         const tempDisplayC = showRangeC ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
-        return /* @__PURE__ */ React.createElement("g", { className: "snap therm-hover-zone", key: "tstat-c", style: { animationDelay: ".26s" } }, /* @__PURE__ */ React.createElement(
-          "rect",
+        return /* @__PURE__ */ React.createElement(
+          "g",
           {
-            x: TX - 2,
-            y: TY - 2,
-            width: 82,
-            height: hoverHC,
-            fill: "transparent",
-            style: { pointerEvents: "all" }
-          }
-        ), (() => {
-          const modeColorC = heatMode ? "#f97316" : "#2389e0";
-          return isProprietaryC ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-            "rect",
-            {
+            className: "snap therm-hover-zone",
+            key: "tstat-c",
+            style: { animationDelay: ".26s" },
+            onMouseEnter: () => setHoverPart({
               x: TX,
               y: TY,
-              width: 76,
-              height: 68,
-              rx: "10",
-              fill: "#0a0a0d",
-              stroke: G + ".62)",
-              strokeWidth: "1.6"
-            }
-          ), /* @__PURE__ */ React.createElement(
+              w: 76,
+              h: 70,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("thermostat_general").title,
+              text: T("thermostat_general").text
+            }),
+            onMouseLeave: () => setHoverPart(null)
+          },
+          /* @__PURE__ */ React.createElement(
             "rect",
             {
-              x: TX + 3,
-              y: TY + 3,
-              width: 70,
-              height: 52,
-              rx: "7",
-              fill: "#050810",
-              stroke: B + ".3)",
-              strokeWidth: "0.8"
+              x: TX - 2,
+              y: TY - 2,
+              width: 82,
+              height: hoverHC,
+              fill: "transparent",
+              style: { pointerEvents: "all" }
             }
-          ), /* @__PURE__ */ React.createElement(
-            "text",
-            {
-              x: TX + 38,
-              y: TY + 35,
-              textAnchor: "middle",
-              fill: B + ".95)",
-              fontSize: showRangeC ? "14.5" : "23.5",
-              fontFamily: "monospace",
-              filter: "url(#glow)"
-            },
-            tempDisplayC
-          ), /* @__PURE__ */ React.createElement(
-            "text",
-            {
-              x: TX + 38,
-              y: TY + 48,
-              textAnchor: "middle",
-              fill: B + ".55)",
-              fontSize: "9",
-              fontFamily: "monospace"
-            },
-            heatMode ? "HEAT" : "COOL",
-            " \xB7 AUTO"
-          ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 67, cy: TY + 11, r: 1.9, fill: B + ".55)" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 6, y: TY + 59, width: 64, height: "3.5", rx: "1.75", fill: modeColorC, opacity: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 82, textAnchor: "middle", fill: G + ".45)", fontSize: "11.5", fontFamily: "monospace" }, "COMMUNICATING")) : isWifiC ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 36, fill: "#0d0d0d", stroke: G + ".62)", strokeWidth: "1.8" }), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 28, fill: "#060e1c", stroke: B + ".42)", strokeWidth: "1.1" }), /* @__PURE__ */ React.createElement(
-            "text",
-            {
-              x: TX + 38,
-              y: TY + 43,
-              textAnchor: "middle",
-              fill: B + ".92)",
-              fontSize: showRangeC ? "13" : "21",
-              fontFamily: "monospace",
-              filter: "url(#glow)"
-            },
-            tempDisplayC
-          ), /* @__PURE__ */ React.createElement(
-            "path",
-            {
-              d: `M${TX + 12} ${TY + 38} A26 26 0 0 1 ${TX + 64} ${TY + 38}`,
-              fill: "none",
-              stroke: modeColorC,
-              strokeWidth: "2.5",
-              strokeLinecap: "round",
-              opacity: "0.55"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "path",
-            {
-              d: `M${TX + 24} ${TY + 62} Q${TX + 38} ${TY + 53} ${TX + 52} ${TY + 62}`,
-              fill: "none",
-              stroke: B + ".5)",
-              strokeWidth: "1.8",
-              strokeLinecap: "round"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "path",
-            {
-              d: `M${TX + 28} ${TY + 67} Q${TX + 38} ${TY + 61} ${TX + 48} ${TY + 67}`,
-              fill: "none",
-              stroke: B + ".7)",
-              strokeWidth: "1.8",
-              strokeLinecap: "round"
-            }
-          ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 71, r: 2.5, fill: B + ".8)" }), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 85, textAnchor: "middle", fill: G + ".45)", fontSize: "11.5", fontFamily: "monospace" }, "WI-FI SMART")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-            "rect",
-            {
-              x: TX,
-              y: TY,
-              width: 76,
-              height: 62,
-              rx: "3",
-              fill: "#0d0d0d",
-              stroke: G + ".55)",
-              strokeWidth: "1.6"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "rect",
-            {
-              x: TX + 5,
-              y: TY + 6,
-              width: 66,
-              height: 34,
-              rx: "2",
-              fill: "#050d18",
-              stroke: B + ".36)",
-              strokeWidth: "0.9"
-            }
-          ), /* @__PURE__ */ React.createElement(
-            "text",
-            {
-              x: TX + 38,
-              y: TY + 28,
-              textAnchor: "middle",
-              fill: B + ".9)",
-              fontSize: "21",
-              fontFamily: "monospace",
-              filter: "url(#glow)"
-            },
-            thermostatTemp,
-            "\xB0"
-          ), [10, 24, 38, 52, 66].map((bx, i) => /* @__PURE__ */ React.createElement(
-            "rect",
-            {
-              key: i,
-              x: TX + bx - 4,
-              y: TY + 46,
-              width: "9",
-              height: "5",
-              rx: "1.5",
-              fill: G + ".22)",
-              stroke: G + ".12)",
-              strokeWidth: "0.4"
-            }
-          )), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 58, textAnchor: "middle", fill: G + ".38)", fontSize: "11", fontFamily: "monospace" }, "BASIC"));
-        })(), /* @__PURE__ */ React.createElement(EditZone, { stepId: "thermostat", x: TX - 2, y: TY - 2, w: 82, h: 116 }), /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: TX, y: wireYC, w: 76, letters: wireLettersC, note: wireNoteC }));
+          ),
+          (() => {
+            const modeColorC = heatMode ? "#f97316" : "#2389e0";
+            return isProprietaryC ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                x: TX,
+                y: TY,
+                width: 76,
+                height: 68,
+                rx: "10",
+                fill: "#0a0a0d",
+                stroke: G + ".62)",
+                strokeWidth: "1.6"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                x: TX + 3,
+                y: TY + 3,
+                width: 70,
+                height: 52,
+                rx: "7",
+                fill: "#050810",
+                stroke: B + ".3)",
+                strokeWidth: "0.8"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "text",
+              {
+                x: TX + 38,
+                y: TY + 35,
+                textAnchor: "middle",
+                fill: B + ".95)",
+                fontSize: showRangeC ? "14.5" : "23.5",
+                fontFamily: "monospace",
+                filter: "url(#glow)"
+              },
+              tempDisplayC
+            ), /* @__PURE__ */ React.createElement(
+              "text",
+              {
+                x: TX + 38,
+                y: TY + 48,
+                textAnchor: "middle",
+                fill: B + ".55)",
+                fontSize: "9",
+                fontFamily: "monospace"
+              },
+              heatMode ? "HEAT" : "COOL",
+              " \xB7 AUTO"
+            ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 67, cy: TY + 11, r: 1.9, fill: B + ".55)" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 6, y: TY + 59, width: 64, height: "3.5", rx: "1.75", fill: modeColorC, opacity: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 82, textAnchor: "middle", fill: G + ".45)", fontSize: "11.5", fontFamily: "monospace" }, "COMMUNICATING")) : isWifiC ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 36, fill: "#0d0d0d", stroke: G + ".62)", strokeWidth: "1.8" }), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 28, fill: "#060e1c", stroke: B + ".42)", strokeWidth: "1.1" }), /* @__PURE__ */ React.createElement(
+              "text",
+              {
+                x: TX + 38,
+                y: TY + 43,
+                textAnchor: "middle",
+                fill: B + ".92)",
+                fontSize: showRangeC ? "13" : "21",
+                fontFamily: "monospace",
+                filter: "url(#glow)"
+              },
+              tempDisplayC
+            ), /* @__PURE__ */ React.createElement(
+              "path",
+              {
+                d: `M${TX + 12} ${TY + 38} A26 26 0 0 1 ${TX + 64} ${TY + 38}`,
+                fill: "none",
+                stroke: modeColorC,
+                strokeWidth: "2.5",
+                strokeLinecap: "round",
+                opacity: "0.55"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "path",
+              {
+                d: `M${TX + 24} ${TY + 62} Q${TX + 38} ${TY + 53} ${TX + 52} ${TY + 62}`,
+                fill: "none",
+                stroke: B + ".5)",
+                strokeWidth: "1.8",
+                strokeLinecap: "round"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "path",
+              {
+                d: `M${TX + 28} ${TY + 67} Q${TX + 38} ${TY + 61} ${TX + 48} ${TY + 67}`,
+                fill: "none",
+                stroke: B + ".7)",
+                strokeWidth: "1.8",
+                strokeLinecap: "round"
+              }
+            ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 71, r: 2.5, fill: B + ".8)" }), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 85, textAnchor: "middle", fill: G + ".45)", fontSize: "11.5", fontFamily: "monospace" }, "WI-FI SMART")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                x: TX,
+                y: TY,
+                width: 76,
+                height: 62,
+                rx: "3",
+                fill: "#0d0d0d",
+                stroke: G + ".55)",
+                strokeWidth: "1.6"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                x: TX + 5,
+                y: TY + 6,
+                width: 66,
+                height: 34,
+                rx: "2",
+                fill: "#050d18",
+                stroke: B + ".36)",
+                strokeWidth: "0.9"
+              }
+            ), /* @__PURE__ */ React.createElement(
+              "text",
+              {
+                x: TX + 38,
+                y: TY + 28,
+                textAnchor: "middle",
+                fill: B + ".9)",
+                fontSize: "21",
+                fontFamily: "monospace",
+                filter: "url(#glow)"
+              },
+              thermostatTemp,
+              "\xB0"
+            ), [10, 24, 38, 52, 66].map((bx, i) => /* @__PURE__ */ React.createElement(
+              "rect",
+              {
+                key: i,
+                x: TX + bx - 4,
+                y: TY + 46,
+                width: "9",
+                height: "5",
+                rx: "1.5",
+                fill: G + ".22)",
+                stroke: G + ".12)",
+                strokeWidth: "0.4"
+              }
+            )), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 58, textAnchor: "middle", fill: G + ".38)", fontSize: "11", fontFamily: "monospace" }, "BASIC"));
+          })(),
+          /* @__PURE__ */ React.createElement(EditZone, { stepId: "thermostat", x: TX - 2, y: TY - 2, w: 82, h: 116 }),
+          /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5 }),
+          /* @__PURE__ */ React.createElement(ThermWireBacking, { x: TX, y: wireYC, w: 76, letters: wireLettersC, note: wireNoteC })
+        );
       })(), hasDehu && hasTstat && (() => {
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
         const W2 = 44, H = 40;
-        return /* @__PURE__ */ React.createElement(DehumidistatWall, { x: UNIT_X / 2 - W2 / 2, y: midY - H / 2 });
+        return /* @__PURE__ */ React.createElement(DehumidistatWall, { x: UNIT_X / 2 - W2 / 2, y: midY - H / 2, lang, vw: SVG_VW, vh: SVG_VH });
       })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const rW = hasCond ? HOUSE_W : VW - 8;
         const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));
@@ -5509,7 +6626,7 @@
             rx: 4
           }
         ), /* @__PURE__ */ React.createElement(StepFocusRing, { stepId: "dehu", x: rW - 80 - 34, y: rEave + 42, w: 80, h: 48, rx: 4 }), /* @__PURE__ */ React.createElement(StepFocusRing, { stepId: "extras", x: 24, y: rEave + 42, w: 80, h: 48, rx: 4 }));
-      })()));
+      })(), hoverPart && /* @__PURE__ */ React.createElement(HoverPanel, { part: hoverPart }))));
     }
     return null;
   }
@@ -6080,7 +7197,7 @@
         style: { animationDelay: ".3s", fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
       },
       lang === "es" ? "EN" : "ES"
-    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su proceso se guarda autom\xE1ticamente."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su proceso se guarda autom\xE1ticamente."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setQuickEdit(false);
       setDone(true);
     } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, stepCountText), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, stepCountText && " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
@@ -6099,7 +7216,7 @@
         }
       },
       "i"
-    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setQuickEdit(false);
       setDone(true);
     } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), stepCountText && ` ${stepCountText}`), infoText && /* @__PURE__ */ React.createElement(
@@ -6118,7 +7235,7 @@
         }
       },
       "i"
-    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" }), isAtticMode && (pricingFlow ? /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.7)", padding: "6px 10px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.8)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-pricing-fine)" } }, tr("Edit selections", "Editar selecciones"))) : /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.55)", padding: "6px 10px 6px 7px" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 28, height: 28, fontSize: 14, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 14.5, marginBottom: 0 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))))), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
+    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" }), isAtticMode && (pricingFlow ? /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.7)", padding: "6px 10px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.8)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-pricing-fine)" } }, tr("Edit selections", "Editar selecciones"))) : /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.55)", padding: "6px 10px 6px 7px" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 28, height: 28, fontSize: 14, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 14.5, marginBottom: 0 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))))), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
       const reviewGrid = /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, reviewItems.map((item, i) => item && item.val ? (
         // Attic's grid cells live in the fixed 200px-tall panel
         // (see .done-wrap-attic above), but unlike .opt-compact's
