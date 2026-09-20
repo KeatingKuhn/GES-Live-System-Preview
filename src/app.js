@@ -1044,6 +1044,24 @@ function App(){
           )}
         </div>
         <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"200px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+          {/* PRINT LETTERHEAD - invisible on-screen (.print-letterhead is
+              display:none outside @media print, see styles.css), a sibling
+              of .done-wrap rather than a child of it specifically so it
+              escapes `.done-wrap *{color:#000!important}` below in the
+              print stylesheet - that rule exists to flatten the on-screen
+              gold/dark palette to plain black-on-white for the price/
+              review content, but a letterhead is the one place on the
+              printed page that SHOULD keep a little brand color. A printed
+              estimate has no browser chrome, tab title, or URL to say
+              whose estimate it is once it's off screen (often in a
+              spouse's hands, not just the person who built it) - this
+              gives it one. Date is generated fresh at print time, not
+              stored - same "derived, not fabricated" rule as everything
+              else this pass added. */}
+          <div className="print-letterhead">
+            <div className="print-letterhead-brand">GOLD EAGLE SERVICES</div>
+            <div className="print-letterhead-sub">{tr('Austin, TX · HVAC System Estimate','Austin, TX · Estimado de Sistema HVAC')} · {new Date().toLocaleDateString(lang==='es'?'es':'en-US',{year:'numeric',month:'long',day:'numeric'})}</div>
+          </div>
           <div className={"done-wrap"+(isAtticMode?" done-wrap-attic":"")} style={{padding:"10px 14px 8px",overflowY:"auto"}}>
             {/* Collapsed to one line once pricing is engaged - the full
                 header+grid below is what was pushing the sizing questions'
@@ -1303,14 +1321,58 @@ function App(){
                 // considerations panel into side-by-side columns cuts the
                 // scroll this page needs roughly in half. Closet's tall
                 // narrow sidebar keeps the original single-column stack.
+                // Base system vs. every add-on the homeowner opted into -
+                // both real numbers calcEstimate already produced (lines[0]
+                // is always the tonnage/system line; nothing invented or
+                // separately rounded here, basePct/addonsPct are derived
+                // from the same already-rounded `l.display` figures the
+                // itemized list below shows, so they can never disagree
+                // with it). Only meaningful when there's actually an
+                // add-on to compare against - a 100%-base bar is a chart
+                // with nothing to say, so it's skipped entirely rather than
+                // rendered empty/degenerate.
+                const addonLines=est.lines.slice(1);
+                const basePct=est.display>0?Math.round(est.lines[0].display/est.display*100):100;
+                const addonsPct=100-basePct;
+                const wisetack=FINANCING_OPTIONS.find(f=>f.key==='wisetack'&&f.url);
                 const priceCard=(
                   <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
-                    <div style={{fontFamily:"var(--fm)",fontSize:44,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/><span style={{fontSize:17,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
-                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6,marginBottom:10}}>{tr('Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.','Basado en 36 meses al 0% de interés a través del financiamiento de Wells Fargo, sujeto a aprobación de crédito.')}</div>
+                    {/* ── PRICE HERO — the monthly figure is the number a
+                        homeowner actually budgets against day to day, so it
+                        gets the dominant visual weight: its own bordered
+                        card, the biggest type on the panel, and a one-shot
+                        gold reveal glow (.price-hero::before in styles.css)
+                        timed to the CountUp beneath it finishing. The
+                        one-time total right below stays fully visible and
+                        at its original size/color - still a number someone
+                        will want to read clearly - it's just no longer the
+                        FIRST thing competing for that role. Wisetack's
+                        prequalify link lives here too (not just down in
+                        the Quick Actions grid) so financing reads as part
+                        of the reveal itself, right under the number it
+                        actually applies to. */}
+                    <div className="price-hero">
+                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
+                      <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
+                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.','Basado en 36 meses al 0% de interés a través del financiamiento de Wells Fargo, sujeto a aprobación de crédito.')}</div>
+                      {wisetack&&<a href={wisetack.url} target="_blank" rel="noopener" className="price-hero-financing-link no-print"
+                        onClick={()=>trackEvent('financing_clicked',{lender:'wisetack',source:'price_reveal'})}>
+                        {tr('→ See if you prequalify with Wisetack','→ Vea si precalifica con Wisetack')}
+                      </a>}
+                    </div>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
                     <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<CountUp value={est.display} format={n=>n.toLocaleString()}/></div>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr(`Includes a ${answers.cond_tier==='high_ge18'?'10':'12'}-year manufacturer warranty.`,`Incluye una garantía de fábrica de ${answers.cond_tier==='high_ge18'?'10':'12'} años.`)}</div>
+                    {addonLines.length>0&&<div className="price-breakdown">
+                      <div className="price-breakdown-bar">
+                        <div className="price-breakdown-seg base" style={{width:basePct+"%"}}/>
+                        <div className="price-breakdown-seg addons" style={{width:addonsPct+"%"}}/>
+                      </div>
+                      <div className="price-breakdown-legend">
+                        <span><span className="price-breakdown-dot base"/>{tr('Base system','Sistema base')} · {basePct}%</span>
+                        <span><span className="price-breakdown-dot addons"/>{tr('Add-ons','Adicionales')} · {addonsPct}%</span>
+                      </div>
+                    </div>}
                     <div style={{marginBottom:10}}>
                       {est.lines.map((l,i)=>(
                         <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:"var(--fs-pricing-line)"}}>

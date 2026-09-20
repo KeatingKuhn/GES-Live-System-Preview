@@ -586,6 +586,59 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .quick-restart-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.32);color:rgba(255,255,255,.9)}
 .quick-restart-btn:active{transform:scale(.96);background:rgba(255,255,255,.16)}
 
+/* ── PRICE REVEAL ── (overnight "more coolness" pass - the pricing flow
+   itself, untouched by the other three delight-feature/visual-realism
+   passes that ran the same night). Nothing here changes calcEstimate's
+   math, the line items, or what's collected - purely presentation on top
+   of numbers the app already computes.
+   The monthly figure (.price-hero) is what a homeowner actually budgets
+   against, so it gets its own nested card + a one-shot reveal glow;
+   the one-time total right below it (plain markup in app.js, no class
+   needed) stays the same CountUp/size treatment it already had, just
+   demoted to "secondary" by sitting outside the hero box - deliberately
+   NOT shrunk further or de-emphasized in color, since it's still a real
+   number someone will want to read clearly, just not the FIRST number
+   their eye lands on. */
+.price-hero{position:relative;padding:14px 14px 12px;margin-bottom:12px;border:1px solid rgba(215,183,64,.4);background:rgba(240,214,78,.06)}
+/* One-shot gold bloom around the hero card, timed to roughly track the
+   monthly figure's own CountUp (900ms - see CountUp's default `duration`
+   in canvas.js). Box-shadow rather than doneIconGlow's radial-gradient
+   circle: that one halos a round checkmark, this one needs to bloom
+   around a rectangular card, and reusing the exact same circular treatment
+   here would read as a mismatched stamp instead of a deliberate answer to
+   it. Same restrained one-shot-then-settle rule as every other glow in
+   this file (glow-pulse/doneIconGlow above) - it marks the moment, then
+   gets out of the way rather than nagging with an infinite pulse. */
+.price-hero::before{content:'';position:absolute;inset:-1px;pointer-events:none;animation:priceHeroGlow .9s ease-out .15s both}
+@keyframes priceHeroGlow{0%{box-shadow:0 0 0 0 rgba(240,214,78,0)}35%{box-shadow:0 0 26px 4px rgba(240,214,78,.35)}100%{box-shadow:0 0 0 0 rgba(240,214,78,0)}}
+/* Wisetack's prequalify link, placed right inside the hero card instead of
+   only down in the Quick Actions button grid - direction #4 of the polish
+   pass: financing reads as part of the reveal moment itself (right under
+   the monthly number it actually qualifies), not a same-weight button
+   bolted on far below. Text-link, not another button - a second gold CTA
+   stacked directly under the hero number would compete with it instead of
+   supporting it. */
+.price-hero-financing-link{display:inline-block;margin-top:8px;font-family:var(--fm);font-size:var(--fs-pricing-fine);color:rgba(215,183,64,.85);text-decoration:underline;transition:color .15s}
+.price-hero-financing-link:hover{color:var(--gl)}
+/* "Why this price" breakdown - base system vs. every add-on line summed
+   together, both real numbers calcEstimate already produced (lines[0] is
+   always the tonnage/system line; everything after it is an add-on the
+   homeowner opted into) - nothing here is invented or independently
+   rounded, basePct/addonsPct are derived from the same already-rounded
+   `display` figures the line-item list below shows. Only rendered when
+   there IS an add-on to compare against (see the addonLines.length check
+   in app.js) - a 100%-base bar with nothing to contrast it against would
+   be a chart with no story, worse than the plain list it would sit above. */
+.price-breakdown{margin:2px 0 14px}
+.price-breakdown-bar{display:flex;height:7px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.price-breakdown-seg{height:100%}
+.price-breakdown-seg.base{background:var(--gh)}
+.price-breakdown-seg.addons{background:rgba(255,255,255,.22)}
+.price-breakdown-legend{display:flex;justify-content:space-between;margin-top:6px;font-family:var(--fm);font-size:var(--fs-pricing-fine);color:var(--mut)}
+.price-breakdown-dot{display:inline-block;width:7px;height:7px;margin-right:5px;vertical-align:middle}
+.price-breakdown-dot.base{background:var(--gh)}
+.price-breakdown-dot.addons{background:rgba(255,255,255,.35)}
+
 /* ── SITE HEADER SPACER ── */
 /* Blank reserved band at the top - no text/branding (that part was
    correctly dropped as a duplicate of the splash headline below it).
@@ -962,6 +1015,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    what actually prints instead of just that one line once pricing has
    been opened. */
 .print-only-grid{display:none}
+.print-letterhead{display:none}
 @media print{
   html,body{height:auto!important;overflow:visible!important}
   .app-root,.done-screen,.sidebar,.done-wrap{
@@ -983,7 +1037,74 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .sidebar{border:none!important}
   .done-wrap{animation:none!important}
   .btn-back,.btn-next,.btn-skip,.info-btn,.done-restart,.no-print{display:none!important}
-  body,.done-wrap{color:#000!important;background:#fff!important}
+  body,.done-wrap,.sidebar{color:#000!important;background:#fff!important}
   .done-wrap *{color:#000!important;border-color:#999!important}
   .done-title,.opt-label{color:#000!important}
+  /* Closet mode's .done-wrap is centered on-screen (a deliberate narrow-
+     column "receipt" look - see the base .done-wrap rule's own comment),
+     but centered text is a print-legibility mistake on a full-width page:
+     multi-line paragraphs (the disclaimers, the Additional Considerations
+     copy) get a ragged-both-edges look that's genuinely harder to read
+     than left-aligned. Attic's .done-wrap-attic variant already overrides
+     to left on-screen for its own (unrelated) two-column-row reason: this
+     just brings closet's print output in line with it, on paper only -
+     the on-screen centered look is untouched. */
+  .done-wrap{text-align:left!important}
+
+  /* PRINT LETTERHEAD - see the comment on .print-letterhead in app.js for
+     why this is a .sidebar child, not a .done-wrap one. Sits outside the
+     rule above that flattens everything else in this document to black,
+     so it keeps a small deliberate hit of the brand's gold - border-color
+     (not a background-color/-image) always prints regardless of whether
+     the browser's print dialog has "background graphics" checked, and
+     plain text color always prints too, so neither needs the
+     print-color-adjust escape hatch the breakdown bar below does need. */
+  /* Kept deliberately tight (small margins/padding, no line-height above
+     what the type needs) - a letterhead earns its place, but every extra
+     px here is a px more likely to shove the last line of a longer build
+     (more line items/add-ons = a taller price card) onto a mostly-blank
+     second printed page. Measured against a 9-line-item closet build,
+     the tallest realistic case this tool produces. */
+  .print-letterhead{display:block!important;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid var(--gd)}
+  .print-letterhead-brand{font-family:var(--ft);font-weight:700;font-size:19px;line-height:1.15;letter-spacing:.05em;color:var(--gd)!important}
+  .print-letterhead-sub{font-family:var(--fm);font-size:10px;line-height:1.3;color:#555!important;margin-top:1px;letter-spacing:.02em}
+
+  /* Price-reveal additions, print-adapted: */
+  .price-hero::before{content:none}
+  /* Reveal glow is an on-screen-only flourish */
+  .price-hero-financing-link{display:none}
+  /* Already covered by .no-print above (see the className in app.js) -
+     listed again here just as documentation of intent, not a second rule */
+  /* The bordered/tinted box is a screen-only device for pulling the eye to
+     the monthly figure first on a dark UI - on paper the same hierarchy
+     already reads from size/weight alone (48px bold vs. the line items'
+     ~12px), so the box costs real page-fit budget (border + padding) for
+     no legibility gain in this medium. Dropped entirely rather than just
+     shrunk, same "every px counts toward a second, mostly-blank page"
+     reasoning as the letterhead above. */
+  .price-hero{border:none;background:none;padding:0;margin-bottom:3px}
+  /* The filled segmented bar leans on background-color, which (unlike
+     border/text color) most browsers' print dialogs suppress by default
+     unless "background graphics" is explicitly checked - so on a lot of
+     real printouts this would silently be a blank sliver, not a bar. Long
+     way of saying: don't gamble a real customer's printout on a checkbox
+     they'll probably never see, let alone tick. The percentages are
+     already restated as plain text in .price-breakdown-legend right below
+     it, which prints reliably everywhere, so nothing is actually lost -
+     and dropping the bar graphic itself also buys back real vertical
+     room toward the one-page budget. */
+  .price-breakdown-bar,.price-breakdown-dot{display:none}
+  .price-breakdown{margin:0 0 2px}
+  /* Hero's eyebrow/disclaimer margins are inline styles in app.js (sized
+     for the on-screen box); overridden here with the same one-page-budget
+     reasoning as everything else in this block. */
+  .price-hero>div:first-child{margin-bottom:2px!important}
+  .price-hero>div:nth-child(2)+div{margin-top:2px!important}
+  .price-breakdown-legend{margin-top:0}
+  /* .done-wrap's own padding (set inline in app.js) is sized for the
+     on-screen scroll panel; trimmed here too toward the same one-page
+     budget - print already dropped the panel's fixed height/scroll
+     entirely (see the un-fixing comment above), so nothing but page count
+     depends on this being generous. */
+  .done-wrap{padding-top:4px!important;padding-bottom:2px!important}
 }
