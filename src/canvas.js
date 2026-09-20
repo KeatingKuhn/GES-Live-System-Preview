@@ -299,9 +299,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
     {(()=>{
       const wallMidX=sidingX+wallThick/2;
       const px1=wallMidX-3, px2=wallMidX+3;
-      // Right above the pad - just clearing the SEER badge that spans the
-      // condenser's full width near its base, so the entry reads as low
-      // on the cabinet without cutting through that label.
+      // Right above the pad, so the entry reads as low on the cabinet.
       const exitY1=condY+condH*0.78;
       const exitY2=condY+condH*0.86;
       // Diagonal tick marks along a polyline - the wrapped-tape look of a
@@ -685,74 +683,6 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
     );
 }
 
-// Standard low-voltage HVAC wire letter/color convention, used to draw the
-// hover-revealed wall-backplate below (ThermWireBacking) - a real
-// thermostat mounts over a set of labeled terminal screws for exactly these
-// conductors. Colors are the field convention, not this app's own
-// mode/status color language, so they're deliberately kept separate from
-// the cool-blue/heat-orange palette used everywhere else in canvas.js.
-const WIRE_COLORS={R:'#ef4444',C:'#60a5fa',W:'#f8fafc',W2:'#f8fafc',Y:'#facc15',Y2:'#facc15',G:'#22c55e','O/B':'#fb923c',D1:'#a78bfa',D2:'#a78bfa'};
-// Which terminals each thermostat tier actually needs, given this system's
-// own config. Basic/Wi-Fi are "one wire per function" tiers, so the count
-// grows with what the system needs to call for: a second stage of backup
-// heat (W2) when dual-fuel, plus Wi-Fi's always-present O/B reversing-valve
-// and Y2 second-stage-cool leads (a smart stat exposes both regardless of
-// dual-fuel, since those are heat-pump/2-stage-cool features independent of
-// how backup heat is delivered). Proprietary/communicating tiers are the
-// odd one out: real systems in this class (Carrier Infinity, Trane XL,
-// Lennox iComfort-style) run a 4-conductor data bus instead of one wire per
-// function, so despite being the premium tier it ends up with FEWER wires
-// than either "dumber" tier below it - hence the short on-canvas note.
-function thermWireLetters(thermType,isDualFuel){
-  if(thermType==='proprietary')return{letters:['R','C','D1','D2'],note:'4-WIRE COMM BUS'};
-  if(thermType==='wifi')return{letters:isDualFuel?['R','C','W','W2','Y','Y2','G','O/B']:['R','C','W','Y','G','O/B','Y2'],note:null};
-  return{letters:isDualFuel?['R','C','W','W2','Y','G']:['R','C','W','Y','G'],note:null};
-}
-// Shared grid math for the terminal panel - one row for <=6 wires (both
-// basic tiers and the 4-wire comm bus), two rows for Wi-Fi's 7/8. Factored
-// out of ThermWireBacking itself so a caller can size its own hover hit-box
-// (see hasTstat below) without duplicating the layout logic and risking the
-// two drifting apart.
-function thermWireLayout(letters,note){
-  const cols=letters.length<=6?letters.length:Math.ceil(letters.length/2);
-  const rows=Math.ceil(letters.length/cols);
-  const rowH=13, padTop=11;
-  return {cols,rows,h:padTop+rows*rowH+(note?11:5)};
-}
-// Compact wall-backplate/terminal visual. Revealed on hover ONLY (see the
-// hard footprint constraint on THERM_MAX_SCALE/LIVING_SPACE near hasTstat
-// below) via the same reveal-on-hover CSS language already used for
-// EditZone's own ring (.edit-zone-ring/.edit-zone:hover in styles.css) -
-// .therm-wire-backing here instead of .edit-zone-ring, toggled by
-// .therm-hover-zone:hover rather than .edit-zone:hover so it works in the
-// wizard too (EditZone itself only exists on the done screen). It paints
-// as an overlay ON TOP of whatever's below the thermostat in either
-// layout, never a permanent layout change. x/y is the panel's own
-// top-left, in whatever local coordinate space the caller is already
-// drawing the thermostat in - both call sites pass their own.
-function ThermWireBacking({x,y,w,letters,note}){
-  const {cols,rows,h}=thermWireLayout(letters,note);
-  const cellW=w/cols, rowH=13, padTop=11;
-  return <g className="therm-wire-backing" transform={`translate(${x} ${y})`}>
-    <rect x={-4} y={-4} width={w+8} height={h+8} rx="4"
-      fill="#171310" stroke="rgba(215,183,64,.4)" strokeWidth="0.8"/>
-    <text x={w/2} y={7.5} textAnchor="middle" fill="rgba(255,255,255,.55)"
-      fontSize="6" fontFamily="monospace" letterSpacing=".03em">LOW-VOLTAGE TERMINALS</text>
-    {letters.map((L,i)=>{
-      const col=i%cols, row=Math.floor(i/cols);
-      const cx=cellW*col+cellW/2, cy=padTop+row*rowH+3;
-      const color=WIRE_COLORS[L]||'#e5e7eb';
-      return <g key={L+i}>
-        <circle cx={cx} cy={cy} r="3.2" fill={color} stroke="rgba(0,0,0,.45)" strokeWidth="0.5"/>
-        <text x={cx} y={cy+9.5} textAnchor="middle" fill="rgba(255,255,255,.72)"
-          fontSize="5.6" fontFamily="monospace" fontWeight="700">{L}</text>
-      </g>;
-    })}
-    {note&&<text x={w/2} y={h-2} textAnchor="middle" fill="rgba(255,255,255,.42)"
-      fontSize="5.4" fontFamily="monospace">{note}</text>}
-  </g>;
-}
-
 // Wall-mounted dehumidistat - the humidity-side counterpart to the
 // thermostat, a real second control a whole-home dehumidifier actually
 // wires to (not the DehuErvBoxes equipment box elsewhere, which is the
@@ -791,12 +721,10 @@ function DehumidistatWall({x,y,lang,vw,vh}){
 }
 
 // ─── HOVER-INFO TOOLTIP ─────────────────────────────────────────
-// Generalizes the exact hover-reveal mechanism ThermWireBacking already
-// proved out above (an invisible pointer-events:all hit-rect that reveals
-// a small floating panel on hover) so ANY component on the diagram -
-// during the wizard as it's being built, and on the finished done screen -
-// can offer a "what is this" tooltip, not just the thermostat's own wire
-// backplate.
+// An invisible pointer-events:all hit-rect that reveals a small floating
+// panel on hover, so ANY component on the diagram - during the wizard as
+// it's being built, and on the finished done screen - can offer a "what is
+// this" tooltip.
 //
 // The panel itself is tracked as ONE piece of shared state (HoverCtx,
 // provided by Canvas - see its own setHoverPart) and rendered ONCE, as
@@ -825,11 +753,11 @@ function DehumidistatWall({x,y,lang,vw,vh}){
 //
 // onClick, when passed, is never a NEW click behavior - it only exists so
 // that a hover hit-rect painted on top of an existing EditZone's own hit-
-// rect (necessary for the hover to register at all - see the module notes
-// near ThermWireBacking on how :hover/mouseenter hit-testing picks exactly
-// one topmost target) keeps producing the IDENTICAL outcome a click there
-// already produced before this feature existed: every caller that passes
-// onClick sets it to the same onEditStep(stepId) call the coincident
+// rect (necessary for the hover to register at all, since :hover/
+// mouseenter hit-testing picks exactly one topmost target) keeps producing
+// the IDENTICAL outcome a click there already produced before this feature
+// existed: every caller that passes onClick sets it to the same
+// onEditStep(stepId) call the coincident
 // EditZone already makes for that same box (or, for a sub-part hover
 // nested inside EditZone's own children - see EditZone's comment below -
 // the same call EditZone's own click already makes for the whole box).
@@ -854,7 +782,7 @@ function hiWrapText(text,maxChars){
 // layout branch's <svg>; it takes the trigger's own x/y/w/h (to anchor
 // against) plus vw/vh/title/text bundled together as `part`.
 function HoverPanel({part}){
-  const {x,y,w,h,vw,vh,title,text}=part;
+  const {x,y,w,h,rx,vw,vh,title,text,highlight}=part;
   const FONT=9.3, LINE_H=12, PAD=8, PANEL_W=172, TITLE_H=19;
   const maxChars=Math.max(10,Math.floor((PANEL_W-PAD*2)/(FONT*0.56)));
   const lines=hiWrapText(text,maxChars);
@@ -872,16 +800,28 @@ function HoverPanel({part}){
     if(px<4)px=4;
     if(px+PANEL_W>vw-4)px=Math.max(4,vw-4-PANEL_W);
   }
-  return <g className="hover-info-panel" transform={`translate(${px} ${py})`}
-    style={{pointerEvents:'none'}}>
-    <rect x={0} y={0} width={PANEL_W} height={panelH} rx="5"
-      fill="#14110a" stroke="rgba(215,183,64,.55)" strokeWidth="1" filter="url(#shadow)"/>
-    <text x={PAD} y={13} fill="#d7b740" fontSize="10.5" fontFamily="monospace" fontWeight="700">{title}</text>
-    <line x1={PAD} y1={TITLE_H-2} x2={PANEL_W-PAD} y2={TITLE_H-2} stroke="rgba(215,183,64,.25)" strokeWidth="0.6"/>
-    {lines.map((ln,i)=>(
-      <text key={i} x={PAD} y={TITLE_H+9+i*LINE_H} fill="rgba(240,242,248,.86)" fontSize={FONT} fontFamily="sans-serif">{ln}</text>
-    ))}
-  </g>;
+  return <>
+    {/* Traces the hovered part's own hit-rect (same x/y/w/h/rx the
+        invisible HoverInfo rect already uses) rather than a generic box -
+        same gold glow-ring language as EditZone's own .edit-zone-ring,
+        just for a specific sub-part instead of the whole indoor_type/
+        cond_tier box. Only rendered when the triggering HoverInfo opted
+        in via highlight - see its own module comment for which parts
+        currently do and why. */}
+    {highlight&&<rect x={x-3} y={y-3} width={w+6} height={h+6} rx={(rx||3)+3}
+      fill="rgba(215,183,64,.06)" stroke="rgba(215,183,64,.95)" strokeWidth="2.5"
+      filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>}
+    <g className="hover-info-panel" transform={`translate(${px} ${py})`}
+      style={{pointerEvents:'none'}}>
+      <rect x={0} y={0} width={PANEL_W} height={panelH} rx="5"
+        fill="#14110a" stroke="rgba(215,183,64,.55)" strokeWidth="1" filter="url(#shadow)"/>
+      <text x={PAD} y={13} fill="#d7b740" fontSize="10.5" fontFamily="monospace" fontWeight="700">{title}</text>
+      <line x1={PAD} y1={TITLE_H-2} x2={PANEL_W-PAD} y2={TITLE_H-2} stroke="rgba(215,183,64,.25)" strokeWidth="0.6"/>
+      {lines.map((ln,i)=>(
+        <text key={i} x={PAD} y={TITLE_H+9+i*LINE_H} fill="rgba(240,242,248,.86)" fontSize={FONT} fontFamily="sans-serif">{ln}</text>
+      ))}
+    </g>
+  </>;
 }
 // Self-contained hover target: an invisible hit-rect (sized to the
 // component's own real footprint, per the "never full-bleed" guidance -
@@ -891,10 +831,28 @@ function HoverPanel({part}){
 // see the module comment above for why a single always-last panel needs
 // to replace that. className kept on the wrapping <g> for identifiability
 // (tests, devtools) even though nothing keys off it visually anymore.
-function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick}){
+//
+// highlight (optional, default off) - on the done screen, most sub-part
+// hovers already sit inside an EditZone whose own ring outlines the WHOLE
+// box (furnace+coil, or the whole condenser cabinet), but that ring never
+// distinguishes WHICH sub-part triggered it - hovering the fan or the
+// compressor lights up the identical outline either way. So far only the
+// compressor (which otherwise gives no visual confirmation of exactly
+// which part of the condenser the tooltip is describing - the fan's own
+// shape is already visually obvious, while the compressor is either
+// tucked in a back corner of the cabinet, fed-min/high-eff, or entirely
+// hidden behind the mid-tier's sealed front-discharge body) opts in with
+// highlight, at all five of its call sites (all three tiers' own
+// wizard-time Condenser rendering, plus the done-screen-only
+// condenserSubHovers for mid vs. fed-min/high-eff) so it's consistent
+// whether or not an EditZone box ring happens to be showing too.
+// HoverPanel (rendered once, same place it already was) traces this
+// hit-rect's own
+// x/y/w/h/rx when set, in addition to showing the tooltip panel as before.
+function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick,highlight}){
   const setHover=React.useContext(HoverCtx);
   if(!title)return null;
-  const part={x,y,w,h,vw,vh,title,text};
+  const part={x,y,w,h,rx,vw,vh,title,text,highlight};
   return <g className="hover-info-zone">
     <rect x={x} y={y} width={w} height={h} rx={rx||3} fill="transparent"
       style={{pointerEvents:'all',cursor:onClick?'pointer':'default'}} onClick={onClick}
@@ -943,8 +901,6 @@ const PART_INFO={
     es:{title:'VENTILADOR DEL CONDENSADOR',text:"Jala aire exterior a través del serpentín para que pueda liberar o captar calor, según el modo."}},
   compressor:{en:{title:'COMPRESSOR',text:"Pressurizes the refrigerant - the part that does the actual work of moving heat in or out of your home."},
     es:{title:'COMPRESOR',text:"Presuriza el refrigerante - la parte que realiza el trabajo real de mover el calor dentro o fuera de su hogar."}},
-  seer_badge:{en:{title:'SEER2 RATING',text:"Measures cooling efficiency - higher means more cooling for the same electricity, and lower bills."},
-    es:{title:'CLASIFICACIÓN SEER2',text:"Mide la eficiencia de enfriamiento - más alto significa más enfriamiento con la misma electricidad, y facturas más bajas."}},
   disconnect:{en:{title:'DISCONNECT BOX',text:"Lets a technician cut power to the condenser right at the unit before servicing it - a safety requirement on every install."},
     es:{title:'CAJA DE DESCONEXIÓN',text:"Permite a un técnico cortar la energía al condensador justo en la unidad antes de darle servicio - un requisito de seguridad en toda instalación."}},
   surge_protector:{en:{title:'SURGE PROTECTOR',text:"Shields the condenser's electronics from lightning and power spikes - a single nearby strike can destroy a compressor."},
@@ -1157,8 +1113,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       {isMini
         ?(()=>{
           const fanAreaW=Math.round(w*0.68), fanAreaH=h-Math.round(h*0.1)-4, fanAreaY=y+Math.round(h*0.1)+2;
-          return <HoverInfo x={x} y={fanAreaY} w={fanAreaW} h={fanAreaH} rx={4} vw={SVG_VW} vh={SVG_VH}
-            title={T('condenser_fan').title} text={T('condenser_fan').text} onClick={go}/>;
+          // Compressor hover - see the mid-tier's own comment inside
+          // Condenser itself for why this cabinet has no visible dome to
+          // trace: it's behind the service-access panel on the right
+          // (~30% of the cabinet width) instead.
+          const panelX=x+Math.round(w*0.7), panelW=w-Math.round(w*0.7)-2;
+          const panelY=y+Math.round(h*0.1)+4, panelH=h-Math.round(h*0.1)-8;
+          return <>
+            <HoverInfo x={x} y={fanAreaY} w={fanAreaW} h={fanAreaH} rx={4} vw={SVG_VW} vh={SVG_VH}
+              title={T('condenser_fan').title} text={T('condenser_fan').text} onClick={go}/>
+            <HoverInfo x={panelX-4} y={panelY-4} w={panelW+8} h={panelH+8} rx={4} vw={SVG_VW} vh={SVG_VH}
+              title={T('compressor').title} text={T('compressor').text} onClick={go} highlight/>
+          </>;
         })()
         :<>
           <HoverInfo x={x} y={y} w={w} h={capH} rx={4} vw={SVG_VW} vh={SVG_VH}
@@ -1167,11 +1133,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const cW=Math.round(w*(isBig?0.28:0.3)), cH=Math.round((h-capH)*(isBig?0.45:0.42));
             const cX=x+w-cW-(isBig?8:6), cY=y+capH+(h-capH)-cH-10, domeH=Math.round(cH*0.22);
             return <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3} vw={SVG_VW} vh={SVG_VH}
-              title={T('compressor').title} text={T('compressor').text} onClick={go}/>;
+              title={T('compressor').title} text={T('compressor').text} onClick={go} highlight/>;
           })()}
         </>}
-      <HoverInfo x={x+3} y={y+h-18} w={w-6} h={15} rx={2} vw={SVG_VW} vh={SVG_VH}
-        title={T('seer_badge').title} text={T('seer_badge').text} onClick={go}/>
     </>;
   };
   // Which step the homeowner is looking at RIGHT NOW, regardless of whether
@@ -1454,7 +1418,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   const line1C = refReversed ? '#2389e0' : '#ef4444';
   const line2C = refReversed ? '#ef4444' : '#2389e0';
 
-  const TL={fedmin:'14 SEER2',mid_ge15:'18 SEER2',high_ge18:'21 SEER2'}[a.cond_tier]||'';
   // Real motor type at the indoor blower differs by tier - this is new
   // information the diagram didn't previously show at all. Federal Minimum
   // pairs with a single/multi-tap ECM (electronically commutated motor,
@@ -2501,29 +2464,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               fill={active?line1C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
             <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
               fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.65:0.4}/>
-            {/* Clamped to sit just above the SEER badge instead of
-                cY+cH+domeH+10, which always lands domeH px below the
-                cabinet's own bottom edge (cY+cH already equals y+h-10) --
-                that pushed this label out of the housing entirely, where
-                it overlapped the outside-zone's "CONCRETE PAD"/"GROUND
-                LEVEL" text underneath it. */}
+            {/* y+h-22 instead of cY+cH+domeH+10, which always lands domeH
+                px below the cabinet's own bottom edge (cY+cH already
+                equals y+h-10) - that pushed this label out of the housing
+                entirely, where it overlapped the outside-zone's "CONCRETE
+                PAD"/"GROUND LEVEL" text underneath it. */}
             <text x={cX+cW/2} y={y+h-22} textAnchor="middle"
               fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
             <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('compressor').title} text={T('compressor').text}
-              onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
+              onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
           </g>;
         })()}
-        {/* SEER badge - same active/refReversed-tinted treatment as the
-            mid/high tiers' own badge below (isMini/isBig), which this one
-            used to skip entirely (a flat dark-gray fill regardless of
-            mode) - fed-min was the only tier whose SEER badge never
-            actually reflected whether the system was running, or which
-            direction it was running in. */}
-        <rect x={x+3} y={y+h-18} width={w-6} height={15} rx="2"
-          fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
-        <text x={x+w/2} y={y+h-6} textAnchor="middle"
-          fill="#fff" fontSize="12.5" fontFamily="monospace" fontWeight="700">{TL}</text>
       </>}
 
       {isMini&&<>
@@ -2630,11 +2582,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               fill={active?cc:"rgba(200,204,210,.6)"} fontSize="8.5" fontFamily="sans-serif" fontWeight="700">VS</text>
           </>;
         })()}
-        {/* SEER badge */}
-        <rect x={x+3} y={y+h-18} width={w-6} height={15} rx="2"
-          fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
-        <text x={x+w/2} y={y+h-6} textAnchor="middle"
-          fill="#fff" fontSize="12.5" fontFamily="monospace" fontWeight="700">{TL}</text>
+        {/* Compressor hover - this tier's front-discharge cabinet is
+            sealed (no visible compressor dome the way fed-min/high-eff's
+            top-discharge unibody exposes one), but a real one still sits
+            inside, behind the service-access panel just rendered above -
+            recomputing that same panelX/panelW/panelY/panelH here rather
+            than threading it out of that IIFE, same convention used
+            throughout this file. */}
+        {(()=>{
+          const panelX=x+Math.round(w*0.7);
+          const panelW=w-Math.round(w*0.7)-2;
+          const panelY=y+Math.round(h*0.1)+4;
+          const panelH=h-Math.round(h*0.1)-8;
+          return <HoverInfo x={panelX-4} y={panelY-4} w={panelW+8} h={panelH+8} rx={4}
+            vw={SVG_VW} vh={SVG_VH} title={T('compressor').title} text={T('compressor').text}
+            onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>;
+        })()}
       </>}
 
       {isBig&&<>
@@ -2754,29 +2717,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               fill={active?line1C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
             <rect x={cX-6} y={cY+domeH+Math.round(cH*0.25)} width={8} height={4} rx="1"
               fill={active?line2C:"rgba(60,65,75,.5)"} opacity={active?0.7:0.4}/>
-            {/* Clamped above the SEER badge -- see the fed-min compressor
-                label's note on why the unclamped cY+cH+domeH+10 offset
-                always falls domeH px below the cabinet's own bottom edge. */}
+            {/* y+h-22 -- see the fed-min compressor label's own note on
+                why the unclamped cY+cH+domeH+10 offset always falls domeH
+                px below the cabinet's own bottom edge. */}
             <text x={cX+cW/2} y={y+h-22} textAnchor="middle"
               fill={active?cc:"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
             <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('compressor').title} text={T('compressor').text}
-              onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
+              onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
           </g>;
         })()}
-        {/* SEER badge */}
-        <rect x={x+3} y={y+h-18} width={w-6} height={15} rx="2"
-          fill={active?(refReversed?"url(#blue)":"url(#red-g)"):"url(#gold)"} opacity=".6"/>
-        <text x={x+w/2} y={y+h-6} textAnchor="middle"
-          fill="#fff" fontSize="12.5" fontFamily="monospace" fontWeight="700">{TL}</text>
       </>}
-      {/* SEER badge hover - same x/y/w/h in all three tiers above, so one
-          call here (outside the isFed/isMini/isBig split) covers all of
-          them. Painted last/topmost in this <g>, on top of the general
-          cabinet hover above. */}
-      <HoverInfo x={x+3} y={y+h-18} w={w-6} h={15} rx={2} vw={SVG_VW} vh={SVG_VH}
-        title={T('seer_badge').title} text={T('seer_badge').text}
-        onClick={onEditStep?()=>onEditStep('cond_tier'):undefined}/>
     </g>;
   }
 
@@ -3694,25 +3645,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // three designs aren't the same height), so this places the
             // row just under whichever caption this build actually shows.
             const btnY=isProprietary?76:isWifi?74:56;
-            // Wire-backplate panel (see ThermWireBacking above) - sits just
-            // under the button row, hover-revealed only, so it never adds
-            // to the box THERM_MAX_SCALE/EditZone size against in the
-            // default state. wireY/wirePanelH size the invisible hover
-            // hit-box below to cover the panel too, so moving the pointer
-            // off the thermostat face and onto the now-visible panel itself
-            // doesn't immediately hide it again.
-            const {letters:wireLetters,note:wireNote}=thermWireLetters(a.thermostat,isDualFuel);
-            // +16 (not +6) below the button row - StepFocusRing's own
-            // dashed ring (see its call site further down) extends a bit
-            // past THERM_H's own edge, and a smaller gap here let the
-            // panel's "LOW-VOLTAGE TERMINALS" header sit right on top of
-            // that ring's bottom edge on the wizard's current-step+hover
-            // combination. Purely a hover-reveal overlay either way, so
-            // pushing it down further costs nothing against
-            // THERM_MAX_SCALE/LIVING_SPACE's own budget.
-            const wireY=btnY+15+16;
-            const wirePanelH=thermWireLayout(wireLetters,wireNote).h;
-            const hoverLocalH=wireY+wirePanelH+8;
             // Shoulder-season swing readout - see isMildHp's own definition
             // far below (reused as-is, not redefined here, so this always
             // agrees with thermostatTemp's own 70-vs-67 split just above
@@ -3732,28 +3664,23 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               onMouseLeave={()=>setHoverPart(null)}>
             {/* Invisible hover target, sized in outer canvas space like
                 EditZone's own hit-rect just below (same THERM_TX/TY/W/H
-                origin) but taller, to also cover the wire panel once it's
-                revealed. pointer-events:all so a fully transparent fill
-                still registers the hover that :hover-reveals
-                .therm-wire-backing (see styles.css). The general-info
-                mouseenter/mouseleave pair live on the OUTER g instead of
-                this rect - EditZone/the COOL/HEAT buttons are painted
-                after this rect (deliberately, so THEIR clicks still land
-                correctly - see their own comments below) and would
-                otherwise be the actual hover target for most of this box,
-                so a handler on this rect alone would miss most hovers;
-                React's enter/leave events bubble to this ancestor the
-                same way :hover already does for the CSS-driven wire panel
-                below. */}
+                origin). pointer-events:all so a fully transparent fill
+                still registers the hover. The general-info mouseenter/
+                mouseleave pair live on the OUTER g instead of this rect -
+                EditZone/the COOL/HEAT buttons are painted after this rect
+                (deliberately, so THEIR clicks still land correctly - see
+                their own comments below) and would otherwise be the actual
+                hover target for most of this box, so a handler on this
+                rect alone would miss most hovers; React's enter/leave
+                events bubble to this ancestor. */}
             <rect x={THERM_TX-2} y={THERM_TY-2} width={THERM_W+4}
-              height={hoverLocalH*THERM_SCALE+4}
+              height={THERM_H+4}
               fill="transparent" style={{pointerEvents:'all'}}/>
-            {/* General "what is this" thermostat tooltip - purely additive
-                alongside the wire-backplate panel below: no new hit-rect
-                (the invisible rect just above already reports its own
-                hover to setHoverPart, same mechanism HoverInfo itself
-                uses - see the module comment on HoverCtx), so it never
-                fights the wire panel or the COOL/HEAT buttons/EditZone
+            {/* General "what is this" thermostat tooltip - purely additive:
+                no new hit-rect (the invisible rect just above already
+                reports its own hover to setHoverPart, same mechanism
+                HoverInfo itself uses - see the module comment on
+                HoverCtx), so it never fights the COOL/HEAT buttons/EditZone
                 painted after it for clicks. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
             {(()=>{
@@ -3815,7 +3742,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 underneath it - see EditZone's own onClick above. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
               <ThermModeButtons x={0} y={btnY} w={30} h={15} gap={4} fontSize={8.5}/>
-              <ThermWireBacking x={0} y={wireY} w={64} letters={wireLetters} note={wireNote}/>
             </g>
           </g>;
           })()}
@@ -3827,25 +3753,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               footprint without touching LIVING_SPACE. Skipped in the
               narrow-margin fallback (THERM_IN_MARGIN false), where the
               thermostat itself is already squeezed into the living-space
-              band with no room to spare below it. Positioned off the same
-              hoverLocalH the thermostat's own hover hit-rect uses (not
-              just THERM_H) - THERM_H alone is only the always-visible
-              footprint; the wire-backplate panel reveals BELOW that on
-              hover, and this used to sit right where that panel pops out
-              to, blocking it. Recomputes the same btnY/wire numbers the
-              thermostat block above already derives (not threaded out of
-              that IIFE) rather than restructure it. */}
-          {hasDehu&&hasTstat&&THERM_IN_MARGIN&&(()=>{
-            const isProprietaryD=a.thermostat==='proprietary';
-            const isWifiD=a.thermostat==='wifi'&&!isProprietaryD;
-            const btnYD=isProprietaryD?76:isWifiD?74:56;
-            const {letters:wireLettersD,note:wireNoteD}=thermWireLetters(a.thermostat,isDualFuel);
-            const wireYD=btnYD+15+16;
-            const hoverLocalHD=wireYD+thermWireLayout(wireLettersD,wireNoteD).h+8;
-            return <DehumidistatWall
-              x={THERM_TX+32*THERM_SCALE-22} y={THERM_TY+hoverLocalHD*THERM_SCALE+14}
-              lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
-          })()}
+              band with no room to spare below it. */}
+          {hasDehu&&hasTstat&&THERM_IN_MARGIN&&<DehumidistatWall
+            x={THERM_TX+32*THERM_SCALE-22} y={THERM_TY+THERM_H+14}
+            lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
 
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
@@ -4838,19 +4749,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // caption this build actually shows, same reasoning as the
             // attic thermostat's own btnY just above.
             const btnY=isProprietaryC?TY+90:isWifiC?TY+93:TY+65;
-            // Wire-backplate panel (see ThermWireBacking + comments at the
-            // attic thermostat's own call site above) - same hover-reveal
-            // mechanism, just in the closet layout's unscaled absolute
-            // coordinates instead of a scaled local <g>.
-            const {letters:wireLettersC,note:wireNoteC}=thermWireLetters(a.thermostat,isDualFuel);
-            // +16 (not +6) - same StepFocusRing-clearance reasoning as the
-            // attic thermostat's own wireY above.
-            const wireYC=btnY+17+16;
-            const wirePanelHC=thermWireLayout(wireLettersC,wireNoteC).h;
-            // EditZone's own hit box below is already a generous fixed
-            // 82x116 - only grow the hover box beyond that if the revealed
-            // panel would actually stick out past its bottom edge.
-            const hoverHC=Math.max(116,(wireYC-TY)+wirePanelHC+10);
             // isMildHp alone doesn't imply heatMode - see the attic
             // thermostat's own showRange comment above.
             const showRangeC=heatMode&&isMildHp;
@@ -4867,7 +4765,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 pair lives on the outer g (not this rect) for the same
                 "EditZone/buttons paint after this and would otherwise be
                 the actual hover target" reason as there. */}
-            <rect x={TX-2} y={TY-2} width={82} height={hoverHC}
+            <rect x={TX-2} y={TY-2} width={82} height={116}
               fill="transparent" style={{pointerEvents:'all'}}/>
             {(()=>{
               const modeColorC=heatMode?"#f97316":"#2389e0";
@@ -4924,7 +4822,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 lands on the button, not the done-screen's edit-zone overlay
                 underneath it - see EditZone's own onClick above. */}
             <ThermModeButtons x={TX} y={btnY} w={36} h={17} gap={4} fontSize={9.5}/>
-            <ThermWireBacking x={TX} y={wireYC} w={76} letters={wireLettersC} note={wireNoteC}/>
           </g>;
           })()}
 

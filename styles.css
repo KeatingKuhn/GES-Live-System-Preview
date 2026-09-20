@@ -360,21 +360,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .therm-btn:hover{opacity:1}
 .therm-btn-cool:hover{filter:drop-shadow(0 0 2.5px rgba(91,168,245,.95)) drop-shadow(0 0 1px rgba(91,168,245,.95))}
 .therm-btn-heat:hover{filter:drop-shadow(0 0 2.5px rgba(249,115,22,.95)) drop-shadow(0 0 1px rgba(249,115,22,.95))}
-/* Thermostat wire-backplate (ThermWireBacking in canvas.js) - the low-
-   voltage terminal set a real thermostat mounts over, revealed on hover
-   only so it never grows the thermostat's own always-visible footprint
-   (THERM_MAX_SCALE/LIVING_SPACE are both sized without it in mind - see
-   canvas.js). Same reveal-on-hover shape as .edit-zone-ring just above,
-   just keyed off .therm-hover-zone (an invisible hit-rect painted at each
-   thermostat call site, present in both the wizard and the done screen)
-   instead of .edit-zone (done-screen only). */
-.therm-wire-backing{opacity:0;transition:opacity .18s ease-out;pointer-events:none}
-.therm-hover-zone:hover .therm-wire-backing{opacity:1}
-
 /* Generic "what is this" hover tooltip (HoverInfo/HoverCtx/HoverPanel in
    canvas.js) - every individually-hoverable diagram part, in both the
    wizard and the done screen, at all times (not gated behind the diagram
-   being finished). Unlike .edit-zone-ring/.therm-wire-backing above, the
+   being finished). Unlike .edit-zone-ring above, the
    panel itself isn't CSS-revealed here - each hover zone reports its own
    mouseenter/mouseleave to one shared piece of React state (Canvas's own
    hoverPart) instead, so the single resulting panel can be rendered as

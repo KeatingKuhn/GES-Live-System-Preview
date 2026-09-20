@@ -1374,75 +1374,6 @@
       gap: 5
     } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
   }
-  var WIRE_COLORS = { R: "#ef4444", C: "#60a5fa", W: "#f8fafc", W2: "#f8fafc", Y: "#facc15", Y2: "#facc15", G: "#22c55e", "O/B": "#fb923c", D1: "#a78bfa", D2: "#a78bfa" };
-  function thermWireLetters(thermType, isDualFuel) {
-    if (thermType === "proprietary") return { letters: ["R", "C", "D1", "D2"], note: "4-WIRE COMM BUS" };
-    if (thermType === "wifi") return { letters: isDualFuel ? ["R", "C", "W", "W2", "Y", "Y2", "G", "O/B"] : ["R", "C", "W", "Y", "G", "O/B", "Y2"], note: null };
-    return { letters: isDualFuel ? ["R", "C", "W", "W2", "Y", "G"] : ["R", "C", "W", "Y", "G"], note: null };
-  }
-  function thermWireLayout(letters, note) {
-    const cols = letters.length <= 6 ? letters.length : Math.ceil(letters.length / 2);
-    const rows = Math.ceil(letters.length / cols);
-    const rowH = 13, padTop = 11;
-    return { cols, rows, h: padTop + rows * rowH + (note ? 11 : 5) };
-  }
-  function ThermWireBacking({ x, y, w, letters, note }) {
-    const { cols, rows, h } = thermWireLayout(letters, note);
-    const cellW = w / cols, rowH = 13, padTop = 11;
-    return /* @__PURE__ */ React.createElement("g", { className: "therm-wire-backing", transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement(
-      "rect",
-      {
-        x: -4,
-        y: -4,
-        width: w + 8,
-        height: h + 8,
-        rx: "4",
-        fill: "#171310",
-        stroke: "rgba(215,183,64,.4)",
-        strokeWidth: "0.8"
-      }
-    ), /* @__PURE__ */ React.createElement(
-      "text",
-      {
-        x: w / 2,
-        y: 7.5,
-        textAnchor: "middle",
-        fill: "rgba(255,255,255,.55)",
-        fontSize: "6",
-        fontFamily: "monospace",
-        letterSpacing: ".03em"
-      },
-      "LOW-VOLTAGE TERMINALS"
-    ), letters.map((L, i) => {
-      const col = i % cols, row = Math.floor(i / cols);
-      const cx = cellW * col + cellW / 2, cy = padTop + row * rowH + 3;
-      const color = WIRE_COLORS[L] || "#e5e7eb";
-      return /* @__PURE__ */ React.createElement("g", { key: L + i }, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: "3.2", fill: color, stroke: "rgba(0,0,0,.45)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: cx,
-          y: cy + 9.5,
-          textAnchor: "middle",
-          fill: "rgba(255,255,255,.72)",
-          fontSize: "5.6",
-          fontFamily: "monospace",
-          fontWeight: "700"
-        },
-        L
-      ));
-    }), note && /* @__PURE__ */ React.createElement(
-      "text",
-      {
-        x: w / 2,
-        y: h - 2,
-        textAnchor: "middle",
-        fill: "rgba(255,255,255,.42)",
-        fontSize: "5.4",
-        fontFamily: "monospace"
-      },
-      note
-    ));
-  }
   function DehumidistatWall({ x, y, lang, vw, vh }) {
     const W = 44, H = 40;
     const info = partInfo("dehumidistat", lang);
@@ -1477,7 +1408,7 @@
     return lines;
   }
   function HoverPanel({ part }) {
-    const { x, y, w, h, vw, vh, title, text } = part;
+    const { x, y, w, h, rx, vw, vh, title, text, highlight } = part;
     const FONT = 9.3, LINE_H = 12, PAD = 8, PANEL_W = 172, TITLE_H = 19;
     const maxChars = Math.max(10, Math.floor((PANEL_W - PAD * 2) / (FONT * 0.56)));
     const lines = hiWrapText(text, maxChars);
@@ -1490,7 +1421,21 @@
       if (px < 4) px = 4;
       if (px + PANEL_W > vw - 4) px = Math.max(4, vw - 4 - PANEL_W);
     }
-    return /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, highlight && /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x: x - 3,
+        y: y - 3,
+        width: w + 6,
+        height: h + 6,
+        rx: (rx || 3) + 3,
+        fill: "rgba(215,183,64,.06)",
+        stroke: "rgba(215,183,64,.95)",
+        strokeWidth: "2.5",
+        filter: "url(#glow-sm)",
+        style: { pointerEvents: "none" }
+      }
+    ), /* @__PURE__ */ React.createElement(
       "g",
       {
         className: "hover-info-panel",
@@ -1514,12 +1459,12 @@
       /* @__PURE__ */ React.createElement("text", { x: PAD, y: 13, fill: "#d7b740", fontSize: "10.5", fontFamily: "monospace", fontWeight: "700" }, title),
       /* @__PURE__ */ React.createElement("line", { x1: PAD, y1: TITLE_H - 2, x2: PANEL_W - PAD, y2: TITLE_H - 2, stroke: "rgba(215,183,64,.25)", strokeWidth: "0.6" }),
       lines.map((ln, i) => /* @__PURE__ */ React.createElement("text", { key: i, x: PAD, y: TITLE_H + 9 + i * LINE_H, fill: "rgba(240,242,248,.86)", fontSize: FONT, fontFamily: "sans-serif" }, ln))
-    );
+    ));
   }
-  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick }) {
+  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick, highlight }) {
     const setHover = React.useContext(HoverCtx);
     if (!title) return null;
-    const part = { x, y, w, h, vw, vh, title, text };
+    const part = { x, y, w, h, rx, vw, vh, title, text, highlight };
     return /* @__PURE__ */ React.createElement("g", { className: "hover-info-zone" }, /* @__PURE__ */ React.createElement(
       "rect",
       {
@@ -1589,10 +1534,6 @@
     compressor: {
       en: { title: "COMPRESSOR", text: "Pressurizes the refrigerant - the part that does the actual work of moving heat in or out of your home." },
       es: { title: "COMPRESOR", text: "Presuriza el refrigerante - la parte que realiza el trabajo real de mover el calor dentro o fuera de su hogar." }
-    },
-    seer_badge: {
-      en: { title: "SEER2 RATING", text: "Measures cooling efficiency - higher means more cooling for the same electricity, and lower bills." },
-      es: { title: "CLASIFICACI\xD3N SEER2", text: "Mide la eficiencia de enfriamiento - m\xE1s alto significa m\xE1s enfriamiento con la misma electricidad, y facturas m\xE1s bajas." }
     },
     disconnect: {
       en: { title: "DISCONNECT BOX", text: "Lets a technician cut power to the condenser right at the unit before servicing it - a safety requirement on every install." },
@@ -1965,7 +1906,9 @@
         }
       ), isMini ? (() => {
         const fanAreaW = Math.round(w * 0.68), fanAreaH = h - Math.round(h * 0.1) - 4, fanAreaY = y + Math.round(h * 0.1) + 2;
-        return /* @__PURE__ */ React.createElement(
+        const panelX = x + Math.round(w * 0.7), panelW = w - Math.round(w * 0.7) - 2;
+        const panelY = y + Math.round(h * 0.1) + 4, panelH = h - Math.round(h * 0.1) - 8;
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x,
@@ -1979,7 +1922,22 @@
             text: T("condenser_fan").text,
             onClick: go
           }
-        );
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: panelX - 4,
+            y: panelY - 4,
+            w: panelW + 8,
+            h: panelH + 8,
+            rx: 4,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("compressor").title,
+            text: T("compressor").text,
+            onClick: go,
+            highlight: true
+          }
+        ));
       })() : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -2009,24 +1967,11 @@
             vh: SVG_VH,
             title: T("compressor").title,
             text: T("compressor").text,
-            onClick: go
+            onClick: go,
+            highlight: true
           }
         );
-      })()), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: x + 3,
-          y: y + h - 18,
-          w: w - 6,
-          h: 15,
-          rx: 2,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("seer_badge").title,
-          text: T("seer_badge").text,
-          onClick: go
-        }
-      ));
+      })()));
     };
     const curStepId = activeSteps && activeSteps[stepIdx] ? activeSteps[stepIdx].id : null;
     const MIN_FOCUS_PX = 28;
@@ -2199,7 +2144,6 @@
     const condC = heatMode && (!hasFurnace || isDualFuel && heatSubMode === "hp") ? "#2389e0" : "#ef4444";
     const line1C = refReversed ? "#2389e0" : "#ef4444";
     const line2C = refReversed ? "#ef4444" : "#2389e0";
-    const TL = { fedmin: "14 SEER2", mid_ge15: "18 SEER2", high_ge18: "21 SEER2" }[a.cond_tier] || "";
     const BLOWER_MOTOR = { fedmin: "ECM MOTOR", mid_ge15: "VARIABLE SPEED", high_ge18: "MOD. VAR. SPEED" }[a.cond_tier] || "";
     function BlowerWheel({ cx, cy, r, spd, active }) {
       r = r || 28;
@@ -3380,33 +3324,11 @@
             vh: SVG_VH,
             title: T("compressor").title,
             text: T("compressor").text,
-            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
+            highlight: true
           }
         ));
-      })(), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: x + 3,
-          y: y + h - 18,
-          width: w - 6,
-          height: 15,
-          rx: "2",
-          fill: active ? refReversed ? "url(#blue)" : "url(#red-g)" : "url(#gold)",
-          opacity: ".6"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: x + w / 2,
-          y: y + h - 6,
-          textAnchor: "middle",
-          fill: "#fff",
-          fontSize: "12.5",
-          fontFamily: "monospace",
-          fontWeight: "700"
-        },
-        TL
-      )), isMini && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      })()), isMini && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         "rect",
         {
           x,
@@ -3584,30 +3506,28 @@
           },
           "VS"
         ));
-      })(), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: x + 3,
-          y: y + h - 18,
-          width: w - 6,
-          height: 15,
-          rx: "2",
-          fill: active ? refReversed ? "url(#blue)" : "url(#red-g)" : "url(#gold)",
-          opacity: ".6"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: x + w / 2,
-          y: y + h - 6,
-          textAnchor: "middle",
-          fill: "#fff",
-          fontSize: "12.5",
-          fontFamily: "monospace",
-          fontWeight: "700"
-        },
-        TL
-      )), isBig && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      })(), (() => {
+        const panelX = x + Math.round(w * 0.7);
+        const panelW = w - Math.round(w * 0.7) - 2;
+        const panelY = y + Math.round(h * 0.1) + 4;
+        const panelH = h - Math.round(h * 0.1) - 8;
+        return /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: panelX - 4,
+            y: panelY - 4,
+            w: panelW + 8,
+            h: panelH + 8,
+            rx: 4,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("compressor").title,
+            text: T("compressor").text,
+            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
+            highlight: true
+          }
+        );
+      })()), isBig && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         "rect",
         {
           x,
@@ -3892,47 +3812,11 @@
             vh: SVG_VH,
             title: T("compressor").title,
             text: T("compressor").text,
-            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
+            onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
+            highlight: true
           }
         ));
-      })(), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: x + 3,
-          y: y + h - 18,
-          width: w - 6,
-          height: 15,
-          rx: "2",
-          fill: active ? refReversed ? "url(#blue)" : "url(#red-g)" : "url(#gold)",
-          opacity: ".6"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: x + w / 2,
-          y: y + h - 6,
-          textAnchor: "middle",
-          fill: "#fff",
-          fontSize: "12.5",
-          fontFamily: "monospace",
-          fontWeight: "700"
-        },
-        TL
-      )), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: x + 3,
-          y: y + h - 18,
-          w: w - 6,
-          h: 15,
-          rx: 2,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("seer_badge").title,
-          text: T("seer_badge").text,
-          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
-        }
-      ));
+      })()));
     }
     function CondensatePump({ x, y, w = 88, h = 28 }) {
       return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement(
@@ -4908,10 +4792,6 @@
         const isProprietary = a.thermostat === "proprietary";
         const isWifi = a.thermostat === "wifi" && !isProprietary;
         const btnY = isProprietary ? 76 : isWifi ? 74 : 56;
-        const { letters: wireLetters, note: wireNote } = thermWireLetters(a.thermostat, isDualFuel);
-        const wireY = btnY + 15 + 16;
-        const wirePanelH = thermWireLayout(wireLetters, wireNote).h;
-        const hoverLocalH = wireY + wirePanelH + 8;
         const showRange = heatMode && isMildHp;
         const tempDisplay = showRange ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
         return /* @__PURE__ */ React.createElement(
@@ -4938,7 +4818,7 @@
               x: THERM_TX - 2,
               y: THERM_TY - 2,
               width: THERM_W + 4,
-              height: hoverLocalH * THERM_SCALE + 4,
+              height: THERM_H + 4,
               fill: "transparent",
               style: { pointerEvents: "all" }
             }
@@ -5100,26 +4980,18 @@
               h: THERM_H + 4
             }
           ),
-          /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: 0, y: wireY, w: 64, letters: wireLetters, note: wireNote }))
+          /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5 }))
         );
-      })(), hasDehu && hasTstat && THERM_IN_MARGIN && (() => {
-        const isProprietaryD = a.thermostat === "proprietary";
-        const isWifiD = a.thermostat === "wifi" && !isProprietaryD;
-        const btnYD = isProprietaryD ? 76 : isWifiD ? 74 : 56;
-        const { letters: wireLettersD, note: wireNoteD } = thermWireLetters(a.thermostat, isDualFuel);
-        const wireYD = btnYD + 15 + 16;
-        const hoverLocalHD = wireYD + thermWireLayout(wireLettersD, wireNoteD).h + 8;
-        return /* @__PURE__ */ React.createElement(
-          DehumidistatWall,
-          {
-            x: THERM_TX + 32 * THERM_SCALE - 22,
-            y: THERM_TY + hoverLocalHD * THERM_SCALE + 14,
-            lang,
-            vw: SVG_VW,
-            vh: SVG_VH
-          }
-        );
-      })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
+      })(), hasDehu && hasTstat && THERM_IN_MARGIN && /* @__PURE__ */ React.createElement(
+        DehumidistatWall,
+        {
+          x: THERM_TX + 32 * THERM_SCALE - 22,
+          y: THERM_TY + THERM_H + 14,
+          lang,
+          vw: SVG_VW,
+          vh: SVG_VH
+        }
+      ), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
         const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
@@ -6520,10 +6392,6 @@
         const isProprietaryC = a.thermostat === "proprietary";
         const isWifiC = a.thermostat === "wifi" && !isProprietaryC;
         const btnY = isProprietaryC ? TY + 90 : isWifiC ? TY + 93 : TY + 65;
-        const { letters: wireLettersC, note: wireNoteC } = thermWireLetters(a.thermostat, isDualFuel);
-        const wireYC = btnY + 17 + 16;
-        const wirePanelHC = thermWireLayout(wireLettersC, wireNoteC).h;
-        const hoverHC = Math.max(116, wireYC - TY + wirePanelHC + 10);
         const showRangeC = heatMode && isMildHp;
         const tempDisplayC = showRangeC ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
         return /* @__PURE__ */ React.createElement(
@@ -6550,7 +6418,7 @@
               x: TX - 2,
               y: TY - 2,
               width: 82,
-              height: hoverHC,
+              height: 116,
               fill: "transparent",
               style: { pointerEvents: "all" }
             }
@@ -6711,8 +6579,7 @@
               h: 116
             }
           ),
-          /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5 }),
-          /* @__PURE__ */ React.createElement(ThermWireBacking, { x: TX, y: wireYC, w: 76, letters: wireLettersC, note: wireNoteC })
+          /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5 })
         );
       })(), hasDehu && hasTstat && (() => {
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
