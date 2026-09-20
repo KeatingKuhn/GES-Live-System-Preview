@@ -1476,25 +1476,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
       </>}
 
       {isBig&&<>
-        {/* HIGH EFF: light metal unibody cabinet - matched against a
-            reference photo of a real variable-speed high-efficiency
-            condenser, which reads as a light/medium gray unit (like
-            fed-min), not the near-black charcoal this used to be. Kept
-            a touch darker/richer than fed-min's plainer light gray so
-            the two tiers still read as different grades of the same
-            "light metal cabinet" family, and swapped fed-min's
-            horizontal chevron louvers for tall vertical fins here - the
-            real distinguishing texture between the two reference
-            photos, not just a density difference. */}
-        <rect x={x} y={y} width={w} height={h} rx={5}
-          fill={active?(refReversed?"#8e94a8":"#a5a8ae"):"#9a9da3"}
-          stroke={active?cc:"rgba(120,124,132,.8)"} strokeWidth={active?1.8:1.4}/>
+        {/* HIGH EFF: darker medium-gray unibody cabinet - a second pass
+            against the same American Standard reference photo, matching
+            its noticeably darker/richer gray (not the lighter tone this
+            used to be) so the two tiers read as clearly different grades:
+            fed-min's plain light gray vs. this darker, denser metal.
+            Rounded corners bumped to match fed-min's own rx (was a
+            flatter rx=5) and the cap picked up the same domed-highlight +
+            screw-ring treatment fed-min's reference pass added, for
+            visual consistency between the two tiers' cap designs. */}
+        <rect x={x} y={y} width={w} height={h} rx={10}
+          fill={active?(refReversed?"#767c8e":"#8c9096"):"#82868c"}
+          stroke={active?cc:"rgba(100,104,112,.85)"} strokeWidth={active?1.8:1.4}/>
         {/* Slim corner posts -- narrower than the old chamfer strips, a
             cleaner structural read instead of thick side blocks */}
         <rect x={x} y={y+4} width={5} height={h-8} rx="1.5"
-          fill={active?"#8a8e96":"#84888f"} stroke="rgba(70,74,82,.6)" strokeWidth="0.8"/>
+          fill={active?"#6d7178":"#65686f"} stroke="rgba(50,54,60,.7)" strokeWidth="0.8"/>
         <rect x={x+w-5} y={y+4} width={5} height={h-8} rx="1.5"
-          fill={active?"#8a8e96":"#84888f"} stroke="rgba(70,74,82,.6)" strokeWidth="0.8"/>
+          fill={active?"#6d7178":"#65686f"} stroke="rgba(50,54,60,.7)" strokeWidth="0.8"/>
         {/* Dark rounded top cap with CapFan - tightened padding (vs.
             fed-min's own x+2/w-4 inset) so the fan/hail-guard assembly
             dominates the cap the way it does in the reference photo,
@@ -1504,17 +1503,30 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         {(()=>{
           const capH=Math.round(h*0.24);
           return <>
-            <rect x={x} y={y} width={w} height={capH} rx={5}
+            <rect x={x} y={y} width={w} height={capH} rx={10}
               fill="#1e2024" stroke="rgba(150,154,162,.55)" strokeWidth="1.2"/>
+            {/* Domed-cap illusion, same technique as fed-min's reference
+                pass - a flat rect can't curve in this front-on view, so a
+                light highlight arc on top + dark shadow arc on bottom
+                fakes it bulging toward the viewer. */}
+            <path d={`M${x+10} ${y+2} Q${x+w/2} ${y-1.5} ${x+w-10} ${y+2}`}
+              fill="none" stroke="rgba(150,155,165,.4)" strokeWidth="1.1" opacity="0.7"/>
+            <path d={`M${x+7} ${y+capH-1.5} Q${x+w/2} ${y+capH+2} ${x+w-7} ${y+capH-1.5}`}
+              fill="none" stroke="rgba(10,11,13,.6)" strokeWidth="1.3" opacity="0.6"/>
             <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
               bladeColor={active?(refReversed?"rgba(100,160,220,.7)":"rgba(220,90,90,.65)"):"rgba(40,44,52,.6)"}
               slatFill={active?"rgba(24,27,33,.88)":"rgba(18,21,27,.92)"}
               ringColor={active?cc:"rgba(100,105,115,.55)"}
               slatCount={Math.max(9,Math.floor((capH-4)*0.72/2.6))}/>
-            {[[x+6,y+6],[x+w-6,y+6],[x+6,y+capH-6],[x+w-6,y+capH-6]].map(([sx,sy],i)=>(
-              <circle key={i} cx={sx} cy={sy} r={2}
-                fill="rgba(35,38,44,.9)" stroke="rgba(55,60,68,.5)" strokeWidth="0.5"/>
-            ))}
+            {/* Screw ring around the cap's outer edge (8, matching
+                fed-min's reference pass) instead of the old 4 corner-only
+                rivets. */}
+            {Array.from({length:8},(_,i)=>{
+              const ang=(i/8)*Math.PI*2;
+              const rx=(w/2-3), ry=(capH/2-2.5);
+              return <circle key={i} cx={x+w/2+rx*Math.cos(ang)} cy={y+capH/2+ry*Math.sin(ang)} r={1.8}
+                fill="rgba(35,38,44,.9)" stroke="rgba(55,60,68,.5)" strokeWidth="0.5"/>;
+            })}
           </>;
         })()}
         {/* Top-tier accent -- a slim pinstripe instead of the old thick
@@ -1535,19 +1547,32 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           const cols=Math.max(6,Math.floor((w-14)/step));
           return <>
             <rect x={x+6} y={bodyY} width={w-12} height={bodyH} rx="1.5"
-              fill={active?"rgba(150,154,160,.35)":"rgba(140,144,150,.3)"} stroke="rgba(100,104,110,.4)" strokeWidth="0.6"/>
+              fill={active?"rgba(120,124,130,.35)":"rgba(110,114,120,.32)"} stroke="rgba(80,84,90,.45)" strokeWidth="0.6"/>
             {Array.from({length:cols},(_,c)=>{
               const fx=x+7+c*step;
               return <rect key={c} x={fx} y={bodyY+2} width={finW} height={bodyH-4} rx="0.6"
-                fill={c%2===0?"rgba(175,179,185,.55)":"rgba(95,99,106,.45)"}/>;
+                fill={c%2===0?"rgba(145,149,155,.55)":"rgba(70,74,80,.5)"}/>;
             })}
             <line x1={midX} y1={bodyY} x2={midX} y2={bodyY+bodyH}
-              stroke="rgba(80,84,90,.55)" strokeWidth="1.4"/>
+              stroke="rgba(55,59,65,.6)" strokeWidth="1.4"/>
             <line x1={midX+1.2} y1={bodyY} x2={midX+1.2} y2={bodyY+bodyH}
-              stroke="rgba(200,204,210,.3)" strokeWidth="0.6"/>
+              stroke="rgba(170,174,180,.3)" strokeWidth="0.6"/>
+            {/* Round manufacturer badge, matching fed-min's reference
+                pass - deliberately blank (no text/logo), just the
+                generic medallion shape. */}
+            {(()=>{
+              const bcx=x+w/2, bcy=bodyY+bodyH*0.22;
+              const br=Math.round(Math.min(w,h)*0.085);
+              return <>
+                <ellipse cx={bcx} cy={bcy} rx={br} ry={br*0.78}
+                  fill="rgba(30,32,38,.6)" stroke="rgba(190,194,200,.5)" strokeWidth="1"/>
+                <ellipse cx={bcx} cy={bcy} rx={br*0.72} ry={br*0.58}
+                  fill="none" stroke="rgba(190,194,200,.32)" strokeWidth="0.6"/>
+              </>;
+            })()}
           </>;
         })()}
-        {active&&<rect x={x} y={y} width={w} height={h} rx={5}
+        {active&&<rect x={x} y={y} width={w} height={h} rx={10}
           fill={refReversed?"rgba(35,137,224,.04)":"rgba(239,68,68,.03)"} stroke="none"/>}
         <rect x={x} y={y+h-6} width={w} height={6} rx={2}
           fill="#14151a" stroke="rgba(20,22,28,.8)" strokeWidth="0.7"/>

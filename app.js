@@ -2276,9 +2276,9 @@
           y,
           width: w,
           height: h,
-          rx: 5,
-          fill: active ? refReversed ? "#8e94a8" : "#a5a8ae" : "#9a9da3",
-          stroke: active ? cc : "rgba(120,124,132,.8)",
+          rx: 10,
+          fill: active ? refReversed ? "#767c8e" : "#8c9096" : "#82868c",
+          stroke: active ? cc : "rgba(100,104,112,.85)",
           strokeWidth: active ? 1.8 : 1.4
         }
       ), /* @__PURE__ */ React.createElement(
@@ -2289,8 +2289,8 @@
           width: 5,
           height: h - 8,
           rx: "1.5",
-          fill: active ? "#8a8e96" : "#84888f",
-          stroke: "rgba(70,74,82,.6)",
+          fill: active ? "#6d7178" : "#65686f",
+          stroke: "rgba(50,54,60,.7)",
           strokeWidth: "0.8"
         }
       ), /* @__PURE__ */ React.createElement(
@@ -2301,8 +2301,8 @@
           width: 5,
           height: h - 8,
           rx: "1.5",
-          fill: active ? "#8a8e96" : "#84888f",
-          stroke: "rgba(70,74,82,.6)",
+          fill: active ? "#6d7178" : "#65686f",
+          stroke: "rgba(50,54,60,.7)",
           strokeWidth: "0.8"
         }
       ), (() => {
@@ -2314,10 +2314,28 @@
             y,
             width: w,
             height: capH,
-            rx: 5,
+            rx: 10,
             fill: "#1e2024",
             stroke: "rgba(150,154,162,.55)",
             strokeWidth: "1.2"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "path",
+          {
+            d: `M${x + 10} ${y + 2} Q${x + w / 2} ${y - 1.5} ${x + w - 10} ${y + 2}`,
+            fill: "none",
+            stroke: "rgba(150,155,165,.4)",
+            strokeWidth: "1.1",
+            opacity: "0.7"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "path",
+          {
+            d: `M${x + 7} ${y + capH - 1.5} Q${x + w / 2} ${y + capH + 2} ${x + w - 7} ${y + capH - 1.5}`,
+            fill: "none",
+            stroke: "rgba(10,11,13,.6)",
+            strokeWidth: "1.3",
+            opacity: "0.6"
           }
         ), /* @__PURE__ */ React.createElement(
           CapFan,
@@ -2332,18 +2350,22 @@
             ringColor: active ? cc : "rgba(100,105,115,.55)",
             slatCount: Math.max(9, Math.floor((capH - 4) * 0.72 / 2.6))
           }
-        ), [[x + 6, y + 6], [x + w - 6, y + 6], [x + 6, y + capH - 6], [x + w - 6, y + capH - 6]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement(
-          "circle",
-          {
-            key: i,
-            cx: sx,
-            cy: sy,
-            r: 2,
-            fill: "rgba(35,38,44,.9)",
-            stroke: "rgba(55,60,68,.5)",
-            strokeWidth: "0.5"
-          }
-        )));
+        ), Array.from({ length: 8 }, (_, i) => {
+          const ang = i / 8 * Math.PI * 2;
+          const rx = w / 2 - 3, ry = capH / 2 - 2.5;
+          return /* @__PURE__ */ React.createElement(
+            "circle",
+            {
+              key: i,
+              cx: x + w / 2 + rx * Math.cos(ang),
+              cy: y + capH / 2 + ry * Math.sin(ang),
+              r: 1.8,
+              fill: "rgba(35,38,44,.9)",
+              stroke: "rgba(55,60,68,.5)",
+              strokeWidth: "0.5"
+            }
+          );
+        }));
       })(), /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -2368,8 +2390,8 @@
             width: w - 12,
             height: bodyH,
             rx: "1.5",
-            fill: active ? "rgba(150,154,160,.35)" : "rgba(140,144,150,.3)",
-            stroke: "rgba(100,104,110,.4)",
+            fill: active ? "rgba(120,124,130,.35)" : "rgba(110,114,120,.32)",
+            stroke: "rgba(80,84,90,.45)",
             strokeWidth: "0.6"
           }
         ), Array.from({ length: cols }, (_, c) => {
@@ -2383,7 +2405,7 @@
               width: finW,
               height: bodyH - 4,
               rx: "0.6",
-              fill: c % 2 === 0 ? "rgba(175,179,185,.55)" : "rgba(95,99,106,.45)"
+              fill: c % 2 === 0 ? "rgba(145,149,155,.55)" : "rgba(70,74,80,.5)"
             }
           );
         }), /* @__PURE__ */ React.createElement(
@@ -2393,7 +2415,7 @@
             y1: bodyY,
             x2: midX,
             y2: bodyY + bodyH,
-            stroke: "rgba(80,84,90,.55)",
+            stroke: "rgba(55,59,65,.6)",
             strokeWidth: "1.4"
           }
         ), /* @__PURE__ */ React.createElement(
@@ -2403,10 +2425,36 @@
             y1: bodyY,
             x2: midX + 1.2,
             y2: bodyY + bodyH,
-            stroke: "rgba(200,204,210,.3)",
+            stroke: "rgba(170,174,180,.3)",
             strokeWidth: "0.6"
           }
-        ));
+        ), (() => {
+          const bcx = x + w / 2, bcy = bodyY + bodyH * 0.22;
+          const br = Math.round(Math.min(w, h) * 0.085);
+          return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+            "ellipse",
+            {
+              cx: bcx,
+              cy: bcy,
+              rx: br,
+              ry: br * 0.78,
+              fill: "rgba(30,32,38,.6)",
+              stroke: "rgba(190,194,200,.5)",
+              strokeWidth: "1"
+            }
+          ), /* @__PURE__ */ React.createElement(
+            "ellipse",
+            {
+              cx: bcx,
+              cy: bcy,
+              rx: br * 0.72,
+              ry: br * 0.58,
+              fill: "none",
+              stroke: "rgba(190,194,200,.32)",
+              strokeWidth: "0.6"
+            }
+          ));
+        })());
       })(), active && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -2414,7 +2462,7 @@
           y,
           width: w,
           height: h,
-          rx: 5,
+          rx: 10,
           fill: refReversed ? "rgba(35,137,224,.04)" : "rgba(239,68,68,.03)",
           stroke: "none"
         }
