@@ -303,13 +303,44 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
       // on the cabinet without cutting through that label.
       const exitY1=condY+condH*0.78;
       const exitY2=condY+condH*0.86;
+      // Diagonal tick marks along a polyline - the wrapped-tape look of a
+      // real lineset's insulation jacket (a spiral of vinyl tape over the
+      // foam sleeve), at a 45°-ish lean rather than perpendicular rings
+      // (DuctRibbing's own convention, reserved for flex-duct's actual
+      // wire-corrugation look) so the two materials read distinctly.
+      const wrapTicks=(pts,width,opacity)=>{
+        const out=[];
+        for(let s=0;s<pts.length-1;s++){
+          const [x1,y1]=pts[s], [x2,y2]=pts[s+1];
+          const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1;
+          const ux=dx/len, uy=dy/len, px=-uy, py=ux;
+          const n=Math.max(1,Math.floor(len/7));
+          for(let i=0;i<n;i++){
+            const t=(i+0.5)*7;
+            const cx=x1+ux*t, cy=y1+uy*t, skew=width*0.4;
+            out.push(<line key={s+'_'+i} x1={cx-px*width/2-ux*skew} y1={cy-py*width/2-uy*skew}
+              x2={cx+px*width/2+ux*skew} y2={cy+py*width/2+uy*skew}
+              stroke={`rgba(0,0,0,${opacity})`} strokeWidth="0.9"/>);
+          }
+        }
+        return out;
+      };
+      // Flanged wall bushing - the raised trim collar every real lineset
+      // wall penetration actually has around the sealed hole, not just a
+      // flat tinted rectangle standing in for "there's a hole here".
+      const bushing=(by1,by2,key)=>(
+        <g key={key}>
+          <rect x={sidingX+1} y={by1-6} width={wallThick-2} height={by2-by1+12} rx="2"
+            fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
+          <rect x={sidingX-1.5} y={by1-8} width={wallThick+3} height={by2-by1+16} rx="2.5"
+            fill="none" stroke="rgba(180,150,80,.4)" strokeWidth="1"/>
+          <circle cx={sidingX+2.5} cy={by1-6.5} r="1" fill="rgba(190,160,90,.55)"/>
+          <circle cx={sidingX+wallThick-2.5} cy={by2+7.5} r="1" fill="rgba(190,160,90,.55)"/>
+        </g>
+      );
       return <>
-        {/* Wall penetration - top, where the indoor-side pipe enters the cavity */}
-        <rect x={sidingX+1} y={lineY1-6} width={wallThick-2} height={lineY2-lineY1+12} rx="2"
-          fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
-        {/* Wall penetration - low, where it exits toward the condenser */}
-        <rect x={sidingX+1} y={exitY1-6} width={wallThick-2} height={exitY2-exitY1+12} rx="2"
-          fill="rgba(120,85,30,.25)" stroke="rgba(150,110,40,.35)" strokeWidth="0.8"/>
+        {bushing(lineY1,lineY2,'busTop')}
+        {bushing(exitY1,exitY2,'busBot')}
         <text x={sidingX+wallThick/2} y={exitY2+16} textAnchor="middle"
           fill="rgba(150,110,40,.5)" fontSize="11.5" fontFamily="monospace">LINESET</text>
         {/* Foam sleeve on pipes - down inside the wall, then into the condenser */}
@@ -317,12 +348,24 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
         <path d={`M${px2} ${lineY2} L${px2} ${exitY2} L${condX} ${exitY2}`}
           fill="none" stroke="rgba(30,30,50,.55)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* Spiral-wrap tape ticks over both foam sleeves */}
+        <g>{wrapTicks([[px1,lineY1],[px1,exitY1],[condX,exitY1]],8,0.28)}</g>
+        <g>{wrapTicks([[px2,lineY2],[px2,exitY2],[condX,exitY2]],8,0.24)}</g>
         {/* Liquid line - full bold red/blue */}
         <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
           fill="none" stroke={line1C} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="line-pulse"/>
         {/* Suction line - full bold, offset */}
         <path d={`M${px2} ${lineY2} L${px2} ${exitY2} L${condX} ${exitY2}`}
           fill="none" stroke={line2C} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
+        {/* Mounting straps - clip the paired lines to the wall along the
+            horizontal exterior run, the way a real installer straps a
+            lineset flat against the siding instead of leaving it to hang
+            in open air. */}
+        {[0.3,0.68].map((t,i)=>{
+          const sx=px1+(condX-px1)*t;
+          return <rect key={i} x={sx-1.4} y={exitY1-6} width={2.8} height={exitY2-exitY1+12} rx="1"
+            fill="rgba(60,62,70,.6)" stroke="rgba(20,20,24,.5)" strokeWidth="0.4"/>;
+        })}
         {/* Animated flow dots -- both pipes */}
         {active&&Array.from({length:6},(_,i)=>{
           const isLine1=i<3;
@@ -358,10 +401,29 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           fill={G+'.14)'} stroke={G+'.32)'} strokeWidth="0.8"/>
         <text x={DX+DW/2} y={DY+15.5} textAnchor="middle"
           fill={G+'.82)'} fontSize="12" fontFamily="monospace" fontWeight="700">DISC.</text>
+        {/* Corner mounting screws - a real disconnect is through-bolted to
+            the wall at its four corners, not just floating in front of
+            it. */}
+        {[[DX+4,DY+4],[DX+DW-4,DY+4],[DX+4,DY+DH-4],[DX+DW-4,DY+DH-4]].map(([sx,sy],i)=>(
+          <g key={i}>
+            <circle cx={sx} cy={sy} r="1.5" fill="rgba(28,30,36,.9)" stroke={G+'.4)'} strokeWidth="0.5"/>
+            <line x1={sx-0.85} y1={sy-0.2} x2={sx+0.85} y2={sy+0.2} stroke={G+'.55)'} strokeWidth="0.4"/>
+          </g>
+        ))}
         {/* Switch housing */}
         <rect x={DX+5} y={DY+22} width={DW-10} height={32} rx="3"
           fill={active?"rgba(239,68,68,.18)":"rgba(35,38,62,.75)"}
           stroke={active?condC:(G+'.32)')} strokeWidth="1.1"/>
+        {/* Weatherproof rain hood - a real outdoor disconnect's switch
+            opening sits under a small stamped awning that sheds water off
+            the mechanism, not a flat panel exposed straight to the sky
+            (matched against a reference photo of a real NEMA 3R outdoor
+            disconnect). Drawn as a shallow trapezoid lip proud of the
+            housing's top edge, with a thin dark underside so it reads as
+            standing off the surface rather than a painted stripe. */}
+        <path d={`M${DX+4} ${DY+21} L${DX+DW-4} ${DY+21} L${DX+DW-2} ${DY+24.5} L${DX+2} ${DY+24.5} Z`}
+          fill="rgba(170,174,182,.4)" stroke="rgba(20,20,24,.5)" strokeWidth="0.5"/>
+        <line x1={DX+2.5} y1={DY+24.3} x2={DX+DW-2.5} y2={DY+24.3} stroke="rgba(0,0,0,.35)" strokeWidth="0.6"/>
         {/* Handle lever */}
         <rect x={DX+11} y={DY+26} width={DW-22} height={20} rx="2.5"
           fill={active?"rgba(239,68,68,.55)":"rgba(55,58,90,.7)"}
@@ -369,12 +431,25 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         {/* Handle center line */}
         <line x1={DX+DW/2} y1={DY+28} x2={DX+DW/2} y2={DY+44}
           stroke={active?condC:(G+'.18)')} strokeWidth="1" strokeDasharray="2 2"/>
-        {/* Status dot */}
-        <circle cx={DX+DW/2} cy={DY+57} r="5"
+        {/* Padlock hasp - a real disconnect can be locked open/closed for
+            service; a small loop tab off the housing edge sells that
+            without needing an actual padlock drawn on it. Sits low on
+            the housing, clear of the conduit stub's own fixed mid-height
+            (DY+DH/2) exiting the same right edge just above it. */}
+        <path d={`M${DX+DW-5} ${DY+46} h4 a2 2 0 0 1 2 2 v2.5 a2 2 0 0 1 -2 2 h-4`}
+          fill="none" stroke="rgba(190,194,204,.55)" strokeWidth="1.1"/>
+        {/* Status dot - nudged up/shrunk slightly from its original 57/5
+            to leave clear room below it for the rating placard. */}
+        <circle cx={DX+DW/2} cy={DY+55.5} r="4.5"
           fill={active?"rgba(34,197,94,.6)":"rgba(50,50,80,.6)"}
           stroke={active?"#22c55e":(G+'.2)')} strokeWidth="1"/>
-        {active&&<circle cx={DX+DW/2} cy={DY+57} r="2.5"
+        {active&&<circle cx={DX+DW/2} cy={DY+55.5} r="2.2"
           fill="#22c55e" className="glow-pulse"/>}
+        {/* Generic electrical rating placard - the kind of spec stamp
+            every real disconnect carries (amperage/voltage/enclosure
+            rating), without inventing a brand name for it. */}
+        <text x={DX+DW/2} y={DY+DH-2.5} textAnchor="middle"
+          fill={G+'.34)'} fontSize="6" fontFamily="monospace">60A·NEMA3R</text>
         {/* Conduit to unit - drawn at the disconnect box's own fixed mid-
             height, which only actually lands on the condenser cabinet for
             the taller fedmin/high-efficiency units. Condensers are bottom-
@@ -875,14 +950,42 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
   // ── SUB-COMPONENTS ──────────────────────────────────────────
 
+  // Indoor blower - a real furnace/AH blower is a forward-curved
+  // centrifugal ("squirrel cage") wheel: many short, shallow blades
+  // mounted between two thin end rings at the RIM, all swept the same
+  // rotational direction, with the wheel's flat front/back disc (and its
+  // spider of structural spokes down to the hub) showing through the gaps
+  // between blades - nothing like a bicycle-wheel spoke pattern radiating
+  // from the hub itself (the old 16-straight-line version, which read as
+  // a generic "fan" icon rather than the specific squirrel-cage shape
+  // every real blower wheel actually has). Rebuilt on the same curved-
+  // path-blade technique already proven on CondenserFan below, just with
+  // many small rim-mounted scoops instead of few large hub-mounted ones.
   function BlowerWheel({cx,cy,r,spd,active}){
     r=r||28; spd=spd||1; active=active!==false;
-    const blades=Array.from({length:16},(_,i)=>{
-      const ang=i*(360/16)*Math.PI/180;
-      return <line key={i}
-        x1={cx+r*0.36*Math.cos(ang)} y1={cy+r*0.36*Math.sin(ang)}
-        x2={cx+r*0.88*Math.cos(ang+0.22)} y2={cy+r*0.88*Math.sin(ang+0.22)}
-        stroke={active?(G+'.7)'):(G+'.2)')} strokeWidth="1.9" strokeLinecap="round"/>;
+    const n=22;
+    const innerR=r*0.56, outerR=r*0.92;
+    const bladeFill=active?(G+'.62)'):(G+'.13)');
+    const bladeStroke=active?(G+'.82)'):(G+'.24)');
+    const blades=Array.from({length:n},(_,i)=>{
+      const ang=i*(Math.PI*2/n);
+      // Each blade is a thin curved scoop between innerR and outerR - a
+      // filled sliver (not a stroked line) so it keeps a shallow "cup"
+      // cross-section instead of reading as a wire spoke. The trailing
+      // edge sits at +sweep so every blade curls the same way, the way a
+      // forward-curved wheel's blades all lean into the direction of
+      // rotation.
+      const sweep=0.30, backSweep=0.09;
+      const ax=cx+innerR*Math.cos(ang-backSweep), ay=cy+innerR*Math.sin(ang-backSweep);
+      const bx=cx+innerR*Math.cos(ang+backSweep), by=cy+innerR*Math.sin(ang+backSweep);
+      const tipAng=ang+sweep;
+      const cAng=ang+sweep*0.55, cR=(innerR+outerR)/2*1.04;
+      const cxm=cx+cR*Math.cos(cAng), cym=cy+cR*Math.sin(cAng);
+      const tx=cx+outerR*Math.cos(tipAng), ty=cy+outerR*Math.sin(tipAng);
+      const d=`M${ax.toFixed(1)} ${ay.toFixed(1)} Q${cxm.toFixed(1)} ${cym.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)} `+
+        `L${(tx-1.2*Math.cos(tipAng-1.2)).toFixed(1)} ${(ty-1.2*Math.sin(tipAng-1.2)).toFixed(1)} `+
+        `Q${(cx+cR*0.82*Math.cos(cAng)).toFixed(1)} ${(cy+cR*0.82*Math.sin(cAng)).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)} Z`;
+      return <path key={i} d={d} fill={bladeFill} stroke={bladeStroke} strokeWidth="0.5"/>;
     });
     return <g>
       {/* Outer ring is the static motor housing (never moves) - slate
@@ -891,9 +994,32 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           assembly and reads well spinning against the silver housing. */}
       <circle cx={cx} cy={cy} r={r+4} fill="rgba(0,0,0,.5)" stroke={S+'.4)'} strokeWidth="0.8"/>
       <circle cx={cx} cy={cy} r={r} fill="#050505" stroke={G+'.3)'} strokeWidth="0.9"/>
+      {/* Rim band the blade tips mount to - a hair inside the housing
+          bore, so the wheel reads as a specific, slightly-smaller part
+          sitting inside the scroll housing rather than filling it. */}
+      <circle cx={cx} cy={cy} r={outerR+1} fill="none" stroke={active?(G+'.4)'):(G+'.12)')} strokeWidth="1"/>
       {active
         ?<g className="spin" style={{transformBox:'fill-box',transformOrigin:'center',animationDuration:(1.0/spd)+'s'}}>{blades}</g>
         :<g>{blades}</g>}
+      {/* Front-disc structural spokes - the flat plate a real squirrel-
+          cage wheel's blades are riveted to, showing through as thin ribs
+          from the hub out to the inner blade ring. Spins with the wheel
+          (same group as the blades) since it's one rigid stamped part. */}
+      {active
+        ?<g className="spin" style={{transformBox:'fill-box',transformOrigin:'center',animationDuration:(1.0/spd)+'s'}}>
+          {Array.from({length:4},(_,i)=>{
+            const ang=i*(Math.PI/2);
+            return <line key={i} x1={cx+r*0.13*Math.cos(ang)} y1={cy+r*0.13*Math.sin(ang)}
+              x2={cx+innerR*Math.cos(ang)} y2={cy+innerR*Math.sin(ang)}
+              stroke={G+'.2)'} strokeWidth="1.1"/>;
+          })}
+        </g>
+        :Array.from({length:4},(_,i)=>{
+          const ang=i*(Math.PI/2);
+          return <line key={i} x1={cx+r*0.13*Math.cos(ang)} y1={cy+r*0.13*Math.sin(ang)}
+            x2={cx+innerR*Math.cos(ang)} y2={cy+innerR*Math.sin(ang)}
+            stroke={G+'.08)'} strokeWidth="1.1"/>;
+        })}
       <circle cx={cx} cy={cy} r={r*0.27} fill="#090909" stroke={G+'.34)'} strokeWidth="0.9"/>
       <circle cx={cx} cy={cy} r={r*0.1} fill="#111" stroke={G+'.42)'} strokeWidth="0.6"/>
     </g>;
@@ -1022,10 +1148,47 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     </g>;
   }
 
+  // ── COIL TUBE DETAIL KIT ─────────────────────────────────────
+  // Shared by ACoilH/ACoilV below - the housing exterior around these
+  // (the silver/dark cabinet box) stays exactly as a prior pass left it;
+  // only what's INSIDE that box, the actual finned-tube coil geometry,
+  // gets upgraded here.
+
+  // A single copper tube end, face-on - the visible cross-section where
+  // one pass of the serpentine coil tube pokes through the fin pack. A
+  // flat stroked ellipse (the old version) reads as a painted ring, not
+  // a rounded piece of metal - adding a bright rim highlight along the
+  // upper edge (the same "catch the light from above" trick already used
+  // on the condenser's hail-guard flange and cabinet edges elsewhere in
+  // this file) is what actually sells it as a small round tube instead
+  // of a flat icon.
+  function CoilTube({cx,cy,rx,ry,rotate,fill,stroke,glow,active,delay}){
+    rx=rx||4; ry=ry||2;
+    return <g transform={`rotate(${rotate||0},${cx},${cy})`}>
+      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={fill} stroke={stroke} strokeWidth="0.9"/>
+      <path d={`M${(cx-rx*0.55).toFixed(1)} ${(cy-ry*0.55).toFixed(1)} Q${cx.toFixed(1)} ${(cy-ry*1.25).toFixed(1)} ${(cx+rx*0.55).toFixed(1)} ${(cy-ry*0.55).toFixed(1)}`}
+        fill="none" stroke="rgba(255,255,255,.45)" strokeWidth="0.5" strokeLinecap="round"/>
+      {active&&glow&&<circle cx={cx} cy={cy} r={Math.min(rx,ry)*0.85} fill={glow} opacity="0.7" className="glow-pulse" style={{animationDelay:(delay||0)+'s'}}/>}
+    </g>;
+  }
+  // A bead of condensate clinging to the fin pack - real evaporator coils
+  // sweat heavily in cooling mode (the fin surface runs below the room's
+  // dew point), which is one of the most immediately recognizable "this
+  // coil is actually running" cues on a real unit. Only ever drawn when
+  // active (cooling) - a dry coil in heating/standby has no condensate.
+  function CoilSweat({cx,cy,r,delay}){
+    r=r||1.7;
+    return <g style={{animationDelay:(delay||0)+'s'}} className="glow-pulse">
+      <circle cx={cx} cy={cy} r={r} fill="rgba(200,230,252,.85)" stroke="rgba(235,246,255,.9)" strokeWidth="0.5"/>
+      <circle cx={cx-r*0.35} cy={cy-r*0.35} r={r*0.32} fill="rgba(255,255,255,.9)"/>
+    </g>;
+  }
+
   // A-coil > (peak RIGHT) - horizontal attic
   function ACoilH({x,y,w,h,active}){
     const peakX=x+w, peakY=y+h/2; const n=8;
     const tc=active?evapC:'rgba(48,48,78,.8)';
+    const distX=peakX-5, distY=peakY+4;
     return <g>
       <polygon points={`${x},${y} ${peakX},${peakY} ${peakX},${peakY+8} ${x},${y+12}`}
         fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"}
@@ -1033,26 +1196,39 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
       <polygon points={`${x},${y+h} ${peakX},${peakY} ${peakX},${peakY+8} ${x},${y+h-12}`}
         fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"}
         stroke={active?(evapC2+'80'):(G+'.18)')} strokeWidth="0.9"/>
-      {Array.from({length:14},(_,i)=>(
-        <line key={i} x1={x+4} y1={y+h*(i+0.5)/14} x2={x+w-8} y2={y+h*(i+0.5)/14}
-          stroke={W+'.04)'} strokeWidth="0.4"/>
+      {/* Aluminum fin pack - denser and a touch brighter than before (14
+          hairlines at .04 opacity read as almost nothing at diagram
+          scale) plus every 4th line nudged brighter, the way a real fin
+          pack's stamped ridges catch uneven light instead of a flat
+          hatch. */}
+      {Array.from({length:20},(_,i)=>(
+        <line key={i} x1={x+4} y1={y+h*(i+0.5)/20} x2={x+w-8} y2={y+h*(i+0.5)/20}
+          stroke={i%4===0?W+'.08)':W+'.035)'} strokeWidth="0.4"/>
       ))}
       {Array.from({length:n},(_,i)=>{
         const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=y+(peakY-y)*t+3;
         return <g key={i}>
-          <ellipse cx={tx} cy={ty} rx={4} ry={2} fill={active?(evapC+'22'):'rgba(14,14,34,.8)'} stroke={tc} strokeWidth="0.9" transform={`rotate(-22,${tx},${ty})`}/>
-          {active&&<circle cx={tx} cy={ty} r={1.6} fill={evapC} opacity="0.7" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
+          <CoilTube cx={tx} cy={ty} rotate={-22} fill={active?(evapC+'22'):'rgba(14,14,34,.8)'} stroke={tc} glow={evapC} active={active} delay={i*0.1}/>
+          {/* Capillary feeder - thin line from the peak distributor out
+              to this circuit's first tube, showing where its refrigerant
+              actually comes from instead of leaving the distributor
+              floating unconnected to the coil rows it feeds. Only drawn
+              for every other circuit so it stays a light suggestion
+              instead of a dense knot of lines converging on one point. */}
+          {i%2===0&&<path d={`M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX-(distX-tx)*0.5).toFixed(1)} ${(distY-6).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`}
+            fill="none" stroke={active?(evapC+'55'):'rgba(110,110,140,.22)'} strokeWidth="0.7"/>}
+          {active&&i%3===1&&<CoilSweat cx={tx+1.5} cy={ty+3} delay={i*0.35}/>}
         </g>;
       })}
       {Array.from({length:n},(_,i)=>{
         const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=(y+h)+(peakY-(y+h))*t-3;
         return <g key={i}>
-          <ellipse cx={tx} cy={ty} rx={4} ry={2} fill={active?(evapC2+'22'):'rgba(14,14,34,.8)'} stroke={active?evapC2:tc} strokeWidth="0.9" transform={`rotate(22,${tx},${ty})`}/>
-          {active&&<circle cx={tx} cy={ty} r={1.6} fill={evapC2} opacity="0.7" className="glow-pulse" style={{animationDelay:(i+n)*0.1+'s'}}/>}
+          <CoilTube cx={tx} cy={ty} rotate={22} fill={active?(evapC2+'22'):'rgba(14,14,34,.8)'} stroke={active?evapC2:tc} glow={evapC2} active={active} delay={(i+n)*0.1}/>
+          {active&&i%3===2&&<CoilSweat cx={tx-1.5} cy={ty+3} delay={(i+n)*0.3}/>}
         </g>;
       })}
-      <circle cx={peakX-5} cy={peakY+4} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
-      {active&&<circle cx={peakX-5} cy={peakY+4} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
+      <circle cx={distX} cy={distY} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
+      {active&&<circle cx={distX} cy={distY} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
       {/* UV rod - centered exactly in the > coil:
           horizontal midline = y+h/2, depth center = x + w*0.45
@@ -1070,30 +1246,40 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   function ACoilV({x,y,w,h,active}){
     const peakX=x+w/2, peakY=y; const n=7;
     const tc=active?evapC:'rgba(48,48,78,.8)';
+    const distX=peakX+4, distY=peakY+6;
+    const angL=Math.atan2(peakY-(y+h),peakX-x)*180/Math.PI;
+    const angR=Math.atan2(peakY-(y+h),peakX-(x+w))*180/Math.PI;
     return <g>
       <polygon points={`${x},${y+h} ${peakX},${peakY} ${peakX+8},${peakY} ${x+12},${y+h}`}
         fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"} stroke={active?(evapC+'88'):(G+'.22)')} strokeWidth="0.9"/>
       <polygon points={`${x+w},${y+h} ${peakX},${peakY} ${peakX+8},${peakY} ${x+w-12},${y+h}`}
         fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"} stroke={active?(evapC2+'80'):(G+'.18)')} strokeWidth="0.9"/>
-      {Array.from({length:12},(_,i)=>(
-        <line key={i} x1={x+w*(i+0.5)/12} y1={y+4} x2={x+w*(i+0.5)/12} y2={y+h-4} stroke={W+'.04)'} strokeWidth="0.4"/>
+      {/* Aluminum fin pack - see ACoilH's own comment on the same density/
+          brightness bump, mirrored here for the vertical A-frame. */}
+      {Array.from({length:18},(_,i)=>(
+        <line key={i} x1={x+w*(i+0.5)/18} y1={y+4} x2={x+w*(i+0.5)/18} y2={y+h-4}
+          stroke={i%4===0?W+'.08)':W+'.035)'} strokeWidth="0.4"/>
       ))}
       {Array.from({length:n},(_,i)=>{
         const t=(i+0.5)/n, tx=x+(peakX-x)*t+3, ty=(y+h)+(peakY-(y+h))*t+3;
         return <g key={i}>
-          <ellipse cx={tx} cy={ty} rx={4} ry={2} fill={active?(evapC+'22'):'rgba(14,14,34,.8)'} stroke={tc} strokeWidth="0.9" transform={`rotate(${Math.atan2(peakY-(y+h),peakX-x)*180/Math.PI},${tx},${ty})`}/>
-          {active&&<circle cx={tx} cy={ty} r={1.6} fill={evapC} opacity="0.7" className="glow-pulse" style={{animationDelay:i*0.11+'s'}}/>}
+          <CoilTube cx={tx} cy={ty} rotate={angL} fill={active?(evapC+'22'):'rgba(14,14,34,.8)'} stroke={tc} glow={evapC} active={active} delay={i*0.11}/>
+          {/* Capillary feeder from the peak distributor - see ACoilH's
+              own comment on this same detail. */}
+          {i%2===0&&<path d={`M${distX.toFixed(1)} ${distY.toFixed(1)} Q${(distX-(distX-tx)*0.5).toFixed(1)} ${(distY+ (ty-distY)*0.4).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`}
+            fill="none" stroke={active?(evapC+'55'):'rgba(110,110,140,.22)'} strokeWidth="0.7"/>}
+          {active&&i%3===1&&<CoilSweat cx={tx+1.5} cy={ty+3} delay={i*0.35}/>}
         </g>;
       })}
       {Array.from({length:n},(_,i)=>{
         const t=(i+0.5)/n, tx=(x+w)+(peakX-(x+w))*t-3, ty=(y+h)+(peakY-(y+h))*t+3;
         return <g key={i}>
-          <ellipse cx={tx} cy={ty} rx={4} ry={2} fill={active?(evapC2+'22'):'rgba(14,14,34,.8)'} stroke={active?evapC2:tc} strokeWidth="0.9" transform={`rotate(${Math.atan2(peakY-(y+h),peakX-(x+w))*180/Math.PI},${tx},${ty})`}/>
-          {active&&<circle cx={tx} cy={ty} r={1.6} fill={evapC2} opacity="0.7" className="glow-pulse" style={{animationDelay:(i+n)*0.11+'s'}}/>}
+          <CoilTube cx={tx} cy={ty} rotate={angR} fill={active?(evapC2+'22'):'rgba(14,14,34,.8)'} stroke={active?evapC2:tc} glow={evapC2} active={active} delay={(i+n)*0.11}/>
+          {active&&i%3===2&&<CoilSweat cx={tx-1.5} cy={ty+3} delay={(i+n)*0.3}/>}
         </g>;
       })}
-      <circle cx={peakX+4} cy={peakY+6} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
-      {active&&<circle cx={peakX+4} cy={peakY+6} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
+      <circle cx={distX} cy={distY} r={5.5} fill="#06061c" stroke={active?evapC:(G+'.3)')} strokeWidth="1.3"/>
+      {active&&<circle cx={distX} cy={distY} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
       {/* UV rod - centered in the ^ A-coil triangle:
           Triangle centroid is at (x+w/2, y + h*2/3) - that's the geometric center.
@@ -1179,6 +1365,144 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     </g>;
   }
 
+  // ── DUCTWORK DETAIL KIT ──────────────────────────────────────
+  // Shared by both the attic-horizontal layout's supply-duct drops and
+  // the closet-upflow layout's own (visually near-identical, but
+  // independently-coded) supply drops further down, so both read as the
+  // same real material instead of two different flat gray boxes that
+  // happen to be labeled the same.
+
+  // Corrugated flex-duct jacket - the register drops off a rigid supply
+  // plenum are field-run in insulated flex duct almost universally (a
+  // helically-wound wire core under a silver vinyl vapor jacket), which
+  // reads as an alternating light/dark ring pattern down the run - not
+  // the flat solid-fill rectangle this used to be, indistinguishable
+  // from a rigid metal duct. Works for either a vertical run (rings
+  // horizontal) or a horizontal run (rings vertical) off the same x/y/w/h
+  // box a plain <rect> duct segment already used.
+  function DuctRibbing({x,y,w,h,vertical}){
+    vertical=vertical!==false;
+    const span=vertical?h:w;
+    const spacing=5.5;
+    const n=Math.max(1,Math.floor(span/spacing));
+    return <g opacity="0.6">
+      {Array.from({length:n},(_,i)=>{
+        const pos=(i+0.5)*spacing;
+        return vertical
+          ?<line key={i} x1={x+0.5} y1={y+pos} x2={x+w-0.5} y2={y+pos}
+            stroke={i%2===0?"rgba(225,230,238,.28)":"rgba(0,0,0,.32)"} strokeWidth="1"/>
+          :<line key={i} x1={x+pos} y1={y+0.5} x2={x+pos} y2={y+h-0.5}
+            stroke={i%2===0?"rgba(225,230,238,.28)":"rgba(0,0,0,.32)"} strokeWidth="1"/>;
+      })}
+      {/* Long highlight seam down one side - the jacket's own sheen
+          catching light along its length, breaking up the ring pattern
+          so it still reads as one continuous tube rather than a stack of
+          washers. */}
+      {vertical
+        ?<line x1={x+w*0.22} y1={y+1} x2={x+w*0.22} y2={y+h-1} stroke="rgba(255,255,255,.14)" strokeWidth="1"/>
+        :<line x1={x+1} y1={y+h*0.22} x2={x+w-1} y2={y+h*0.22} stroke="rgba(255,255,255,.14)" strokeWidth="1"/>}
+    </g>;
+  }
+
+  // Same ring texture as DuctRibbing, but for a duct segment that isn't
+  // axis-aligned (the 45°-elbow drop's diagonal leg) - ticks are laid
+  // out along the segment's own direction instead of assuming
+  // horizontal/vertical.
+  function DuctRibbingPath({x1,y1,x2,y2,width}){
+    const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1;
+    const ux=dx/len, uy=dy/len, px=-uy, py=ux;
+    const spacing=5.5;
+    const n=Math.max(1,Math.floor(len/spacing));
+    return <g opacity="0.6">
+      {Array.from({length:n},(_,i)=>{
+        const t=(i+0.5)*spacing;
+        const cx=x1+ux*t, cy=y1+uy*t;
+        return <line key={i} x1={cx-px*width/2} y1={cy-py*width/2} x2={cx+px*width/2} y2={cy+py*width/2}
+          stroke={i%2===0?"rgba(225,230,238,.26)":"rgba(0,0,0,.3)"} strokeWidth="1"/>;
+      })}
+    </g>;
+  }
+
+  // Clamp collar - a metal draw-band cinching the flex jacket onto a
+  // sheet-metal starter collar/boot, the connection detail every flex-
+  // duct run actually has at both ends instead of the jacket just
+  // stopping in mid-air.
+  function DuctClamp({x,y,w,h,vertical}){
+    vertical=vertical!==false;
+    return vertical
+      ?<rect x={x-1} y={y} width={w+2} height="3.5" rx="1" fill="rgba(180,184,192,.55)" stroke="rgba(20,20,24,.5)" strokeWidth="0.5"/>
+      :<rect x={x} y={y-1} width="3.5" height={h+2} rx="1" fill="rgba(180,184,192,.55)" stroke="rgba(20,20,24,.5)" strokeWidth="0.5"/>;
+  }
+
+  // Supply-plenum interior surface treatment, shared by both layouts' own
+  // (separately-coded, but meant to be visually identical) supply plenum
+  // boxes - reads as the two materials' actual real finishes: brushed
+  // galvanized sheet with folded corner flanges for metal, or a foil-
+  // faced (FSK) board with taped panel seams for ductboard - instead of
+  // two boxes distinguished only by a caption and a handful of near-
+  // invisible hairlines.
+  function PlenumMaterial({x,y,w,h,isMetal}){
+    return isMetal
+      ?<g>
+        {Array.from({length:Math.floor(h/8)},(_,i)=>(
+          <line key={i} x1={x+2} y1={y+4+i*8} x2={x+w-2} y2={y+4+i*8} stroke={W+'.05)'} strokeWidth="0.3"/>
+        ))}
+        {/* Diagonal sheen - a galvanized sheet's mill finish catching
+            light unevenly across the panel instead of a flat fill. */}
+        <path d={`M${x} ${y+h*0.12} L${x+w} ${y+h*0.5}`} stroke="rgba(255,255,255,.045)" strokeWidth={Math.max(4,h*0.16)} strokeLinecap="round"/>
+        {/* Folded S-cleat corner flanges - the real sheet-metal joint
+            every rigid plenum-to-duct transition uses, plus the rivets
+            that hold it. */}
+        {[[x+7,y+5],[x+w-7,y+5],[x+7,y+h-5],[x+w-7,y+h-5]].map(([px,py],i)=>(
+          <path key={i} d={`M${px-5} ${py} L${px+5} ${py} L${px+5} ${py+(i<2?3:-3)}`}
+            fill="none" stroke="rgba(210,214,222,.28)" strokeWidth="1"/>
+        ))}
+      </g>
+      :<g>
+        {/* Faint fiber striations (very low-density board weave). */}
+        {Array.from({length:Math.floor(h/10)},(_,i)=>(
+          <line key={i} x1={x+3} y1={y+5+i*10} x2={x+w-3} y2={y+5+i*10} stroke={G+'.07)'} strokeWidth="0.6"/>
+        ))}
+        {/* Foil-faced (FSK) sheen - the metallized facing's soft gloss,
+            as two broad diagonal highlight bands. */}
+        <path d={`M${x} ${y+h*0.08} L${x+w*0.55} ${y+h*0.68}`} stroke="rgba(224,228,238,.05)" strokeWidth={Math.max(5,h*0.24)} strokeLinecap="round"/>
+        <path d={`M${x+w*0.42} ${y+h*0.02} L${x+w} ${y+h*0.46}`} stroke="rgba(224,228,238,.04)" strokeWidth={Math.max(4,h*0.16)} strokeLinecap="round"/>
+        {/* Taped panel seams - foil tape strips over each board-to-board
+            joint, the way real ductboard sections are actually sealed. */}
+        {[x+w*0.32,x+w*0.68].map((sx,i)=>(
+          <g key={i}>
+            <rect x={sx-4.5} y={y+2} width={9} height={h-4} fill="rgba(210,214,222,.045)" stroke="rgba(210,214,222,.09)" strokeWidth="0.4"/>
+            <line x1={sx} y1={y+2} x2={sx} y2={y+h-2} stroke="rgba(190,194,204,.15)" strokeWidth="0.5" strokeDasharray="1.6 1.6"/>
+          </g>
+        ))}
+      </g>;
+  }
+
+  // Ceiling/wall register - a beveled frame with corner screws and
+  // angled diffuser blades, the way a real stamped-steel supply register
+  // actually looks up close instead of a flat black slot with a few
+  // straight slits.
+  function RegisterGrille({cx,y,w,dc,ds,label}){
+    const h=9;
+    return <g>
+      <rect x={cx-w/2} y={y} width={w} height={h} rx="1.5" fill="rgba(0,0,0,.78)" stroke={dc} strokeWidth="1.2"/>
+      {/* Bevel highlight along the top edge - a stamped-steel frame catches
+          light along its raised lip. */}
+      <line x1={cx-w/2+2} y1={y+1} x2={cx+w/2-2} y2={y+1} stroke="rgba(255,255,255,.16)" strokeWidth="0.6"/>
+      {/* Angled diffuser blades instead of plain straight slits - real
+          supply registers use fixed slanted louvers to throw air sideways
+          rather than a flat grate. */}
+      {Array.from({length:5},(_,j)=>{
+        const lx=cx-w/2+3+j*(w-6)/4;
+        return <line key={j} x1={lx-1.4} y1={y+1.5} x2={lx+1.4} y2={y+h-1.5} stroke={dc} strokeWidth="0.9"/>;
+      })}
+      {/* Corner screws */}
+      <circle cx={cx-w/2+2.2} cy={y+2} r="0.8" fill="rgba(40,42,48,.9)" stroke={ds} strokeWidth="0.35"/>
+      <circle cx={cx+w/2-2.2} cy={y+2} r="0.8" fill="rgba(40,42,48,.9)" stroke={ds} strokeWidth="0.35"/>
+      {label&&<text x={cx} y={y+h+9} textAnchor="middle" fill={dc} fontSize="11" fontFamily="monospace">{label}</text>}
+    </g>;
+  }
+
   // Furnace horizontal - blower LEFT | HX RIGHT
   function FurnaceH({x,y,w,h,active,roofY}){
     const mid=x+w/2;
@@ -1209,11 +1533,21 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         spd={blowerActive?1.6:0.5} active={blowerActive}/>
       <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
       <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
+      {/* Clamshell HX tubes - each is a stamped-steel cell, not a flat
+          orange squiggle: a thin highlight riding the curve's upper edge
+          (same "catch light from above" convention as CoilTube/the hail-
+          guard flange elsewhere in this file) plus a small crimped end
+          cap where the clamshell halves are seamed shut sell the actual
+          3D tube shape instead of a painted line. */}
       {Array.from({length:6},(_,i)=>{
         const gy=y+10+i*(h-18)/6;
-        return <path key={i}
-          d={`M${mid+6} ${gy+6} Q${mid+w*0.17} ${gy-2} ${mid+w*0.31} ${gy+7} Q${mid+w*0.41} ${gy+14} ${mid+w*0.31} ${gy+18}`}
-          fill="none" stroke={active?'rgba(249,115,22,.6)':'rgba(108,44,8,.22)'} strokeWidth="2.8" strokeLinecap="round"/>;
+        const d=`M${mid+6} ${gy+6} Q${mid+w*0.17} ${gy-2} ${mid+w*0.31} ${gy+7} Q${mid+w*0.41} ${gy+14} ${mid+w*0.31} ${gy+18}`;
+        return <g key={i}>
+          <path d={d} fill="none" stroke={active?'rgba(249,115,22,.6)':'rgba(108,44,8,.22)'} strokeWidth="2.8" strokeLinecap="round"/>
+          <path d={d} fill="none" stroke={active?'rgba(255,205,150,.45)':'rgba(180,140,90,.14)'} strokeWidth="0.8" strokeLinecap="round" transform="translate(0,-0.9)"/>
+          <circle cx={mid+6} cy={gy+6} r="1.7" fill={active?'rgba(249,115,22,.55)':'rgba(80,40,10,.4)'} stroke={active?'rgba(255,205,150,.4)':'rgba(150,100,60,.25)'} strokeWidth="0.4"/>
+          <circle cx={mid+w*0.31} cy={gy+18} r="1.7" fill={active?'rgba(249,115,22,.55)':'rgba(80,40,10,.4)'} stroke={active?'rgba(255,205,150,.4)':'rgba(150,100,60,.25)'} strokeWidth="0.4"/>
+        </g>;
       })}
       <rect x={mid+4} y={y+h-17} width={w/2-8} height={10} rx="2"
         fill={active?O+'.07)':'rgba(5,5,13,.8)'} stroke={active?'rgba(249,115,22,.42)':(S+'.2)')} strokeWidth="0.6"/>
@@ -2392,16 +2726,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 <rect x={SUP_X} y={SUP_PLEN_Y} width={SUP_PLEN_W} height={SUP_PLEN_H} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={pSW}
                   strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.65:1}/>
-                {!isExisting&&(isMetal
-                  ?Array.from({length:Math.floor(SUP_PLEN_H/8)},(_,i)=>(
-                    <line key={i} x1={SUP_X+2} y1={SUP_PLEN_Y+4+i*8} x2={SUP_X+SUP_PLEN_W-2} y2={SUP_PLEN_Y+4+i*8}
-                      stroke={W+'.04)'} strokeWidth="0.3"/>
-                  ))
-                  :Array.from({length:Math.floor(SUP_PLEN_H/10)},(_,i)=>(
-                    <line key={i} x1={SUP_X+3} y1={SUP_PLEN_Y+5+i*10} x2={SUP_X+SUP_PLEN_W-3} y2={SUP_PLEN_Y+5+i*10}
-                      stroke={G+'.07)'} strokeWidth="0.6"/>
-                  ))
-                )}
+                {!isExisting&&<PlenumMaterial x={SUP_X} y={SUP_PLEN_Y} w={SUP_PLEN_W} h={SUP_PLEN_H} isMetal={isMetal}/>}
                 <text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+3} textAnchor="middle"
                   fill={isExisting?(G+'.55)'):(G+'.52)')} fontSize="12.5" fontFamily="monospace">
                   {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
@@ -2459,16 +2784,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               const GW=DW+10;
               const pBot=SUP_PLEN_Y+SUP_PLEN_H;
               const FAN=36;
-              const grille=cx=>(
-                <>
-                  <rect x={cx-GW/2} y={DECK_Y} width={GW} height={9} rx="1" fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
-                  {Array.from({length:5},(_,j)=>(
-                    <line key={j} x1={cx-GW/2+3+j*(GW-6)/4} y1={DECK_Y+1}
-                      x2={cx-GW/2+3+j*(GW-6)/4} y2={DECK_Y+8} stroke={DC} strokeWidth="0.8"/>
-                  ))}
-                  <text x={cx} y={DECK_Y+18} textAnchor="middle" fill={G+'.35)'} fontSize="11" fontFamily="monospace">SUPPLY</text>
-                </>
-              );
+              const grille=cx=><RegisterGrille cx={cx} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>;
               // Airflow arrow down the center of a duct stem - same idea as
               // the supply plenum's own internal arrows just above, so flow
               // reads continuously from plenum through the duct to the
@@ -2483,6 +2799,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               const straight=(cx,key)=>(
                 <g key={key}>
                   <rect x={cx-DW/2} y={pBot} width={DW} height={Math.max(0,DECK_Y-pBot)} fill={DC} stroke={DS} strokeWidth="1"/>
+                  <DuctRibbing x={cx-DW/2} y={pBot} w={DW} h={Math.max(0,DECK_Y-pBot)} vertical/>
+                  <DuctClamp x={cx-DW/2} y={pBot+2} w={DW} vertical/>
+                  <DuctClamp x={cx-DW/2} y={DECK_Y-5} w={DW} vertical/>
                   {DECK_Y-pBot>10&&ductArrow(`M${cx},${pBot+3} L${cx},${DECK_Y-4}`,'arrow')}
                   {grille(cx)}
                 </g>
@@ -2495,6 +2814,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   <g key={key}>
                     <path d={d} fill="none" stroke={DS} strokeWidth={DW+2} strokeLinejoin="round" strokeLinecap="square"/>
                     <path d={d} fill="none" stroke={DC} strokeWidth={DW} strokeLinejoin="round" strokeLinecap="square"/>
+                    {/* Flex-duct corrugation along both legs of the elbow -
+                        a real drop like this is one continuous flex run
+                        that just bends, not two different materials. */}
+                    <DuctRibbingPath x1={topX} y1={pBot+2} x2={botX} y2={bendY} width={DW-1}/>
+                    <DuctRibbingPath x1={botX} y1={bendY} x2={botX} y2={DECK_Y-4} width={DW-1}/>
+                    <DuctClamp x={topX-DW/2} y={pBot+2} w={DW} vertical/>
+                    <DuctClamp x={botX-DW/2} y={DECK_Y-5} w={DW} vertical/>
                     {ductArrow(`M${topX},${pBot+3} L${botX},${bendY} L${botX},${DECK_Y-4}`,'arrow')}
                     {grille(botX)}
                   </g>
@@ -2934,10 +3260,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                     Thick + glowing so it reads clearly against the plenum's own static material border underneath. */}
                 <rect x={UNIT_X-2} y={PLEN_TOP-2} width={PLEN_W+4} height={PLEN_TOTAL+4} rx="4"
                   fill="none" stroke={heatMode?"#f97316":"#2389e0"} strokeWidth="4" filter="url(#glow-sm)" className="line-pulse"/>
-                {!isExisting&&isMetal&&Array.from({length:Math.floor(PLEN_TOTAL/8)},(_,i)=>(
-                  <line key={i} x1={UNIT_X+2} y1={PLEN_TOP+4+i*8} x2={UNIT_X+PLEN_W-2} y2={PLEN_TOP+4+i*8}
-                    stroke={W+'.04)'} strokeWidth="0.3"/>
-                ))}
+                {/* Same material treatment (folded metal flanges / taped
+                    foil-faced board seams) as the attic layout's supply
+                    plenum - previously ductboard got no interior texture
+                    at all here, only the metal branch did. */}
+                {!isExisting&&<PlenumMaterial x={UNIT_X} y={PLEN_TOP} w={PLEN_W} h={PLEN_TOTAL} isMetal={isMetal}/>}
                 {/* Deck line crossing through plenum */}
                 <line x1={UNIT_X-8} y1={DECK_Y} x2={UNIT_X+PLEN_W+8} y2={DECK_Y}
                   stroke={G+'.30)'} strokeWidth="1" strokeDasharray="4 3"/>
@@ -3025,41 +3352,36 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 <path key={key} d={d} fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
                   strokeDasharray="5 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
               );
-              // Vertical drop goes from exitY down to DECK_Y
+              // Vertical drop goes from exitY down to DECK_Y. Flex-duct
+              // corrugation (DuctRibbing/DuctClamp - see the attic
+              // layout's own supply drops for the full reasoning) applied
+              // to both the horizontal and vertical legs of each run, so
+              // this layout's ductwork reads as the identical real
+              // material instead of the two layouts drifting apart.
               return <>
                 {/* ── LEFT DUCT ── */}
                 {/* Horizontal run from plenum left face outward */}
                 <rect x={leftDropX} y={exitY} width={UNIT_X-leftDropX} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <DuctRibbing x={leftDropX} y={exitY} w={UNIT_X-leftDropX} h={DW} vertical={false}/>
                 {/* Vertical drop from horizontal run down to deck */}
                 <rect x={leftDropX} y={exitY} width={DW} height={DECK_Y-exitY} fill={DC} stroke={DS} strokeWidth="1"/>
+                <DuctRibbing x={leftDropX} y={exitY} w={DW} h={DECK_Y-exitY} vertical/>
+                <DuctClamp x={UNIT_X-DW-3} y={exitY} h={DW} vertical={false}/>
+                <DuctClamp x={leftDropX} y={DECK_Y-5} w={DW} vertical/>
                 {ductArrow(`M${UNIT_X-3},${exitY+DW/2} L${leftDropX+DW/2},${exitY+DW/2} L${leftDropX+DW/2},${DECK_Y-4}`,'la')}
-                {/* Ceiling grille at DECK_Y */}
-                <rect x={leftDropX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1"
-                  fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
-                {Array.from({length:5},(_,i)=>(
-                  <line key={i} x1={leftDropX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
-                    x2={leftDropX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8}
-                    stroke={DC} strokeWidth="0.8"/>
-                ))}
-                <text x={leftDropX+DW/2} y={DECK_Y+18} textAnchor="middle"
-                  fill={G+'.35)'} fontSize="11" fontFamily="monospace">SUPPLY</text>
+                <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
 
                 {/* ── RIGHT DUCT ── */}
                 {/* Horizontal run from plenum right face outward */}
                 <rect x={UNIT_X+PLEN_W} y={exitY} width={rightDropX-(UNIT_X+PLEN_W)+DW} height={DW} fill={DC} stroke={DS} strokeWidth="1"/>
+                <DuctRibbing x={UNIT_X+PLEN_W} y={exitY} w={rightDropX-(UNIT_X+PLEN_W)+DW} h={DW} vertical={false}/>
                 {/* Vertical drop down to deck */}
                 <rect x={rightDropX} y={exitY} width={DW} height={DECK_Y-exitY} fill={DC} stroke={DS} strokeWidth="1"/>
+                <DuctRibbing x={rightDropX} y={exitY} w={DW} h={DECK_Y-exitY} vertical/>
+                <DuctClamp x={UNIT_X+PLEN_W+3} y={exitY} h={DW} vertical={false}/>
+                <DuctClamp x={rightDropX} y={DECK_Y-5} w={DW} vertical/>
                 {ductArrow(`M${UNIT_X+PLEN_W+3},${exitY+DW/2} L${rightDropX+DW/2},${exitY+DW/2} L${rightDropX+DW/2},${DECK_Y-4}`,'ra')}
-                {/* Ceiling grille at DECK_Y */}
-                <rect x={rightDropX-GW/2+DW/2} y={DECK_Y} width={GW} height={9} rx="1"
-                  fill="rgba(0,0,0,.75)" stroke={DC} strokeWidth="1.2"/>
-                {Array.from({length:5},(_,i)=>(
-                  <line key={i} x1={rightDropX-GW/2+DW/2+3+i*(GW-6)/4} y1={DECK_Y+1}
-                    x2={rightDropX-GW/2+DW/2+3+i*(GW-6)/4} y2={DECK_Y+8}
-                    stroke={DC} strokeWidth="0.8"/>
-                ))}
-                <text x={rightDropX+DW/2} y={DECK_Y+18} textAnchor="middle"
-                  fill={G+'.35)'} fontSize="11" fontFamily="monospace">SUPPLY</text>
+                <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
               </>;
             })()}
           </g>}
@@ -3182,13 +3504,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <text x={UNIT_X+UNIT_W-26} y={FURN_Y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="9.5" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
             <line x1={UNIT_X} y1={FURN_Y+FURN_H/2} x2={UNIT_X+UNIT_W} y2={FURN_Y+FURN_H/2}
               stroke={S+'.28)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-            {/* TOP: HX */}
-            {Array.from({length:5},(_,i)=>(
-              <path key={i}
-                d={`M${UNIT_X+8} ${FURN_Y+12+i*((FURN_H/2-20)/5)} Q${UNIT_X+UNIT_W/2} ${FURN_Y+6+i*((FURN_H/2-20)/5)} ${UNIT_X+UNIT_W-8} ${FURN_Y+12+i*((FURN_H/2-20)/5)}`}
-                fill="none" stroke={furnaceActive?'rgba(249,115,22,.56)':'rgba(108,44,8,.18)'}
-                strokeWidth="2.6" strokeLinecap="round"/>
-            ))}
+            {/* TOP: HX - same clamshell-tube highlight/end-cap treatment
+                as the attic FurnaceH's own HX cells, so both layouts'
+                furnaces read as the identical hardware. */}
+            {Array.from({length:5},(_,i)=>{
+              const gy=FURN_Y+12+i*((FURN_H/2-20)/5), gyTop=FURN_Y+6+i*((FURN_H/2-20)/5);
+              const d=`M${UNIT_X+8} ${gy} Q${UNIT_X+UNIT_W/2} ${gyTop} ${UNIT_X+UNIT_W-8} ${gy}`;
+              return <g key={i}>
+                <path d={d} fill="none" stroke={furnaceActive?'rgba(249,115,22,.56)':'rgba(108,44,8,.18)'} strokeWidth="2.6" strokeLinecap="round"/>
+                <path d={d} fill="none" stroke={furnaceActive?'rgba(255,205,150,.42)':'rgba(180,140,90,.12)'} strokeWidth="0.75" strokeLinecap="round" transform="translate(0,-0.85)"/>
+                <circle cx={UNIT_X+8} cy={gy} r="1.6" fill={furnaceActive?'rgba(249,115,22,.5)':'rgba(80,40,10,.35)'} stroke={furnaceActive?'rgba(255,205,150,.35)':'rgba(150,100,60,.22)'} strokeWidth="0.4"/>
+                <circle cx={UNIT_X+UNIT_W-8} cy={gy} r="1.6" fill={furnaceActive?'rgba(249,115,22,.5)':'rgba(80,40,10,.35)'} stroke={furnaceActive?'rgba(255,205,150,.35)':'rgba(150,100,60,.22)'} strokeWidth="0.4"/>
+              </g>;
+            })}
             <rect x={UNIT_X+6} y={FURN_Y+FURN_H/2-13} width={UNIT_W-12} height={10} rx="2"
               fill={furnaceActive?O+'.07)':'rgba(5,5,13,.8)'}
               stroke={furnaceActive?'rgba(249,115,22,.42)':(S+'.2)')} strokeWidth="0.6"/>
