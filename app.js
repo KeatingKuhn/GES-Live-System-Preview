@@ -383,35 +383,36 @@
     if (!tierPrices) return null;
     const picked = TONNAGE_OPTIONS.find((o) => o.v === pricingAnswers.tonnageChoice) || TONNAGE_OPTIONS[3];
     const tonnage = nearestTonnage(tierPrices, picked.tons);
-    const lines = [{ label: `${tonnage}-ton system - ${TIER_LABEL[tier] || ""}`, price: tierPrices[tonnage] }];
+    const lines = [{ key: "tonnage", tier, tonnage, label: `${tonnage}-ton system - ${TIER_LABEL[tier] || ""}`, price: tierPrices[tonnage] }];
     if (answers.indoor_type === "furnace" && answers.furnace_eff === "e90") {
-      lines.push({ label: "90% AFUE furnace upgrade", price: PRICING.furnace90Upgrade });
+      lines.push({ key: "furnace90", label: "90% AFUE furnace upgrade", price: PRICING.furnace90Upgrade });
     }
     if (answers.plenum && answers.plenum !== "none") {
-      lines.push({ label: answers.plenum === "metal" ? "Sheet metal plenum" : "Ductboard plenum", price: PRICING.plenum[answers.plenum] });
+      lines.push({ key: "plenum", plenumType: answers.plenum, label: answers.plenum === "metal" ? "Sheet metal plenum" : "Ductboard plenum", price: PRICING.plenum[answers.plenum] });
     }
     const purifList = Array.isArray(answers.purif) ? answers.purif : [];
-    if (purifList.includes("uv")) lines.push({ label: "UV Light System", price: PRICING.purif.uv });
-    if (purifList.includes("ionizer")) lines.push({ label: "Ionizer / Plasma", price: PRICING.purif.ionizer });
-    if (purifList.includes("surge")) lines.push({ label: "Surge Protector", price: PRICING.extras.surge });
+    if (purifList.includes("uv")) lines.push({ key: "uv", label: "UV Light System", price: PRICING.purif.uv });
+    if (purifList.includes("ionizer")) lines.push({ key: "ionizer", label: "Ionizer / Plasma", price: PRICING.purif.ionizer });
+    if (purifList.includes("surge")) lines.push({ key: "surge", label: "Surge Protector", price: PRICING.extras.surge });
     if (answers.dehu === "yes") {
       const cap = dehuCapacity(picked.sqftMid);
-      lines.push({ label: `Whole-home dehumidifier (${cap.replace("p", "")}pt)`, price: PRICING.dehu[cap] });
+      lines.push({ key: "dehu", dehuCap: cap.replace("p", ""), label: `Whole-home dehumidifier (${cap.replace("p", "")}pt)`, price: PRICING.dehu[cap] });
     }
     const extrasList = Array.isArray(answers.extras) ? answers.extras : [];
-    if (extrasList.includes("condensate")) lines.push({ label: "Condensate Pump", price: PRICING.extras.condensate });
+    if (extrasList.includes("condensate")) lines.push({ key: "condensate", label: "Condensate Pump", price: PRICING.extras.condensate });
     if (extrasList.includes("erv")) {
       const cfmKey = ervCfmKey(picked.sqftMid);
-      lines.push({ label: `ERV (${cfmKey === "cfm130" ? "130" : "150"} CFM)`, price: PRICING.extras.erv[cfmKey] });
+      const cfmNum = cfmKey === "cfm130" ? "130" : "150";
+      lines.push({ key: "erv", ervCfm: cfmNum, label: `ERV (${cfmNum} CFM)`, price: PRICING.extras.erv[cfmKey] });
     }
     if (pricingAnswers.wantDucts && pricingAnswers.ventCount > 0) {
-      lines.push({ label: `Duct replacement (${pricingAnswers.ventCount} vents)`, price: pricingAnswers.ventCount * PRICING.duct.replacementPerStem });
+      lines.push({ key: "ductReplacement", ventCount: pricingAnswers.ventCount, label: `Duct replacement (${pricingAnswers.ventCount} vents)`, price: pricingAnswers.ventCount * PRICING.duct.replacementPerStem });
     }
     if (pricingAnswers.wantLaborWarranty) {
-      lines.push({ label: "10-year labor warranty", price: PRICING.laborWarranty10yr });
+      lines.push({ key: "laborWarranty", label: "10-year labor warranty", price: PRICING.laborWarranty10yr });
     }
     if (pricingAnswers.wantMaintenancePlan) {
-      lines.push({ label: "Annual maintenance plan (1st year)", price: PRICING.maintenancePlanAnnual });
+      lines.push({ key: "maintenancePlan", label: "Annual maintenance plan (1st year)", price: PRICING.maintenancePlanAnnual });
     }
     const subtotal = lines.reduce((s, l) => s + l.price, 0);
     const linesRounded = lines.map((l) => ({ ...l, display: roundTo25(l.price) }));
@@ -5088,6 +5089,39 @@
         Array.isArray(answers.extras) && answers.extras.length > 0 ? { step: "extras", label: tr("Final add-ons", "Complementos finales"), val: answers.extras.map((v) => v === "condensate" ? tr("Condensate pump", "Bomba de condensado") : v === "erv" ? "ERV" : v).join(" + ") } : null
       ].filter(Boolean);
     }, [answers, lang]);
+    const trLineLabel = (line) => {
+      if (lang !== "es") return line.label;
+      switch (line.key) {
+        case "tonnage": {
+          const tierEs = (OPTS_ES.cond_tier[line.tier] || {}).label;
+          return `Sistema de ${line.tonnage} toneladas - ${tierEs || ""}`;
+        }
+        case "furnace90":
+          return "Mejora a horno de 90% AFUE";
+        case "plenum":
+          return line.plenumType === "metal" ? "Plenum de l\xE1mina met\xE1lica" : "Plenum de ductboard";
+        case "uv":
+          return "Sistema de Luz UV";
+        case "ionizer":
+          return "Ionizador / Plasma";
+        case "surge":
+          return "Protector de Sobrevoltaje";
+        case "dehu":
+          return `Deshumidificador para toda la casa (${line.dehuCap}pt)`;
+        case "condensate":
+          return "Bomba de Condensado";
+        case "erv":
+          return `ERV (${line.ervCfm} CFM)`;
+        case "ductReplacement":
+          return `Reemplazo de ductos (${line.ventCount} rejillas)`;
+        case "laborWarranty":
+          return "Garant\xEDa de mano de obra de 10 a\xF1os";
+        case "maintenancePlan":
+          return "Plan de mantenimiento anual (1er a\xF1o)";
+        default:
+          return line.label;
+      }
+    };
     const buildEmailHref = () => {
       const lines = [tr("Here is the system I built with Gold Eagle Services:", "Este es el sistema que arm\xE9 con Gold Eagle Services:"), ""];
       reviewItems.forEach((item) => {
@@ -5097,7 +5131,10 @@
         const est = calcEstimate(answers, pricingAnswers);
         if (est) {
           lines.push("");
-          lines.push(tr(`Estimated price: ~$${est.display.toLocaleString()}`, `Precio estimado: ~$${est.display.toLocaleString()}`));
+          lines.push(tr("Price breakdown:", "Desglose de precio:"));
+          est.lines.forEach((l) => lines.push(`  ${trLineLabel(l)}: ~$${l.display.toLocaleString()}`));
+          lines.push("");
+          lines.push(tr(`Estimated total: ~$${est.display.toLocaleString()}`, `Total estimado: ~$${est.display.toLocaleString()}`));
         }
       }
       lines.push("");
@@ -5238,20 +5275,20 @@
       }
       return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, "GES")), opt.desc && /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, opt.desc)), /* @__PURE__ */ React.createElement("div", { className: isMulti ? "opt-check" : "opt-check radio", style: isOn && !isMulti ? { borderColor: "var(--gl)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" } : {} }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 8, height: 8, borderRadius: "50%", background: "var(--gh)" } }) : "")));
     };
-    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, "WELCOME BACK"), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        className: "lang-toggle-btn",
+        onClick: () => setLang((l) => l === "es" ? "en" : "es"),
+        "aria-label": tr("Switch to Spanish", "Cambiar a ingl\xE9s"),
+        style: { position: "absolute", top: "50%", right: 8, transform: "translateY(-50%)", fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
+      },
+      lang === "es" ? "EN" : "ES"
+    )), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, "WELCOME BACK"), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
       const savedCur = savedSteps[savedBuild.stepIdx];
       return savedBuild.done ? "You already finished building a system. Pick up right where you left off?" : savedCur ? /* @__PURE__ */ React.createElement(React.Fragment, null, "You were on ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.85)" } }, '"', savedCur.q, '"'), " - want to keep going?") : "You have a build in progress. Want to keep going?";
-    })()), /* @__PURE__ */ React.createElement("button", { className: "done-cta", style: { width: 220 }, onClick: resumeBuild }, "Resume My Build"), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: discardSavedBuild }, "Start Fresh Instead")), /* @__PURE__ */ React.createElement("div", { className: "prog-chapters", style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 30 } }, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        className: "no-print lang-toggle-btn",
-        onClick: () => setLang((l) => l === "es" ? "en" : "es"),
-        "aria-label": tr("Switch to Spanish", "Cambiar a ingl\xE9s"),
-        style: { position: "absolute", top: 6, right: 8, zIndex: 31, fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
-      },
-      lang === "es" ? "EN" : "ES"
-    ), chapterNames.map((name, i) => {
+    })()), /* @__PURE__ */ React.createElement("button", { className: "done-cta", style: { width: 220 }, onClick: resumeBuild }, "Resume My Build"), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: discardSavedBuild }, "Start Fresh Instead")), /* @__PURE__ */ React.createElement("div", { className: "prog-chapters", style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 30 } }, chapterNames.map((name, i) => {
       const segPct = done || i < curChapter ? 100 : i > curChapter ? 0 : chapterCounts[i] ? Math.round(curChapterStepNum / chapterCounts[i] * 100) : 0;
       return /* @__PURE__ */ React.createElement("div", { key: i, className: "prog-chapter" + (segPct >= 100 ? " done" : ""), title: name }, /* @__PURE__ */ React.createElement("div", { className: "prog-chapter-fill", style: { width: segPct + "%" } }));
     })), /* @__PURE__ */ React.createElement("div", { ref: splashRef, className: "splash-screen" + (loc || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo" }, tr("BUILD YOUR OWN SYSTEM", "ARME SU PROPIO SISTEMA")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, tr(
@@ -5296,7 +5333,7 @@
     )), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su proceso se guarda autom\xE1ticamente."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setQuickEdit(false);
       setDone(true);
-    } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + tr("STEP", "PASO") + " " + stepIdx + (totalKnown ? " " + tr("OF", "DE") + " " + totalSteps : "") + " \xB7 " + curQ.toUpperCase()) : ""), infoText && /* @__PURE__ */ React.createElement(
+    } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, tr("STEP", "PASO") + " " + stepIdx + (totalKnown ? " " + tr("OF", "DE") + " " + totalSteps : "")), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
@@ -5348,7 +5385,14 @@
         // "short" wording where one exists (full detail is still
         // one hover/tap away via the native title tooltip, same
         // place attic's ellipsis-clipped cells already send it).
-        isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, title: item.val }, item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "3px 6px" } }, tr("EDIT", "EDITAR"))) : (
+        isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement(
+          "span",
+          {
+            style: lang === "es" ? { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "visible", whiteSpace: "normal" } : { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+            title: item.val
+          },
+          lang === "es" ? item.short || item.val : item.val
+        ), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "3px 6px" } }, tr("EDIT", "EDITAR"))) : (
           // Closet's cell doesn't reserve a fixed right-hand gutter for
           // an absolutely-positioned EDIT chip (that's what attic does
           // above) - at 2-column width the chip's real rendered width
@@ -5422,7 +5466,7 @@
     )), pricingFlow === "result" && /* @__PURE__ */ React.createElement("div", { key: "result", className: "fadein" }, (() => {
       const est = calcEstimate(answers, pricingAnswers);
       if (!est) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.", "A\xFAn no podemos calcular un estimado para esta combinaci\xF3n - ll\xE1menos y le daremos un n\xFAmero."));
-      const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("AS LOW AS", "DESDE")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 44, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 17, color: "var(--dim)", fontWeight: 400 } }, tr("/mo", "/mes"))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6, marginBottom: 10 } }, tr("Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.", "Basado en 36 meses al 0% de inter\xE9s a trav\xE9s del financiamiento de Wells Fargo, sujeto a aprobaci\xF3n de cr\xE9dito.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr(`Includes a ${answers.cond_tier === "high_ge18" ? "10" : "12"}-year manufacturer warranty.`, `Incluye una garant\xEDa de f\xE1brica de ${answers.cond_tier === "high_ge18" ? "10" : "12"} a\xF1os.`)), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, l.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("AS LOW AS", "DESDE")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 44, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 17, color: "var(--dim)", fontWeight: 400 } }, tr("/mo", "/mes"))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6, marginBottom: 10 } }, tr("Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.", "Basado en 36 meses al 0% de inter\xE9s a trav\xE9s del financiamiento de Wells Fargo, sujeto a aprobaci\xF3n de cr\xE9dito.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr(`Includes a ${answers.cond_tier === "high_ge18" ? "10" : "12"}-year manufacturer warranty.`, `Incluye una garant\xEDa de f\xE1brica de ${answers.cond_tier === "high_ge18" ? "10" : "12"} a\xF1os.`)), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",

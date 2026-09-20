@@ -418,29 +418,38 @@ export function calcEstimate(answers,pricingAnswers){
   if(!tierPrices)return null;
   const picked=TONNAGE_OPTIONS.find(o=>o.v===pricingAnswers.tonnageChoice)||TONNAGE_OPTIONS[3];
   const tonnage=nearestTonnage(tierPrices,picked.tons);
-  const lines=[{label:`${tonnage}-ton system - ${TIER_LABEL[tier]||''}`,price:tierPrices[tonnage]}];
+  // Every line carries a `key` (+ whatever params its label is built from)
+  // alongside the English `label` - the QA pass found these labels were
+  // rendered raw and never translated under the Spanish toggle, since
+  // they're generated here in data.js rather than written as literal JSX
+  // text in app.js (where the tr() overlay lives). app.js's LINE_LABEL_ES
+  // looks a line up by `key` and rebuilds the Spanish string from these
+  // same params, rather than this file needing to know about languages at
+  // all.
+  const lines=[{key:'tonnage',tier,tonnage,label:`${tonnage}-ton system - ${TIER_LABEL[tier]||''}`,price:tierPrices[tonnage]}];
 
   if(answers.indoor_type==='furnace'&&answers.furnace_eff==='e90'){
-    lines.push({label:'90% AFUE furnace upgrade',price:PRICING.furnace90Upgrade});
+    lines.push({key:'furnace90',label:'90% AFUE furnace upgrade',price:PRICING.furnace90Upgrade});
   }
   if(answers.plenum&&answers.plenum!=='none'){
-    lines.push({label:answers.plenum==='metal'?'Sheet metal plenum':'Ductboard plenum',price:PRICING.plenum[answers.plenum]});
+    lines.push({key:'plenum',plenumType:answers.plenum,label:answers.plenum==='metal'?'Sheet metal plenum':'Ductboard plenum',price:PRICING.plenum[answers.plenum]});
   }
   const purifList=Array.isArray(answers.purif)?answers.purif:[];
-  if(purifList.includes('uv'))lines.push({label:'UV Light System',price:PRICING.purif.uv});
-  if(purifList.includes('ionizer'))lines.push({label:'Ionizer / Plasma',price:PRICING.purif.ionizer});
-  if(purifList.includes('surge'))lines.push({label:'Surge Protector',price:PRICING.extras.surge});
+  if(purifList.includes('uv'))lines.push({key:'uv',label:'UV Light System',price:PRICING.purif.uv});
+  if(purifList.includes('ionizer'))lines.push({key:'ionizer',label:'Ionizer / Plasma',price:PRICING.purif.ionizer});
+  if(purifList.includes('surge'))lines.push({key:'surge',label:'Surge Protector',price:PRICING.extras.surge});
 
   if(answers.dehu==='yes'){
     const cap=dehuCapacity(picked.sqftMid);
-    lines.push({label:`Whole-home dehumidifier (${cap.replace('p','')}pt)`,price:PRICING.dehu[cap]});
+    lines.push({key:'dehu',dehuCap:cap.replace('p',''),label:`Whole-home dehumidifier (${cap.replace('p','')}pt)`,price:PRICING.dehu[cap]});
   }
 
   const extrasList=Array.isArray(answers.extras)?answers.extras:[];
-  if(extrasList.includes('condensate'))lines.push({label:'Condensate Pump',price:PRICING.extras.condensate});
+  if(extrasList.includes('condensate'))lines.push({key:'condensate',label:'Condensate Pump',price:PRICING.extras.condensate});
   if(extrasList.includes('erv')){
     const cfmKey=ervCfmKey(picked.sqftMid);
-    lines.push({label:`ERV (${cfmKey==='cfm130'?'130':'150'} CFM)`,price:PRICING.extras.erv[cfmKey]});
+    const cfmNum=cfmKey==='cfm130'?'130':'150';
+    lines.push({key:'erv',ervCfm:cfmNum,label:`ERV (${cfmNum} CFM)`,price:PRICING.extras.erv[cfmKey]});
   }
   // Return-side work (plenum, new duct, duct cleaning) stays education-only
   // (see additionalConsiderations below) with final scope confirmed at the
@@ -448,17 +457,17 @@ export function calcEstimate(answers,pricingAnswers){
   // on-diagram build-out for the customer to see update live.
 
   if(pricingAnswers.wantDucts&&pricingAnswers.ventCount>0){
-    lines.push({label:`Duct replacement (${pricingAnswers.ventCount} vents)`,price:pricingAnswers.ventCount*PRICING.duct.replacementPerStem});
+    lines.push({key:'ductReplacement',ventCount:pricingAnswers.ventCount,label:`Duct replacement (${pricingAnswers.ventCount} vents)`,price:pricingAnswers.ventCount*PRICING.duct.replacementPerStem});
   }
   // Extended labor warranty - a checkbox on the result screen, not a
   // wizard question (see the comment on PRICING.laborWarranty10yr above).
   if(pricingAnswers.wantLaborWarranty){
-    lines.push({label:'10-year labor warranty',price:PRICING.laborWarranty10yr});
+    lines.push({key:'laborWarranty',label:'10-year labor warranty',price:PRICING.laborWarranty10yr});
   }
   // Annual maintenance plan - same treatment (see the DRAFT PLACEHOLDER
   // comment on PRICING.maintenancePlanAnnual above).
   if(pricingAnswers.wantMaintenancePlan){
-    lines.push({label:'Annual maintenance plan (1st year)',price:PRICING.maintenancePlanAnnual});
+    lines.push({key:'maintenancePlan',label:'Annual maintenance plan (1st year)',price:PRICING.maintenancePlanAnnual});
   }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);

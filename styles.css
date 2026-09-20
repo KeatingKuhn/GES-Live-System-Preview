@@ -663,7 +663,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    with Back/Info/Skip/Next, so a step whose question is long enough to
    wrap this label to 2 lines shouldn't be allowed to keep growing - the
    full question is already shown as its own heading right underneath. */
-.attic-step-label{font-family:var(--fm);font-size:var(--fs-attic-steplabel);color:rgba(215,183,64,.72);letter-spacing:.1em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:font-size .2s}
+.attic-step-label{display:flex;font-family:var(--fm);font-size:var(--fs-attic-steplabel);color:rgba(215,183,64,.72);letter-spacing:.1em;flex:1;min-width:0;transition:font-size .2s}
+/* Split into a protected "STEP N OF M" piece (never clipped) and a
+   truncatable chapter+question piece - a narrow-viewport QA pass found
+   the single nowrap+ellipsis span this used to be could drop the step
+   counter entirely once neighboring buttons (info/back/next) left it too
+   little room, worse in Spanish where the assembled string runs longer.
+   The chapter tag + question text is safe to lose to an ellipsis since
+   the full question already repeats as its own heading right below. */
+.attic-step-label-fixed{flex-shrink:0;white-space:nowrap}
+.attic-step-label-rest{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .attic-opt-foot{display:flex;align-items:center;justify-content:center;margin-top:2px}
 .attic-chk{width:18px;height:18px;border:1.5px solid rgba(215,183,64,.35);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent}
 .attic-opt.sel .attic-chk{border-color:var(--gl);background:var(--gm);color:var(--bk)}

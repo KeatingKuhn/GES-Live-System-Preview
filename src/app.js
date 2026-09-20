@@ -351,6 +351,36 @@ function App(){
     ].filter(Boolean);
   },[answers,lang]);
 
+  // Translates calcEstimate's itemized pricing-line labels (data.js) under
+  // the Spanish toggle. These are built in data.js, not written as literal
+  // JSX text here, so the inline tr() calls used everywhere else in this
+  // file never touched them - a QA pass caught this leak. Reconstructs the
+  // Spanish string from each line's `key` + the params calcEstimate now
+  // attaches (see the comment on `lines=[...]` in data.js), reusing
+  // OPTS_ES.cond_tier for the tier name so it can't drift from the wizard's
+  // own translated tier labels.
+  const trLineLabel=(line)=>{
+    if(lang!=='es')return line.label;
+    switch(line.key){
+      case 'tonnage':{
+        const tierEs=(OPTS_ES.cond_tier[line.tier]||{}).label;
+        return `Sistema de ${line.tonnage} toneladas - ${tierEs||''}`;
+      }
+      case 'furnace90':        return 'Mejora a horno de 90% AFUE';
+      case 'plenum':            return line.plenumType==='metal'?'Plenum de lámina metálica':'Plenum de ductboard';
+      case 'uv':                return 'Sistema de Luz UV';
+      case 'ionizer':           return 'Ionizador / Plasma';
+      case 'surge':             return 'Protector de Sobrevoltaje';
+      case 'dehu':              return `Deshumidificador para toda la casa (${line.dehuCap}pt)`;
+      case 'condensate':        return 'Bomba de Condensado';
+      case 'erv':                return `ERV (${line.ervCfm} CFM)`;
+      case 'ductReplacement':   return `Reemplazo de ductos (${line.ventCount} rejillas)`;
+      case 'laborWarranty':     return 'Garantía de mano de obra de 10 años';
+      case 'maintenancePlan':   return 'Plan de mantenimiento anual (1er año)';
+      default:                  return line.label;
+    }
+  };
+
   // Q14 - "Email My Build": a plain mailto: link, no backend needed. Reuses
   // reviewItems (above) so the emailed summary always matches what the
   // review grid shows on screen, and adds the price too once one's been
@@ -364,7 +394,10 @@ function App(){
       const est=calcEstimate(answers,pricingAnswers);
       if(est){
         lines.push('');
-        lines.push(tr(`Estimated price: ~$${est.display.toLocaleString()}`,`Precio estimado: ~$${est.display.toLocaleString()}`));
+        lines.push(tr('Price breakdown:','Desglose de precio:'));
+        est.lines.forEach(l=>lines.push(`  ${trLineLabel(l)}: ~$${l.display.toLocaleString()}`));
+        lines.push('');
+        lines.push(tr(`Estimated total: ~$${est.display.toLocaleString()}`,`Total estimado: ~$${est.display.toLocaleString()}`));
       }
     }
     lines.push('');
@@ -661,7 +694,24 @@ function App(){
   };
 
     return(<>
-      <div className="site-header-spacer no-print"/>
+      <div className="site-header-spacer no-print">
+        {/* Language toggle lives in this reserved 43px header-spacer bar
+            (always empty, always on top at z-index 50 - see .site-header-
+            spacer in styles.css) rather than floating over the canvas.
+            It used to sit inside .prog-chapters (the segmented progress
+            bar), which is only 4px tall - the button's real height
+            overflowed straight down into the canvas's own top-right
+            corner, where the live diagram renders its own ToggleUI mode-
+            preview box (also top:8/right:8, but relative to the canvas
+            frame) - the two collided and clipped each other on every
+            step past indoor_type. This spacer bar has no such conflict:
+            nothing else is ever drawn in it. */}
+        <button className="lang-toggle-btn" onClick={()=>setLang(l=>l==='es'?'en':'es')}
+          aria-label={tr('Switch to Spanish','Cambiar a inglés')}
+          style={{position:"absolute",top:"50%",right:8,transform:"translateY(-50%)",fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
+          {lang==='es'?'EN':'ES'}
+        </button>
+      </div>
     <div ref={topRef} className="app-root">
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
       {resumePending&&<div className="fadein" style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
@@ -683,14 +733,6 @@ function App(){
 
       {/* ── PROGRESS BAR - segmented by chapter, not a bare percentage ── */}
       <div className="prog-chapters" style={{position:"absolute",top:0,left:0,right:0,zIndex:30}}>
-        {/* Language toggle - visible on every screen, top-right. Persists
-            via localStorage (see the `lang` state above) so a returning
-            visitor keeps their pick. */}
-        <button className="no-print lang-toggle-btn" onClick={()=>setLang(l=>l==='es'?'en':'es')}
-          aria-label={tr('Switch to Spanish','Cambiar a inglés')}
-          style={{position:"absolute",top:6,right:8,zIndex:31,fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
-          {lang==='es'?'EN':'ES'}
-        </button>
         {chapterNames.map((name,i)=>{
           const segPct=done||i<curChapter?100:i>curChapter?0:
             chapterCounts[i]?Math.round((curChapterStepNum/chapterCounts[i])*100):0;
@@ -833,7 +875,10 @@ function App(){
           </div>
           <div className="attic-bar-top">
             <span className="attic-step-label">
-              {cur ? <><span className="chapter-tag">{chapterNames[curChapter]}</span>{" · "+tr('STEP','PASO')+" "+stepIdx+(totalKnown?" "+tr('OF','DE')+" "+totalSteps:"")+" · "+curQ.toUpperCase()}</> : ""}
+              {cur ? <>
+                <span className="attic-step-label-fixed">{tr('STEP','PASO')+" "+stepIdx+(totalKnown?" "+tr('OF','DE')+" "+totalSteps:"")}</span>
+                <span className="attic-step-label-rest">{" · "}<span className="chapter-tag">{chapterNames[curChapter]}</span>{" · "+curQ.toUpperCase()}</span>
+              </> : ""}
             </span>
             {infoText&&<button className="info-btn" aria-label={showInfo?tr("Hide info","Ocultar información"):tr("More info","Más información")} aria-expanded={showInfo}
               onMouseEnter={()=>hoverCapable()&&setShowInfo(true)} onMouseLeave={()=>hoverCapable()&&setShowInfo(false)}
@@ -991,7 +1036,21 @@ function App(){
                     isAtticMode?
                     <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
                       <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
-                      <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
+                      {/* Spanish text runs noticeably longer than English
+                          (a QA pass caught "Combustible Dual - bomba de
+                          calor + h…" truncating mid-word under the
+                          English-tuned nowrap+ellipsis below) - under the
+                          Spanish toggle this cell wraps instead of
+                          clipping, same as closet's cell already does,
+                          and prefers the shorter `short` wording where one
+                          exists rather than the full `val`. English keeps
+                          the original single-line ellipsis behavior
+                          unchanged, since it was never observed to
+                          truncate mid-word there. */}
+                      <span style={lang==='es'
+                        ?{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"visible",whiteSpace:"normal"}
+                        :{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}
+                        title={item.val}>{lang==='es'?(item.short||item.val):item.val}</span>
                       <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>{tr('EDIT','EDITAR')}</button>
                     </div>
                     :
@@ -1205,7 +1264,7 @@ function App(){
                     <div style={{marginBottom:10}}>
                       {est.lines.map((l,i)=>(
                         <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:"var(--fs-pricing-line)"}}>
-                          <span style={{color:"var(--dim)"}}>{l.label}</span>
+                          <span style={{color:"var(--dim)"}}>{trLineLabel(l)}</span>
                           <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>~${l.display.toLocaleString()}</span>
                         </div>
                       ))}
