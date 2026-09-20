@@ -319,6 +319,21 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .edit-zone rect:first-child{pointer-events:all}
 .edit-zone-ring{opacity:0;transition:opacity .15s ease-out;pointer-events:none}
 .edit-zone:hover .edit-zone-ring{opacity:1}
+/* Wizard "you are here" spotlight (StepFocusRing in canvas.js) - a pulsing
+   dashed ring on whichever component the step CURRENTLY being asked is
+   about. Deliberately reuses three animations already defined above rather
+   than inventing a new one: glowIn+gpulse (the same one-shot-then-loop
+   glow every "active" dot/highlight on this diagram already uses) for the
+   opacity breathing, and the ductwork's own airflow march for the dashed
+   stroke - a moving dash already reads as "this is live/in-progress"
+   everywhere else in this diagram (supply/return duct arrows), so it
+   carries that same meaning here instead of introducing a second visual
+   language for the same idea. Never interactive (pointer-events:none) -
+   this is a cue, not a control; the done screen's own EditZone above is
+   what's actually clickable. */
+.step-focus-ring{fill:none;stroke:rgba(215,183,64,.85);stroke-width:2.25;
+  stroke-dasharray:9 6;pointer-events:none;
+  animation:glowIn .3s ease-out both,gpulse 2.4s ease-in-out .3s infinite,airflow 1.4s linear infinite}
 
 /* SIDEBAR - overflow-y:auto, not hidden: the wizard sidebar (unlike the
    done-screen one, which gets an inline overflowY:auto override) had no
@@ -508,6 +523,21 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    layout, so it belongs on the shared base rule instead. */
 .done-wrap{padding:24px 18px;text-align:center;animation:snap .35s ease both;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
 .done-icon{width:54px;height:54px;background:var(--gh);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--bk);font-weight:700}
+/* Checkmark gets its own one-shot glow burst on TOP of done-wrap's snap
+   pop-in above - the panel arriving is already covered by .snap; this
+   marks the checkmark itself as the moment's actual payoff symbol, the
+   same way the canvas gets its own dedicated power-on flash
+   (canvasPowerOn/.done-canvas-sweep in app.js) instead of just fading in
+   with everything else. One-shot (both, no infinite loop) - reads once
+   and settles, matching the restrained treatment everywhere else in this
+   file rather than an ongoing pulse that would nag at the eye. Wraps just
+   the icon (not the whole header) so the halo stays centered on the
+   checkmark regardless of how long the title text next to it runs. */
+.done-icon-wrap{position:relative;display:inline-flex;flex-shrink:0}
+.done-icon-wrap::before{content:'';position:absolute;inset:-9px;border-radius:50%;
+  background:radial-gradient(circle,rgba(240,214,78,.55) 0%,rgba(240,214,78,0) 72%);
+  animation:doneIconGlow .8s ease-out .12s both;pointer-events:none}
+@keyframes doneIconGlow{0%{opacity:0;transform:scale(.5)}45%{opacity:1}100%{opacity:0;transform:scale(1.65)}}
 .done-title{font-family:var(--ft);font-size:19px;font-weight:700;color:var(--wh);margin-bottom:6px}
 /* font-size used to be a flat 13px, so it never picked up the responsive
    bump --fs-restart got in the accessibility pass below - at >=1025px
@@ -593,6 +623,22 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 @media(min-width:641px){.canvas-zoom{width:133.3334%;height:133.3334%;transform:scale(.75);transform-origin:top left}}
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
+/* First-load entrance - the very first thing anyone sees gets a short,
+   staged rise instead of popping in fully-formed in one frame. Each direct
+   line/block gets .splash-rise plus its own small stagger (see the
+   animationDelay inline on each one in app.js, same pattern already used
+   for DehuErvBoxes'/the ionizer's per-item delays elsewhere in this app).
+   Kept short (7 items, ~55ms apart, .4s each) and small (6px of rise) on
+   purpose - this plays once per page load and nobody should be kept
+   waiting to click the very first thing on the page; a slower or bigger
+   version reads as ceremony, not polish. `both` so each element stays at
+   its 0% frame (invisible) until its own delay elapses instead of all
+   seven flashing visible-then-hidden-then-animating on frame one. Doesn't
+   touch .splash-screen.out's own exit fade above - that's a different
+   transition on a different property (the screen's own opacity/transform,
+   not these children's), so the two never fight each other. */
+.splash-rise{animation:splashRise .45s cubic-bezier(.22,.61,.36,1) both}
+@keyframes splashRise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 .splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
 .splash-sub{font-family:var(--fm);font-size:13px;color:rgba(215,183,64,.65);letter-spacing:.22em;margin-top:-8px;text-align:center}
 .trust-line{font-family:var(--fb);font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.02em;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}

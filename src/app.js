@@ -758,8 +758,16 @@ function App(){
           all three needed this same guard against leaking into Tab order
           while hidden. */}
       <div ref={splashRef} className={"splash-screen"+(loc||done?" out":"")}>
-        <div className="splash-logo">{tr('BUILD YOUR OWN SYSTEM','ARME SU PROPIO SISTEMA')}</div>
-        <p style={{fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
+        {/* Staged entrance (splash-rise, see its own comment in styles.css) -
+            each direct block eases up into place a beat after the one
+            before it, instead of the whole screen popping in fully-formed
+            on frame one. Stagger lives here as a per-element animationDelay
+            (same pattern as the ionizer/DehuErvBoxes per-item delays in
+            canvas.js) rather than nth-child in the stylesheet, so it can't
+            silently drift out of order if a block above is ever added or
+            reordered. */}
+        <div className="splash-logo splash-rise" style={{animationDelay:'0s'}}>{tr('BUILD YOUR OWN SYSTEM','ARME SU PROPIO SISTEMA')}</div>
+        <p className="splash-rise" style={{animationDelay:'.06s',fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
           {tr(<>Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.</>,
               <>Díganos dónde vive su unidad interior y construiremos un <strong style={{color:"rgba(255,255,255,.8)"}}>diagrama en vivo y en tiempo real</strong> de su sistema HVAC completo - cada componente, cada conexión, dimensionado y etiquetado.</>)}
         </p>
@@ -767,7 +775,7 @@ function App(){
             ("good call, add it somewhere") - only claims already true
             elsewhere in this app (Austin-based, no personal info required,
             upfront pricing) rather than anything unverifiable. */}
-        <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px 18px",maxWidth:560,margin:"6px 0"}}>
+        <div className="splash-rise" style={{animationDelay:'.12s',display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px 18px",maxWidth:560,margin:"6px 0"}}>
           {[
             tr('See every component before anyone visits your home','Vea cada componente antes de que alguien visite su hogar'),
             tr('Transparent pricing, zero pressure','Precios transparentes, sin presión'),
@@ -782,7 +790,7 @@ function App(){
             background - under the 4.5:1 body-text minimum. .75 clears it
             at 5.82:1 while staying visibly dimmer than the solid --gl used
             on the two cards below it. */}
-        <p style={{fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.75)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>{tr('SELECT YOUR SYSTEM LOCATION TO BEGIN','SELECCIONE LA UBICACIÓN DE SU SISTEMA PARA COMENZAR')}</p>
+        <p className="splash-rise" style={{animationDelay:'.18s',fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.75)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>{tr('SELECT YOUR SYSTEM LOCATION TO BEGIN','SELECCIONE LA UBICACIÓN DE SU SISTEMA PARA COMENZAR')}</p>
         {/* Both cards are plain divs (not <button>) for a free hand over
             layout, so keyboard reachability and semantics don't come for
             free the way they would on a real button - this is the very
@@ -794,7 +802,7 @@ function App(){
             both; a bare div's default keydown does neither) bring it to
             parity with the real <button>s everywhere else in the wizard,
             picking up the same global :focus-visible ring for free. */}
-        <div className="splash-cards">
+        <div className="splash-cards splash-rise" style={{animationDelay:'.24s'}}>
           <div className="splash-card" role="button" tabIndex={0}
             aria-label={tr('Attic Horizontal - Unit lays on its side above the ceiling, most common in Austin. Air flows horizontally through ducts in the attic.','Ático Horizontal - La unidad se acuesta de lado sobre el techo, lo más común en Austin. El aire fluye horizontalmente a través de ductos en el ático.')}
             onClick={()=>pickLocation("attic")}
@@ -817,12 +825,12 @@ function App(){
         {/* Small language toggle, below the two cards - only ever shown
             here on the splash screen, not as a persistent header across
             every wizard step. */}
-        <button className="lang-toggle-btn" onClick={()=>setLang(l=>l==='es'?'en':'es')}
+        <button className="lang-toggle-btn splash-rise" onClick={()=>setLang(l=>l==='es'?'en':'es')}
           aria-label={tr('Switch to Spanish','Cambiar a inglés')}
-          style={{fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
+          style={{animationDelay:'.3s',fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
           {lang==='es'?'EN':'ES'}
         </button>
-        <p style={{fontFamily:"var(--fb)",fontSize:"14px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:460,lineHeight:1.6,marginTop:8}}>
+        <p className="splash-rise" style={{animationDelay:'.36s',fontFamily:"var(--fb)",fontSize:"14px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:460,lineHeight:1.6,marginTop:8}}>
           {tr('Takes about 2 minutes. No personal info required. Your build saves automatically as you go.','Toma unos 2 minutos. No se requiere información personal. Su proceso se guarda automáticamente.')}
         </p>
       </div>
@@ -990,7 +998,7 @@ function App(){
               <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-pricing-fine)"}}>{tr('Edit selections','Editar selecciones')}</button>
             </div>
             :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.55)",padding:"6px 10px 6px 7px"}}>
-              <div className="done-icon" style={{margin:0,width:28,height:28,fontSize:14,flexShrink:0}}>✓</div>
+              <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:28,height:28,fontSize:14,flexShrink:0}}>✓</div></div>
               <div>
                 <div className="done-title" style={{fontSize:14.5,marginBottom:0}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
                 <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
@@ -1098,7 +1106,7 @@ function App(){
               :
                 <>
                   <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
-                    <div className="done-icon" style={{margin:0,width:isAtticMode?38:42,height:isAtticMode?38:42,fontSize:isAtticMode?17:19,flexShrink:0}}>✓</div>
+                    <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:isAtticMode?38:42,height:isAtticMode?38:42,fontSize:isAtticMode?17:19,flexShrink:0}}>✓</div></div>
                     <div>
                       <div className="done-title" style={{fontSize:isAtticMode?17:19,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
                       <div style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>

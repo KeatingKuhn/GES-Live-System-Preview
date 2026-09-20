@@ -479,6 +479,52 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         fill={G+'.06)'} stroke={G+'.95)'} strokeWidth="2.5" filter="url(#glow-sm)"/>
     </g>;
   };
+  // Which step the homeowner is looking at RIGHT NOW, regardless of whether
+  // it's been answered yet - drives StepFocusRing just below. null once the
+  // wizard runs out of steps (stepIdx briefly past the end mid-transition)
+  // or before activeSteps exists at all, both defensively.
+  const curStepId=activeSteps&&activeSteps[stepIdx]?activeSteps[stepIdx].id:null;
+  // "You are here" spotlight - a pulsing ring on whichever real component
+  // the CURRENT question is actually about, so the diagram visibly responds
+  // to what's being ASKED, not just what's already been answered. Distinct
+  // from EditZone above on purpose: EditZone is a done-screen, hover-to-
+  // reveal affordance for jumping back into an already-answered step;
+  // this is a wizard-only, always-on cue for the step in progress, so the
+  // two are never rendered by the same Canvas instance (onEditStep is only
+  // ever passed to the done-screen's Canvas - see app.js - so this bails
+  // immediately there, same guard style as the "only wizard" comment on
+  // Canvas's own props above).
+  // Most call sites below reuse the EXACT x/y/w/h a component's own EditZone
+  // uses once it exists - the position was already fixed by an earlier
+  // answer (which unit slot, which side of the deck line, ...), so there's
+  // an honest "here's where it's about to appear" spot to point at even
+  // pre-answer. The two steps left uncovered (cond_tier on a first pass,
+  // system_for entirely) are the ones where that isn't true: the condenser's
+  // whole outside-zone/house split only exists once cond_tier itself is
+  // answered (see HOUSE_W's hasCond branch below), so there's no honest
+  // "future" position for it until then - a quick-edit REVISIT of cond_tier
+  // (the diagram's already built, hasCond already true) still gets a ring,
+  // pointing at the real condenser. system_for has no diagram real estate
+  // of its own (it only changes how the already-drawn furnace/condenser
+  // pair behaves), so it's skipped rather than forcing a ring onto
+  // something else's box.
+  const MIN_FOCUS_PX=28;
+  const StepFocusRing=({x,y,w,h,stepId,rx})=>{
+    if(onEditStep||curStepId!==stepId)return null;
+    const minUnits=SVG_SCALE>0?MIN_FOCUS_PX/SVG_SCALE:0;
+    let fx=x, fy=y, fw=w, fh=h;
+    if(fw<minUnits){fx-=(minUnits-fw)/2; fw=minUnits;}
+    if(fh<minUnits){fy-=(minUnits-fh)/2; fh=minUnits;}
+    if(SVG_VW){if(fx<0)fx=0; if(fx+fw>SVG_VW)fx=Math.max(0,SVG_VW-fw);}
+    if(SVG_VH){if(fy<0)fy=0; if(fy+fh>SVG_VH)fy=Math.max(0,SVG_VH-fh);}
+    // Dashed + marching (reuses the ductwork's own .airflow keyframe, not a
+    // new one) reads as "this is what we're building next," distinct at a
+    // glance from EditZone's solid hover ring above - see .step-focus-ring
+    // in styles.css for the animation stack (glowIn/gpulse/airflow, all
+    // already defined for other parts of this diagram, none new).
+    return <rect className="step-focus-ring" x={fx-4} y={fy-4} width={fw+8} height={fh+8}
+      rx={(rx||4)+4} fill="none" filter="url(#glow-sm)"/>;
+  };
   // Defaults the mode toggle to whichever side of the system is actually
   // relevant right now (Austin's cooling season runs roughly April-
   // October, heating season November-March) instead of always opening
@@ -2604,6 +2650,35 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <text x={HOUSE_W/2} y={VH/2-10} textAnchor="middle" fill={G+'.12)'} fontSize="15.5" fontFamily="monospace">Choose your location to begin building</text>
             <text x={HOUSE_W/2} y={VH/2+8} textAnchor="middle" fill={G+'.06)'} fontSize="13" fontFamily="monospace">Components assemble here in real time →</text>
           </g>}
+
+          {/* ── CURRENT-STEP SPOTLIGHT - see StepFocusRing's own comment
+               above for what this is and why only these steps get one. ── */}
+          <StepFocusRing stepId="indoor_type"
+            x={(hasFurnace?FURN_X:AH_X)-4} y={UNIT_Y-2} rx={6}
+            w={(hasFurnace?ACOIL_X+ACOIL_W-FURN_X:AH_W)+8} h={UNIT_H+4}/>
+          <StepFocusRing stepId="insulation"
+            x={(hasFurnace?FURN_X:AH_X)-4} y={UNIT_Y-2} rx={6}
+            w={(hasFurnace?ACOIL_X+ACOIL_W-FURN_X:AH_W)+8} h={UNIT_H+4}/>
+          {/* SUP_PLEN_W is 0 before plenum is answered (see its own
+              definition above) - a nominal 180 stand-in width just for
+              this ghost ring, never touching the real plenum box's own
+              width once it actually renders. */}
+          <StepFocusRing stepId="plenum"
+            x={SUP_X-2} y={SUP_PLEN_Y-2} w={(SUP_PLEN_W||180)+4} h={SUP_PLEN_H+4} rx={5}/>
+          {hasCond&&<StepFocusRing stepId="cond_tier"
+            x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
+          <StepFocusRing stepId="thermostat"
+            x={RET_X+RET_PLEN_W+6} y={DECK_Y+10} w={68} h={70}/>
+          {/* APR_W is 0 only if the (effectively always-on, see hasAprilaire's
+              own default) filtration cabinet is somehow off - 32 stand-in
+              width matches its real one exactly, so this never looks
+              different from the real cabinet's own footprint. */}
+          <StepFocusRing stepId="purif"
+            x={APR_X-2} y={UNIT_Y-2} w={(APR_W||32)+4} h={UNIT_H+4} rx={4}/>
+          <StepFocusRing stepId="dehu"
+            x={(hasFurnace?FURN_X:AH_X)+44} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
+          <StepFocusRing stepId="extras"
+            x={Math.max(8,RET_X)} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
         </svg>
       </div>
     );
@@ -3395,6 +3470,42 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             const ervX=24; // ERV slightly right
             return <DehuErvBoxes dehuBX={dehuX} ervBX={ervX} BY={rEave+42} roofY={rEave+4}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap/>;
+          })()}
+
+          {/* ── CURRENT-STEP SPOTLIGHT - see StepFocusRing's own comment
+               near the top of this component for what this is and why only
+               these steps get one; geometry here mirrors this layout's own
+               EditZone calls above at each matching spot. ── */}
+          {(()=>{
+            const rW=hasCond?HOUSE_W:VW-8;
+            const rRise=Math.round(Math.min(rW/2*(3/12),60));
+            const rEave=rRise+12;
+            // PLEN_ABOVE/BELOW are both 0 before plenum is answered (see
+            // their own definitions above) - nominal ductboard-sized
+            // stand-ins just for this ghost ring, same reasoning as the
+            // attic layout's SUP_PLEN_W fallback just above.
+            const focusPlenAbove=PLEN_ABOVE||130, focusPlenBelow=PLEN_BELOW||57;
+            const focusPlenTop=DECK_Y-focusPlenAbove, focusPlenTotal=focusPlenAbove+focusPlenBelow;
+            return <>
+              <StepFocusRing stepId="indoor_type" x={UNIT_X-4} y={ACOIL_Y-2} rx={6}
+                w={UNIT_W+8} h={(hasFurnace?FURN_Y+FURN_H-ACOIL_Y:ACOIL_H)+4}/>
+              <StepFocusRing stepId="insulation" x={UNIT_X-4} y={ACOIL_Y-2} rx={6}
+                w={UNIT_W+8} h={(hasFurnace?FURN_Y+FURN_H-ACOIL_Y:ACOIL_H)+4}/>
+              <StepFocusRing stepId="plenum"
+                x={UNIT_X-2} y={focusPlenTop-2} w={PLEN_W+4} h={focusPlenTotal+4} rx={5}/>
+              {hasCond&&<StepFocusRing stepId="cond_tier"
+                x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
+              <StepFocusRing stepId="thermostat"
+                x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-40}
+                y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40} w={82} h={90}/>
+              {/* APR_H is 0 only if the (effectively always-on) filtration
+                  cabinet is somehow off - 28 stand-in matches its real
+                  height exactly, see the attic layout's own APR_W comment. */}
+              <StepFocusRing stepId="purif"
+                x={UNIT_X-2} y={APR_Y-2} w={UNIT_W+4} h={(APR_H||28)+4} rx={4}/>
+              <StepFocusRing stepId="dehu" x={rW-80-34} y={rEave+42} w={80} h={48} rx={4}/>
+              <StepFocusRing stepId="extras" x={24} y={rEave+42} w={80} h={48} rx={4}/>
+            </>;
           })()}
 
         </svg>
