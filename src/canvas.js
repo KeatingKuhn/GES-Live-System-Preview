@@ -1448,27 +1448,37 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
       </>}
 
       {isBig&&<>
-        {/* HIGH EFF: dark unibody cabinet, rounded top cap, slim corner
-            posts and a fine perforated micro-mesh panel -- the flagship
-            read next to fed-min's flat plain sheet: cleaner lines, a
-            finer/denser texture, a slim color pinstripe instead of a
-            thick block, subtler overall. */}
+        {/* HIGH EFF: light metal unibody cabinet - matched against a
+            reference photo of a real variable-speed high-efficiency
+            condenser, which reads as a light/medium gray unit (like
+            fed-min), not the near-black charcoal this used to be. Kept
+            a touch darker/richer than fed-min's plainer light gray so
+            the two tiers still read as different grades of the same
+            "light metal cabinet" family, and swapped fed-min's
+            horizontal chevron louvers for tall vertical fins here - the
+            real distinguishing texture between the two reference
+            photos, not just a density difference. */}
         <rect x={x} y={y} width={w} height={h} rx={5}
-          fill={active?(refReversed?"#1a1e2e":"#3a3d42"):"#343740"}
-          stroke={active?cc:"rgba(55,60,68,.8)"} strokeWidth={active?1.8:1.4}/>
+          fill={active?(refReversed?"#8e94a8":"#a5a8ae"):"#9a9da3"}
+          stroke={active?cc:"rgba(120,124,132,.8)"} strokeWidth={active?1.8:1.4}/>
         {/* Slim corner posts -- narrower than the old chamfer strips, a
             cleaner structural read instead of thick side blocks */}
         <rect x={x} y={y+4} width={5} height={h-8} rx="1.5"
-          fill={active?"#3e424a":"#383c44"} stroke="rgba(50,55,62,.7)" strokeWidth="0.8"/>
+          fill={active?"#8a8e96":"#84888f"} stroke="rgba(70,74,82,.6)" strokeWidth="0.8"/>
         <rect x={x+w-5} y={y+4} width={5} height={h-8} rx="1.5"
-          fill={active?"#3e424a":"#383c44"} stroke="rgba(50,55,62,.7)" strokeWidth="0.8"/>
-        {/* Dark rounded top cap with CapFan */}
+          fill={active?"#8a8e96":"#84888f"} stroke="rgba(70,74,82,.6)" strokeWidth="0.8"/>
+        {/* Dark rounded top cap with CapFan - tightened padding (vs.
+            fed-min's own x+2/w-4 inset) so the fan/hail-guard assembly
+            dominates the cap the way it does in the reference photo,
+            instead of sitting as a small oval within a mostly-empty
+            black cap. Stroke lightened to a metallic tone for a rounded
+            rim highlight where the cap meets the lighter body. */}
         {(()=>{
           const capH=Math.round(h*0.24);
           return <>
             <rect x={x} y={y} width={w} height={capH} rx={5}
-              fill="#1e2024" stroke="rgba(15,17,20,.9)" strokeWidth="1.2"/>
-            <CapFan x={x+4} y={y+2} w={w-8} h={capH-4} active={active}
+              fill="#1e2024" stroke="rgba(150,154,162,.55)" strokeWidth="1.2"/>
+            <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
               bladeColor={active?(refReversed?"rgba(100,160,220,.7)":"rgba(220,90,90,.65)"):"rgba(40,44,52,.6)"}
               slatFill={active?"rgba(24,27,33,.88)":"rgba(18,21,27,.92)"}
               ringColor={active?cc:"rgba(100,105,115,.55)"}
@@ -1483,27 +1493,30 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             block band, a subtler premium cue */}
         <rect x={x} y={y+Math.round(h*0.24)+2} width={w} height={2}
           fill={active?cc:"rgba(120,128,145,.5)"} opacity={active?0.9:0.55}/>
-        {/* Fine perforated micro-mesh panel -- a denser, smaller-pitch
-            dot pattern than fed-min's coarse vent (finer mesh reads as
-            the nicer/quieter cabinet), plus one slim center reveal
-            line for a flush unibody-panel look instead of the old
-            dual vertical-louver bands. */}
+        {/* Vertical fin louvers -- tall, closely-pitched fins running
+            the full body height, alternating light/dark for a fluted
+            corrugated-metal read (replacing the old fine dot-mesh,
+            which doesn't match how a real high-eff cabinet's panel is
+            actually stamped) plus the same center reveal seam as
+            before for a two-panel unibody look. */}
         {(()=>{
           const capH=Math.round(h*0.24);
           const bodyY=y+capH+5, bodyH=h-capH-11;
           const midX=x+w/2;
-          const rows=Math.max(4,Math.floor(bodyH/6)), cols=Math.max(6,Math.floor((w-14)/6));
+          const finW=2.2, finGap=0.9, step=finW+finGap;
+          const cols=Math.max(6,Math.floor((w-14)/step));
           return <>
             <rect x={x+6} y={bodyY} width={w-12} height={bodyH} rx="1.5"
-              fill={active?"rgba(20,22,27,.55)":"rgba(16,18,22,.5)"} stroke="rgba(15,17,21,.6)" strokeWidth="0.6"/>
-            {Array.from({length:rows},(_,r)=>Array.from({length:cols},(_,c)=>(
-              <circle key={r+'-'+c} cx={x+9+c*((w-18)/cols)} cy={bodyY+4+r*(bodyH/rows)} r="0.85"
-                fill={active?"rgba(80,85,95,.5)":"rgba(60,65,75,.42)"}/>
-            )))}
+              fill={active?"rgba(150,154,160,.35)":"rgba(140,144,150,.3)"} stroke="rgba(100,104,110,.4)" strokeWidth="0.6"/>
+            {Array.from({length:cols},(_,c)=>{
+              const fx=x+7+c*step;
+              return <rect key={c} x={fx} y={bodyY+2} width={finW} height={bodyH-4} rx="0.6"
+                fill={c%2===0?"rgba(175,179,185,.55)":"rgba(95,99,106,.45)"}/>;
+            })}
             <line x1={midX} y1={bodyY} x2={midX} y2={bodyY+bodyH}
-              stroke={active?"#26292f":"#232630"} strokeWidth="1.4"/>
+              stroke="rgba(80,84,90,.55)" strokeWidth="1.4"/>
             <line x1={midX+1.2} y1={bodyY} x2={midX+1.2} y2={bodyY+bodyH}
-              stroke="rgba(90,95,105,.25)" strokeWidth="0.6"/>
+              stroke="rgba(200,204,210,.3)" strokeWidth="0.6"/>
           </>;
         })()}
         {active&&<rect x={x} y={y} width={w} height={h} rx={5}

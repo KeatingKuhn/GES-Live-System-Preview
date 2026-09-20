@@ -2266,8 +2266,8 @@
           width: w,
           height: h,
           rx: 5,
-          fill: active ? refReversed ? "#1a1e2e" : "#3a3d42" : "#343740",
-          stroke: active ? cc : "rgba(55,60,68,.8)",
+          fill: active ? refReversed ? "#8e94a8" : "#a5a8ae" : "#9a9da3",
+          stroke: active ? cc : "rgba(120,124,132,.8)",
           strokeWidth: active ? 1.8 : 1.4
         }
       ), /* @__PURE__ */ React.createElement(
@@ -2278,8 +2278,8 @@
           width: 5,
           height: h - 8,
           rx: "1.5",
-          fill: active ? "#3e424a" : "#383c44",
-          stroke: "rgba(50,55,62,.7)",
+          fill: active ? "#8a8e96" : "#84888f",
+          stroke: "rgba(70,74,82,.6)",
           strokeWidth: "0.8"
         }
       ), /* @__PURE__ */ React.createElement(
@@ -2290,8 +2290,8 @@
           width: 5,
           height: h - 8,
           rx: "1.5",
-          fill: active ? "#3e424a" : "#383c44",
-          stroke: "rgba(50,55,62,.7)",
+          fill: active ? "#8a8e96" : "#84888f",
+          stroke: "rgba(70,74,82,.6)",
           strokeWidth: "0.8"
         }
       ), (() => {
@@ -2305,16 +2305,16 @@
             height: capH,
             rx: 5,
             fill: "#1e2024",
-            stroke: "rgba(15,17,20,.9)",
+            stroke: "rgba(150,154,162,.55)",
             strokeWidth: "1.2"
           }
         ), /* @__PURE__ */ React.createElement(
           CapFan,
           {
-            x: x + 4,
-            y: y + 2,
-            w: w - 8,
-            h: capH - 4,
+            x: x + 2,
+            y: y + 1,
+            w: w - 4,
+            h: capH - 2,
             active,
             bladeColor: active ? refReversed ? "rgba(100,160,220,.7)" : "rgba(220,90,90,.65)" : "rgba(40,44,52,.6)",
             slatFill: active ? "rgba(24,27,33,.88)" : "rgba(18,21,27,.92)",
@@ -2347,7 +2347,8 @@
         const capH = Math.round(h * 0.24);
         const bodyY = y + capH + 5, bodyH = h - capH - 11;
         const midX = x + w / 2;
-        const rows = Math.max(4, Math.floor(bodyH / 6)), cols = Math.max(6, Math.floor((w - 14) / 6));
+        const finW = 2.2, finGap = 0.9, step = finW + finGap;
+        const cols = Math.max(6, Math.floor((w - 14) / step));
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {
@@ -2356,27 +2357,32 @@
             width: w - 12,
             height: bodyH,
             rx: "1.5",
-            fill: active ? "rgba(20,22,27,.55)" : "rgba(16,18,22,.5)",
-            stroke: "rgba(15,17,21,.6)",
+            fill: active ? "rgba(150,154,160,.35)" : "rgba(140,144,150,.3)",
+            stroke: "rgba(100,104,110,.4)",
             strokeWidth: "0.6"
           }
-        ), Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_2, c) => /* @__PURE__ */ React.createElement(
-          "circle",
-          {
-            key: r + "-" + c,
-            cx: x + 9 + c * ((w - 18) / cols),
-            cy: bodyY + 4 + r * (bodyH / rows),
-            r: "0.85",
-            fill: active ? "rgba(80,85,95,.5)" : "rgba(60,65,75,.42)"
-          }
-        ))), /* @__PURE__ */ React.createElement(
+        ), Array.from({ length: cols }, (_, c) => {
+          const fx = x + 7 + c * step;
+          return /* @__PURE__ */ React.createElement(
+            "rect",
+            {
+              key: c,
+              x: fx,
+              y: bodyY + 2,
+              width: finW,
+              height: bodyH - 4,
+              rx: "0.6",
+              fill: c % 2 === 0 ? "rgba(175,179,185,.55)" : "rgba(95,99,106,.45)"
+            }
+          );
+        }), /* @__PURE__ */ React.createElement(
           "line",
           {
             x1: midX,
             y1: bodyY,
             x2: midX,
             y2: bodyY + bodyH,
-            stroke: active ? "#26292f" : "#232630",
+            stroke: "rgba(80,84,90,.55)",
             strokeWidth: "1.4"
           }
         ), /* @__PURE__ */ React.createElement(
@@ -2386,7 +2392,7 @@
             y1: bodyY,
             x2: midX + 1.2,
             y2: bodyY + bodyH,
-            stroke: "rgba(90,95,105,.25)",
+            stroke: "rgba(200,204,210,.3)",
             strokeWidth: "0.6"
           }
         ));
