@@ -1317,6 +1317,75 @@
       gap: 5
     } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
   }
+  var WIRE_COLORS = { R: "#ef4444", C: "#60a5fa", W: "#f8fafc", W2: "#f8fafc", Y: "#facc15", Y2: "#facc15", G: "#22c55e", "O/B": "#fb923c", D1: "#a78bfa", D2: "#a78bfa" };
+  function thermWireLetters(thermType, isDualFuel) {
+    if (thermType === "proprietary") return { letters: ["R", "C", "D1", "D2"], note: "4-WIRE COMM BUS" };
+    if (thermType === "wifi") return { letters: isDualFuel ? ["R", "C", "W", "W2", "Y", "Y2", "G", "O/B"] : ["R", "C", "W", "Y", "G", "O/B", "Y2"], note: null };
+    return { letters: isDualFuel ? ["R", "C", "W", "W2", "Y", "G"] : ["R", "C", "W", "Y", "G"], note: null };
+  }
+  function thermWireLayout(letters, note) {
+    const cols = letters.length <= 6 ? letters.length : Math.ceil(letters.length / 2);
+    const rows = Math.ceil(letters.length / cols);
+    const rowH = 13, padTop = 11;
+    return { cols, rows, h: padTop + rows * rowH + (note ? 11 : 5) };
+  }
+  function ThermWireBacking({ x, y, w, letters, note }) {
+    const { cols, rows, h } = thermWireLayout(letters, note);
+    const cellW = w / cols, rowH = 13, padTop = 11;
+    return /* @__PURE__ */ React.createElement("g", { className: "therm-wire-backing", transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x: -4,
+        y: -4,
+        width: w + 8,
+        height: h + 8,
+        rx: "4",
+        fill: "#171310",
+        stroke: "rgba(215,183,64,.4)",
+        strokeWidth: "0.8"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "text",
+      {
+        x: w / 2,
+        y: 7.5,
+        textAnchor: "middle",
+        fill: "rgba(255,255,255,.55)",
+        fontSize: "6",
+        fontFamily: "monospace",
+        letterSpacing: ".03em"
+      },
+      "LOW-VOLTAGE TERMINALS"
+    ), letters.map((L, i) => {
+      const col = i % cols, row = Math.floor(i / cols);
+      const cx = cellW * col + cellW / 2, cy = padTop + row * rowH + 3;
+      const color = WIRE_COLORS[L] || "#e5e7eb";
+      return /* @__PURE__ */ React.createElement("g", { key: L + i }, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: "3.2", fill: color, stroke: "rgba(0,0,0,.45)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          x: cx,
+          y: cy + 9.5,
+          textAnchor: "middle",
+          fill: "rgba(255,255,255,.72)",
+          fontSize: "5.6",
+          fontFamily: "monospace",
+          fontWeight: "700"
+        },
+        L
+      ));
+    }), note && /* @__PURE__ */ React.createElement(
+      "text",
+      {
+        x: w / 2,
+        y: h - 2,
+        textAnchor: "middle",
+        fill: "rgba(255,255,255,.42)",
+        fontSize: "5.4",
+        fontFamily: "monospace"
+      },
+      note
+    ));
+  }
   function Canvas({ a, stepIdx, activeSteps, onEditStep }) {
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
     const MIN_EDIT_PX = 28;
@@ -1397,6 +1466,7 @@
       return /* @__PURE__ */ React.createElement("g", { className: "therm-mode-btns" }, /* @__PURE__ */ React.createElement(
         "rect",
         {
+          className: `therm-btn therm-btn-cool${coolActive ? " active" : ""}`,
           x,
           y,
           width: w,
@@ -1425,6 +1495,7 @@
       ), /* @__PURE__ */ React.createElement(
         "rect",
         {
+          className: `therm-btn therm-btn-heat${heatActive ? " active" : ""}`,
           x: x + w + gap,
           y,
           width: w,
@@ -3839,7 +3910,23 @@
         const isProprietary = a.thermostat === "proprietary";
         const isWifi = a.thermostat === "wifi" && !isProprietary;
         const btnY = isProprietary ? 76 : isWifi ? 74 : 56;
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", key: "tstat", style: { animationDelay: ".26s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, (() => {
+        const { letters: wireLetters, note: wireNote } = thermWireLetters(a.thermostat, isDualFuel);
+        const wireY = btnY + 15 + 16;
+        const wirePanelH = thermWireLayout(wireLetters, wireNote).h;
+        const hoverLocalH = wireY + wirePanelH + 8;
+        const showRange = heatMode && isMildHp;
+        const tempDisplay = showRange ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
+        return /* @__PURE__ */ React.createElement("g", { className: "snap therm-hover-zone", key: "tstat", style: { animationDelay: ".26s" } }, /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: THERM_TX - 2,
+            y: THERM_TY - 2,
+            width: THERM_W + 4,
+            height: hoverLocalH * THERM_SCALE + 4,
+            fill: "transparent",
+            style: { pointerEvents: "all" }
+          }
+        ), /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, (() => {
           const TX = 0, TY = 0;
           const modeColor = heatMode ? "#f97316" : "#2389e0";
           return isProprietary ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
@@ -3873,12 +3960,11 @@
               y: TY + 30,
               textAnchor: "middle",
               fill: B + ".95)",
-              fontSize: "20.5",
+              fontSize: showRange ? "12.5" : "20.5",
               fontFamily: "monospace",
               filter: "url(#glow)"
             },
-            thermostatTemp,
-            "\xB0"
+            tempDisplay
           ), /* @__PURE__ */ React.createElement(
             "text",
             {
@@ -3898,12 +3984,11 @@
               y: TY + 35,
               textAnchor: "middle",
               fill: B + ".95)",
-              fontSize: "18",
+              fontSize: showRange ? "11.5" : "18",
               fontFamily: "monospace",
               filter: "url(#glow)"
             },
-            thermostatTemp,
-            "\xB0"
+            tempDisplay
           ), /* @__PURE__ */ React.createElement(
             "path",
             {
@@ -3992,7 +4077,7 @@
             w: THERM_W + 4,
             h: THERM_H + 4
           }
-        ), /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5 })));
+        ), /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: 0, y: wireY, w: 64, letters: wireLetters, note: wireNote })));
       })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
@@ -5118,7 +5203,23 @@
         const isProprietaryC = a.thermostat === "proprietary";
         const isWifiC = a.thermostat === "wifi" && !isProprietaryC;
         const btnY = isProprietaryC ? TY + 90 : isWifiC ? TY + 93 : TY + 65;
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", key: "tstat-c", style: { animationDelay: ".26s" } }, (() => {
+        const { letters: wireLettersC, note: wireNoteC } = thermWireLetters(a.thermostat, isDualFuel);
+        const wireYC = btnY + 17 + 16;
+        const wirePanelHC = thermWireLayout(wireLettersC, wireNoteC).h;
+        const hoverHC = Math.max(116, wireYC - TY + wirePanelHC + 10);
+        const showRangeC = heatMode && isMildHp;
+        const tempDisplayC = showRangeC ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
+        return /* @__PURE__ */ React.createElement("g", { className: "snap therm-hover-zone", key: "tstat-c", style: { animationDelay: ".26s" } }, /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: TX - 2,
+            y: TY - 2,
+            width: 82,
+            height: hoverHC,
+            fill: "transparent",
+            style: { pointerEvents: "all" }
+          }
+        ), (() => {
           const modeColorC = heatMode ? "#f97316" : "#2389e0";
           return isProprietaryC ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
             "rect",
@@ -5151,12 +5252,11 @@
               y: TY + 35,
               textAnchor: "middle",
               fill: B + ".95)",
-              fontSize: "23.5",
+              fontSize: showRangeC ? "14.5" : "23.5",
               fontFamily: "monospace",
               filter: "url(#glow)"
             },
-            thermostatTemp,
-            "\xB0"
+            tempDisplayC
           ), /* @__PURE__ */ React.createElement(
             "text",
             {
@@ -5176,12 +5276,11 @@
               y: TY + 43,
               textAnchor: "middle",
               fill: B + ".92)",
-              fontSize: "21",
+              fontSize: showRangeC ? "13" : "21",
               fontFamily: "monospace",
               filter: "url(#glow)"
             },
-            thermostatTemp,
-            "\xB0"
+            tempDisplayC
           ), /* @__PURE__ */ React.createElement(
             "path",
             {
@@ -5261,7 +5360,7 @@
               strokeWidth: "0.4"
             }
           )), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 58, textAnchor: "middle", fill: G + ".38)", fontSize: "11", fontFamily: "monospace" }, "BASIC"));
-        })(), /* @__PURE__ */ React.createElement(EditZone, { stepId: "thermostat", x: TX - 2, y: TY - 2, w: 82, h: 116 }), /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5 }));
+        })(), /* @__PURE__ */ React.createElement(EditZone, { stepId: "thermostat", x: TX - 2, y: TY - 2, w: 82, h: 116 }), /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: TX, y: wireYC, w: 76, letters: wireLettersC, note: wireNoteC }));
       })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const rW = hasCond ? HOUSE_W : VW - 8;
         const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));

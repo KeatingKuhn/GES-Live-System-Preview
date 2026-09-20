@@ -335,6 +335,33 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   stroke-dasharray:9 6;pointer-events:none;
   animation:glowIn .3s ease-out both,gpulse 2.4s ease-in-out .3s infinite,airflow 1.4s linear infinite}
 
+/* Thermostat COOL/HEAT face buttons (ThermModeButtons in canvas.js) - real
+   hover feedback on top of their existing active/inactive fill+stroke
+   swap. Colors match the same cool-blue/heat-orange the buttons (and the
+   rest of the diagram's mode language) already use, and the glow itself is
+   a drop-shadow rather than an SVG filter="url(#glow-sm)" reference so it
+   doesn't collide with anything the button rects might pick up later -
+   same idea as this file's own glow-pulse language, just expressed as CSS
+   filter instead of an SVG <filter> since these are plain interactive
+   rects, not one-shot-then-looping decoration. Inactive buttons are dimmed
+   an extra notch (on top of their own dimmer fill/stroke) so "off" reads
+   unambiguously at a glance, active or not, at any hover state. */
+.therm-btn{transition:filter .15s ease-out,opacity .15s ease-out;cursor:pointer}
+.therm-btn:not(.active){opacity:.6}
+.therm-btn:hover{opacity:1}
+.therm-btn-cool:hover{filter:drop-shadow(0 0 2.5px rgba(91,168,245,.95)) drop-shadow(0 0 1px rgba(91,168,245,.95))}
+.therm-btn-heat:hover{filter:drop-shadow(0 0 2.5px rgba(249,115,22,.95)) drop-shadow(0 0 1px rgba(249,115,22,.95))}
+/* Thermostat wire-backplate (ThermWireBacking in canvas.js) - the low-
+   voltage terminal set a real thermostat mounts over, revealed on hover
+   only so it never grows the thermostat's own always-visible footprint
+   (THERM_MAX_SCALE/LIVING_SPACE are both sized without it in mind - see
+   canvas.js). Same reveal-on-hover shape as .edit-zone-ring just above,
+   just keyed off .therm-hover-zone (an invisible hit-rect painted at each
+   thermostat call site, present in both the wizard and the done screen)
+   instead of .edit-zone (done-screen only). */
+.therm-wire-backing{opacity:0;transition:opacity .18s ease-out;pointer-events:none}
+.therm-hover-zone:hover .therm-wire-backing{opacity:1}
+
 /* SIDEBAR - overflow-y:auto, not hidden: the wizard sidebar (unlike the
    done-screen one, which gets an inline overflowY:auto override) had no
    scroll at all here, so a step with a lot of option text - or the info

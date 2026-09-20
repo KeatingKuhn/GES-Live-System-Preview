@@ -660,6 +660,74 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
     );
 }
 
+// Standard low-voltage HVAC wire letter/color convention, used to draw the
+// hover-revealed wall-backplate below (ThermWireBacking) - a real
+// thermostat mounts over a set of labeled terminal screws for exactly these
+// conductors. Colors are the field convention, not this app's own
+// mode/status color language, so they're deliberately kept separate from
+// the cool-blue/heat-orange palette used everywhere else in canvas.js.
+const WIRE_COLORS={R:'#ef4444',C:'#60a5fa',W:'#f8fafc',W2:'#f8fafc',Y:'#facc15',Y2:'#facc15',G:'#22c55e','O/B':'#fb923c',D1:'#a78bfa',D2:'#a78bfa'};
+// Which terminals each thermostat tier actually needs, given this system's
+// own config. Basic/Wi-Fi are "one wire per function" tiers, so the count
+// grows with what the system needs to call for: a second stage of backup
+// heat (W2) when dual-fuel, plus Wi-Fi's always-present O/B reversing-valve
+// and Y2 second-stage-cool leads (a smart stat exposes both regardless of
+// dual-fuel, since those are heat-pump/2-stage-cool features independent of
+// how backup heat is delivered). Proprietary/communicating tiers are the
+// odd one out: real systems in this class (Carrier Infinity, Trane XL,
+// Lennox iComfort-style) run a 4-conductor data bus instead of one wire per
+// function, so despite being the premium tier it ends up with FEWER wires
+// than either "dumber" tier below it - hence the short on-canvas note.
+function thermWireLetters(thermType,isDualFuel){
+  if(thermType==='proprietary')return{letters:['R','C','D1','D2'],note:'4-WIRE COMM BUS'};
+  if(thermType==='wifi')return{letters:isDualFuel?['R','C','W','W2','Y','Y2','G','O/B']:['R','C','W','Y','G','O/B','Y2'],note:null};
+  return{letters:isDualFuel?['R','C','W','W2','Y','G']:['R','C','W','Y','G'],note:null};
+}
+// Shared grid math for the terminal panel - one row for <=6 wires (both
+// basic tiers and the 4-wire comm bus), two rows for Wi-Fi's 7/8. Factored
+// out of ThermWireBacking itself so a caller can size its own hover hit-box
+// (see hasTstat below) without duplicating the layout logic and risking the
+// two drifting apart.
+function thermWireLayout(letters,note){
+  const cols=letters.length<=6?letters.length:Math.ceil(letters.length/2);
+  const rows=Math.ceil(letters.length/cols);
+  const rowH=13, padTop=11;
+  return {cols,rows,h:padTop+rows*rowH+(note?11:5)};
+}
+// Compact wall-backplate/terminal visual. Revealed on hover ONLY (see the
+// hard footprint constraint on THERM_MAX_SCALE/LIVING_SPACE near hasTstat
+// below) via the same reveal-on-hover CSS language already used for
+// EditZone's own ring (.edit-zone-ring/.edit-zone:hover in styles.css) -
+// .therm-wire-backing here instead of .edit-zone-ring, toggled by
+// .therm-hover-zone:hover rather than .edit-zone:hover so it works in the
+// wizard too (EditZone itself only exists on the done screen). It paints
+// as an overlay ON TOP of whatever's below the thermostat in either
+// layout, never a permanent layout change. x/y is the panel's own
+// top-left, in whatever local coordinate space the caller is already
+// drawing the thermostat in - both call sites pass their own.
+function ThermWireBacking({x,y,w,letters,note}){
+  const {cols,rows,h}=thermWireLayout(letters,note);
+  const cellW=w/cols, rowH=13, padTop=11;
+  return <g className="therm-wire-backing" transform={`translate(${x} ${y})`}>
+    <rect x={-4} y={-4} width={w+8} height={h+8} rx="4"
+      fill="#171310" stroke="rgba(215,183,64,.4)" strokeWidth="0.8"/>
+    <text x={w/2} y={7.5} textAnchor="middle" fill="rgba(255,255,255,.55)"
+      fontSize="6" fontFamily="monospace" letterSpacing=".03em">LOW-VOLTAGE TERMINALS</text>
+    {letters.map((L,i)=>{
+      const col=i%cols, row=Math.floor(i/cols);
+      const cx=cellW*col+cellW/2, cy=padTop+row*rowH+3;
+      const color=WIRE_COLORS[L]||'#e5e7eb';
+      return <g key={L+i}>
+        <circle cx={cx} cy={cy} r="3.2" fill={color} stroke="rgba(0,0,0,.45)" strokeWidth="0.5"/>
+        <text x={cx} y={cy+9.5} textAnchor="middle" fill="rgba(255,255,255,.72)"
+          fontSize="5.6" fontFamily="monospace" fontWeight="700">{L}</text>
+      </g>;
+    })}
+    {note&&<text x={w/2} y={h-2} textAnchor="middle" fill="rgba(255,255,255,.42)"
+      fontSize="5.4" fontFamily="monospace">{note}</text>}
+  </g>;
+}
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // Clickable overlay on a finished diagram piece - only wired up on the
@@ -759,14 +827,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const ThermModeButtons=({x,y,w,h,gap,fontSize})=>{
     const coolActive=!heatMode, heatActive=heatMode;
     return <g className="therm-mode-btns">
-      <rect x={x} y={y} width={w} height={h} rx={h/2}
+      <rect className={`therm-btn therm-btn-cool${coolActive?' active':''}`}
+        x={x} y={y} width={w} height={h} rx={h/2}
         fill={coolActive?'rgba(35,137,224,.22)':'rgba(255,255,255,.05)'}
         stroke={coolActive?'#5ba8f5':'rgba(255,255,255,.2)'} strokeWidth="1"
         style={{cursor:'pointer'}} onClick={()=>setHeatMode(false)}/>
       <text x={x+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
         fontFamily="monospace" fontWeight="700" fontSize={fontSize}
         fill={coolActive?'#5ba8f5':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>COOL</text>
-      <rect x={x+w+gap} y={y} width={w} height={h} rx={h/2}
+      <rect className={`therm-btn therm-btn-heat${heatActive?' active':''}`}
+        x={x+w+gap} y={y} width={w} height={h} rx={h/2}
         fill={heatActive?'rgba(249,115,22,.22)':'rgba(255,255,255,.05)'}
         stroke={heatActive?'#f97316':'rgba(255,255,255,.2)'} strokeWidth="1"
         style={{cursor:'pointer'}} onClick={()=>setHeatMode(true)}/>
@@ -3000,7 +3070,48 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             // three designs aren't the same height), so this places the
             // row just under whichever caption this build actually shows.
             const btnY=isProprietary?76:isWifi?74:56;
-            return <g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
+            // Wire-backplate panel (see ThermWireBacking above) - sits just
+            // under the button row, hover-revealed only, so it never adds
+            // to the box THERM_MAX_SCALE/EditZone size against in the
+            // default state. wireY/wirePanelH size the invisible hover
+            // hit-box below to cover the panel too, so moving the pointer
+            // off the thermostat face and onto the now-visible panel itself
+            // doesn't immediately hide it again.
+            const {letters:wireLetters,note:wireNote}=thermWireLetters(a.thermostat,isDualFuel);
+            // +16 (not +6) below the button row - StepFocusRing's own
+            // dashed ring (see its call site further down) extends a bit
+            // past THERM_H's own edge, and a smaller gap here let the
+            // panel's "LOW-VOLTAGE TERMINALS" header sit right on top of
+            // that ring's bottom edge on the wizard's current-step+hover
+            // combination. Purely a hover-reveal overlay either way, so
+            // pushing it down further costs nothing against
+            // THERM_MAX_SCALE/LIVING_SPACE's own budget.
+            const wireY=btnY+15+16;
+            const wirePanelH=thermWireLayout(wireLetters,wireNote).h;
+            const hoverLocalH=wireY+wirePanelH+8;
+            // Shoulder-season swing readout - see isMildHp's own definition
+            // far below (reused as-is, not redefined here, so this always
+            // agrees with thermostatTemp's own 70-vs-67 split just above
+            // it) for exactly which config/mode this represents. isMildHp
+            // alone doesn't imply heatMode (it only looks at heatSubMode,
+            // so it can be true while still in cool mode) - every other
+            // consumer of it in this file gates it with heatMode&& first
+            // (see outsideFill/intFill/CondenserFan just below), so this
+            // does too.
+            const showRange=heatMode&&isMildHp;
+            const tempDisplay=showRange
+              ?<>{thermostatTemp-2}°-{thermostatTemp+2}°</>
+              :<>{thermostatTemp}°</>;
+            return <g className="snap therm-hover-zone" key="tstat" style={{animationDelay:'.26s'}}>
+            {/* Invisible hover target, sized in outer canvas space like
+                EditZone's own hit-rect just below (same THERM_TX/TY/W/H
+                origin) but taller, to also cover the wire panel once it's
+                revealed. pointer-events:all so a fully transparent fill
+                still registers the hover that :hover-reveals
+                .therm-wire-backing (see styles.css). */}
+            <rect x={THERM_TX-2} y={THERM_TY-2} width={THERM_W+4}
+              height={hoverLocalH*THERM_SCALE+4}
+              fill="transparent" style={{pointerEvents:'all'}}/>
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
             {(()=>{
               const TX=0, TY=0;
@@ -3016,8 +3127,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                     fill="#0a0a0d" stroke={G+'.6)'} strokeWidth="1.4"/>
                   <rect x={TX+2.5} y={TY+2.5} width={59} height={45} rx="6.5"
                     fill="#050810" stroke={B+'.3)'} strokeWidth="0.7"/>
-                  <text x={TX+32} y={TY+30} textAnchor="middle" fill={B+'.95)'} fontSize="20.5"
-                    fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
+                  <text x={TX+32} y={TY+30} textAnchor="middle" fill={B+'.95)'} fontSize={showRange?"12.5":"20.5"}
+                    fontFamily="monospace" filter="url(#glow)">{tempDisplay}</text>
                   <text x={TX+32} y={TY+41} textAnchor="middle" fill={B+'.55)'} fontSize="8"
                     fontFamily="monospace">{heatMode?'HEAT':'COOL'} · AUTO</text>
                   <circle cx={TX+56} cy={TY+9} r={1.6} fill={B+'.55)'}/>
@@ -3028,8 +3139,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 ?<>
                   <circle cx={TX+32} cy={TY+30} r={28} fill="#0d0d0d" stroke={G+'.65)'} strokeWidth="1.6"/>
                   <circle cx={TX+32} cy={TY+30} r={22} fill="#060e1c" stroke={B+'.45)'} strokeWidth="1"/>
-                  <text x={TX+32} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize="18"
-                    fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
+                  <text x={TX+32} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize={showRange?"11.5":"18"}
+                    fontFamily="monospace" filter="url(#glow)">{tempDisplay}</text>
                   <path d={`M${TX+11} ${TY+30} A21 21 0 0 1 ${TX+53} ${TY+30}`}
                     fill="none" stroke={modeColor} strokeWidth="2.2" strokeLinecap="round" opacity="0.55"/>
                   <path d={`M${TX+21} ${TY+48} Q${TX+32} ${TY+41} ${TX+43} ${TY+48}`}
@@ -3061,6 +3172,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 underneath it - see EditZone's own onClick above. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
               <ThermModeButtons x={0} y={btnY} w={30} h={15} gap={4} fontSize={8.5}/>
+              <ThermWireBacking x={0} y={wireY} w={64} letters={wireLetters} note={wireNote}/>
             </g>
           </g>;
           })()}
@@ -3906,7 +4018,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             // caption this build actually shows, same reasoning as the
             // attic thermostat's own btnY just above.
             const btnY=isProprietaryC?TY+90:isWifiC?TY+93:TY+65;
-            return <g className="snap" key="tstat-c" style={{animationDelay:'.26s'}}>
+            // Wire-backplate panel (see ThermWireBacking + comments at the
+            // attic thermostat's own call site above) - same hover-reveal
+            // mechanism, just in the closet layout's unscaled absolute
+            // coordinates instead of a scaled local <g>.
+            const {letters:wireLettersC,note:wireNoteC}=thermWireLetters(a.thermostat,isDualFuel);
+            // +16 (not +6) - same StepFocusRing-clearance reasoning as the
+            // attic thermostat's own wireY above.
+            const wireYC=btnY+17+16;
+            const wirePanelHC=thermWireLayout(wireLettersC,wireNoteC).h;
+            // EditZone's own hit box below is already a generous fixed
+            // 82x116 - only grow the hover box beyond that if the revealed
+            // panel would actually stick out past its bottom edge.
+            const hoverHC=Math.max(116,(wireYC-TY)+wirePanelHC+10);
+            // isMildHp alone doesn't imply heatMode - see the attic
+            // thermostat's own showRange comment above.
+            const showRangeC=heatMode&&isMildHp;
+            const tempDisplayC=showRangeC
+              ?<>{thermostatTemp-2}°-{thermostatTemp+2}°</>
+              :<>{thermostatTemp}°</>;
+            return <g className="snap therm-hover-zone" key="tstat-c" style={{animationDelay:'.26s'}}>
+            <rect x={TX-2} y={TY-2} width={82} height={hoverHC}
+              fill="transparent" style={{pointerEvents:'all'}}/>
             {(()=>{
               const modeColorC=heatMode?"#f97316":"#2389e0";
               return isProprietaryC
@@ -3919,8 +4052,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                     fill="#0a0a0d" stroke={G+'.62)'} strokeWidth="1.6"/>
                   <rect x={TX+3} y={TY+3} width={70} height={52} rx="7"
                     fill="#050810" stroke={B+'.3)'} strokeWidth="0.8"/>
-                  <text x={TX+38} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize="23.5"
-                    fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
+                  <text x={TX+38} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize={showRangeC?"14.5":"23.5"}
+                    fontFamily="monospace" filter="url(#glow)">{tempDisplayC}</text>
                   <text x={TX+38} y={TY+48} textAnchor="middle" fill={B+'.55)'} fontSize="9"
                     fontFamily="monospace">{heatMode?'HEAT':'COOL'} · AUTO</text>
                   <circle cx={TX+67} cy={TY+11} r={1.9} fill={B+'.55)'}/>
@@ -3931,8 +4064,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 ?<>
                   <circle cx={TX+38} cy={TY+38} r={36} fill="#0d0d0d" stroke={G+'.62)'} strokeWidth="1.8"/>
                   <circle cx={TX+38} cy={TY+38} r={28} fill="#060e1c" stroke={B+'.42)'} strokeWidth="1.1"/>
-                  <text x={TX+38} y={TY+43} textAnchor="middle" fill={B+'.92)'} fontSize="21"
-                    fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
+                  <text x={TX+38} y={TY+43} textAnchor="middle" fill={B+'.92)'} fontSize={showRangeC?"13":"21"}
+                    fontFamily="monospace" filter="url(#glow)">{tempDisplayC}</text>
                   <path d={`M${TX+12} ${TY+38} A26 26 0 0 1 ${TX+64} ${TY+38}`}
                     fill="none" stroke={modeColorC} strokeWidth="2.5" strokeLinecap="round" opacity="0.55"/>
                   <path d={`M${TX+24} ${TY+62} Q${TX+38} ${TY+53} ${TX+52} ${TY+62}`}
@@ -3961,6 +4094,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 lands on the button, not the done-screen's edit-zone overlay
                 underneath it - see EditZone's own onClick above. */}
             <ThermModeButtons x={TX} y={btnY} w={36} h={17} gap={4} fontSize={9.5}/>
+            <ThermWireBacking x={TX} y={wireYC} w={76} letters={wireLettersC} note={wireNoteC}/>
           </g>;
           })()}
 
