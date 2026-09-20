@@ -1299,23 +1299,31 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
       <rect x={c2+3} y={y+8} width={auxW-6} height={h-14} rx="2"
         fill={auxHeat?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
         stroke={auxHeat?"rgba(249,115,22,.6)":(S+'.2)')} strokeWidth="0.8"/>
-      {Array.from({length:3},(_,i)=>{
-        const segW=(auxW-16)/3;
-        const bx=c2+7+i*(auxW-10)/3;
+      {/* Heat-strip elements stacked vertically (not side-by-side) so each
+          one gets real size in this narrow column, same idea as the
+          closet's own aux-heat-kit bank of elements - just stacked along
+          the column's long axis instead of its short one, since this
+          column is tall, not wide. */}
+      {Array.from({length:2},(_,i)=>{
+        const segY=y+h*0.62, segH=(h*0.3)/2;
+        const by=segY+i*(segH+3);
         return <g key={i}>
-          <rect x={bx} y={y+h*0.3} width={Math.max(1,segW)} height={h*0.34} rx="1"
+          <rect x={c2+7} y={by} width={Math.max(1,auxW-14)} height={Math.max(1,segH-3)} rx="1"
             fill={auxHeat?"#1a0805":"#0a0a0f"} stroke={auxHeat?"rgba(249,115,22,.4)":"rgba(48,20,5,.2)"} strokeWidth="0.5"/>
-          {auxHeat&&<ellipse cx={bx+segW/2} cy={y+h*0.3} rx={segW/2} ry={3.5}
+          {auxHeat&&<ellipse cx={c2+auxW/2} cy={by+(segH-3)/2} rx={(auxW-14)/2} ry={Math.min(3,(segH-3)/2)}
             fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
         </g>;
       })}
-      {/* At 15% of the unit's width this section is too narrow for the
-          full "AUX HEAT KIT" label at a readable size (it used to wrap to
-          two lines at 7.5-8px). "AUX" alone reads at the same 10.5px size
-          as A-COIL/BLOWER - the full meaning is already spelled out right
-          next to the diagram (the AUX HEAT mode toggle) and in the status
-          line under the unit ("AUX HEAT ONLY"), so nothing is lost. */}
-      <text x={c2+auxW/2} y={y+h-4} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize="13" fontFamily="monospace">AUX</text>
+      {/* Full "AUX HEAT KIT" label, rotated to read up the column - same
+          technique the FILTRATION cabinet a few hundred lines up already
+          uses for its own narrow column. This used to fall back to just
+          "AUX" because the label read horizontally and 15% of the unit's
+          width isn't enough room for the full text - reading vertically
+          instead uses the column's much more generous height, matching
+          the closet layout's own full "AUX HEAT KIT" label. */}
+      <text x={c2+auxW/2} y={y+h*0.4} textAnchor="middle"
+        fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize="10" fontFamily="monospace"
+        transform={`rotate(-90,${c2+auxW/2},${y+h*0.4})`}>AUX HEAT KIT</text>
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
 
     </g>;
