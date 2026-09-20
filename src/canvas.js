@@ -757,6 +757,34 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     return <rect className="step-focus-ring" x={fx-4} y={fy-4} width={fw+8} height={fh+8}
       rx={(rx||4)+4} fill="none" filter="url(#glow-sm)"/>;
   };
+  // COOL/HEAT switch painted directly on the thermostat face in both
+  // layouts, wired to the exact same heatMode state as the "preview how
+  // your system runs" panel (ToggleUI) - same colors/behavior as its own
+  // plain cool/heat buttons, just reachable right at the thermostat too so
+  // flipping it and watching the rest of the diagram react doesn't require
+  // hunting for the panel. Closes over heatMode/setHeatMode directly
+  // (Canvas-scoped state) rather than taking them as props, same as
+  // EditZone/StepFocusRing just above. x/y is the top-left of the pair; w
+  // is EACH button's own width, so the pair together spans 2*w+gap.
+  const ThermModeButtons=({x,y,w,h,gap,fontSize})=>{
+    const coolActive=!heatMode, heatActive=heatMode;
+    return <g className="therm-mode-btns">
+      <rect x={x} y={y} width={w} height={h} rx={h/2}
+        fill={coolActive?'rgba(35,137,224,.22)':'rgba(255,255,255,.05)'}
+        stroke={coolActive?'#5ba8f5':'rgba(255,255,255,.2)'} strokeWidth="1"
+        style={{cursor:'pointer'}} onClick={()=>setHeatMode(false)}/>
+      <text x={x+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
+        fontFamily="monospace" fontWeight="700" fontSize={fontSize}
+        fill={coolActive?'#5ba8f5':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>COOL</text>
+      <rect x={x+w+gap} y={y} width={w} height={h} rx={h/2}
+        fill={heatActive?'rgba(249,115,22,.22)':'rgba(255,255,255,.05)'}
+        stroke={heatActive?'#f97316':'rgba(255,255,255,.2)'} strokeWidth="1"
+        style={{cursor:'pointer'}} onClick={()=>setHeatMode(true)}/>
+      <text x={x+w+gap+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
+        fontFamily="monospace" fontWeight="700" fontSize={fontSize}
+        fill={heatActive?'#f97316':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>HEAT</text>
+    </g>;
+  };
   // Defaults the mode toggle to whichever side of the system is actually
   // relevant right now (Austin's cooling season runs roughly April-
   // October, heating season November-March) instead of always opening
@@ -2336,8 +2364,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // borrowed from the attic zone's own headroom above, which has ~3x
     // more height than the equipment needs (see VH's own comment above),
     // so this doesn't touch VH/the roofline at all, just shifts DECK_Y up
-    // a bit and shrinks that already-generous headroom.
-    const LIVING_SPACE=140;
+    // a bit and shrinks that already-generous headroom. Bumped again from
+    // 140 to 160 for the COOL/HEAT button row now painted below the
+    // thermostat's caption (see THERM_SCALE's own comment) - still well
+    // inside the same >2x headroom margin the 140 bump left behind.
+    const LIVING_SPACE=160;
     const ZOOM=hasCond?1:0.7;
     const BASE_VH=Math.round(510*ZOOM);
     const BASE_VW=Math.round(1280*ZOOM);
@@ -2437,8 +2468,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // every size/position calc after this is based on what actually
     // needs to fit, not just the nominal box.
     const THERM_CONTENT_W=116, THERM_CONTENT_L=-26;
-    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(1.55,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
-    const THERM_W=64*THERM_SCALE, THERM_H=78*THERM_SCALE;
+    // 96 (up from a plain 78) is the real bottom-to-top extent now that a
+    // COOL/HEAT button row is painted below each variant's caption - see
+    // the button row's own y offsets a bit further down. Upper scale clamp
+    // pulled in from 1.55 to 1.3 to match: a taller content box needs more
+    // margin width per unit of scale to still fit LIVING_SPACE's band
+    // without crowding its top/bottom padding down to nothing.
+    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(1.3,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
+    const THERM_W=64*THERM_SCALE, THERM_H=96*THERM_SCALE;
     // TX/TY here are the <g transform="translate(...)"> origin, not a
     // bounding-box corner - the thermostat markup below still draws at
     // local 0-based coordinates (TX=0,TY=0 there) exactly as it always
@@ -2965,12 +3002,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                designs below are untouched other than that. Falls back to
                the old spot under the return duct (THERM_IN_MARGIN false)
                when the margin's too narrow for a legible column. ── */}
-          {hasTstat&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
+          {hasTstat&&(()=>{
+            const isProprietary=a.thermostat==='proprietary';
+            const isWifi=a.thermostat==='wifi'&&!isProprietary;
+            // COOL/HEAT button row's top y, local to the TX=0/TY=0 origin
+            // below - each variant's own caption sits at a different y (the
+            // three designs aren't the same height), so this places the
+            // row just under whichever caption this build actually shows.
+            const btnY=isProprietary?76:isWifi?74:56;
+            return <g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
             {(()=>{
               const TX=0, TY=0;
-              const isProprietary=a.thermostat==='proprietary';
-              const isWifi=a.thermostat==='wifi'&&!isProprietary;
               const modeColor=heatMode?"#f97316":"#2389e0";
               return isProprietary
                 // PROPRIETARY COMMUNICATING -- edge-to-edge glass touchscreen
@@ -3023,7 +3066,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             </g>
             <EditZone stepId="thermostat"
               x={THERM_TX-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
-          </g>}
+            {/* Painted after EditZone (topmost in paint order) so a click
+                lands on the button, not the done-screen's edit-zone overlay
+                underneath it - see EditZone's own onClick above. */}
+            <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
+              <ThermModeButtons x={0} y={btnY} w={30} h={15} gap={4} fontSize={8.5}/>
+            </g>
+          </g>;
+          })()}
 
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
@@ -3854,13 +3904,20 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               and the exterior wall it's built into - a real indoor spot,
               unlike stacking it outside above the condenser. Vertically
               level with the furnace/coil it's wired to. ── */}
-          {hasTstat&&<g className="snap" key="tstat-c" style={{animationDelay:'.26s'}}>
+          {hasTstat&&(()=>{
+            const gapLeft=UNIT_X+UNIT_W+16, gapRight=EXT_WALL_X-16;
+            const midY=hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2;
+            const TX=gapLeft+(gapRight-gapLeft)/2-38, TY=midY-38;
+            const isProprietaryC=a.thermostat==='proprietary';
+            const isWifiC=a.thermostat==='wifi'&&!isProprietaryC;
+            // COOL/HEAT button row's top y - each variant's own caption
+            // sits at a different y below TY (the three designs aren't the
+            // same height), so this places the row just under whichever
+            // caption this build actually shows, same reasoning as the
+            // attic thermostat's own btnY just above.
+            const btnY=isProprietaryC?TY+90:isWifiC?TY+93:TY+65;
+            return <g className="snap" key="tstat-c" style={{animationDelay:'.26s'}}>
             {(()=>{
-              const gapLeft=UNIT_X+UNIT_W+16, gapRight=EXT_WALL_X-16;
-              const midY=hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2;
-              const TX=gapLeft+(gapRight-gapLeft)/2-38, TY=midY-38;
-              const isProprietaryC=a.thermostat==='proprietary';
-              const isWifiC=a.thermostat==='wifi'&&!isProprietaryC;
               const modeColorC=heatMode?"#f97316":"#2389e0";
               return isProprietaryC
                 // PROPRIETARY COMMUNICATING -- edge-to-edge glass touchscreen
@@ -3909,10 +3966,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   <text x={TX+38} y={TY+58} textAnchor="middle" fill={G+'.38)'} fontSize="11" fontFamily="monospace">BASIC</text>
                 </>;
             })()}
-            <EditZone stepId="thermostat"
-              x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-40}
-              y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40} w={82} h={90}/>
-          </g>}
+            <EditZone stepId="thermostat" x={TX-2} y={TY-2} w={82} h={116}/>
+            {/* Painted after EditZone (topmost in paint order) so a click
+                lands on the button, not the done-screen's edit-zone overlay
+                underneath it - see EditZone's own onClick above. */}
+            <ThermModeButtons x={TX} y={btnY} w={36} h={17} gap={4} fontSize={9.5}/>
+          </g>;
+          })()}
 
           {/* Dehu + ERV - hang from roofline in attic zone */}
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
@@ -3952,7 +4012,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
               <StepFocusRing stepId="thermostat"
                 x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-40}
-                y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40} w={82} h={90}/>
+                y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40} w={82} h={116}/>
               {/* APR_H is 0 only if the (effectively always-on) filtration
                   cabinet is somehow off - 28 stand-in matches its real
                   height exactly, see the attic layout's own APR_W comment. */}
