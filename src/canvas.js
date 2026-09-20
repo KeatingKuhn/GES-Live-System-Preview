@@ -2501,6 +2501,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             fill="rgba(10,10,16,.6)" stroke="none"/>
 
           {/* ── INSULATION - only shown after selection ── */}
+          {/* Label itself (SPRAY FOAM - SEALED ATTIC / FIBERGLASS INSULATION)
+              is drawn much later, near the LIVE SYSTEM PREVIEW label below,
+              not here alongside the bubbles/batting texture - see that spot
+              for why. */}
           {a.insulation&&(isSpray
             ?<g>
               {Array.from({length:20},(_,i)=>{
@@ -2517,7 +2521,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   fill="rgba(234,238,246,.16)" stroke="rgba(234,238,246,.22)" strokeWidth=".5"
                   transform={`rotate(${ang},${sx},${sy+7})`}/>;
               })}
-              <text x={RIDGE_X} y={RIDGE_Y+24} textAnchor="middle" fill="rgba(232,236,246,.5)" fontSize="12" fontFamily="monospace">SPRAY FOAM - SEALED ATTIC</text>
             </g>
             :<g>
               <rect x="0" y={DECK_Y-22} width={HOUSE_W} height={24} fill="rgba(255,130,170,.18)" stroke="rgba(255,140,180,.08)" strokeWidth="0.5"/>
@@ -2525,7 +2528,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-7} rx={11} ry={8}
                   fill="rgba(255,182,193,.17)" stroke="rgba(255,182,193,.2)" strokeWidth=".45"/>
               ))}
-              <text x={RIDGE_X} y={RIDGE_Y+24} textAnchor="middle" fill="rgba(255,182,193,.55)" fontSize="12" fontFamily="monospace">FIBERGLASS INSULATION</text>
             </g>
           )}
 
@@ -2990,6 +2992,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               }
             })()}
           </g>}
+
+          {/* Insulation roofline label (SPRAY FOAM - SEALED ATTIC / FIBERGLASS
+              INSULATION) - painted here, on top of everything else, rather
+              than back with its own bubbles/batting texture near the roof
+              deck fill above. Centered on RIDGE_X, which usually sits right
+              over the furnace's flue pipe (also roughly centered in the
+              equipment run) - drawn this early, the flue's opaque PVC/B-VENT
+              pipe and cap painted afterward covered the middle of the label
+              outright, and the rafter guide lines/insulation bubbles
+              underneath added more clutter on top of that. Moving just the
+              label (not the bubbles/batting, which still read fine sitting
+              under the equipment) to the very end of the render, after the
+              furnace/coil/condenser are all painted, keeps it legible
+              regardless of where the flue lands. */}
+          {a.insulation&&<text x={RIDGE_X} y={RIDGE_Y+24} textAnchor="middle"
+            fill={isSpray?"rgba(232,236,246,.5)":"rgba(255,182,193,.55)"} fontSize="12" fontFamily="monospace">
+            {isSpray?"SPRAY FOAM - SEALED ATTIC":"FIBERGLASS INSULATION"}
+          </text>}
 
           {/* LIVE SYSTEM PREVIEW label */}
           {loc&&<text x={12} y={EAVE_Y-4} fill={G+'.22)'} fontSize="11" fontFamily="monospace" letterSpacing=".18em">LIVE SYSTEM PREVIEW</text>}
