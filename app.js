@@ -801,6 +801,11 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const B='rgba(35,137,224,';
   const W='rgba(255,255,255,';
   const O='rgba(249,115,22,';
+  // Galvanized-steel cabinet color for the furnace/air-handler body -
+  // real equipment cabinets are silver/gray sheet metal, not gold. Gold
+  // (G) stays reserved for the plenum, spec/tier badges and other accent
+  // uses; this is specifically the furnace/air-handler's own exterior.
+  const S='rgba(180,186,198,';
 
   // ── OUTSIDE / INSIDE PALETTE ───────────────────────────────
   // The outside zone's fill is a visual metaphor for the active heating/
@@ -1197,18 +1202,18 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     return <g>
       <rect x={x} y={y} width={w} height={h} rx="4"
         fill={active?"#0d0606":"#0a0a0a"}
-        stroke={active?'rgba(249,115,22,.84)':(G+'.64)')} strokeWidth={active?2.2:1.8}/>
+        stroke={active?'rgba(249,115,22,.84)':(S+'.7)')} strokeWidth={active?2.2:1.8}/>
       {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={O+'.04)'} stroke="none"/>}
-      <rect x={x} y={y} width={w} height={9} rx="4" fill={active?"url(#orange-g)":"url(#gold)"} opacity=".72"/>
-      <line x1={mid} y1={y+9} x2={mid} y2={y+h} stroke={G+'.2)'} strokeWidth="1" strokeDasharray="4 3"/>
+      <rect x={x} y={y} width={w} height={9} rx="4" fill={active?"url(#orange-g)":"url(#silver)"} opacity=".72"/>
+      <line x1={mid} y1={y+9} x2={mid} y2={y+h} stroke={S+'.28)'} strokeWidth="1" strokeDasharray="4 3"/>
       {Array.from({length:7},(_,i)=>(
         <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
-          stroke={G+'.36)'} strokeWidth="3" strokeLinecap="round"/>
+          stroke={S+'.42)'} strokeWidth="3" strokeLinecap="round"/>
       ))}
       <BlowerWheel cx={x+w*0.25} cy={y+h*0.42} r={Math.min(w*0.21,h*0.29)}
         spd={blowerActive?1.6:0.5} active={blowerActive}/>
-      <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={G+'.55)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
-      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={G+'.4)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
+      <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+      <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
       {Array.from({length:6},(_,i)=>{
         const gy=y+10+i*(h-18)/6;
         return <path key={i}
@@ -1216,7 +1221,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           fill="none" stroke={active?'rgba(249,115,22,.6)':'rgba(108,44,8,.22)'} strokeWidth="2.8" strokeLinecap="round"/>;
       })}
       <rect x={mid+4} y={y+h-17} width={w/2-8} height={10} rx="2"
-        fill={active?O+'.07)':'rgba(5,5,13,.8)'} stroke={active?'rgba(249,115,22,.42)':(G+'.14)')} strokeWidth="0.6"/>
+        fill={active?O+'.07)':'rgba(5,5,13,.8)'} stroke={active?'rgba(249,115,22,.42)':(S+'.2)')} strokeWidth="0.6"/>
       {Array.from({length:4},(_,i)=>{
         const bx=mid+6+i*(w/2-12)/4, bw2=(w/2-14)/4;
         return <g key={i}>
@@ -1228,7 +1233,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           </>}
         </g>;
       })}
-      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(G+'.5)')} fontSize="13" fontFamily="monospace">HEAT EXCH.</text>
+      <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="13" fontFamily="monospace">HEAT EXCH.</text>
       {(()=>{
         const pW=is90?5:7;
         const pC=is90?"#bfdbfe":"#c0c0c0";
@@ -1275,25 +1280,25 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
     return <g>
       <rect x={x} y={y} width={w} height={h} rx="4"
         fill={active?"#050c1a":"#090909"}
-        stroke={active?(evapC+'90'):(G+'.48)')} strokeWidth={active?1.9:1.5}/>
+        stroke={active?(evapC+'90'):(S+'.54)')} strokeWidth={active?1.9:1.5}/>
       {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
-      <rect x={x} y={y} width={w} height={9} rx="4" fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#gold)"} opacity=".68"/>
-      <line x1={c1} y1={y+9} x2={c1} y2={y+h} stroke={G+'.18)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-      <line x1={c2} y1={y+9} x2={c2} y2={y+h} stroke={G+'.18)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+      <rect x={x} y={y} width={w} height={9} rx="4" fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#silver)"} opacity=".68"/>
+      <line x1={c1} y1={y+9} x2={c1} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+      <line x1={c2} y1={y+9} x2={c2} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
       {Array.from({length:7},(_,i)=>(
         <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
-          stroke={G+'.32)'} strokeWidth="3" strokeLinecap="round"/>
+          stroke={S+'.38)'} strokeWidth="3" strokeLinecap="round"/>
       ))}
       <rect x={x+3} y={y+8} width={coilW-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
       <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}/>
-      <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(G+'.5)')} fontSize="13" fontFamily="monospace">A-COIL</text>
+      <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(S+'.6)')} fontSize="13" fontFamily="monospace">A-COIL</text>
       <BlowerWheel cx={c1+blowerW/2} cy={y+h*0.42} r={Math.min(blowerW*0.32,h*0.29)}
         spd={blowerActive?1.5:0.45} active={blowerActive}/>
-      <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={G+'.55)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
-      <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={G+'.4)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
+      <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+      <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
       <rect x={c2+3} y={y+8} width={auxW-6} height={h-14} rx="2"
         fill={auxHeat?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
-        stroke={auxHeat?"rgba(249,115,22,.6)":(G+'.14)')} strokeWidth="0.8"/>
+        stroke={auxHeat?"rgba(249,115,22,.6)":(S+'.2)')} strokeWidth="0.8"/>
       {Array.from({length:3},(_,i)=>{
         const segW=(auxW-16)/3;
         const bx=c2+7+i*(auxW-10)/3;
@@ -1310,7 +1315,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
           as A-COIL/BLOWER - the full meaning is already spelled out right
           next to the diagram (the AUX HEAT mode toggle) and in the status
           line under the unit ("AUX HEAT ONLY"), so nothing is lost. */}
-      <text x={c2+auxW/2} y={y+h-4} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(G+'.5)')} fontSize="13" fontFamily="monospace">AUX</text>
+      <text x={c2+auxW/2} y={y+h-4} textAnchor="middle" fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize="13" fontFamily="monospace">AUX</text>
       <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
 
     </g>;
@@ -1720,6 +1725,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
   const Defs=()=><defs>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#f0d64e"/><stop offset="100%" stopColor="#ab8024"/></linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#e4e7ed"/><stop offset="100%" stopColor="#8b93a3"/></linearGradient>
     <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#1a6cb5"/><stop offset="100%" stopColor="#2389e0"/></linearGradient>
     <linearGradient id="red-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#b91c1c"/><stop offset="100%" stopColor="#ef4444"/></linearGradient>
     <linearGradient id="orange-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#ea580c"/><stop offset="100%" stopColor="#f97316"/></linearGradient>
@@ -2127,21 +2133,6 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             ))}
             <text x={RET_X+RET_PLEN_W/2} y={DECK_Y+21} textAnchor="middle"
               fill="rgba(255,182,193,.6)" fontSize="12.5" fontFamily="monospace">RETURN</text>
-            {/* Return airflow arrow, up from the grille into the plenum -
-                same bold glow+dash+arrowhead treatment as the supply
-                plenum's own flow arrows below, so return air reads as
-                clearly directional as supply air does, not just a static
-                grille. Opposite heat/cool coloring from supply on purpose -
-                this air hasn't been conditioned yet, it's on its way TO the
-                coil/furnace, so it's colored the temperature it's about to
-                be corrected FROM, not the temperature supply air already IS. */}
-            {DECK_Y-(UNIT_Y+UNIT_H)>16&&<>
-              <path d={`M${RET_X+RET_PLEN_W/2} ${DECK_Y-4} L${RET_X+RET_PLEN_W/2} ${UNIT_Y+UNIT_H+4}`}
-                fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
-              <path d={`M${RET_X+RET_PLEN_W/2} ${DECK_Y-4} L${RET_X+RET_PLEN_W/2} ${UNIT_Y+UNIT_H+4}`}
-                fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
-                strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
-            </>}
           </g>}
 
           {/* Return plenum */}
@@ -2161,6 +2152,30 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 x2={RET_X+2} y2={UNIT_Y+18+i*(UNIT_H-24)/8}
                 stroke="rgba(255,182,193,.32)" strokeWidth="2.8" strokeLinecap="round"/>
             ))}
+            {/* Return airflow arrow, up from the grille and into the
+                plenum, then a quick 90-degree turn to show air continuing
+                onward - same bold glow+dash+arrowhead treatment as the
+                supply plenum's own flow arrows. Rendered here (after the
+                return-plenum's own rect/texture above, inside this same
+                group) so it paints on top of the plenum's fill instead of
+                underneath it. Deliberately stops well short of the
+                plenum's right edge instead of continuing across the gap
+                into the filtration cabinet or furnace - a straight arrow
+                spanning that whole gap used to visually cross directly
+                over the green FILTRATION box, reading as if the airflow
+                ran through the filter rack rather than the return plenum
+                doing the work of directing it there. Opposite heat/cool
+                coloring from supply on purpose - this air hasn't been
+                conditioned yet, it's on its way TO the coil/furnace, so
+                it's colored the temperature it's about to be corrected
+                FROM, not the temperature supply air already IS. */}
+            {DECK_Y-(UNIT_Y+UNIT_H)>16&&<>
+              <path d={`M${RET_X+RET_PLEN_W/2} ${DECK_Y-4} L${RET_X+RET_PLEN_W/2} ${UNIT_Y+UNIT_H*0.5} L${RET_X+RET_PLEN_W-16} ${UNIT_Y+UNIT_H*0.5}`}
+                fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
+              <path d={`M${RET_X+RET_PLEN_W/2} ${DECK_Y-4} L${RET_X+RET_PLEN_W/2} ${UNIT_Y+UNIT_H*0.5} L${RET_X+RET_PLEN_W-16} ${UNIT_Y+UNIT_H*0.5}`}
+                fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4" strokeLinejoin="round"
+                strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+            </>}
           </g>}
 
           {/* Aprilaire */}
@@ -2177,24 +2192,6 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               transform={`rotate(-90,${APR_X+APR_W/2},${UNIT_Y+UNIT_H/2})`}>FILTRATION</text>
           </g>}
 
-          {/* Return airflow arrow, plenum into the filter/coil - same bold
-              treatment as the vertical grille-to-plenum arrow above and the
-              supply plenum's own arrows, instead of the thin static
-              connector this used to be. Rendered here (after Aprilaire,
-              not inside the return-plenum group above) specifically so it
-              paints ON TOP of the filtration cabinet when one's present -
-              its endpoint spans the full return-plenum-to-unit gap, which
-              the filtration cabinet sits inside when selected, and this
-              used to render first (underneath it), making the arrow
-              invisible whenever filtration was on. Opposite heat/cool
-              coloring from supply on purpose - see the comment on the
-              grille-to-plenum arrow above. */}
-          {hasCoil&&<path d={`M${RET_X+RET_PLEN_W+2} ${UNIT_Y+UNIT_H/2} L${APR_X+APR_W+2} ${UNIT_Y+UNIT_H/2}`}
-            fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>}
-          {hasCoil&&<path d={`M${RET_X+RET_PLEN_W+2} ${UNIT_Y+UNIT_H/2} L${APR_X+APR_W+2} ${UNIT_Y+UNIT_H/2}`}
-            fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
-            strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>}
-
           {/* Furnace */}
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu'+a.stage+a.furnace_eff} filter="url(#shadow)">
             {(()=>{
@@ -2209,7 +2206,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
               return <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive} roofY={flueRoofY}/>;
             })()}
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+13} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.78)':(G+'.55)')} fontSize="13.5" fontFamily="monospace">FURNACE</text>
+              fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="13.5" fontFamily="monospace">FURNACE</text>
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+24} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="12" fontFamily="monospace">
               {furnaceActive?"GAS HEATING ACTIVE":"STANDBY"}
@@ -2269,7 +2266,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
             {/* Label above the unit, same as A-COIL - keeps the space below
                 clear for the condensate drain/pump instead of crowding it */}
             <text x={AH_X+AH_W/2} y={UNIT_Y-16} textAnchor="middle"
-              fill={evapActive?evapC:(G+'.55)')} fontSize="13.5" fontFamily="monospace">AIR HANDLER</text>
+              fill={evapActive?evapC:(S+'.65)')} fontSize="13.5" fontFamily="monospace">AIR HANDLER</text>
             <text x={AH_X+AH_W/2} y={UNIT_Y-5} textAnchor="middle"
               fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):(auxHeatActive?'rgba(249,115,22,.65)':'rgba(255,255,255,.14)')} fontSize="12" fontFamily="monospace">
               {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
@@ -3003,7 +3000,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   </text>}
                 </>}
                 <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y-6} textAnchor="middle"
-                  fill={active?evapC:(G+'.35)')} fontSize="12" fontFamily="monospace">
+                  fill={active?evapC:(S+'.45)')} fontSize="12" fontFamily="monospace">
                   {hasFurnace?"A-COIL":"AIR HANDLER"}
                 </text>
                 {/* ACOIL_H means two different things here: a small coil-only
@@ -3133,7 +3130,7 @@ function Canvas({a, stepIdx, activeSteps, onEditStep}){
                 not this label) - out of scope for a font-size-only pass,
                 so left at its original size. */}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y-13} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.78)':(G+'.55)')} fontSize="9.5" fontFamily="monospace">FURNACE</text>
+              fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="9.5" fontFamily="monospace">FURNACE</text>
           </g>}
 
           {hasCoil&&<EditZone stepId="indoor_type"
