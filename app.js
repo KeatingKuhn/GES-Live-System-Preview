@@ -1048,76 +1048,79 @@
           strokeWidth: "4",
           strokeLinecap: "round"
         }
-      )), isSurge && /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: DX,
-          y: DY + DH + 6,
-          width: DW,
-          height: 52,
-          rx: "4",
-          fill: "#160700",
-          stroke: "#f97316",
-          strokeWidth: "1.8"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: DX + 2,
-          y: DY + DH + 8,
-          width: DW - 4,
-          height: DH - 4,
-          rx: "3",
-          fill: "none",
-          stroke: "rgba(249,115,22,.15)",
-          strokeWidth: "0.7"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: DX + 4,
-          y: DY + DH + 10,
-          width: DW - 8,
-          height: 15,
-          rx: "2",
-          fill: "rgba(249,115,22,.12)",
-          stroke: "#f97316",
-          strokeWidth: "0.7"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: DX + DW / 2,
-          y: DY + DH + 21.5,
-          textAnchor: "middle",
-          fill: "#f97316",
-          fontSize: "12",
-          fontFamily: "monospace",
-          fontWeight: "700"
-        },
-        "SURGE"
-      ), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: DX + DW / 2,
-          y: DY + DH + 40,
-          textAnchor: "middle",
-          fill: "#f97316",
-          fontSize: "22"
-        },
-        "\u26A1"
-      ), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: DX + DW / 2,
-          y: DY + DH + 54,
-          textAnchor: "middle",
-          fill: "rgba(249,115,22,.6)",
-          fontSize: "11",
-          fontFamily: "monospace"
-        },
-        "PROTECTOR"
-      )));
+      )), isSurge && /* @__PURE__ */ React.createElement("g", { className: "fadein" }, (() => {
+        const SW = DW + 28, SX = DX - 14;
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: SX,
+            y: DY + DH + 6,
+            width: SW,
+            height: 52,
+            rx: "4",
+            fill: "#160700",
+            stroke: "#f97316",
+            strokeWidth: "1.8"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: SX + 2,
+            y: DY + DH + 8,
+            width: SW - 4,
+            height: 44,
+            rx: "3",
+            fill: "none",
+            stroke: "rgba(249,115,22,.15)",
+            strokeWidth: "0.7"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: SX + 4,
+            y: DY + DH + 10,
+            width: SW - 8,
+            height: 15,
+            rx: "2",
+            fill: "rgba(249,115,22,.12)",
+            stroke: "#f97316",
+            strokeWidth: "0.7"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            x: SX + SW / 2,
+            y: DY + DH + 21.5,
+            textAnchor: "middle",
+            fill: "#f97316",
+            fontSize: "12",
+            fontFamily: "monospace",
+            fontWeight: "700"
+          },
+          "SURGE"
+        ), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            x: SX + SW / 2,
+            y: DY + DH + 40,
+            textAnchor: "middle",
+            fill: "#f97316",
+            fontSize: "22"
+          },
+          "\u26A1"
+        ), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            x: SX + SW / 2,
+            y: DY + DH + 54,
+            textAnchor: "middle",
+            fill: "rgba(249,115,22,.6)",
+            fontSize: "11",
+            fontFamily: "monospace"
+          },
+          "PROTECTOR"
+        ));
+      })()));
     })(), condenserEl, /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity .8s ease" } }, (() => {
       const segs = 6;
       let d = `M${condX} ${condY}`;
