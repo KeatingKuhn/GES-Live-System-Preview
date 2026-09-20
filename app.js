@@ -1083,6 +1083,152 @@
       "OUTSIDE"
     ));
   }
+  function ToggleUI({ style, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName }) {
+    if (compactToggle) {
+      const modes = isDualFuel ? [
+        { key: "cool", icon: "\u2744", temp: "96\xB0", active: !heatMode, color: "#5ba8f5", bg: "rgba(35,137,224,.18)", onClick: () => setHeatMode(false) },
+        { key: "hp", icon: "\u{1F525}", temp: "52\xB0", active: heatMode && heatSubMode === "hp", color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => {
+          setHeatMode(true);
+          setHeatSubMode("hp");
+        } },
+        { key: "furnace", icon: "\u{1F525}", temp: "28\xB0", active: heatMode && heatSubMode === "furnace", color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => {
+          setHeatMode(true);
+          setHeatSubMode("furnace");
+        } }
+      ] : !hasFurnace ? [
+        { key: "cool", icon: "\u2744", temp: "96\xB0", active: !heatMode, color: "#5ba8f5", bg: "rgba(35,137,224,.18)", onClick: () => setHeatMode(false) },
+        { key: "hp", icon: "\u{1F525}", temp: "52\xB0", active: heatMode && heatSubMode === "hp", color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => {
+          setHeatMode(true);
+          setHeatSubMode("hp");
+        } },
+        { key: "aux", icon: "\u{1F525}", temp: "28\xB0", active: heatMode && heatSubMode === "aux", color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => {
+          setHeatMode(true);
+          setHeatSubMode("aux");
+        } }
+      ] : [
+        { key: "cool", icon: "\u2744", temp: "96\xB0", active: !heatMode, color: "#5ba8f5", bg: "rgba(35,137,224,.18)", onClick: () => setHeatMode(false) },
+        { key: "heat", icon: "\u{1F525}", temp: "28\xB0", active: heatMode, color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => setHeatMode(true) }
+      ];
+      return /* @__PURE__ */ React.createElement("div", { title: "Not a control - tap to see how this system behaves in each mode", style: { display: "flex", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", borderRadius: 3, overflow: "hidden", ...style } }, modes.map(
+        (m, i) => /* @__PURE__ */ React.createElement("button", { key: m.key, onClick: m.onClick, style: {
+          padding: "7px 10px",
+          border: "none",
+          borderLeft: i > 0 ? "1px solid rgba(215,183,64,.18)" : "none",
+          cursor: "pointer",
+          fontFamily: "monospace",
+          fontSize: "12px",
+          fontWeight: 700,
+          letterSpacing: ".02em",
+          background: m.active ? m.bg : "transparent",
+          color: m.active ? m.color : "rgba(255,255,255,.55)",
+          transition: "all .2s",
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          whiteSpace: "nowrap"
+        } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11 } }, m.icon), /* @__PURE__ */ React.createElement("span", null, m.temp))
+      ));
+    }
+    return /* @__PURE__ */ React.createElement("div", { className: "fadein", title: "Not a control - click to see how this system behaves in each mode", style: { display: "flex", flexDirection: "column", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", overflow: "hidden", ...style } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "5px 10px", fontFamily: "monospace", fontSize: "var(--fs-toggle-eyebrow)", letterSpacing: ".06em", color: "rgba(215,183,64,.75)", textAlign: "right", borderBottom: "1px solid rgba(215,183,64,.18)" } }, "\u25B8 preview how your system runs \xB7 ", monthName), /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(false), style: {
+      padding: "10px 18px",
+      border: "none",
+      cursor: "pointer",
+      fontFamily: "monospace",
+      fontSize: "var(--fs-toggle-label)",
+      letterSpacing: ".08em",
+      background: !heatMode ? "rgba(35,137,224,.18)" : "transparent",
+      color: !heatMode ? "#5ba8f5" : "rgba(255,255,255,.58)",
+      transition: "all .2s",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 6
+    } }, /* @__PURE__ */ React.createElement("span", null, "\u2744"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "(JUN)"), /* @__PURE__ */ React.createElement("span", null, "COOL MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: !heatMode ? 1 : 0.55 } }, "96\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("div", { style: { height: "1px", background: "rgba(215,183,64,.22)" } }), isDualFuel ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setHeatMode(true);
+      setHeatSubMode("hp");
+    }, style: {
+      padding: "10px 14px",
+      border: "none",
+      cursor: "pointer",
+      fontFamily: "monospace",
+      fontSize: "var(--fs-toggle-label)",
+      letterSpacing: ".08em",
+      background: heatMode && heatSubMode === "hp" ? "rgba(249,115,22,.18)" : "transparent",
+      color: heatMode && heatSubMode === "hp" ? "#f97316" : "rgba(255,255,255,.58)",
+      transition: "all .2s",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 5,
+      borderBottom: "1px solid rgba(215,183,64,.12)"
+    } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "(OCT)"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "52\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setHeatMode(true);
+      setHeatSubMode("furnace");
+    }, style: {
+      padding: "10px 14px",
+      border: "none",
+      cursor: "pointer",
+      fontFamily: "monospace",
+      fontSize: "var(--fs-toggle-label)",
+      letterSpacing: ".08em",
+      background: heatMode && heatSubMode === "furnace" ? "rgba(249,115,22,.18)" : "transparent",
+      color: heatMode && heatSubMode === "furnace" ? "#f97316" : "rgba(255,255,255,.58)",
+      transition: "all .2s",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 5
+    } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "FURNACE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "furnace" ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : !hasFurnace ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setHeatMode(true);
+      setHeatSubMode("hp");
+    }, style: {
+      padding: "10px 14px",
+      border: "none",
+      cursor: "pointer",
+      fontFamily: "monospace",
+      fontSize: "var(--fs-toggle-label)",
+      letterSpacing: ".08em",
+      background: heatMode && heatSubMode === "hp" ? "rgba(249,115,22,.18)" : "transparent",
+      color: heatMode && heatSubMode === "hp" ? "#f97316" : "rgba(255,255,255,.58)",
+      transition: "all .2s",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 5,
+      borderBottom: "1px solid rgba(215,183,64,.12)"
+    } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "(OCT)"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "52\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setHeatMode(true);
+      setHeatSubMode("aux");
+    }, style: {
+      padding: "10px 14px",
+      border: "none",
+      cursor: "pointer",
+      fontFamily: "monospace",
+      fontSize: "var(--fs-toggle-label)",
+      letterSpacing: ".08em",
+      background: heatMode && heatSubMode === "aux" ? "rgba(249,115,22,.18)" : "transparent",
+      color: heatMode && heatSubMode === "aux" ? "#f97316" : "rgba(255,255,255,.58)",
+      transition: "all .2s",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 5
+    } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "AUX HEAT"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "aux" ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(true), style: {
+      padding: "10px 18px",
+      border: "none",
+      cursor: "pointer",
+      fontFamily: "monospace",
+      fontSize: "var(--fs-toggle-label)",
+      letterSpacing: ".08em",
+      background: heatMode ? "rgba(249,115,22,.18)" : "transparent",
+      color: heatMode ? "#f97316" : "rgba(255,255,255,.58)",
+      transition: "all .2s",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 6
+    } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
+  }
   function Canvas({ a, stepIdx, activeSteps, onEditStep }) {
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
     const MIN_EDIT_PX = 28;
@@ -2701,152 +2847,6 @@
     }
     const Defs = () => /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("linearGradient", { id: "gold", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#f0d64e" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ab8024" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "silver", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#e4e7ed" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#8b93a3" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "cabinet-edge", x1: "0", y1: "0", x2: "1", y2: "1" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ccd2dc" }), /* @__PURE__ */ React.createElement("stop", { offset: "45%", stopColor: "#8b93a3" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#4d5361" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "blue", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#1a6cb5" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#2389e0" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "red-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#b91c1c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ef4444" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "orange-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ea580c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#f97316" })), /* @__PURE__ */ React.createElement("filter", { id: "glow" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "2.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-sm" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "1.2", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-uv" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "3.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "shadow", x: "-60%", y: "-60%", width: "220%", height: "220%" }, /* @__PURE__ */ React.createElement("feDropShadow", { dx: "0", dy: "2", stdDeviation: "3", floodColor: "rgba(0,0,0,.55)" })), /* @__PURE__ */ React.createElement("marker", { id: "arr", viewBox: "0 0 8 8", refX: "6", refY: "4", markerWidth: "4", markerHeight: "4", orient: "auto-start-reverse" }, /* @__PURE__ */ React.createElement("path", { d: "M1 1L6 4L1 7", fill: "none", stroke: "context-stroke", strokeWidth: "1.5" })));
     const compactToggle = frameBox && frameBox.w > 0 && frameBox.w < 700;
-    const ToggleUI = ({ style }) => {
-      if (compactToggle) {
-        const modes = isDualFuel ? [
-          { key: "cool", icon: "\u2744", temp: "96\xB0", active: !heatMode, color: "#5ba8f5", bg: "rgba(35,137,224,.18)", onClick: () => setHeatMode(false) },
-          { key: "hp", icon: "\u{1F525}", temp: "52\xB0", active: heatMode && heatSubMode === "hp", color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => {
-            setHeatMode(true);
-            setHeatSubMode("hp");
-          } },
-          { key: "furnace", icon: "\u{1F525}", temp: "28\xB0", active: heatMode && heatSubMode === "furnace", color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => {
-            setHeatMode(true);
-            setHeatSubMode("furnace");
-          } }
-        ] : !hasFurnace ? [
-          { key: "cool", icon: "\u2744", temp: "96\xB0", active: !heatMode, color: "#5ba8f5", bg: "rgba(35,137,224,.18)", onClick: () => setHeatMode(false) },
-          { key: "hp", icon: "\u{1F525}", temp: "52\xB0", active: heatMode && heatSubMode === "hp", color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => {
-            setHeatMode(true);
-            setHeatSubMode("hp");
-          } },
-          { key: "aux", icon: "\u{1F525}", temp: "28\xB0", active: heatMode && heatSubMode === "aux", color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => {
-            setHeatMode(true);
-            setHeatSubMode("aux");
-          } }
-        ] : [
-          { key: "cool", icon: "\u2744", temp: "96\xB0", active: !heatMode, color: "#5ba8f5", bg: "rgba(35,137,224,.18)", onClick: () => setHeatMode(false) },
-          { key: "heat", icon: "\u{1F525}", temp: "28\xB0", active: heatMode, color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => setHeatMode(true) }
-        ];
-        return /* @__PURE__ */ React.createElement("div", { title: "Not a control - tap to see how this system behaves in each mode", style: { display: "flex", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", borderRadius: 3, overflow: "hidden", ...style } }, modes.map(
-          (m, i) => /* @__PURE__ */ React.createElement("button", { key: m.key, onClick: m.onClick, style: {
-            padding: "7px 10px",
-            border: "none",
-            borderLeft: i > 0 ? "1px solid rgba(215,183,64,.18)" : "none",
-            cursor: "pointer",
-            fontFamily: "monospace",
-            fontSize: "12px",
-            fontWeight: 700,
-            letterSpacing: ".02em",
-            background: m.active ? m.bg : "transparent",
-            color: m.active ? m.color : "rgba(255,255,255,.55)",
-            transition: "all .2s",
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            whiteSpace: "nowrap"
-          } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11 } }, m.icon), /* @__PURE__ */ React.createElement("span", null, m.temp))
-        ));
-      }
-      return /* @__PURE__ */ React.createElement("div", { className: "fadein", title: "Not a control - click to see how this system behaves in each mode", style: { display: "flex", flexDirection: "column", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", overflow: "hidden", ...style } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "5px 10px", fontFamily: "monospace", fontSize: "var(--fs-toggle-eyebrow)", letterSpacing: ".06em", color: "rgba(215,183,64,.75)", textAlign: "right", borderBottom: "1px solid rgba(215,183,64,.18)" } }, "\u25B8 preview how your system runs \xB7 ", CURRENT_MONTH_NAME), /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(false), style: {
-        padding: "10px 18px",
-        border: "none",
-        cursor: "pointer",
-        fontFamily: "monospace",
-        fontSize: "var(--fs-toggle-label)",
-        letterSpacing: ".08em",
-        background: !heatMode ? "rgba(35,137,224,.18)" : "transparent",
-        color: !heatMode ? "#5ba8f5" : "rgba(255,255,255,.58)",
-        transition: "all .2s",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        gap: 6
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u2744"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "(JUN)"), /* @__PURE__ */ React.createElement("span", null, "COOL MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: !heatMode ? 1 : 0.55 } }, "96\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("div", { style: { height: "1px", background: "rgba(215,183,64,.22)" } }), isDualFuel ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
-        setHeatMode(true);
-        setHeatSubMode("hp");
-      }, style: {
-        padding: "10px 14px",
-        border: "none",
-        cursor: "pointer",
-        fontFamily: "monospace",
-        fontSize: "var(--fs-toggle-label)",
-        letterSpacing: ".08em",
-        background: heatMode && heatSubMode === "hp" ? "rgba(249,115,22,.18)" : "transparent",
-        color: heatMode && heatSubMode === "hp" ? "#f97316" : "rgba(255,255,255,.58)",
-        transition: "all .2s",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        gap: 5,
-        borderBottom: "1px solid rgba(215,183,64,.12)"
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "(OCT)"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "52\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
-        setHeatMode(true);
-        setHeatSubMode("furnace");
-      }, style: {
-        padding: "10px 14px",
-        border: "none",
-        cursor: "pointer",
-        fontFamily: "monospace",
-        fontSize: "var(--fs-toggle-label)",
-        letterSpacing: ".08em",
-        background: heatMode && heatSubMode === "furnace" ? "rgba(249,115,22,.18)" : "transparent",
-        color: heatMode && heatSubMode === "furnace" ? "#f97316" : "rgba(255,255,255,.58)",
-        transition: "all .2s",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        gap: 5
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "FURNACE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "furnace" ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : !hasFurnace ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
-        setHeatMode(true);
-        setHeatSubMode("hp");
-      }, style: {
-        padding: "10px 14px",
-        border: "none",
-        cursor: "pointer",
-        fontFamily: "monospace",
-        fontSize: "var(--fs-toggle-label)",
-        letterSpacing: ".08em",
-        background: heatMode && heatSubMode === "hp" ? "rgba(249,115,22,.18)" : "transparent",
-        color: heatMode && heatSubMode === "hp" ? "#f97316" : "rgba(255,255,255,.58)",
-        transition: "all .2s",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        gap: 5,
-        borderBottom: "1px solid rgba(215,183,64,.12)"
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "(OCT)"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "52\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
-        setHeatMode(true);
-        setHeatSubMode("aux");
-      }, style: {
-        padding: "10px 14px",
-        border: "none",
-        cursor: "pointer",
-        fontFamily: "monospace",
-        fontSize: "var(--fs-toggle-label)",
-        letterSpacing: ".08em",
-        background: heatMode && heatSubMode === "aux" ? "rgba(249,115,22,.18)" : "transparent",
-        color: heatMode && heatSubMode === "aux" ? "#f97316" : "rgba(255,255,255,.58)",
-        transition: "all .2s",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        gap: 5
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "AUX HEAT"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "aux" ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(true), style: {
-        padding: "10px 18px",
-        border: "none",
-        cursor: "pointer",
-        fontFamily: "monospace",
-        fontSize: "var(--fs-toggle-label)",
-        letterSpacing: ".08em",
-        background: heatMode ? "rgba(249,115,22,.18)" : "transparent",
-        color: heatMode ? "#f97316" : "rgba(255,255,255,.58)",
-        transition: "all .2s",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        gap: 6
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
-    };
     if (isAttic) {
       const LIVING_SPACE = 95;
       const ZOOM = hasCond ? 1 : 0.7;
@@ -2907,7 +2907,7 @@
       const DISC_ZONE = 52;
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const COND_Y = VH - 28 - 10 - COND_H;
-      return /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 } }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: EXT_WALL_X,
@@ -3919,7 +3919,7 @@
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const GROUND_Y = VH - 40;
       const COND_Y = GROUND_Y - COND_H;
-      return /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 } }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: HOUSE_W,
@@ -5389,7 +5389,10 @@
     const goBack = () => {
       if (stepIdx > 0) {
         const next = stepIdx - 1;
-        if (next === 0 && !quickEdit) setA("location", null);
+        if (next === 0 && !quickEdit) {
+          setA("location", null);
+          clearSavedBuild();
+        }
         setStepIdx(next);
         scrollTop();
       }
@@ -5410,8 +5413,11 @@
       setPricingAnswers({});
     };
     const resumeBuild = () => {
-      setAnswers(savedBuild.answers || {});
-      setStepIdx(savedBuild.stepIdx || 0);
+      const savedAnswers = savedBuild.answers || {};
+      setAnswers(savedAnswers);
+      const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedAnswers));
+      const clampedIdx = Math.min(Math.max(savedBuild.stepIdx || 0, 0), Math.max(savedSteps.length - 1, 0));
+      setStepIdx(clampedIdx);
       setDone(!!savedBuild.done);
       setPricingFlow(savedBuild.pricingFlow || null);
       setPricingSubStep(savedBuild.pricingSubStep || 0);

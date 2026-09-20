@@ -438,6 +438,148 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
   </g>;
 }
 
+// Not a real thermostat control - lets a homeowner see the diagram react
+// (refrigerant flow direction, which equipment lights up as active) without
+// waiting for actual weather. Callout label + title attr both explain that,
+// since a first-time visitor has no other reason to guess it's clickable.
+//
+// Defined at module scope (unlike Canvas's other sub-components, which stay
+// nested inside it) for the same reason as OutsideZone above: a component
+// declared *inside* Canvas's own function body is a brand-new function
+// reference every render, so React tears down and remounts its whole DOM
+// subtree instead of updating it in place. Here that meant every single
+// click on a mode-preview button - heatMode/heatSubMode both live in
+// Canvas's own state, so clicking one re-renders Canvas and, with ToggleUI
+// declared inline, redefined ToggleUI right along with it - destroyed and
+// recreated the very button that had just been clicked. A mouse click
+// doesn't care (the new node still highlights correctly), but activating
+// one via keyboard does: the focused button is gone by the time the browser
+// would otherwise keep focus on it, and a focused element's own removal
+// drops focus to <body> with no visible ring anywhere, silently - the same
+// "control you can't see is still live" shape already fixed for
+// splash-screen/attic-layout/closet-layout/done-screen in app.js, just for
+// a genuine unmount here instead of a merely-hidden one. Takes every
+// Canvas-scoped value it used to close over as an explicit prop instead.
+function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode,monthName}){
+    if(compactToggle){
+      const modes=isDualFuel?[
+        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'furnace',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='furnace',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}},
+      ]:!hasFurnace?[
+        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'aux',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='aux',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}},
+      ]:[
+        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'heat',icon:'🔥',temp:'28°',active:heatMode,color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>setHeatMode(true)},
+      ];
+      return <div title="Not a control - tap to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',borderRadius:3,overflow:'hidden',...style}}>
+        {modes.map((m,i)=>
+          <button key={m.key} onClick={m.onClick} style={{
+            padding:'7px 10px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
+            fontFamily:'monospace',fontSize:'12px',fontWeight:700,letterSpacing:'.02em',
+            background:m.active?m.bg:'transparent',color:m.active?m.color:'rgba(255,255,255,.55)',
+            transition:'all .2s',display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}>
+            <span style={{fontSize:11}}>{m.icon}</span><span>{m.temp}</span>
+          </button>
+        )}
+      </div>;
+    }
+    return (
+    <div className="fadein" title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',flexDirection:'column',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden',...style}}>
+      {/* Used to float above the box with no backing of its own, so its
+          contrast rode on whatever part of the diagram happened to be
+          behind it - fine over the near-black sky, illegible over
+          anything brighter. Folded into the same box the mode buttons
+          already have (own #0c0c0c background, same border) so it always
+          reads clearly regardless of the diagram underneath. */}
+      <div style={{padding:'5px 10px',fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.75)',textAlign:'right',borderBottom:'1px solid rgba(215,183,64,.18)'}}>
+        {/* Purely informational (current month), not a sales pitch - see
+            the comment on isHeatingSeason above for why this is here. */}
+        ▸ preview how your system runs · {monthName}
+      </div>
+      <button onClick={()=>setHeatMode(false)} style={{
+        padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+        background:!heatMode?'rgba(35,137,224,.18)':'transparent',
+        color:!heatMode?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
+        display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
+        <span>❄</span>
+        {/* Representative month for this mode's outside temp, not the
+            "current month" the eyebrow line above shows - see the
+            per-button mapping this file uses (96°→JUN peak summer,
+            52°→OCT mild shoulder season, 28°→FEB deep winter). */}
+        <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>(JUN)</span>
+        <span>COOL MODE</span>
+        <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:!heatMode?1:0.55}}>96°</span>
+        <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>OUTSIDE TEMP</span>
+      </button>
+      <div style={{height:'1px',background:'rgba(215,183,64,.22)'}}/>
+      {isDualFuel
+        ?<>
+          <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
+            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+            background:heatMode&&heatSubMode==='hp'?'rgba(249,115,22,.18)':'transparent',
+            color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
+            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
+            <span>🔥</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
+            <span>HEAT PUMP</span>
+            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
+          </button>
+          <button onClick={()=>{setHeatMode(true);setHeatSubMode('furnace');}} style={{
+            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+            background:heatMode&&heatSubMode==='furnace'?'rgba(249,115,22,.18)':'transparent',
+            color:heatMode&&heatSubMode==='furnace'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
+            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
+            <span>🔥</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>(FEB)</span>
+            <span>FURNACE</span>
+            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.55}}>28°</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>OUTSIDE TEMP</span>
+          </button>
+        </>
+        :!hasFurnace
+        ?<>
+          <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
+            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+            background:heatMode&&heatSubMode==='hp'?'rgba(249,115,22,.18)':'transparent',
+            color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
+            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
+            <span>🔥</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
+            <span>HEAT PUMP</span>
+            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
+          </button>
+          <button onClick={()=>{setHeatMode(true);setHeatSubMode('aux');}} style={{
+            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+            background:heatMode&&heatSubMode==='aux'?'rgba(249,115,22,.18)':'transparent',
+            color:heatMode&&heatSubMode==='aux'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
+            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
+            <span>🔥</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>(FEB)</span>
+            <span>AUX HEAT</span>
+            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='aux'?1:0.55}}>28°</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>OUTSIDE TEMP</span>
+          </button>
+        </>
+        :<button onClick={()=>setHeatMode(true)} style={{
+          padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+          background:heatMode?'rgba(249,115,22,.18)':'transparent',
+          color:heatMode?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
+          display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
+          <span>🔥</span>
+          <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>(FEB)</span>
+          <span>HEAT MODE</span>
+          <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode?1:0.55}}>28°</span>
+          <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>OUTSIDE TEMP</span>
+        </button>}
+    </div>
+    );
+}
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // Clickable overlay on a finished diagram piece - only wired up on the
@@ -1802,152 +1944,33 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     </marker>
   </defs>;
 
-  // Not a real thermostat control - lets a homeowner see the diagram react
-  // (refrigerant flow direction, which equipment lights up as active) without
-  // waiting for actual weather. Callout label + title attr both explain that,
-  // since a first-time visitor has no other reason to guess it's clickable.
+  // frameBox-derived breakpoint for ToggleUI's compact-vs-full layout - see
+  // the big comment on ToggleUI (module scope, above Canvas) for why the
+  // component itself moved out of here; this one stays local since it's
+  // just a number derived from Canvas's own frameBox state.
   //
-  // On a narrow frame this full stack (eyebrow + 2-3 full-height buttons,
-  // ~150px tall) doesn't fit inside the SVG's own top letterbox gutter -
-  // the closet layout in particular has very little of that gutter to
-  // begin with (its diagram fills most of the frame), so the panel used to
-  // sit directly on top of real equipment (the air handler/return plenum)
-  // instead of the empty space above it, hiding it entirely rather than
-  // just looking oversized. Below this width it swaps for a single compact
-  // icon+temp pill row instead - same click targets/state, just a small
-  // fraction of the vertical footprint. This was previously a flat 900,
-  // which meant closet - whose frame is always ~320px narrower than
-  // attic's at the same viewport width, thanks to the fixed-width sidebar
-  // sitting beside it - fell into the compact variant across most of the
-  // ordinary desktop window-width range, even though it reads noticeably
-  // better full-size and attic almost never needed it. Re-measured the
-  // actual overlap boundary directly (screenshotting the full-size stack
-  // forced on in closet mode at a sweep of widths): clean with real margin
-  // at a 650px frame, still overlapping the equipment at 600px. 700 keeps
-  // that margin while giving closet the full-size stack across realistic
-  // desktop widths, same as attic; phone/portrait-tablet frames (375-390,
-  // 768 was already clean) still fall well under it into the safe compact
-  // range.
+  // On a narrow frame ToggleUI's full stack (eyebrow + 2-3 full-height
+  // buttons, ~150px tall) doesn't fit inside the SVG's own top letterbox
+  // gutter - the closet layout in particular has very little of that
+  // gutter to begin with (its diagram fills most of the frame), so the
+  // panel used to sit directly on top of real equipment (the air
+  // handler/return plenum) instead of the empty space above it, hiding it
+  // entirely rather than just looking oversized. Below this width it swaps
+  // for a single compact icon+temp pill row instead - same click
+  // targets/state, just a small fraction of the vertical footprint. This
+  // was previously a flat 900, which meant closet - whose frame is always
+  // ~320px narrower than attic's at the same viewport width, thanks to the
+  // fixed-width sidebar sitting beside it - fell into the compact variant
+  // across most of the ordinary desktop window-width range, even though it
+  // reads noticeably better full-size and attic almost never needed it.
+  // Re-measured the actual overlap boundary directly (screenshotting the
+  // full-size stack forced on in closet mode at a sweep of widths): clean
+  // with real margin at a 650px frame, still overlapping the equipment at
+  // 600px. 700 keeps that margin while giving closet the full-size stack
+  // across realistic desktop widths, same as attic; phone/portrait-tablet
+  // frames (375-390, 768 was already clean) still fall well under it into
+  // the safe compact range.
   const compactToggle=frameBox&&frameBox.w>0&&frameBox.w<700;
-  const ToggleUI=({style})=>{
-    if(compactToggle){
-      const modes=isDualFuel?[
-        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
-        {key:'furnace',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='furnace',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}},
-      ]:!hasFurnace?[
-        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
-        {key:'aux',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='aux',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}},
-      ]:[
-        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'heat',icon:'🔥',temp:'28°',active:heatMode,color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>setHeatMode(true)},
-      ];
-      return <div title="Not a control - tap to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',borderRadius:3,overflow:'hidden',...style}}>
-        {modes.map((m,i)=>
-          <button key={m.key} onClick={m.onClick} style={{
-            padding:'7px 10px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
-            fontFamily:'monospace',fontSize:'12px',fontWeight:700,letterSpacing:'.02em',
-            background:m.active?m.bg:'transparent',color:m.active?m.color:'rgba(255,255,255,.55)',
-            transition:'all .2s',display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}>
-            <span style={{fontSize:11}}>{m.icon}</span><span>{m.temp}</span>
-          </button>
-        )}
-      </div>;
-    }
-    return (
-    <div className="fadein" title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',flexDirection:'column',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden',...style}}>
-      {/* Used to float above the box with no backing of its own, so its
-          contrast rode on whatever part of the diagram happened to be
-          behind it - fine over the near-black sky, illegible over
-          anything brighter. Folded into the same box the mode buttons
-          already have (own #0c0c0c background, same border) so it always
-          reads clearly regardless of the diagram underneath. */}
-      <div style={{padding:'5px 10px',fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.75)',textAlign:'right',borderBottom:'1px solid rgba(215,183,64,.18)'}}>
-        {/* Purely informational (current month), not a sales pitch - see
-            the comment on isHeatingSeason above for why this is here. */}
-        ▸ preview how your system runs · {CURRENT_MONTH_NAME}
-      </div>
-      <button onClick={()=>setHeatMode(false)} style={{
-        padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
-        background:!heatMode?'rgba(35,137,224,.18)':'transparent',
-        color:!heatMode?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
-        display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
-        <span>❄</span>
-        {/* Representative month for this mode's outside temp, not the
-            "current month" the eyebrow line above shows - see the
-            per-button mapping this file uses (96°→JUN peak summer,
-            52°→OCT mild shoulder season, 28°→FEB deep winter). */}
-        <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>(JUN)</span>
-        <span>COOL MODE</span>
-        <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:!heatMode?1:0.55}}>96°</span>
-        <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>OUTSIDE TEMP</span>
-      </button>
-      <div style={{height:'1px',background:'rgba(215,183,64,.22)'}}/>
-      {isDualFuel
-        ?<>
-          <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
-            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
-            background:heatMode&&heatSubMode==='hp'?'rgba(249,115,22,.18)':'transparent',
-            color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
-            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
-            <span>🔥</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
-            <span>HEAT PUMP</span>
-            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
-          </button>
-          <button onClick={()=>{setHeatMode(true);setHeatSubMode('furnace');}} style={{
-            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
-            background:heatMode&&heatSubMode==='furnace'?'rgba(249,115,22,.18)':'transparent',
-            color:heatMode&&heatSubMode==='furnace'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
-            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
-            <span>🔥</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>(FEB)</span>
-            <span>FURNACE</span>
-            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.55}}>28°</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>OUTSIDE TEMP</span>
-          </button>
-        </>
-        :!hasFurnace
-        ?<>
-          <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
-            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
-            background:heatMode&&heatSubMode==='hp'?'rgba(249,115,22,.18)':'transparent',
-            color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
-            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
-            <span>🔥</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
-            <span>HEAT PUMP</span>
-            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
-          </button>
-          <button onClick={()=>{setHeatMode(true);setHeatSubMode('aux');}} style={{
-            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
-            background:heatMode&&heatSubMode==='aux'?'rgba(249,115,22,.18)':'transparent',
-            color:heatMode&&heatSubMode==='aux'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
-            display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
-            <span>🔥</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>(FEB)</span>
-            <span>AUX HEAT</span>
-            <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='aux'?1:0.55}}>28°</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>OUTSIDE TEMP</span>
-          </button>
-        </>
-        :<button onClick={()=>setHeatMode(true)} style={{
-          padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
-          background:heatMode?'rgba(249,115,22,.18)':'transparent',
-          color:heatMode?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
-          display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
-          <span>🔥</span>
-          <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>(FEB)</span>
-          <span>HEAT MODE</span>
-          <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode?1:0.55}}>28°</span>
-          <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>OUTSIDE TEMP</span>
-        </button>}
-    </div>
-    );
-  };
 
   // ══════════════════════════════════════════════════════════
   // ATTIC HORIZONTAL
@@ -2087,7 +2110,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
     return(
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
-        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}}/>}
+        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid meet" className="canvas-svg" aria-hidden="true">
           <Defs/>
 
@@ -2798,7 +2821,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
     return(
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
-        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}}/>}
+        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <Defs/>
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>

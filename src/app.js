@@ -291,7 +291,16 @@ function App(){
       // inline in the wizard chrome. Skipped in quick-edit mode, which
       // should stay scoped to the one answer being edited rather than
       // unwind all the way back to the start of the whole build.
-      if(next===0&&!quickEdit)setA('location',null);
+      // clearSavedBuild() alongside it: the autosave effect below only
+      // writes while answers.location is truthy (so a fresh page load
+      // with no pick yet never persists "nothing"), which means clearing
+      // location here silently stops autosave from ever overwriting
+      // localStorage again - the LAST real save (still holding the old
+      // location) is left behind. Without this, backing all the way out
+      // to the splash screen and reloading resurrected a "Resume My
+      // Build?" prompt for a build the user had just explicitly
+      // abandoned by backing out of it.
+      if(next===0&&!quickEdit){setA('location',null);clearSavedBuild();}
       setStepIdx(next);
       scrollTop();
     }
@@ -309,8 +318,21 @@ function App(){
     setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});
   };
   const resumeBuild=()=>{
-    setAnswers(savedBuild.answers||{});
-    setStepIdx(savedBuild.stepIdx||0);
+    const savedAnswers=savedBuild.answers||{};
+    setAnswers(savedAnswers);
+    // Clamp to the range of steps that actually apply to the saved
+    // answers (same showIf-filtered list the resume prompt's own preview
+    // text above already computes as `savedSteps`) rather than trusting
+    // savedBuild.stepIdx as-is - a stale/tampered/out-of-range value
+    // (e.g. localStorage edited by hand, or left over from a build of
+    // this app with a different step count) landed on activeSteps[idx]
+    // being undefined: no crash, but `cur` stayed undefined forever, so
+    // the step rendered fully blank (no question, no options) with only
+    // a permanently-disabled Next button and no way out except clicking
+    // Back hundreds of times back down into range.
+    const savedSteps=STEPS.filter(s=>!s.showIf||s.showIf(savedAnswers));
+    const clampedIdx=Math.min(Math.max(savedBuild.stepIdx||0,0),Math.max(savedSteps.length-1,0));
+    setStepIdx(clampedIdx);
     setDone(!!savedBuild.done);
     setPricingFlow(savedBuild.pricingFlow||null);
     setPricingSubStep(savedBuild.pricingSubStep||0);
