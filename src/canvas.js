@@ -2364,11 +2364,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // borrowed from the attic zone's own headroom above, which has ~3x
     // more height than the equipment needs (see VH's own comment above),
     // so this doesn't touch VH/the roofline at all, just shifts DECK_Y up
-    // a bit and shrinks that already-generous headroom. Bumped again from
-    // 140 to 160 for the COOL/HEAT button row now painted below the
-    // thermostat's caption (see THERM_SCALE's own comment) - still well
-    // inside the same >2x headroom margin the 140 bump left behind.
-    const LIVING_SPACE=160;
+    // a bit and shrinks that already-generous headroom. Left at 140 even
+    // with the COOL/HEAT button row now painted below the thermostat's
+    // caption (see THERM_SCALE's own comment) - the taller content still
+    // fits inside this same band at every scale (the tightened upper
+    // clamp there is what makes room, not this), so there's no reason to
+    // shrink the system view above any further for it.
+    const LIVING_SPACE=140;
     const ZOOM=hasCond?1:0.7;
     const BASE_VH=Math.round(510*ZOOM);
     const BASE_VW=Math.round(1280*ZOOM);
@@ -2471,10 +2473,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     // 96 (up from a plain 78) is the real bottom-to-top extent now that a
     // COOL/HEAT button row is painted below each variant's caption - see
     // the button row's own y offsets a bit further down. Upper scale clamp
-    // pulled in from 1.55 to 1.3 to match: a taller content box needs more
+    // pulled in from 1.55 to 1.2 to match: a taller content box needs more
     // margin width per unit of scale to still fit LIVING_SPACE's band
-    // without crowding its top/bottom padding down to nothing.
-    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(1.3,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
+    // (still 140, unchanged - see its own comment) with real breathing
+    // room left over, not just barely avoiding a clip against the "LIVING
+    // SPACE" label sitting right below it.
+    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(1.2,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
     const THERM_W=64*THERM_SCALE, THERM_H=96*THERM_SCALE;
     // TX/TY here are the <g transform="translate(...)"> origin, not a
     // bounding-box corner - the thermostat markup below still draws at
