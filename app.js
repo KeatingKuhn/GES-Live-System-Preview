@@ -5500,7 +5500,13 @@
     const goBack = () => {
       if (stepIdx > 0) {
         const next = stepIdx - 1;
-        if (next === 0 && !quickEdit) {
+        if (next === 0) {
+          if (quickEdit) {
+            setQuickEdit(false);
+            setDone(true);
+            scrollTop();
+            return;
+          }
           setA("location", null);
           clearSavedBuild();
         }

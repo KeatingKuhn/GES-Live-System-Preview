@@ -288,19 +288,29 @@ function App(){
       // Stepping back past the first real question returns to the actual
       // splash screen (clearing location, which is what keeps it hidden)
       // instead of a bare duplicate of the location question rendered
-      // inline in the wizard chrome. Skipped in quick-edit mode, which
-      // should stay scoped to the one answer being edited rather than
-      // unwind all the way back to the start of the whole build.
-      // clearSavedBuild() alongside it: the autosave effect below only
-      // writes while answers.location is truthy (so a fresh page load
-      // with no pick yet never persists "nothing"), which means clearing
-      // location here silently stops autosave from ever overwriting
-      // localStorage again - the LAST real save (still holding the old
-      // location) is left behind. Without this, backing all the way out
-      // to the splash screen and reloading resurrected a "Resume My
-      // Build?" prompt for a build the user had just explicitly
-      // abandoned by backing out of it.
-      if(next===0&&!quickEdit){setA('location',null);clearSavedBuild();}
+      // inline in the wizard chrome.
+      if(next===0){
+        // Quick-edit should stay scoped to the one answer being edited
+        // rather than unwind all the way back to the start of the whole
+        // build - landing on stepIdx 0 still hit that same bare inline
+        // location step (plus a stray "STEP 0 OF n" label, since location
+        // is deliberately left out of every step count elsewhere - see
+        // chapterCounts above), just one Back click later than the
+        // non-quick-edit case. Cancels out of quick-edit back to the done
+        // screen instead, exactly like the quickedit-banner's own
+        // "Cancel, back to build" link.
+        if(quickEdit){setQuickEdit(false);setDone(true);scrollTop();return;}
+        // clearSavedBuild() alongside clearing location: the autosave
+        // effect below only writes while answers.location is truthy (so a
+        // fresh page load with no pick yet never persists "nothing"),
+        // which means clearing location here silently stops autosave from
+        // ever overwriting localStorage again - the LAST real save (still
+        // holding the old location) is left behind. Without this, backing
+        // all the way out to the splash screen and reloading resurrected a
+        // "Resume My Build?" prompt for a build the user had just
+        // explicitly abandoned by backing out of it.
+        setA('location',null);clearSavedBuild();
+      }
       setStepIdx(next);
       scrollTop();
     }

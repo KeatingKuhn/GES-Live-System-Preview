@@ -599,7 +599,30 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 @media(min-width:641px){.site-header-spacer{height:42px}}
 
 /* ── ADAPTIVE LAYOUT ── */
-.app-root{position:absolute;top:43px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bk)}
+/* overflow:clip, not the more familiar overflow:hidden - this is a fixed,
+   single-viewport app shell with no scrollbar of its own by design (every
+   real scroll happens inside a nested region like .sidebar/.attic-bar,
+   each independently overflow:auto). hidden still permits scrolling
+   PROGRAMMATICALLY or via a focus() call the browser decides needs to
+   "reveal" its target, even with no visible scrollbar and no user gesture
+   able to trigger it - and this app moves focus around a lot (the
+   step-advance/mode-switch focus-management effects elsewhere in
+   app.js). On a short viewport, several of those in a row were measured
+   nudging .app-root's own scrollTop up by 100-180px total (confirmed via
+   scrollTop directly, not just a visual glitch) - once nonzero, nothing
+   in the app ever resets it, so the ENTIRE shell stayed shifted that far
+   off its own top for the rest of the session, most visibly on the done
+   screen (canvas scrolled fully out of view above the fold, dead black
+   space at the bottom) with no scrollbar for a user to fix it themselves
+   even on a mouse. clip is the standard, purpose-built fix for exactly
+   this gap in hidden: it still clips overflow and hides any scrollbar,
+   but disallows scrolling entirely, by any means - this element was never
+   meant to scroll at all. Unrelated to the scrollTop()/scrollIntoView
+   calls made ON .app-root elsewhere in app.js, which scroll the OUTER
+   page this widget is embedded in (an ancestor scrolling ITS descendant
+   into view), not .app-root's own content - clip only governs the
+   latter. */
+.app-root{position:absolute;top:43px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:clip;background:var(--bk)}
 @media(min-width:641px){.app-root{top:42px}}
 /* Shrinks just the live diagram to fit its frame better on desktop,
    the way it looked right when tested at 75% browser zoom - wraps only
@@ -787,6 +810,25 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .closet-layout{flex-direction:column}
   .closet-canvas-area{flex:none;height:52vh;min-height:220px}
   .sidebar{width:100%;height:auto;flex-shrink:0;border-left:none;border-top:1px solid var(--border);overflow-y:auto;max-height:45vh}
+  /* The wizard's own sidebar (not the done-screen review panel, which also
+     uses .sidebar but stays fine with the rule above - see below) needs
+     its height tied to whatever room canvas-area's own min-height:220px
+     actually left, not a flat 45vh: on a short landscape-phone viewport
+     (e.g. 390px tall), 220px of forced canvas height plus a 45vh sidebar
+     (175px of a 390px viewport) added up to more than the fixed-height,
+     overflow:hidden .app-root had to give them (see its own comment
+     further down) - the sidebar box itself got clipped at the viewport
+     edge, taking the Back/Next row with it below the fold with no
+     scrollbar (the page itself never scrolls, by design) able to reach it
+     again. flex:1+min-height:0 mirrors .attic-bar's own fix for this same
+     canvas-plus-bar-taller-than-the-screen shape a few lines up - the
+     sidebar now only ever claims what's actually left after canvas-area,
+     and falls back to its own overflow-y:auto (from the rule above) for
+     anything past that, instead of silently overflowing the viewport.
+     Scoped to .closet-layout so the done screen's own .sidebar (paired
+     with a canvas-frame that's already flex:1/min-height:0 and so
+     shrinks to make room instead of overflowing) is untouched. */
+  .closet-layout .sidebar{flex:1;min-height:0;max-height:none}
   .opts{flex-direction:row;flex-wrap:wrap;overflow-y:auto;flex:none}
   /* Scoped to .opts .opt (the wizard sidebar's own option list), not a
      bare .opt - the pricing flow's Yes/No/duct-count row on the done
@@ -850,6 +892,52 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .splash-card{padding:16px 18px}
   .attic-bar-top .btn-skip{display:none}
   .step-hint{display:none}
+}
+
+/* Landscape phones: short viewport, but often well over 600px wide (an
+   iPhone in landscape is ~850x390), so the max-width:600px rule above
+   never fires for them and .step-hint stays at its full 3-line height.
+   Closet's sticky .step-hdr (eyebrow + question + that hint) measured
+   ~145px tall on a 390px-tall viewport once .closet-layout .sidebar was
+   fixed (above) to actually respect the space canvas-area left it -
+   taller than the ~128px that left for the whole sidebar, so the sticky
+   header alone covered the entire visible sidebar no matter how far you
+   scrolled, permanently hiding the options and Back/Next under it. Hiding
+   the hint (step-q/eyebrow alone fit easily) helped but wasn't enough on
+   its own: .sidebar's sticky header (still ~89px) and sticky nav-row
+   (~66px) together still out-measured that ~128px box with nothing left
+   in between for the actual options at ANY scroll position - the fixed
+   220px-floor/52vh canvas above it was still claiming the same share of
+   the viewport a portrait phone gets, despite a landscape phone having
+   far less height to give it and, unlike portrait, plenty of spare width
+   to render a short-but-wide diagram in instead. Shrinking the canvas
+   floor here too (still an SVG that scales to fill whatever frame box it
+   gets, per SVG_SCALE - never distorts or clips) is what actually buys
+   the sidebar enough room for its two sticky bars plus real content
+   in between. attic-info's own .step-hint shrinks the same way, though
+   attic-bar's much shorter sticky bar was never at real risk of this. */
+@media(max-height:430px){
+  .step-hint{display:none}
+  .attic-canvas-area{height:30vh;min-height:120px}
+  .closet-canvas-area{height:30vh;min-height:120px}
+  /* Shrinking the canvas above bought back real room, but .nav-row's own
+     position:sticky;bottom:0 (set unconditionally, way up near .nav-row's
+     base rule) turned out to be the other half of this bug: with .opts
+     content still occasionally taller than the sidebar's own visible box
+     on this step (indoor_type's auto-opened info panel pushes it further
+     than most), a simultaneous sticky header AND sticky footer leave
+     nothing but the space between them for that content to ever be seen
+     in, and once combined they out-measured the box entirely, the
+     Back/Next row rendered stuck on top of the option cards instead of
+     below them - a real Next tap landed on whichever option happened to
+     be under it. Un-sticking just the footer here is enough: it now
+     flows to its natural spot right after the last option (an ordinary,
+     expected mobile pattern - scroll to the end to find Next) and can
+     never overlap anything, while .step-hdr stays sticky up top, which
+     was never the problematic half - a lone sticky header just pins over
+     space content is already flowing out from under, not space content
+     still needs. */
+  .nav-row{position:static}
 }
 
 /* PRINT - "Save / Print" only ever fires from the done screen's review/
