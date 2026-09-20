@@ -265,10 +265,22 @@ export function trackBuildCompleted(answers){
   });
 }
 
+// ─── FINANCING OPTIONS ──────────────────────────────────────────
+// Shown as one button per entry with a real url - Wells Fargo is left
+// blank until its actual application/enrollment link is provided, so it
+// simply doesn't render a button yet (no placeholder/broken link goes
+// live). Add the url and it appears automatically, no other code change
+// needed.
+export const FINANCING_OPTIONS=[
+  {key:'wisetack',label:'Wisetack',url:'https://wisetack.us/#/hyhu11w/prequalify'},
+  {key:'wellsfargo',label:'Wells Fargo',url:''},
+];
+
 // ─── CONTACT-FORM GATE ──────────────────────────────────────────
-// Gates the final price reveal behind a Gravity Forms submission.
-// gravityFormId at 0/falsy means the gate is fully disabled - "Get
-// Pricing" works exactly as it does today, straight through to the
+// Gates the "Get Pricing" button behind a Gravity Forms submission -
+// right where the button is clicked, before the sizing sub-questions
+// even start. gravityFormId at 0/falsy means the gate is fully disabled
+// - "Get Pricing" works exactly as it does today, straight through to the
 // estimate. Flip this on once the Gravity Forms form is live on the
 // WordPress page and you have its numeric form ID (shown in its row
 // under Forms in wp-admin). See the gate detection logic and the

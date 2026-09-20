@@ -285,6 +285,10 @@
       efficiency_tier: answers.cond_tier || ""
     });
   }
+  var FINANCING_OPTIONS = [
+    { key: "wisetack", label: "Wisetack", url: "https://wisetack.us/#/hyhu11w/prequalify" },
+    { key: "wellsfargo", label: "Wells Fargo", url: "" }
+  ];
   var GATE_CONFIG = {
     gravityFormId: 0
   };
@@ -4790,8 +4794,8 @@
     }, [leadUnlocked]);
     React.useEffect(() => {
       if (leadUnlocked && pricingFlow === "leadgate") {
-        trackEvent("price_revealed");
-        setPricingFlow("result");
+        setPricingFlow("sizing");
+        setPricingSubStep(0);
       }
     }, [leadUnlocked, pricingFlow]);
     const activeSteps = useMemo2(() => STEPS.filter((s) => !s.showIf || s.showIf(answers)), [answers]);
@@ -5188,13 +5192,8 @@
           setPricingSubStep((s) => s + 1);
           return;
         }
-        if (leadUnlocked) {
-          trackEvent("price_revealed");
-          setPricingFlow("result");
-        } else {
-          trackEvent("contact_form_shown");
-          setPricingFlow("leadgate");
-        }
+        trackEvent("price_revealed");
+        setPricingFlow("result");
       };
       const goSubBack = () => {
         if (pricingSubStep > 0) setPricingSubStep((s) => s - 1);
@@ -5235,12 +5234,12 @@
       {
       }
       return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: isAtticMode ? 4 : 8, fontFamily: "var(--fm)" } }, "PRICING \xB7 STEP ", pricingSubStep + 1, " OF ", subSteps.length), /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-row" : void 0, style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 Back"), /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? "Get My Estimate" : "Next")));
-    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, "Almost there - just one quick step"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 12 } }, "Fill out the short form on this page and your full price appears right here automatically - no need to click anything else."), /* @__PURE__ */ React.createElement(
+    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, "Almost there - just one quick step"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 12 } }, "Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else."), /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "btn-back",
         style: { padding: isAtticMode ? "6px 16px" : "8px 16px", fontSize: isAtticMode ? 14 : "var(--fs-pricing-fine)" },
-        onClick: () => setPricingFlow("sizing")
+        onClick: () => setPricingFlow(null)
       },
       "\u2039 Back"
     )), pricingFlow === "result" && /* @__PURE__ */ React.createElement("div", { key: "result", className: "fadein" }, (() => {
@@ -5255,9 +5254,14 @@
       return /* @__PURE__ */ React.createElement("div", { className: "pricing-result-row", style: { display: "flex", gap: 16, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, priceCard), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, considerations));
     })())), pricingFlow === null && /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: "none", margin: 0, width: "100%", marginBottom: 6, padding: "12px", fontSize: 16 }, onClick: () => {
       trackEvent("pricing_started");
-      setPricingFlow("sizing");
-      setPricingSubStep(0);
-    } }, "\u{1F4B0} Get Pricing"), /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, width: "100%", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("a", { href: "https://wisetack.us/#/hyhu11w/prequalify", target: "_blank", rel: "noopener", onClick: () => trackEvent("financing_clicked"), className: "quick-financing-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", textDecoration: "none", textAlign: "center", boxSizing: "border-box" } }, "\u{1F4B3} Financing"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      if (leadUnlocked) {
+        setPricingFlow("sizing");
+        setPricingSubStep(0);
+      } else {
+        trackEvent("contact_form_shown");
+        setPricingFlow("leadgate");
+      }
+    } }, "\u{1F4B0} Get Pricing"), /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, width: "100%", marginBottom: 8 } }, FINANCING_OPTIONS.filter((f) => f.url).map((f) => /* @__PURE__ */ React.createElement("a", { key: f.key, href: f.url, target: "_blank", rel: "noopener", onClick: () => trackEvent("financing_clicked", { lender: f.key }), className: "quick-financing-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", textDecoration: "none", textAlign: "center", boxSizing: "border-box" } }, "\u{1F4B3} ", f.label)), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       trackEvent("print_clicked");
       window.print();
     }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 Save / Print"), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {

@@ -1,5 +1,5 @@
 const {useState,useMemo,useRef,useCallback}=React;
-import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG} from './data.js';
+import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS} from './data.js';
 import {Canvas,CountUp} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
@@ -23,7 +23,7 @@ function clearSavedBuild(){
   try{localStorage.removeItem(SAVE_KEY);}catch(e){}
 }
 
-// ─── CONTACT-FORM GATE (lead capture before the price reveal) ───
+// ─── CONTACT-FORM GATE (lead capture right at "Get Pricing") ───
 // Once a homeowner submits the Gravity Forms form, remember it locally
 // so they're not asked again on this device if they come back to adjust
 // their build - matches the same "don't nag twice" spirit as autosave.
@@ -91,7 +91,10 @@ function App(){
   const topRef=useRef(null);
   const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
 
-  // Contact-form gate: skipped entirely (leadUnlocked stays true) when
+  // Contact-form gate: sits right at "Get Pricing" (before the sizing
+  // questions even start), not at the price reveal itself - see where
+  // leadUnlocked is checked in the Get Pricing button's onClick below.
+  // Skipped entirely (leadUnlocked stays true) when
   // GATE_CONFIG.gravityFormId is unset - see the comment on GATE_CONFIG
   // in data.js. Two independent detection paths listen for the Gravity
   // Forms submission, since this widget is an iframe embed and the form
@@ -134,14 +137,14 @@ function App(){
       try{parentJQ&&parentJQ(window.parent.document).off('.gesGate');}catch(e){}
     };
   },[leadUnlocked]);
-  // Moves straight to the price the instant the gate unlocks, whether
-  // that's the effect above detecting a real submission mid-wait or the
-  // gate never having been shown at all this session (returning with it
-  // already unlocked from a previous visit).
+  // Moves straight into the sizing questions the instant the gate
+  // unlocks, whether that's the effect above detecting a real submission
+  // mid-wait or the gate never having been shown at all this session
+  // (returning with it already unlocked from a previous visit).
   React.useEffect(()=>{
     if(leadUnlocked&&pricingFlow==='leadgate'){
-      trackEvent('price_revealed');
-      setPricingFlow('result');
+      setPricingFlow('sizing');
+      setPricingSubStep(0);
     }
   },[leadUnlocked,pricingFlow]);
 
@@ -930,13 +933,8 @@ function App(){
                 const subId=subSteps[pricingSubStep];
                 const goSubNext=()=>{
                   if(pricingSubStep<subSteps.length-1){setPricingSubStep(s=>s+1);return;}
-                  if(leadUnlocked){
-                    trackEvent('price_revealed');
-                    setPricingFlow('result');
-                  }else{
-                    trackEvent('contact_form_shown');
-                    setPricingFlow('leadgate');
-                  }
+                  trackEvent('price_revealed');
+                  setPricingFlow('result');
                 };
                 const goSubBack=()=>{
                   if(pricingSubStep>0)setPricingSubStep(s=>s-1);
@@ -1066,10 +1064,10 @@ function App(){
               {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
                 <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:6,fontFamily:"var(--ft)"}}>Almost there - just one quick step</div>
                 <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
-                  Fill out the short form on this page and your full price appears right here automatically - no need to click anything else.
+                  Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else.
                 </div>
                 <button className="btn-back" style={{padding:isAtticMode?"6px 16px":"8px 16px",fontSize:isAtticMode?14:"var(--fs-pricing-fine)"}}
-                  onClick={()=>setPricingFlow('sizing')}>‹ Back</button>
+                  onClick={()=>setPricingFlow(null)}>‹ Back</button>
               </div>}
 
               {/* Wrapped in its own key'd+fadein div for the same reason as
@@ -1129,7 +1127,11 @@ function App(){
             {/* ── QUICK ACTIONS - one compact button grid instead of five
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
-            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"12px",fontSize:16}} onClick={()=>{trackEvent('pricing_started');setPricingFlow('sizing');setPricingSubStep(0);}}>💰 Get Pricing</button>}
+            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"12px",fontSize:16}} onClick={()=>{
+              trackEvent('pricing_started');
+              if(leadUnlocked){setPricingFlow('sizing');setPricingSubStep(0);}
+              else{trackEvent('contact_form_shown');setPricingFlow('leadgate');}
+            }}>💰 Get Pricing</button>}
             {/* No Schedule Visit / phone CTA in this panel or the header -
                 both were dropped once this became an iframe embed on the
                 real site, which already has its own header with that CTA. */}
@@ -1149,7 +1151,12 @@ function App(){
                 rgba(255,255,255,.68) the class encodes, it's just no
                 longer re-typed inline every render. */}
             <div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
-              <a href="https://wisetack.us/#/hyhu11w/prequalify" target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked')} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 Financing</a>
+              {/* One button per configured financing option (see
+                  FINANCING_OPTIONS in data.js) - Wells Fargo simply
+                  doesn't render here until its real link is filled in. */}
+              {FINANCING_OPTIONS.filter(f=>f.url).map(f=>(
+                <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {f.label}</a>
+              ))}
               <button onClick={()=>{trackEvent('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ Save / Print</button>
               <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ Back</button>
               <button className="quick-restart-btn" style={{width:"100%",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",padding:"9px"}} onClick={restart}>Start Over</button>
