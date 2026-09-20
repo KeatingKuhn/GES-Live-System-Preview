@@ -1540,11 +1540,11 @@
           height: h,
           rx: "4",
           fill: active ? "#0d0606" : "#0a0a0a",
-          stroke: active ? "rgba(249,115,22,.84)" : "url(#cabinet-edge)",
-          strokeOpacity: active ? 1 : 0.82,
-          strokeWidth: active ? 2.2 : 1.8
+          stroke: "url(#cabinet-edge)",
+          strokeOpacity: "0.85",
+          strokeWidth: "1.8"
         }
-      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: O + ".04)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 9, rx: "4", fill: active ? "url(#orange-g)" : "url(#silver)", opacity: ".72" }), !active && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 8, cy: y + 4.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 4.5 }), /* @__PURE__ */ React.createElement(CabinetPlate, { x: x + w - 46, y: y + 11, w: 40 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: mid, cy: y + 4.5, w: 14 }), /* @__PURE__ */ React.createElement("line", { x1: mid, y1: y + 9, x2: mid, y2: y + h, stroke: S + ".28)", strokeWidth: "1", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
+      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: O + ".04)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 7, rx: "4", fill: "url(#silver)", opacity: ".72" }), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetPlate, { x: x + w - 46, y: y + 11, w: 40 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: mid, cy: y + 3.5, w: 14 }), /* @__PURE__ */ React.createElement("line", { x1: mid, y1: y + 7, x2: mid, y2: y + h, stroke: S + ".28)", strokeWidth: "1", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
         "line",
         {
           key: i,
@@ -1649,11 +1649,11 @@
           height: h,
           rx: "4",
           fill: active ? "#050c1a" : "#090909",
-          stroke: active ? evapC + "90" : "url(#cabinet-edge)",
-          strokeOpacity: active ? 1 : 0.8,
-          strokeWidth: active ? 1.9 : 1.5
+          stroke: "url(#cabinet-edge)",
+          strokeOpacity: "0.8",
+          strokeWidth: "1.5"
         }
-      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 9, rx: "4", fill: active ? refReversed ? "url(#orange-g)" : "url(#blue)" : "url(#silver)", opacity: ".68" }), !active && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 19, cy: y + 4 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 4 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: c1, cy: y + 4, w: 13 }), /* @__PURE__ */ React.createElement("line", { x1: c1, y1: y + 9, x2: c1, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), /* @__PURE__ */ React.createElement("line", { x1: c2, y1: y + 9, x2: c2, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
+      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 7, rx: "4", fill: "url(#silver)", opacity: ".68" }), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 19, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: c1, cy: y + 3.5, w: 13 }), /* @__PURE__ */ React.createElement("line", { x1: c1, y1: y + 7, x2: c1, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), /* @__PURE__ */ React.createElement("line", { x1: c2, y1: y + 7, x2: c2, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
         "line",
         {
           key: i,
@@ -3062,9 +3062,9 @@
             height: UNIT_H,
             rx: "4",
             fill: active ? "#050c1c" : "#090909",
-            stroke: active ? evapC + "88" : "url(#cabinet-edge)",
-            strokeOpacity: active ? 1 : 0.8,
-            strokeWidth: active ? 1.8 : 1.5
+            stroke: "url(#cabinet-edge)",
+            strokeOpacity: "0.8",
+            strokeWidth: "1.5"
           }
         ), active && /* @__PURE__ */ React.createElement(
           "rect",
@@ -3083,12 +3083,12 @@
             x: ACOIL_X,
             y: UNIT_Y,
             width: ACOIL_W,
-            height: 9,
+            height: 7,
             rx: "4",
-            fill: active ? refReversed ? "url(#orange-g)" : "url(#blue)" : "url(#silver)",
+            fill: "url(#silver)",
             opacity: ".65"
           }
-        ), !active && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: ACOIL_X, y: UNIT_Y, w: ACOIL_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + 18, cy: UNIT_Y + 4 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + ACOIL_W - 7, cy: UNIT_Y + 4 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: ACOIL_X + ACOIL_W / 2 + 5, cy: UNIT_Y + 4, w: 12 }), /* @__PURE__ */ React.createElement(ACoilH, { x: ACOIL_X + 8, y: UNIT_Y + 12, w: ACOIL_W - 16, h: UNIT_H - 20, active }), /* @__PURE__ */ React.createElement("rect", { x: ACOIL_X, y: UNIT_Y + UNIT_H - 2, width: ACOIL_W, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: ACOIL_X, y: UNIT_Y, w: ACOIL_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + 18, cy: UNIT_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + ACOIL_W - 7, cy: UNIT_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: ACOIL_X + ACOIL_W / 2 + 5, cy: UNIT_Y + 3.5, w: 12 }), /* @__PURE__ */ React.createElement(ACoilH, { x: ACOIL_X + 8, y: UNIT_Y + 12, w: ACOIL_W - 16, h: UNIT_H - 20, active }), /* @__PURE__ */ React.createElement("rect", { x: ACOIL_X, y: UNIT_Y + UNIT_H - 2, width: ACOIL_W, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
           "text",
           {
             x: ACOIL_X + ACOIL_W / 2,
@@ -4015,9 +4015,9 @@
             height: ACOIL_H,
             rx: "5",
             fill: active ? "#050c1c" : "#090909",
-            stroke: active ? evapC + "88" : "url(#cabinet-edge)",
-            strokeOpacity: active ? 1 : 0.8,
-            strokeWidth: active ? 1.8 : 1.5
+            stroke: "url(#cabinet-edge)",
+            strokeOpacity: "0.8",
+            strokeWidth: "1.5"
           }
         ), active && /* @__PURE__ */ React.createElement(
           "rect",
@@ -4036,12 +4036,12 @@
             x: UNIT_X,
             y: ACOIL_Y,
             width: UNIT_W,
-            height: 9,
+            height: 7,
             rx: "5",
-            fill: active ? refReversed ? "url(#orange-g)" : "url(#blue)" : "url(#silver)",
+            fill: "url(#silver)",
             opacity: ".65"
           }
-        ), !active && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: ACOIL_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: ACOIL_Y + 4 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: ACOIL_Y + 4 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: ACOIL_Y + 4, w: 13 }), hasFurnace && /* @__PURE__ */ React.createElement(CabinetPlate, { x: UNIT_X + 8, y: ACOIL_Y + 11, w: 36 }), hasFurnace ? /* @__PURE__ */ React.createElement(ACoilV, { x: UNIT_X + 8, y: COIL_BOX_Y, w: UNIT_W - 16, h: COIL_BOX_H, active }) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: ACOIL_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: ACOIL_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: ACOIL_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: ACOIL_Y + 3.5, w: 13 }), hasFurnace && /* @__PURE__ */ React.createElement(CabinetPlate, { x: UNIT_X + 8, y: ACOIL_Y + 11, w: 36 }), hasFurnace ? /* @__PURE__ */ React.createElement(ACoilV, { x: UNIT_X + 8, y: COIL_BOX_Y, w: UNIT_W - 16, h: COIL_BOX_H, active }) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "line",
           {
             x1: UNIT_X,
@@ -4158,9 +4158,9 @@
           height: FURN_H,
           rx: "5",
           fill: furnaceActive ? "#0e0606" : "#090909",
-          stroke: furnaceActive ? "rgba(249,115,22,.78)" : "url(#cabinet-edge)",
-          strokeOpacity: furnaceActive ? 1 : 0.85,
-          strokeWidth: furnaceActive ? 2.1 : 1.7
+          stroke: "url(#cabinet-edge)",
+          strokeOpacity: "0.85",
+          strokeWidth: "1.7"
         }
       ), furnaceActive && /* @__PURE__ */ React.createElement(
         "rect",
@@ -4179,12 +4179,12 @@
           x: UNIT_X,
           y: FURN_Y,
           width: UNIT_W,
-          height: 9,
+          height: 7,
           rx: "5",
-          fill: furnaceActive ? "url(#orange-g)" : "url(#silver)",
+          fill: "url(#silver)",
           opacity: ".72"
         }
-      ), !furnaceActive && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: FURN_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: FURN_Y + 4.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: FURN_Y + 4.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: FURN_Y + 4.5, w: 14 }), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 6, y: FURN_Y + 11, width: 78, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 9, y: FURN_Y + 19.5, fill: "#fff", fontSize: "9", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement(
+      ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: FURN_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: FURN_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: FURN_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: FURN_Y + 3.5, w: 14 }), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 6, y: FURN_Y + 11, width: 78, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 9, y: FURN_Y + 19.5, fill: "#fff", fontSize: "9", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: UNIT_X + UNIT_W - 46,

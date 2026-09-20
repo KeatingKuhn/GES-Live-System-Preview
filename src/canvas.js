@@ -988,17 +988,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   function FurnaceH({x,y,w,h,active,roofY}){
     const mid=x+w/2;
     return <g>
+      {/* Exterior housing stays silver whether the furnace is running or
+          not - a real sheet-metal cabinet doesn't change color when it
+          turns on, only what's happening inside it does (the flames/heat
+          exchanger below, the evaporator coil's own tubes in ACoilH, the
+          STANDBY/ACTIVE label). Border+top strip used to switch to a
+          bright orange whenever active, which read as the cabinet itself
+          changing material rather than just what's running inside it. */}
       <rect x={x} y={y} width={w} height={h} rx="4"
         fill={active?"#0d0606":"#0a0a0a"}
-        stroke={active?'rgba(249,115,22,.84)':"url(#cabinet-edge)"} strokeOpacity={active?1:0.82} strokeWidth={active?2.2:1.8}/>
+        stroke="url(#cabinet-edge)" strokeOpacity="0.85" strokeWidth="1.8"/>
       {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={O+'.04)'} stroke="none"/>}
-      <rect x={x} y={y} width={w} height={9} rx="4" fill={active?"url(#orange-g)":"url(#silver)"} opacity=".72"/>
-      {!active&&<CabinetStripBrushing x={x} y={y} w={w}/>}
-      <CabinetRivet cx={x+8} cy={y+4.5}/>
-      <CabinetRivet cx={x+w-8} cy={y+4.5}/>
+      <rect x={x} y={y} width={w} height={7} rx="4" fill="url(#silver)" opacity=".72"/>
+      <CabinetStripBrushing x={x} y={y} w={w}/>
+      <CabinetRivet cx={x+8} cy={y+3.5}/>
+      <CabinetRivet cx={x+w-8} cy={y+3.5}/>
       <CabinetPlate x={x+w-46} y={y+11} w={40}/>
-      <CabinetLatch cx={mid} cy={y+4.5} w={14}/>
-      <line x1={mid} y1={y+9} x2={mid} y2={y+h} stroke={S+'.28)'} strokeWidth="1" strokeDasharray="4 3"/>
+      <CabinetLatch cx={mid} cy={y+3.5} w={14}/>
+      <line x1={mid} y1={y+7} x2={mid} y2={y+h} stroke={S+'.28)'} strokeWidth="1" strokeDasharray="4 3"/>
       {Array.from({length:7},(_,i)=>(
         <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
           stroke={S+'.42)'} strokeWidth="3" strokeLinecap="round"/>
@@ -1071,20 +1078,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const coilW=w*0.50, blowerW=w*0.35, auxW=w*0.15;
     const c1=x+coilW, c2=x+coilW+blowerW;
     return <g>
+      {/* Exterior housing stays silver in both states - see the comment on
+          FurnaceH's own border/strip above. The internal coil tubes
+          (ACoilH, embedded below) still color by evapC exactly as
+          before - only the housing exterior stopped switching color. */}
       <rect x={x} y={y} width={w} height={h} rx="4"
         fill={active?"#050c1a":"#090909"}
-        stroke={active?(evapC+'90'):"url(#cabinet-edge)"} strokeOpacity={active?1:0.8} strokeWidth={active?1.9:1.5}/>
+        stroke="url(#cabinet-edge)" strokeOpacity="0.8" strokeWidth="1.5"/>
       {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
-      <rect x={x} y={y} width={w} height={9} rx="4" fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#silver)"} opacity=".68"/>
-      {!active&&<CabinetStripBrushing x={x} y={y} w={w}/>}
+      <rect x={x} y={y} width={w} height={7} rx="4" fill="url(#silver)" opacity=".68"/>
+      <CabinetStripBrushing x={x} y={y} w={w}/>
       {/* Left rivet nudged in - the standalone-AH lineset riser anchors at
           RL_START_X=AH_X+9 (same corner), same reasoning as the attic
           furnace's own A-coil box a few lines up. */}
-      <CabinetRivet cx={x+19} cy={y+4}/>
-      <CabinetRivet cx={x+w-8} cy={y+4}/>
-      <CabinetLatch cx={c1} cy={y+4} w={13}/>
-      <line x1={c1} y1={y+9} x2={c1} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-      <line x1={c2} y1={y+9} x2={c2} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+      <CabinetRivet cx={x+19} cy={y+3.5}/>
+      <CabinetRivet cx={x+w-8} cy={y+3.5}/>
+      <CabinetLatch cx={c1} cy={y+3.5} w={13}/>
+      <line x1={c1} y1={y+7} x2={c1} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+      <line x1={c2} y1={y+7} x2={c2} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
       {Array.from({length:7},(_,i)=>(
         <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
           stroke={S+'.38)'} strokeWidth="3" strokeLinecap="round"/>
@@ -2084,22 +2095,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             {(()=>{
               const active=evapActive;
               return <>
+                {/* Exterior housing stays silver in both states - see the
+                    comment on FurnaceH's border/strip above. */}
                 <rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={UNIT_H} rx="4"
                   fill={active?"#050c1c":"#090909"}
-                  stroke={active?(evapC+'88'):"url(#cabinet-edge)"} strokeOpacity={active?1:0.8} strokeWidth={active?1.8:1.5}/>
+                  stroke="url(#cabinet-edge)" strokeOpacity="0.8" strokeWidth="1.5"/>
                 {active&&<rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={UNIT_H} rx="4"
                   fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
-                <rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={9} rx="4"
-                  fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#silver)"} opacity=".65"/>
-                {!active&&<CabinetStripBrushing x={ACOIL_X} y={UNIT_Y} w={ACOIL_W}/>}
+                <rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={7} rx="4"
+                  fill="url(#silver)" opacity=".65"/>
+                <CabinetStripBrushing x={ACOIL_X} y={UNIT_Y} w={ACOIL_W}/>
                 {/* Left rivet nudged in from the edge (vs. the usual +7/+8)
                     - the refrigerant lineset's riser anchors at exactly
                     RL_START_X=ACOIL_X+8 (see its own comment above) and
                     climbs up right past this corner, so a rivet sitting
                     right at the edge lands half-hidden behind the pipe. */}
-                <CabinetRivet cx={ACOIL_X+18} cy={UNIT_Y+4}/>
-                <CabinetRivet cx={ACOIL_X+ACOIL_W-7} cy={UNIT_Y+4}/>
-                <CabinetLatch cx={ACOIL_X+ACOIL_W/2+5} cy={UNIT_Y+4} w={12}/>
+                <CabinetRivet cx={ACOIL_X+18} cy={UNIT_Y+3.5}/>
+                <CabinetRivet cx={ACOIL_X+ACOIL_W-7} cy={UNIT_Y+3.5}/>
+                <CabinetLatch cx={ACOIL_X+ACOIL_W/2+5} cy={UNIT_Y+3.5} w={12}/>
                 <ACoilH x={ACOIL_X+8} y={UNIT_Y+12} w={ACOIL_W-16} h={UNIT_H-20} active={active}/>
                 <rect x={ACOIL_X} y={UNIT_Y+UNIT_H-2} width={ACOIL_W} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.6"/>
                 {/* Label moved above the coil - the space below is now clear
@@ -2811,17 +2824,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             {(()=>{
               const active=evapActive;
               return <>
+                {/* Exterior housing stays silver in both states - see the
+                    comment on FurnaceH's border/strip above. */}
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
                   fill={active?"#050c1c":"#090909"}
-                  stroke={active?(evapC+'88'):"url(#cabinet-edge)"} strokeOpacity={active?1:0.8} strokeWidth={active?1.8:1.5}/>
+                  stroke="url(#cabinet-edge)" strokeOpacity="0.8" strokeWidth="1.5"/>
                 {active&&<rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
                   fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
-                <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={9} rx="5"
-                  fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#silver)"} opacity=".65"/>
-                {!active&&<CabinetStripBrushing x={UNIT_X} y={ACOIL_Y} w={UNIT_W}/>}
-                <CabinetRivet cx={UNIT_X+8} cy={ACOIL_Y+4}/>
-                <CabinetRivet cx={UNIT_X+UNIT_W-8} cy={ACOIL_Y+4}/>
-                <CabinetLatch cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+4} w={13}/>
+                <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={7} rx="5"
+                  fill="url(#silver)" opacity=".65"/>
+                <CabinetStripBrushing x={UNIT_X} y={ACOIL_Y} w={UNIT_W}/>
+                <CabinetRivet cx={UNIT_X+8} cy={ACOIL_Y+3.5}/>
+                <CabinetRivet cx={UNIT_X+UNIT_W-8} cy={ACOIL_Y+3.5}/>
+                <CabinetLatch cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+3.5} w={13}/>
                 {/* Only in the furnace-paired case - when this box is a
                     standalone air handler, the "ABSORBING HEAT"/"STANDBY"
                     status line sits inside the box right here (anchored to
@@ -2894,17 +2909,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
           {/* Furnace - HX top | blower bottom */}
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu-c'+a.stage}>
+            {/* Exterior housing stays silver in both states - see the
+                comment on FurnaceH's border/strip above. */}
             <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
               fill={furnaceActive?"#0e0606":"#090909"}
-              stroke={furnaceActive?'rgba(249,115,22,.78)':"url(#cabinet-edge)"} strokeOpacity={furnaceActive?1:0.85} strokeWidth={furnaceActive?2.1:1.7}/>
+              stroke="url(#cabinet-edge)" strokeOpacity="0.85" strokeWidth="1.7"/>
             {furnaceActive&&<rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
               fill={O+'.04)'} stroke="none"/>}
-            <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={9} rx="5"
-              fill={furnaceActive?"url(#orange-g)":"url(#silver)"} opacity=".72"/>
-            {!furnaceActive&&<CabinetStripBrushing x={UNIT_X} y={FURN_Y} w={UNIT_W}/>}
-            <CabinetRivet cx={UNIT_X+8} cy={FURN_Y+4.5}/>
-            <CabinetRivet cx={UNIT_X+UNIT_W-8} cy={FURN_Y+4.5}/>
-            <CabinetLatch cx={UNIT_X+UNIT_W/2} cy={FURN_Y+4.5} w={14}/>
+            <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={7} rx="5"
+              fill="url(#silver)" opacity=".72"/>
+            <CabinetStripBrushing x={UNIT_X} y={FURN_Y} w={UNIT_W}/>
+            <CabinetRivet cx={UNIT_X+8} cy={FURN_Y+3.5}/>
+            <CabinetRivet cx={UNIT_X+UNIT_W-8} cy={FURN_Y+3.5}/>
+            <CabinetLatch cx={UNIT_X+UNIT_W/2} cy={FURN_Y+3.5} w={14}/>
             {/* AFUE/COMMUNICATING spec badges - the attic furnace (FurnaceH)
                 has always shown these; the closet furnace never did, a
                 drift between the two layouts' otherwise-shared "furnace
