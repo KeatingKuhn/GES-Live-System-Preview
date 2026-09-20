@@ -80,9 +80,9 @@ export function getOpts(stepId, answers){
     ];
     case 'cond_tier':{
       return[
-        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. Lowest upfront cost.'},
-        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed. Lower bills and better humidity control.'},
-        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier. Eligible for local rebates.'},
+        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. 12-yr manufacturer warranty.'},
+        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed, better humidity control. 12-yr manufacturer warranty.'},
+        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier. 10-yr manufacturer warranty.'},
       ];
     }
     case 'dehu':return[
@@ -164,6 +164,12 @@ export const PRICING={
   // never a calculated number. Proprietary zone board + zone sensors +
   // proprietary dampers, cost varies too much per home to estimate here.
   zoning:'custom_visit_required',
+  // Every system already ships with its manufacturer warranty (12 years
+  // on Federal Minimum/Mid Efficiency, 10 on High Efficiency - see the
+  // tier descriptions in getOpts). This is the optional EXTENDED labor
+  // warranty, offered as a flat add-on at the end of pricing rather than
+  // its own wizard question.
+  laborWarranty10yr:1750,
 };
 
 // ─── PRICING CALCULATION ────────────────────────────────────────
@@ -330,6 +336,11 @@ export function calcEstimate(answers,pricingAnswers){
 
   if(pricingAnswers.wantDucts&&pricingAnswers.ventCount>0){
     lines.push({label:`Duct replacement (${pricingAnswers.ventCount} vents)`,price:pricingAnswers.ventCount*PRICING.duct.replacementPerStem});
+  }
+  // Extended labor warranty - a checkbox on the result screen, not a
+  // wizard question (see the comment on PRICING.laborWarranty10yr above).
+  if(pricingAnswers.wantLaborWarranty){
+    lines.push({label:'10-year labor warranty',price:PRICING.laborWarranty10yr});
   }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);

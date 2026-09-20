@@ -479,8 +479,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         fill={G+'.06)'} stroke={G+'.95)'} strokeWidth="2.5" filter="url(#glow-sm)"/>
     </g>;
   };
-  const [heatMode,setHeatMode]=React.useState(false);
-  const [heatSubMode,setHeatSubMode]=React.useState('hp'); // 'hp'/'furnace' for dual fuel, 'hp'/'aux' for a heat-pump-only air handler
+  // Defaults the mode toggle to whichever side of the system is actually
+  // relevant right now (Austin's cooling season runs roughly April-
+  // October, heating season November-March) instead of always opening
+  // on cool mode regardless of the date - the first frame someone sees
+  // should match what their own system is probably doing today. Purely
+  // a starting position; every mode stays one click away either way, and
+  // this is never used as a sales pitch anywhere in the diagram.
+  const CURRENT_MONTH=new Date().getMonth(); // 0=Jan..11=Dec
+  const CURRENT_MONTH_NAME=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][CURRENT_MONTH];
+  const isHeatingSeason=CURRENT_MONTH<=1||CURRENT_MONTH>=10; // Nov-Feb
+  // Within heating season, defaults the SUBmode too - November is still
+  // mild enough that a heat pump alone (52°F outside) handles it, but
+  // Dec/Jan/Feb are genuinely cold (28°F outside) where aux/furnace heat
+  // actually kicks in for real, not just as a demo toggle.
+  const isDeepWinter=CURRENT_MONTH<=1||CURRENT_MONTH===11; // Dec-Feb
+  const [heatMode,setHeatMode]=React.useState(isHeatingSeason);
+  const [heatSubMode,setHeatSubMode]=React.useState(
+    // 'hp'/'furnace' for dual fuel, 'hp'/'aux' for a heat-pump-only air
+    // handler - irrelevant (never shown) for straight-cool furnace systems.
+    isDeepWinter?(a.indoor_type==='furnace'&&a.system_for==='hp'?'furnace':'aux'):'hp'
+  );
   // The attic diagram's viewBox width adapts to the frame's actual aspect
   // ratio so it fills wide frames instead of "meet"-scaling to height and
   // leaving dead space on both sides. VH (and everything inches-scaled off
@@ -1538,7 +1557,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           already have (own #0c0c0c background, same border) so it always
           reads clearly regardless of the diagram underneath. */}
       <div style={{padding:'5px 10px',fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.75)',textAlign:'right',borderBottom:'1px solid rgba(215,183,64,.18)'}}>
-        ▸ preview how your system runs
+        {/* Purely informational (current month), not a sales pitch - see
+            the comment on isHeatingSeason above for why this is here. */}
+        ▸ preview how your system runs · {CURRENT_MONTH_NAME}
       </div>
       <button onClick={()=>setHeatMode(false)} style={{
         padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',

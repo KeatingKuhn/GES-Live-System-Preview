@@ -132,9 +132,9 @@
         ];
       case "cond_tier": {
         return [
-          { v: "fedmin", label: "Federal Minimum - 14 SEER2", desc: "Meets 2023 federal energy code. Lowest upfront cost." },
-          { v: "mid_ge15", label: "Mid Efficiency - 18 SEER2", desc: "Variable-speed. Lower bills and better humidity control." },
-          { v: "high_ge18", label: "High Efficiency - 21 SEER2", desc: "Inverter-driven top tier. Eligible for local rebates." }
+          { v: "fedmin", label: "Federal Minimum - 14 SEER2", desc: "Meets 2023 federal energy code. 12-yr manufacturer warranty." },
+          { v: "mid_ge15", label: "Mid Efficiency - 18 SEER2", desc: "Variable-speed, better humidity control. 12-yr manufacturer warranty." },
+          { v: "high_ge18", label: "High Efficiency - 21 SEER2", desc: "Inverter-driven top tier. 10-yr manufacturer warranty." }
         ];
       }
       case "dehu":
@@ -216,7 +216,13 @@
     // Zoning: custom pricing only - always routes to "schedule an in-home visit",
     // never a calculated number. Proprietary zone board + zone sensors +
     // proprietary dampers, cost varies too much per home to estimate here.
-    zoning: "custom_visit_required"
+    zoning: "custom_visit_required",
+    // Every system already ships with its manufacturer warranty (12 years
+    // on Federal Minimum/Mid Efficiency, 10 on High Efficiency - see the
+    // tier descriptions in getOpts). This is the optional EXTENDED labor
+    // warranty, offered as a flat add-on at the end of pricing rather than
+    // its own wizard question.
+    laborWarranty10yr: 1750
   };
   var TONNAGE_OPTIONS = [
     { v: "t15", label: "1.5 Tons", sqftLabel: "~900 sq ft", tons: 1.5, sqftMid: 900 },
@@ -323,6 +329,9 @@
     }
     if (pricingAnswers.wantDucts && pricingAnswers.ventCount > 0) {
       lines.push({ label: `Duct replacement (${pricingAnswers.ventCount} vents)`, price: pricingAnswers.ventCount * PRICING.duct.replacementPerStem });
+    }
+    if (pricingAnswers.wantLaborWarranty) {
+      lines.push({ label: "10-year labor warranty", price: PRICING.laborWarranty10yr });
     }
     const subtotal = lines.reduce((s, l) => s + l.price, 0);
     const linesRounded = lines.map((l) => ({ ...l, display: roundTo25(l.price) }));
@@ -1032,8 +1041,16 @@
         }
       ));
     };
-    const [heatMode, setHeatMode] = React.useState(false);
-    const [heatSubMode, setHeatSubMode] = React.useState("hp");
+    const CURRENT_MONTH = (/* @__PURE__ */ new Date()).getMonth();
+    const CURRENT_MONTH_NAME = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"][CURRENT_MONTH];
+    const isHeatingSeason = CURRENT_MONTH <= 1 || CURRENT_MONTH >= 10;
+    const isDeepWinter = CURRENT_MONTH <= 1 || CURRENT_MONTH === 11;
+    const [heatMode, setHeatMode] = React.useState(isHeatingSeason);
+    const [heatSubMode, setHeatSubMode] = React.useState(
+      // 'hp'/'furnace' for dual fuel, 'hp'/'aux' for a heat-pump-only air
+      // handler - irrelevant (never shown) for straight-cool furnace systems.
+      isDeepWinter ? a.indoor_type === "furnace" && a.system_for === "hp" ? "furnace" : "aux" : "hp"
+    );
     const wrapRef = useRef(null);
     const [frameBox, setFrameBox] = useState(null);
     React.useEffect(() => {
@@ -2435,7 +2452,7 @@
           } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11 } }, m.icon), /* @__PURE__ */ React.createElement("span", null, m.temp))
         ));
       }
-      return /* @__PURE__ */ React.createElement("div", { className: "fadein", title: "Not a control - click to see how this system behaves in each mode", style: { display: "flex", flexDirection: "column", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", overflow: "hidden", ...style } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "5px 10px", fontFamily: "monospace", fontSize: "var(--fs-toggle-eyebrow)", letterSpacing: ".06em", color: "rgba(215,183,64,.75)", textAlign: "right", borderBottom: "1px solid rgba(215,183,64,.18)" } }, "\u25B8 preview how your system runs"), /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(false), style: {
+      return /* @__PURE__ */ React.createElement("div", { className: "fadein", title: "Not a control - click to see how this system behaves in each mode", style: { display: "flex", flexDirection: "column", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", overflow: "hidden", ...style } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "5px 10px", fontFamily: "monospace", fontSize: "var(--fs-toggle-eyebrow)", letterSpacing: ".06em", color: "rgba(215,183,64,.75)", textAlign: "right", borderBottom: "1px solid rgba(215,183,64,.18)" } }, "\u25B8 preview how your system runs \xB7 ", CURRENT_MONTH_NAME), /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(false), style: {
         padding: "10px 18px",
         border: "none",
         cursor: "pointer",
@@ -5132,60 +5149,63 @@
         }
       },
       "i"
-    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, cur ? cur.q : ""), cur && cur.hint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, cur.hint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 Back"), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, "Skip"), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? "Save & Return" : "Next" : stepIdx === activeSteps.length - 1 ? "See Full Build" : "Next")))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { flex: 1, minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" }), isAtticMode && (pricingFlow ? /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.7)", padding: "6px 10px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.8)" } }, "\u2713 Your system is built"), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-pricing-fine)" } }, "Edit selections")) : /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.55)", padding: "6px 10px 6px 7px" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 28, height: 28, fontSize: 14, flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 14.5, marginBottom: 0 } }, "Your System is Built"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, "Review your selections below"))))), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, pricingFlow ? /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "done-header-mobile-only" : void 0, style: { display: isAtticMode ? void 0 : "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 Your system is built"), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, "Edit selections")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "done-header-mobile-only" : void 0, style: { display: isAtticMode ? void 0 : "flex", alignItems: "center", gap: 10, marginBottom: 12, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: isAtticMode ? 38 : 42, height: isAtticMode ? 38 : 42, fontSize: isAtticMode ? 17 : 19, flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: isAtticMode ? 17 : 19, marginBottom: 1 } }, "Your System is Built"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-review-label-lg)", color: "var(--mut)" } }, "Review your selections below"))), /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, [
-      { step: "location", label: "Location", val: answers.location === "attic" ? "Attic horizontal" : answers.location === "closet" ? "Upflow closet" : null },
-      { step: "indoor_type", label: "Indoor unit", val: answers.indoor_type === "furnace" ? "Gas furnace" : answers.indoor_type === "ah" ? "Air handler" : null },
-      answers.furnace_eff ? { step: "insulation", label: "Insulation", val: answers.furnace_eff === "e90" ? "Spray foam - 90% AFUE" : "Fiberglass - 80% AFUE" } : null,
-      { step: "plenum", label: "Plenum", val: answers.plenum === "ductboard" ? "New ductboard plenum" : answers.plenum === "metal" ? "New sheet metal plenum" : answers.plenum === "none" ? "Keep existing plenum" : null },
-      {
-        step: "thermostat",
-        label: "Thermostat",
-        val: answers.thermostat === "wifi" ? "Wi-Fi smart thermostat" : answers.thermostat === "basic" ? "Basic programmable" : answers.thermostat === "proprietary" ? "Proprietary communicating thermostat" : null,
-        short: answers.thermostat === "wifi" ? "Wi-Fi smart t-stat" : answers.thermostat === "basic" ? "Basic programmable" : answers.thermostat === "proprietary" ? "Proprietary t-stat" : null
-      },
-      Array.isArray(answers.purif) && answers.purif.length > 0 ? {
-        step: "purif",
-        label: "Add-ons",
-        val: answers.purif.map((v) => v === "aprilaire" ? "Enhanced Filtration Cabinet" : v === "uv" ? "UV Light" : v === "ionizer" ? "Ionizer" : v === "surge" ? "Surge protector" : v).join(" + "),
-        short: answers.purif.map((v) => v === "aprilaire" ? "Filtration Cabinet" : v === "uv" ? "UV Light" : v === "ionizer" ? "Ionizer" : v === "surge" ? "Surge Protector" : v).join(" + ")
-      } : null,
-      { step: "cond_tier", label: "Efficiency", val: answers.cond_tier === "fedmin" ? "Federal Minimum - 14 SEER2" : answers.cond_tier === "mid_ge15" ? "Mid Efficiency - 18 SEER2" : answers.cond_tier === "high_ge18" ? "High Efficiency - 21 SEER2" : null },
-      answers.system_for ? {
-        step: "system_for",
-        label: "Heat source",
-        val: answers.system_for === "hp" ? "Dual Fuel - heat pump + furnace" : "Straight cool - furnace only",
-        short: answers.system_for === "hp" ? "Dual Fuel (HP + furnace)" : "Straight Cool (furnace)"
-      } : null,
-      { step: "dehu", label: "Dehumidifier", val: answers.dehu === "yes" ? "Yes - whole-home unit" : answers.dehu === "no" ? "No" : null },
-      Array.isArray(answers.extras) && answers.extras.length > 0 ? { step: "extras", label: "Final add-ons", val: answers.extras.map((v) => v === "condensate" ? "Condensate pump" : v === "erv" ? "ERV" : v).join(" + ") } : null
-    ].filter(Boolean).map((item, i) => item && item.val ? (
-      // Attic's grid cells live in the fixed 200px-tall panel
-      // (see .done-wrap-attic above), but unlike .opt-compact's
-      // fixed-height/zero-slack panel, this one's own container
-      // sets overflowY:"auto" (see the .sidebar style a few lines
-      // up), so growing this type only ever adds scroll, never
-      // clips - sized here off the --fs-review-* variables (a
-      // smaller "compact" pair for attic's short bar, a mid pair
-      // for closet's now-2-column grid, which still scrolls by
-      // design but needs less of it) instead of the hardcoded
-      // 9px/11px/8.5px this used to pin to, which read as
-      // barely-legible fine print and made the EDIT button a
-      // genuinely fiddly tap target. Closet shows a trimmed
-      // "short" wording where one exists (full detail is still
-      // one hover/tap away via the native title tooltip, same
-      // place attic's ellipsis-clipped cells already send it).
-      isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, title: item.val }, item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "3px 6px" } }, "EDIT")) : (
-        // Closet's cell doesn't reserve a fixed right-hand gutter for
-        // an absolutely-positioned EDIT chip (that's what attic does
-        // above) - at 2-column width the chip's real rendered width
-        // didn't match a guessed gutter and ended up sitting on top
-        // of the label text. Putting EDIT in normal flow next to the
-        // value instead means it can never overlap anything: the
-        // value just wraps in whatever width is left beside it.
-        /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "4px 7px", marginTop: 1 } }, "EDIT"))
-      )
-    ) : null))), pricingFlow !== null && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", marginBottom: 12 } }, pricingFlow === "sizing" && (() => {
-      const subSteps = ["systems", "sqft", "ducts"];
+    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, cur ? cur.q : ""), cur && cur.hint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, cur.hint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 Back"), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, "Skip"), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? "Save & Return" : "Next" : stepIdx === activeSteps.length - 1 ? "See Full Build" : "Next")))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { flex: 1, minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" }), isAtticMode && (pricingFlow ? /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.7)", padding: "6px 10px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.8)" } }, "\u2713 Your system is built"), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-pricing-fine)" } }, "Edit selections")) : /* @__PURE__ */ React.createElement("div", { className: "done-header-desktop-only", style: { position: "absolute", top: 8, left: 8, zIndex: 10, alignItems: "center", gap: 8, background: "rgba(11,13,20,.55)", padding: "6px 10px 6px 7px" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 28, height: 28, fontSize: 14, flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 14.5, marginBottom: 0 } }, "Your System is Built"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, "Review your selections below"))))), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
+      const reviewGrid = /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, [
+        { step: "location", label: "Location", val: answers.location === "attic" ? "Attic horizontal" : answers.location === "closet" ? "Upflow closet" : null },
+        { step: "indoor_type", label: "Indoor unit", val: answers.indoor_type === "furnace" ? "Gas furnace" : answers.indoor_type === "ah" ? "Air handler" : null },
+        answers.furnace_eff ? { step: "insulation", label: "Insulation", val: answers.furnace_eff === "e90" ? "Spray foam - 90% AFUE" : "Fiberglass - 80% AFUE" } : null,
+        { step: "plenum", label: "Plenum", val: answers.plenum === "ductboard" ? "New ductboard plenum" : answers.plenum === "metal" ? "New sheet metal plenum" : answers.plenum === "none" ? "Keep existing plenum" : null },
+        {
+          step: "thermostat",
+          label: "Thermostat",
+          val: answers.thermostat === "wifi" ? "Wi-Fi smart thermostat" : answers.thermostat === "basic" ? "Basic programmable" : answers.thermostat === "proprietary" ? "Proprietary communicating thermostat" : null,
+          short: answers.thermostat === "wifi" ? "Wi-Fi smart t-stat" : answers.thermostat === "basic" ? "Basic programmable" : answers.thermostat === "proprietary" ? "Proprietary t-stat" : null
+        },
+        Array.isArray(answers.purif) && answers.purif.length > 0 ? {
+          step: "purif",
+          label: "Add-ons",
+          val: answers.purif.map((v) => v === "aprilaire" ? "Enhanced Filtration Cabinet" : v === "uv" ? "UV Light" : v === "ionizer" ? "Ionizer" : v === "surge" ? "Surge protector" : v).join(" + "),
+          short: answers.purif.map((v) => v === "aprilaire" ? "Filtration Cabinet" : v === "uv" ? "UV Light" : v === "ionizer" ? "Ionizer" : v === "surge" ? "Surge Protector" : v).join(" + ")
+        } : null,
+        { step: "cond_tier", label: "Efficiency", val: answers.cond_tier === "fedmin" ? "Federal Minimum - 14 SEER2" : answers.cond_tier === "mid_ge15" ? "Mid Efficiency - 18 SEER2" : answers.cond_tier === "high_ge18" ? "High Efficiency - 21 SEER2" : null },
+        answers.system_for ? {
+          step: "system_for",
+          label: "Heat source",
+          val: answers.system_for === "hp" ? "Dual Fuel - heat pump + furnace" : "Straight cool - furnace only",
+          short: answers.system_for === "hp" ? "Dual Fuel (HP + furnace)" : "Straight Cool (furnace)"
+        } : null,
+        { step: "dehu", label: "Dehumidifier", val: answers.dehu === "yes" ? "Yes - whole-home unit" : answers.dehu === "no" ? "No" : null },
+        Array.isArray(answers.extras) && answers.extras.length > 0 ? { step: "extras", label: "Final add-ons", val: answers.extras.map((v) => v === "condensate" ? "Condensate pump" : v === "erv" ? "ERV" : v).join(" + ") } : null
+      ].filter(Boolean).map((item, i) => item && item.val ? (
+        // Attic's grid cells live in the fixed 200px-tall panel
+        // (see .done-wrap-attic above), but unlike .opt-compact's
+        // fixed-height/zero-slack panel, this one's own container
+        // sets overflowY:"auto" (see the .sidebar style a few lines
+        // up), so growing this type only ever adds scroll, never
+        // clips - sized here off the --fs-review-* variables (a
+        // smaller "compact" pair for attic's short bar, a mid pair
+        // for closet's now-2-column grid, which still scrolls by
+        // design but needs less of it) instead of the hardcoded
+        // 9px/11px/8.5px this used to pin to, which read as
+        // barely-legible fine print and made the EDIT button a
+        // genuinely fiddly tap target. Closet shows a trimmed
+        // "short" wording where one exists (full detail is still
+        // one hover/tap away via the native title tooltip, same
+        // place attic's ellipsis-clipped cells already send it).
+        isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, title: item.val }, item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "3px 6px" } }, "EDIT")) : (
+          // Closet's cell doesn't reserve a fixed right-hand gutter for
+          // an absolutely-positioned EDIT chip (that's what attic does
+          // above) - at 2-column width the chip's real rendered width
+          // didn't match a guessed gutter and ended up sitting on top
+          // of the label text. Putting EDIT in normal flow next to the
+          // value instead means it can never overlap anything: the
+          // value just wraps in whatever width is left beside it.
+          /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "4px 7px", marginTop: 1 } }, "EDIT"))
+        )
+      ) : null));
+      return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "done-header-mobile-only" : void 0, style: { display: isAtticMode ? void 0 : "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 Your system is built"), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, "Edit selections")), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid)) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "done-header-mobile-only" : void 0, style: { display: isAtticMode ? void 0 : "flex", alignItems: "center", gap: 10, marginBottom: 12, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: isAtticMode ? 38 : 42, height: isAtticMode ? 38 : 42, fontSize: isAtticMode ? 17 : 19, flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: isAtticMode ? 17 : 19, marginBottom: 1 } }, "Your System is Built"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-review-label-lg)", color: "var(--mut)" } }, "Review your selections below"))), reviewGrid);
+    })(), pricingFlow !== null && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", marginBottom: 12 } }, pricingFlow === "sizing" && (() => {
+      const subSteps = ["sqft", "ducts"];
       const subId = subSteps[pricingSubStep];
       const goSubNext = () => {
         if (pricingSubStep < subSteps.length - 1) {
@@ -5199,8 +5219,8 @@
         if (pricingSubStep > 0) setPricingSubStep((s) => s - 1);
         else setPricingFlow(null);
       };
-      const canSubNext = subId === "systems" ? !!pricingAnswers.systemsCount : subId === "sqft" ? !!pricingAnswers.tonnageChoice : subId === "ducts" ? pricingAnswers.wantDucts === false || pricingAnswers.wantDucts === true && pricingAnswers.ventCount > 0 : true;
-      const left = /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-left" : void 0, style: { flex: isAtticMode ? "0 0 420px" : "1 1 auto" } }, subId === "systems" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 4, fontFamily: "var(--ft)" } }, "How many separate HVAC systems does your home have?"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: isAtticMode ? 1.3 : 1.5 } }, "This is typically the number of thermostats you have, or the number of outdoor condenser units.")), subId === "sqft" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: isAtticMode ? 2 : 4, lineHeight: isAtticMode ? 1.15 : "normal", fontFamily: "var(--ft)" } }, pricingAnswers.systemsCount === "1" ? "What size system does this home need?" : "What size system is needed for this part of your home?"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", marginBottom: isAtticMode ? 3 : 8, lineHeight: isAtticMode ? 1.15 : 1.5 } }, isAtticMode ? "Pick the tonnage for your home's sq ft, or enter it below for a suggestion." : /* @__PURE__ */ React.createElement(React.Fragment, null, pricingAnswers.systemsCount === "1" ? "Pick the tonnage that best fits your home\u2019s total square footage." : "Pick the tonnage for just the area this system covers - not the whole home.", " Not sure? Enter your sq ft for a suggested starting point.")), /* @__PURE__ */ React.createElement(
+      const canSubNext = subId === "sqft" ? !!pricingAnswers.tonnageChoice : subId === "ducts" ? pricingAnswers.wantDucts === false || pricingAnswers.wantDucts === true && pricingAnswers.ventCount > 0 : true;
+      const left = /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-left" : void 0, style: { flex: isAtticMode ? "0 0 420px" : "1 1 auto" } }, subId === "sqft" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: isAtticMode ? 2 : 4, lineHeight: isAtticMode ? 1.15 : "normal", fontFamily: "var(--ft)" } }, "What size system does this area need?"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", marginBottom: isAtticMode ? 3 : 8, lineHeight: isAtticMode ? 1.15 : 1.5 } }, isAtticMode ? "Pick the tonnage for your home's sq ft, or enter it below for a suggestion." : "Pick the tonnage that best fits the square footage this system covers. Not sure? Enter your sq ft for a suggested starting point."), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
@@ -5216,7 +5236,7 @@
           className: "pricing-input" + (isAtticMode ? " compact" : "")
         }
       )), subId === "ducts" && /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, fontFamily: "var(--ft)" } }, "Want duct replacement priced too?"));
-      const right = /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, subId === "systems" && /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-opts-systems" : void 0, style: { display: "grid", gridTemplateColumns: isAtticMode ? "repeat(3,1fr)" : "repeat(auto-fit,minmax(150px,1fr))", gap: 6 } }, [{ v: "1", label: "Just 1 - this one" }, { v: "2", label: "2 systems" }, { v: "3+", label: "3 or more" }].map((o) => /* @__PURE__ */ React.createElement("button", { key: o.v, className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.systemsCount === o.v ? " sel" : ""), onClick: () => setPricingAnswers((p) => ({ ...p, systemsCount: o.v })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, o.label)))))), subId === "sqft" && (() => {
+      const right = /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, subId === "sqft" && (() => {
         const sqftNum = parseInt(pricingAnswers.sqftInput) || 0;
         const recommended = nearestTonnageOption(sqftNum);
         return /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-opts-sqft" : void 0, style: { display: "grid", gridTemplateColumns: isAtticMode ? "repeat(7,1fr)" : "repeat(auto-fit,minmax(160px,1fr))", gap: 6 } }, TONNAGE_OPTIONS.map((o) => /* @__PURE__ */ React.createElement("button", { key: o.v, className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.tonnageChoice === o.v ? " sel" : ""), onClick: () => setPricingAnswers((p) => ({ ...p, tonnageChoice: o.v })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, o.label, recommended && recommended.v === o.v && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, "SUGGESTED")), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, isAtticMode ? o.sqftLabel : `Typical for ${o.sqftLabel} homes`))))));
@@ -5245,7 +5265,14 @@
     )), pricingFlow === "result" && /* @__PURE__ */ React.createElement("div", { key: "result", className: "fadein" }, (() => {
       const est = calcEstimate(answers, pricingAnswers);
       if (!est) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, "Couldn't calculate an estimate for this combination yet - call us and we'll get you a number.");
-      const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, "AS LOW AS"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 44, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 17, color: "var(--dim)", fontWeight: 400 } }, "/mo")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6, marginBottom: 10 } }, "Based on 36 months at 0% APR through Wells Fargo financing, on approved credit."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, "ESTIMATED PRICE"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), pricingAnswers.systemsCount && pricingAnswers.systemsCount !== "1" && /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(215,183,64,.7)", marginBottom: 10 } }, "Since your home has ", pricingAnswers.systemsCount === "2" ? "2 systems" : "3+ systems", ", this estimate covers just the one you built here."), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, l.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, "This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for."), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
+      const priceCard = /* @__PURE__ */ React.createElement("div", { style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, "AS LOW AS"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 44, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 17, color: "var(--dim)", fontWeight: 400 } }, "/mo")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6, marginBottom: 10 } }, "Based on 36 months at 0% APR through Wells Fargo financing, on approved credit."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, "ESTIMATED PRICE"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, "Includes a ", answers.cond_tier === "high_ge18" ? "10" : "12", "-year manufacturer warranty."), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, l.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "checkbox",
+          checked: !!pricingAnswers.wantLaborWarranty,
+          onChange: (e) => setPricingAnswers((p) => ({ ...p, wantLaborWarranty: e.target.checked }))
+        }
+      ), "Add a 10-year labor warranty (+$", PRICING.laborWarranty10yr.toLocaleString(), ")"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, "This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for."), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
         setPricingFlow("sizing");
         setPricingSubStep(0);
       } }, "\u2039 Adjust my answers"));

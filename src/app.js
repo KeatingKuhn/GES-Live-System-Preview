@@ -845,91 +845,119 @@ function App(){
                 above) - on a mobile-width attic screen the canvas is a short
                 strip with no dead space to hold it, so it falls back to
                 showing here, same as closet mode always does. */}
-            {pricingFlow?
-              <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
-                <span style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-pricing-meta)",color:"rgba(255,255,255,.78)"}}>✓ Your system is built</span>
-                <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)"}}>Edit selections</button>
-              </div>
-            :<>
-            <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
-              <div className="done-icon" style={{margin:0,width:isAtticMode?38:42,height:isAtticMode?38:42,fontSize:isAtticMode?17:19,flexShrink:0}}>✓</div>
-              <div>
-                <div className="done-title" style={{fontSize:isAtticMode?17:19,marginBottom:1}}>Your System is Built</div>
-                <div style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",color:"var(--mut)"}}>Review your selections below</div>
-              </div>
-            </div>
-            <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":" closet-mode-grid")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",display:"grid"}}>
-              {[
-                {step:"location",label:"Location",val:answers.location==="attic"?"Attic horizontal":answers.location==="closet"?"Upflow closet":null},
-                {step:"indoor_type",label:"Indoor unit",val:answers.indoor_type==="furnace"?"Gas furnace":answers.indoor_type==="ah"?"Air handler":null},
-                answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam - 90% AFUE":"Fiberglass - 80% AFUE"}:null,
-                {step:"plenum",label:"Plenum",val:answers.plenum==="ductboard"?"New ductboard plenum":answers.plenum==="metal"?"New sheet metal plenum":answers.plenum==="none"?"Keep existing plenum":null},
-                {step:"thermostat",label:"Thermostat",
-                  val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null,
-                  short:answers.thermostat==="wifi"?"Wi-Fi smart t-stat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary t-stat":null},
-                Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Add-ons",
-                  val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge protector":v).join(" + "),
-                  short:answers.purif.map(v=>v==="aprilaire"?"Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge Protector":v).join(" + ")}:null,
-                {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum - 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency - 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency - 21 SEER2":null},
-                answers.system_for?{step:"system_for",label:"Heat source",
-                  val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only",
-                  short:answers.system_for==="hp"?"Dual Fuel (HP + furnace)":"Straight Cool (furnace)"}:null,
-                {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes - whole-home unit":answers.dehu==="no"?"No":null},
-                Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Final add-ons",val:answers.extras.map(v=>v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
-              ].filter(Boolean).map((item,i)=>item&&item.val?(
-                // Attic's grid cells live in the fixed 200px-tall panel
-                // (see .done-wrap-attic above), but unlike .opt-compact's
-                // fixed-height/zero-slack panel, this one's own container
-                // sets overflowY:"auto" (see the .sidebar style a few lines
-                // up), so growing this type only ever adds scroll, never
-                // clips - sized here off the --fs-review-* variables (a
-                // smaller "compact" pair for attic's short bar, a mid pair
-                // for closet's now-2-column grid, which still scrolls by
-                // design but needs less of it) instead of the hardcoded
-                // 9px/11px/8.5px this used to pin to, which read as
-                // barely-legible fine print and made the EDIT button a
-                // genuinely fiddly tap target. Closet shows a trimmed
-                // "short" wording where one exists (full detail is still
-                // one hover/tap away via the native title tooltip, same
-                // place attic's ellipsis-clipped cells already send it).
-                isAtticMode?
-                <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
-                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
-                  <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
-                  <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>EDIT</button>
+            {(()=>{
+              // Computed once regardless of pricingFlow, so the full grid
+              // is always available to print (see reviewGridPrintOnly
+              // below) even while pricing is engaged on-screen, where the
+              // collapsed one-liner takes over to save room for the
+              // sizing sub-steps' own Back/Next. Previously this whole
+              // grid simply didn't exist in the DOM once pricingFlow was
+              // truthy, so hitting Save/Print at exactly the moment
+              // someone has a price in hand - the moment they're most
+              // likely to want a printout - produced a page with no
+              // system spec on it at all, just the collapsed line.
+              const reviewGrid=(
+                <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":" closet-mode-grid")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",display:"grid"}}>
+                  {[
+                    {step:"location",label:"Location",val:answers.location==="attic"?"Attic horizontal":answers.location==="closet"?"Upflow closet":null},
+                    {step:"indoor_type",label:"Indoor unit",val:answers.indoor_type==="furnace"?"Gas furnace":answers.indoor_type==="ah"?"Air handler":null},
+                    answers.furnace_eff?{step:"insulation",label:"Insulation",val:answers.furnace_eff==="e90"?"Spray foam - 90% AFUE":"Fiberglass - 80% AFUE"}:null,
+                    {step:"plenum",label:"Plenum",val:answers.plenum==="ductboard"?"New ductboard plenum":answers.plenum==="metal"?"New sheet metal plenum":answers.plenum==="none"?"Keep existing plenum":null},
+                    {step:"thermostat",label:"Thermostat",
+                      val:answers.thermostat==="wifi"?"Wi-Fi smart thermostat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary communicating thermostat":null,
+                      short:answers.thermostat==="wifi"?"Wi-Fi smart t-stat":answers.thermostat==="basic"?"Basic programmable":answers.thermostat==="proprietary"?"Proprietary t-stat":null},
+                    Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:"Add-ons",
+                      val:answers.purif.map(v=>v==="aprilaire"?"Enhanced Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge protector":v).join(" + "),
+                      short:answers.purif.map(v=>v==="aprilaire"?"Filtration Cabinet":v==="uv"?"UV Light":v==="ionizer"?"Ionizer":v==="surge"?"Surge Protector":v).join(" + ")}:null,
+                    {step:"cond_tier",label:"Efficiency",val:answers.cond_tier==="fedmin"?"Federal Minimum - 14 SEER2":answers.cond_tier==="mid_ge15"?"Mid Efficiency - 18 SEER2":answers.cond_tier==="high_ge18"?"High Efficiency - 21 SEER2":null},
+                    answers.system_for?{step:"system_for",label:"Heat source",
+                      val:answers.system_for==="hp"?"Dual Fuel - heat pump + furnace":"Straight cool - furnace only",
+                      short:answers.system_for==="hp"?"Dual Fuel (HP + furnace)":"Straight Cool (furnace)"}:null,
+                    {step:"dehu",label:"Dehumidifier",val:answers.dehu==="yes"?"Yes - whole-home unit":answers.dehu==="no"?"No":null},
+                    Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:"Final add-ons",val:answers.extras.map(v=>v==="condensate"?"Condensate pump":v==="erv"?"ERV":v).join(" + ")}:null,
+                  ].filter(Boolean).map((item,i)=>item&&item.val?(
+                    // Attic's grid cells live in the fixed 200px-tall panel
+                    // (see .done-wrap-attic above), but unlike .opt-compact's
+                    // fixed-height/zero-slack panel, this one's own container
+                    // sets overflowY:"auto" (see the .sidebar style a few lines
+                    // up), so growing this type only ever adds scroll, never
+                    // clips - sized here off the --fs-review-* variables (a
+                    // smaller "compact" pair for attic's short bar, a mid pair
+                    // for closet's now-2-column grid, which still scrolls by
+                    // design but needs less of it) instead of the hardcoded
+                    // 9px/11px/8.5px this used to pin to, which read as
+                    // barely-legible fine print and made the EDIT button a
+                    // genuinely fiddly tap target. Closet shows a trimmed
+                    // "short" wording where one exists (full detail is still
+                    // one hover/tap away via the native title tooltip, same
+                    // place attic's ellipsis-clipped cells already send it).
+                    isAtticMode?
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
+                      <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
+                      <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.val}</span>
+                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>EDIT</button>
+                    </div>
+                    :
+                    // Closet's cell doesn't reserve a fixed right-hand gutter for
+                    // an absolutely-positioned EDIT chip (that's what attic does
+                    // above) - at 2-column width the chip's real rendered width
+                    // didn't match a guessed gutter and ended up sitting on top
+                    // of the label text. Putting EDIT in normal flow next to the
+                    // value instead means it can never overlap anything: the
+                    // value just wraps in whatever width is left beside it.
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",minWidth:0}}>
+                      <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
+                      {/* Value gets the cell's full width to wrap in (previously
+                          shared the row with the EDIT button, so a value long
+                          enough to wrap - "Filtration Cabinet + UV Light",
+                          "Yes - whole-home unit" - only got the button's
+                          leftover ~2/3 width, wrapped to 3 short lines, and read
+                          as if EDIT were sitting mid-sentence instead of
+                          alongside it). EDIT now sits on its own line
+                          bottom-right, same as it already does for every other
+                          value short enough to fit one line. */}
+                      <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal"}} title={item.val}>{item.short||item.val}</span>
+                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",marginTop:1}}>EDIT</button>
+                    </div>
+                  ):null)}
                 </div>
-                :
-                // Closet's cell doesn't reserve a fixed right-hand gutter for
-                // an absolutely-positioned EDIT chip (that's what attic does
-                // above) - at 2-column width the chip's real rendered width
-                // didn't match a guessed gutter and ended up sitting on top
-                // of the label text. Putting EDIT in normal flow next to the
-                // value instead means it can never overlap anything: the
-                // value just wraps in whatever width is left beside it.
-                <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",minWidth:0}}>
-                  <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
-                  {/* Value gets the cell's full width to wrap in (previously
-                      shared the row with the EDIT button, so a value long
-                      enough to wrap - "Filtration Cabinet + UV Light",
-                      "Yes - whole-home unit" - only got the button's
-                      leftover ~2/3 width, wrapped to 3 short lines, and read
-                      as if EDIT were sitting mid-sentence instead of
-                      alongside it). EDIT now sits on its own line
-                      bottom-right, same as it already does for every other
-                      value short enough to fit one line. */}
-                  <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal"}} title={item.val}>{item.short||item.val}</span>
-                  <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",marginTop:1}}>EDIT</button>
-                </div>
-              ):null)}
-            </div>
-            </>}
+              );
+              return pricingFlow?
+                <>
+                  <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
+                    <span style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-pricing-meta)",color:"rgba(255,255,255,.78)"}}>✓ Your system is built</span>
+                    <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)"}}>Edit selections</button>
+                  </div>
+                  {/* Hidden on-screen (see .print-only-grid in styles.css) -
+                      exists purely so a printout taken while pricing is
+                      engaged still has the full spec on it, not just the
+                      one-line "system is built" header above. */}
+                  <div className="print-only-grid">{reviewGrid}</div>
+                </>
+              :
+                <>
+                  <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
+                    <div className="done-icon" style={{margin:0,width:isAtticMode?38:42,height:isAtticMode?38:42,fontSize:isAtticMode?17:19,flexShrink:0}}>✓</div>
+                    <div>
+                      <div className="done-title" style={{fontSize:isAtticMode?17:19,marginBottom:1}}>Your System is Built</div>
+                      <div style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",color:"var(--mut)"}}>Review your selections below</div>
+                    </div>
+                  </div>
+                  {reviewGrid}
+                </>;
+            })()}
 
             {/* ── PRICING GATE / SIZING / RESULT - only takes up room once
                  actually engaged; the entry point lives in the button grid
                  below instead of its own full-width row ── */}
             {pricingFlow!==null&&<div style={{width:"100%",marginBottom:12}}>
               {pricingFlow==='sizing'&&(()=>{
-                const subSteps=['systems','sqft','ducts'];
+                // Just sqft + ducts - the old "how many separate HVAC
+                // systems does your home have?" sub-step never actually
+                // fed into calcEstimate's math (systemsCount only ever
+                // changed wording and added a disclaimer note), so
+                // dropping it loses nothing but a click.
+                const subSteps=['sqft','ducts'];
                 const subId=subSteps[pricingSubStep];
                 const goSubNext=()=>{
                   if(pricingSubStep<subSteps.length-1){setPricingSubStep(s=>s+1);return;}
@@ -941,7 +969,6 @@ function App(){
                   else setPricingFlow(null);
                 };
                 const canSubNext=
-                  subId==='systems'?!!pricingAnswers.systemsCount:
                   subId==='sqft'?!!pricingAnswers.tonnageChoice:
                   subId==='ducts'?(pricingAnswers.wantDucts===false||(pricingAnswers.wantDucts===true&&pricingAnswers.ventCount>0)):
                   true;
@@ -955,16 +982,12 @@ function App(){
                 // estimate (genuinely more content) still scrolls.
                 const left=(
                   <div className={isAtticMode?"pricing-substep-left":undefined} style={{flex:isAtticMode?"0 0 420px":"1 1 auto"}}>
-                    {subId==='systems'&&<>
-                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:4,fontFamily:"var(--ft)"}}>How many separate HVAC systems does your home have?</div>
-                      <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:isAtticMode?1.3:1.5}}>This is typically the number of thermostats you have, or the number of outdoor condenser units.</div>
-                    </>}
                     {subId==='sqft'&&<>
-                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{pricingAnswers.systemsCount==='1'?'What size system does this home need?':'What size system is needed for this part of your home?'}</div>
+                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>What size system does this area need?</div>
                       <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5}}>
                         {isAtticMode
                           ?"Pick the tonnage for your home's sq ft, or enter it below for a suggestion."
-                          :<>{pricingAnswers.systemsCount==='1'?'Pick the tonnage that best fits your home’s total square footage.':'Pick the tonnage for just the area this system covers - not the whole home.'} Not sure? Enter your sq ft for a suggested starting point.</>}
+                          :"Pick the tonnage that best fits the square footage this system covers. Not sure? Enter your sq ft for a suggested starting point."}
                       </div>
                       <input type="number" min="200" max="10000" placeholder="Sq ft (optional)"
                         value={pricingAnswers.sqftInput||''}
@@ -980,15 +1003,6 @@ function App(){
                 );
                 const right=(
                   <div style={{flex:1,minWidth:0}}>
-                    {subId==='systems'&&
-                      <div className={isAtticMode?"pricing-opts-systems":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?"repeat(3,1fr)":"repeat(auto-fit,minmax(150px,1fr))",gap:6}}>
-                        {[{v:'1',label:'Just 1 - this one'},{v:'2',label:'2 systems'},{v:'3+',label:'3 or more'}].map(o=>(
-                          <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.systemsCount===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,systemsCount:o.v}))}>
-                            <div className="opt-inner"><div className="opt-body"><span className="opt-label">{o.label}</span></div></div>
-                          </button>
-                        ))}
-                      </div>
-                    }
                     {subId==='sqft'&&(()=>{
                       const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
                       const recommended=nearestTonnageOption(sqftNum);
@@ -1090,7 +1104,7 @@ function App(){
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6,marginBottom:10}}>Based on 36 months at 0% APR through Wells Fargo financing, on approved credit.</div>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>ESTIMATED PRICE</div>
                     <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<CountUp value={est.display} format={n=>n.toLocaleString()}/></div>
-                    {pricingAnswers.systemsCount&&pricingAnswers.systemsCount!=='1'&&<div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(215,183,64,.7)",marginBottom:10}}>Since your home has {pricingAnswers.systemsCount==='2'?'2 systems':'3+ systems'}, this estimate covers just the one you built here.</div>}
+                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>Includes a {answers.cond_tier==='high_ge18'?'10':'12'}-year manufacturer warranty.</div>
                     <div style={{marginBottom:10}}>
                       {est.lines.map((l,i)=>(
                         <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:"var(--fs-pricing-line)"}}>
@@ -1099,6 +1113,14 @@ function App(){
                         </div>
                       ))}
                     </div>
+                    {/* Extended labor warranty - an add-on at the end of
+                        pricing, not its own wizard question. Checking it
+                        adds a real line item above via calcEstimate. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!pricingAnswers.wantLaborWarranty}
+                        onChange={e=>setPricingAnswers(p=>({...p,wantLaborWarranty:e.target.checked}))}/>
+                      Add a 10-year labor warranty (+${PRICING.laborWarranty10yr.toLocaleString()})
+                    </label>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.68)",lineHeight:1.55,marginBottom:10}}>This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.</div>
                     <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ Adjust my answers</button>
                   </div>

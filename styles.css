@@ -792,6 +792,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    (nav, EDIT, mode toggles, Get Pricing, Financing, Start Over) are
    dropped - nobody needs a page of clipped SVG or dead buttons, and the
    numbers are what a customer actually wants on paper. */
+/* Full review grid rendered while pricing is engaged (see the
+   print-only-grid wrapper in app.js) - invisible on-screen, since the
+   collapsed one-line header already covers that case there, but this is
+   what actually prints instead of just that one line once pricing has
+   been opened. */
+.print-only-grid{display:none}
 @media print{
   html,body{height:auto!important;overflow:visible!important}
   .app-root,.done-screen,.sidebar,.done-wrap{
@@ -799,6 +805,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     height:auto!important;max-height:none!important;width:100%!important;
     transform:none!important;
   }
+  .print-only-grid{display:block!important}
   .splash-screen,.attic-layout,.closet-layout,.canvas-frame{display:none!important}
   /* .prog-chapters (the gold segmented step-progress bar) sits at the App
      root, position:absolute, outside every element this block already
