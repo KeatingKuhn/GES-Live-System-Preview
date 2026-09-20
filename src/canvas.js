@@ -1828,6 +1828,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         color:!heatMode?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
         display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
         <span>❄</span>
+        {/* Representative month for this mode's outside temp, not the
+            "current month" the eyebrow line above shows - see the
+            per-button mapping this file uses (96°→JUN peak summer,
+            52°→OCT mild shoulder season, 28°→FEB deep winter). */}
+        <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>JUN</span>
         <span>COOL MODE</span>
         <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:!heatMode?1:0.55}}>96°</span>
         <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>OUTSIDE TEMP</span>
@@ -1841,6 +1846,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span>🔥</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OCT</span>
             <span>HEAT PUMP</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
@@ -1851,6 +1857,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             color:heatMode&&heatSubMode==='furnace'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span>🔥</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>FEB</span>
             <span>FURNACE</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.55}}>28°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>OUTSIDE TEMP</span>
@@ -1864,6 +1871,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span>🔥</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OCT</span>
             <span>HEAT PUMP</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
@@ -1874,6 +1882,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             color:heatMode&&heatSubMode==='aux'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span>🔥</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>FEB</span>
             <span>AUX HEAT</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='aux'?1:0.55}}>28°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>OUTSIDE TEMP</span>
@@ -1885,6 +1894,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           color:heatMode?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
           display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
           <span>🔥</span>
+          <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>FEB</span>
           <span>HEAT MODE</span>
           <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode?1:0.55}}>28°</span>
           <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>OUTSIDE TEMP</span>

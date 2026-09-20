@@ -2725,7 +2725,7 @@
         alignItems: "center",
         justifyContent: "flex-end",
         gap: 6
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u2744"), /* @__PURE__ */ React.createElement("span", null, "COOL MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: !heatMode ? 1 : 0.55 } }, "96\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("div", { style: { height: "1px", background: "rgba(215,183,64,.22)" } }), isDualFuel ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      } }, /* @__PURE__ */ React.createElement("span", null, "\u2744"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "JUN"), /* @__PURE__ */ React.createElement("span", null, "COOL MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: !heatMode ? 1 : 0.55 } }, "96\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("div", { style: { height: "1px", background: "rgba(215,183,64,.22)" } }), isDualFuel ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setHeatMode(true);
         setHeatSubMode("hp");
       }, style: {
@@ -2743,7 +2743,7 @@
         justifyContent: "flex-end",
         gap: 5,
         borderBottom: "1px solid rgba(215,183,64,.12)"
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "52\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OCT"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "52\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setHeatMode(true);
         setHeatSubMode("furnace");
       }, style: {
@@ -2760,7 +2760,7 @@
         alignItems: "center",
         justifyContent: "flex-end",
         gap: 5
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", null, "FURNACE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "furnace" ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : !hasFurnace ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "FEB"), /* @__PURE__ */ React.createElement("span", null, "FURNACE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "furnace" ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : !hasFurnace ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setHeatMode(true);
         setHeatSubMode("hp");
       }, style: {
@@ -2778,7 +2778,7 @@
         justifyContent: "flex-end",
         gap: 5,
         borderBottom: "1px solid rgba(215,183,64,.12)"
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "52\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OCT"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "52\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setHeatMode(true);
         setHeatSubMode("aux");
       }, style: {
@@ -2795,7 +2795,7 @@
         alignItems: "center",
         justifyContent: "flex-end",
         gap: 5
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", null, "AUX HEAT"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "aux" ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(true), style: {
+      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "FEB"), /* @__PURE__ */ React.createElement("span", null, "AUX HEAT"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "aux" ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(true), style: {
         padding: "10px 18px",
         border: "none",
         cursor: "pointer",
@@ -2809,7 +2809,7 @@
         alignItems: "center",
         justifyContent: "flex-end",
         gap: 6
-      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
+      } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F525}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "FEB"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "28\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
     };
     if (isAttic) {
       const LIVING_SPACE = 95;
