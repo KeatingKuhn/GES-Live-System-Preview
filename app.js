@@ -1475,6 +1475,60 @@
         return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX, y: rodCY - rodLen2 / 2, len: rodLen2, vertical: true });
       })(), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.8 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC + "2a" : "rgba(22,22,44,.7)", stroke: evapC, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.88 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC2 + "2a" : "rgba(22,22,44,.7)", stroke: evapC2, strokeWidth: "0.9" }));
     }
+    function CabinetRivet({ cx, cy }) {
+      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: "2.3", fill: "rgba(35,38,44,.85)", stroke: S + ".55)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: cx - 1.2, y1: cy - 0.3, x2: cx + 1.2, y2: cy + 0.3, stroke: S + ".75)", strokeWidth: "0.55", strokeLinecap: "round" }));
+    }
+    function CabinetLatch({ cx, cy, w }) {
+      w = w || 15;
+      return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: cx - w / 2,
+          y: cy - 3.4,
+          width: w,
+          height: 6.8,
+          rx: "1.6",
+          fill: "rgba(20,22,27,.85)",
+          stroke: S + ".4)",
+          strokeWidth: "0.6"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: cx - w / 2 + 2.2,
+          y: cy - 1.3,
+          width: w - 4.4,
+          height: 2.6,
+          rx: "1.1",
+          fill: "rgba(60,65,75,.9)",
+          stroke: S + ".6)",
+          strokeWidth: "0.5"
+        }
+      ));
+    }
+    function CabinetPlate({ x, y, w, h }) {
+      h = h || 9;
+      return /* @__PURE__ */ React.createElement("g", { opacity: "0.85" }, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x,
+          y,
+          width: w,
+          height: h,
+          rx: "1",
+          fill: "rgba(18,20,25,.8)",
+          stroke: S + ".42)",
+          strokeWidth: "0.55"
+        }
+      ), /* @__PURE__ */ React.createElement("line", { x1: x + 2.5, y1: y + h * 0.36, x2: x + w - 2.5, y2: y + h * 0.36, stroke: S + ".5)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: x + 2.5, y1: y + h * 0.66, x2: x + w - 3.5 - w * 0.22, y2: y + h * 0.66, stroke: S + ".35)", strokeWidth: "0.6" }));
+    }
+    function CabinetStripBrushing({ x, y, w }) {
+      const n = Math.max(4, Math.min(10, Math.round(w / 26)));
+      return /* @__PURE__ */ React.createElement("g", { opacity: "0.3" }, Array.from({ length: n }, (_, i) => {
+        const lx = x + w * (i + 0.5) / n;
+        return /* @__PURE__ */ React.createElement("line", { key: i, x1: lx, y1: y + 1.2, x2: lx, y2: y + 7.8, stroke: "#fff", strokeWidth: "0.5" });
+      }));
+    }
     function FurnaceH({ x, y, w, h, active, roofY }) {
       const mid = x + w / 2;
       return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
@@ -1486,10 +1540,11 @@
           height: h,
           rx: "4",
           fill: active ? "#0d0606" : "#0a0a0a",
-          stroke: active ? "rgba(249,115,22,.84)" : S + ".7)",
+          stroke: active ? "rgba(249,115,22,.84)" : "url(#cabinet-edge)",
+          strokeOpacity: active ? 1 : 0.82,
           strokeWidth: active ? 2.2 : 1.8
         }
-      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: O + ".04)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 9, rx: "4", fill: active ? "url(#orange-g)" : "url(#silver)", opacity: ".72" }), /* @__PURE__ */ React.createElement("line", { x1: mid, y1: y + 9, x2: mid, y2: y + h, stroke: S + ".28)", strokeWidth: "1", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
+      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: O + ".04)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 9, rx: "4", fill: active ? "url(#orange-g)" : "url(#silver)", opacity: ".72" }), !active && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 8, cy: y + 4.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 4.5 }), /* @__PURE__ */ React.createElement(CabinetPlate, { x: x + w - 46, y: y + 11, w: 40 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: mid, cy: y + 4.5, w: 14 }), /* @__PURE__ */ React.createElement("line", { x1: mid, y1: y + 9, x2: mid, y2: y + h, stroke: S + ".28)", strokeWidth: "1", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
         "line",
         {
           key: i,
@@ -1594,10 +1649,11 @@
           height: h,
           rx: "4",
           fill: active ? "#050c1a" : "#090909",
-          stroke: active ? evapC + "90" : S + ".54)",
+          stroke: active ? evapC + "90" : "url(#cabinet-edge)",
+          strokeOpacity: active ? 1 : 0.8,
           strokeWidth: active ? 1.9 : 1.5
         }
-      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 9, rx: "4", fill: active ? refReversed ? "url(#orange-g)" : "url(#blue)" : "url(#silver)", opacity: ".68" }), /* @__PURE__ */ React.createElement("line", { x1: c1, y1: y + 9, x2: c1, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), /* @__PURE__ */ React.createElement("line", { x1: c2, y1: y + 9, x2: c2, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
+      ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)", stroke: "none" }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 9, rx: "4", fill: active ? refReversed ? "url(#orange-g)" : "url(#blue)" : "url(#silver)", opacity: ".68" }), !active && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 19, cy: y + 4 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 4 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: c1, cy: y + 4, w: 13 }), /* @__PURE__ */ React.createElement("line", { x1: c1, y1: y + 9, x2: c1, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), /* @__PURE__ */ React.createElement("line", { x1: c2, y1: y + 9, x2: c2, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
         "line",
         {
           key: i,
@@ -1678,11 +1734,11 @@
         "AUX HEAT KIT"
       ));
     }
-    function CapFan({ x, y, w, h, active, bladeColor, slatFill, slatCount }) {
-      slatCount = slatCount || Math.floor(h * 0.7 / 4.5);
+    function CapFan({ x, y, w, h, active, bladeColor, slatFill, slatCount, ringColor }) {
+      const guardRings = Math.max(2, Math.min(5, Math.round((slatCount || 6) / 3)));
       const cx = x + w / 2, cy = y + h / 2;
-      const fanRx = w * 0.4;
-      const fanRy = h * 0.28;
+      const fanRx = w * 0.42;
+      const fanRy = h * 0.34;
       const spd = active ? 0.9 : 0;
       const spinStyle = active ? {
         transformBox: "fill-box",
@@ -1690,6 +1746,7 @@
         animation: "spin " + (1 / spd).toFixed(2) + "s linear infinite"
       } : {};
       const bC = bladeColor || (active ? "rgba(80,85,95,.75)" : "rgba(50,55,62,.5)");
+      const gC = slatFill || ringColor || bC;
       const squash = fanRy / fanRx;
       return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         "ellipse",
@@ -1722,34 +1779,46 @@
             opacity: "0.9"
           }
         );
-      }))), /* @__PURE__ */ React.createElement(
+      }))), Array.from({ length: guardRings }, (_, i) => {
+        const t = (i + 1) / (guardRings + 0.3);
+        return /* @__PURE__ */ React.createElement(
+          "ellipse",
+          {
+            key: i,
+            cx,
+            cy,
+            rx: fanRx * t,
+            ry: fanRy * t,
+            fill: "none",
+            stroke: gC,
+            strokeWidth: active ? 0.9 : 0.7,
+            opacity: active ? 0.55 : 0.42
+          }
+        );
+      }), /* @__PURE__ */ React.createElement("line", { x1: cx - fanRx, y1: cy, x2: cx + fanRx, y2: cy, stroke: gC, strokeWidth: "0.8", opacity: active ? 0.45 : 0.34 }), /* @__PURE__ */ React.createElement("line", { x1: cx, y1: cy - fanRy, x2: cx, y2: cy + fanRy, stroke: gC, strokeWidth: "0.8", opacity: active ? 0.45 : 0.34 }), /* @__PURE__ */ React.createElement(
         "ellipse",
         {
           cx,
           cy,
-          rx: fanRx * 0.1,
-          ry: fanRy * 0.12,
+          rx: fanRx * 0.98,
+          ry: fanRy * 0.98,
+          fill: "none",
+          stroke: ringColor || bC,
+          strokeWidth: "1.2",
+          opacity: active ? 0.6 : 0.45
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "ellipse",
+        {
+          cx,
+          cy,
+          rx: fanRx * 0.12,
+          ry: fanRy * 0.14,
           fill: "#1a1c20",
           stroke: "rgba(55,60,68,.6)",
           strokeWidth: "0.8"
         }
-      ), Array.from({ length: slatCount }, (_, i) => {
-        const sy = y + 2 + i * (h - 4) / slatCount;
-        return /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            key: i,
-            x: x + 2,
-            y: sy,
-            width: w - 4,
-            height: (h - 4) / slatCount * 0.55,
-            rx: "0.5",
-            fill: slatFill || "rgba(36,39,46,.9)",
-            stroke: "rgba(18,20,24,.5)",
-            strokeWidth: "0.3"
-          }
-        );
-      }));
+      ));
     }
     function Condenser({ x, y, w, h, active, tierKey }) {
       const isMini = tierKey === "mid_ge15";
@@ -1763,13 +1832,13 @@
           y,
           width: w,
           height: h,
-          rx: 3,
-          fill: active ? "#b8bcc4" : "#c2c6ce",
+          rx: 2,
+          fill: active ? "#b9bdc5" : "#c4c8cf",
           stroke: active ? "rgba(150,155,165,.9)" : "rgba(130,135,145,.8)",
           strokeWidth: "1.2"
         }
       ), (() => {
-        const capH = Math.round(h * 0.16);
+        const capH = Math.round(h * 0.2);
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {
@@ -1777,7 +1846,7 @@
             y,
             width: w,
             height: capH,
-            rx: 3,
+            rx: 2,
             fill: active ? "#3a3d42" : "#2e3035",
             stroke: "rgba(20,22,26,.8)",
             strokeWidth: "1"
@@ -1792,7 +1861,8 @@
             active,
             bladeColor: active ? refReversed ? "rgba(100,160,220,.8)" : "rgba(220,90,90,.7)" : "rgba(45,48,55,.6)",
             slatFill: active ? "rgba(44,47,54,.88)" : "rgba(36,39,46,.92)",
-            slatCount: Math.floor((capH - 2) * 0.7 / 4.5)
+            ringColor: "rgba(120,125,135,.55)",
+            slatCount: Math.max(3, Math.floor((capH - 2) * 0.7 / 6.5))
           }
         ), [[x + 5, y + 4], [x + w - 5, y + 4], [x + 5, y + capH - 4], [x + w - 5, y + capH - 4]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement(
           "circle",
@@ -1807,40 +1877,32 @@
           }
         )));
       })(), (() => {
-        const capH = Math.round(h * 0.16);
+        const capH = Math.round(h * 0.2);
         const slotY = y + capH + 2, slotH = h - capH - 4;
-        const count = Math.floor(slotH / 5.5), step = slotH / count;
-        return Array.from({ length: count }, (_, i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(
+        const seamY = slotY + slotH * 0.5;
+        const rows = Math.max(3, Math.floor(slotH / 11)), cols = Math.max(5, Math.floor((w - 8) / 11));
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {
             x: x + 2,
-            y: slotY + i * step,
+            y: slotY,
             width: w - 4,
-            height: step - 1.5,
-            rx: "0.5",
-            fill: active ? "rgba(145,150,158,.85)" : "rgba(155,160,168,.8)"
+            height: slotH,
+            rx: "1",
+            fill: active ? "rgba(150,154,162,.4)" : "rgba(160,164,172,.38)"
           }
-        ), /* @__PURE__ */ React.createElement(
-          "rect",
+        ), /* @__PURE__ */ React.createElement("line", { x1: x + 2, y1: seamY, x2: x + w - 2, y2: seamY, stroke: "rgba(95,100,110,.5)", strokeWidth: "1.3" }), /* @__PURE__ */ React.createElement("line", { x1: x + 2, y1: seamY + 1.4, x2: x + w - 2, y2: seamY + 1.4, stroke: "rgba(232,235,240,.45)", strokeWidth: "0.8" }), Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_2, c) => /* @__PURE__ */ React.createElement(
+          "circle",
           {
-            x: x + 2,
-            y: slotY + i * step,
-            width: w - 4,
-            height: 1.5,
-            fill: active ? "rgba(190,195,202,.6)" : "rgba(200,204,210,.55)"
+            key: r + "-" + c,
+            cx: x + 6 + c * ((w - 12) / cols),
+            cy: slotY + 5 + r * (slotH / rows),
+            r: "1",
+            fill: "rgba(70,75,85,.45)"
           }
-        ), /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: x + 2,
-            y: slotY + i * step + step - 2.5,
-            width: w - 4,
-            height: 1.2,
-            fill: "rgba(100,105,115,.4)"
-          }
-        )));
+        ))));
       })(), (() => {
-        const capH = Math.round(h * 0.16);
+        const capH = Math.round(h * 0.2);
         const by = y + capH + Math.round((h - capH) * 0.36);
         const pw = Math.round(w * 0.44), ph = Math.round(h * 0.16);
         const px = x + w / 2 - pw / 2;
@@ -1880,7 +1942,7 @@
           strokeWidth: "0.7"
         }
       )), (() => {
-        const capH = Math.round(h * 0.16);
+        const capH = Math.round(h * 0.2);
         const bodyH = h - capH;
         const cW = Math.round(w * 0.3), cH = Math.round(bodyH * 0.42);
         const cX = x + w - cW - 6, cY = y + capH + bodyH - cH - 10;
@@ -2164,9 +2226,9 @@
         {
           x,
           y: y + 4,
-          width: 8,
+          width: 5,
           height: h - 8,
-          rx: "2",
+          rx: "1.5",
           fill: active ? "#3e424a" : "#383c44",
           stroke: "rgba(50,55,62,.7)",
           strokeWidth: "0.8"
@@ -2174,17 +2236,17 @@
       ), /* @__PURE__ */ React.createElement(
         "rect",
         {
-          x: x + w - 8,
+          x: x + w - 5,
           y: y + 4,
-          width: 8,
+          width: 5,
           height: h - 8,
-          rx: "2",
+          rx: "1.5",
           fill: active ? "#3e424a" : "#383c44",
           stroke: "rgba(50,55,62,.7)",
           strokeWidth: "0.8"
         }
       ), (() => {
-        const capH = Math.round(h * 0.2);
+        const capH = Math.round(h * 0.24);
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {
@@ -2207,7 +2269,8 @@
             active,
             bladeColor: active ? refReversed ? "rgba(100,160,220,.7)" : "rgba(220,90,90,.65)" : "rgba(40,44,52,.6)",
             slatFill: active ? "rgba(24,27,33,.88)" : "rgba(18,21,27,.92)",
-            slatCount: Math.floor((capH - 4) * 0.72 / 5.5)
+            ringColor: active ? cc : "rgba(100,105,115,.55)",
+            slatCount: Math.max(9, Math.floor((capH - 4) * 0.72 / 2.6))
           }
         ), [[x + 6, y + 6], [x + w - 6, y + 6], [x + 6, y + capH - 6], [x + w - 6, y + capH - 6]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement(
           "circle",
@@ -2225,79 +2288,59 @@
         "rect",
         {
           x,
-          y: y + Math.round(h * 0.2) + 2,
+          y: y + Math.round(h * 0.24) + 2,
           width: w,
-          height: 5,
+          height: 2,
           fill: active ? cc : "rgba(120,128,145,.5)",
           opacity: active ? 0.9 : 0.55
         }
       ), (() => {
-        const capH = Math.round(h * 0.2);
-        const bodyY = y + capH + 2, bodyH = h - capH - 4;
-        const slotW = 3.5, gap = 2, step = slotW + gap;
-        const leftW = Math.round(w * 0.44);
-        const rightX = x + w - leftW;
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, Array.from({ length: Math.floor(leftW / step) }, (_, i) => /* @__PURE__ */ React.createElement(
+        const capH = Math.round(h * 0.24);
+        const bodyY = y + capH + 5, bodyH = h - capH - 11;
+        const midX = x + w / 2;
+        const rows = Math.max(4, Math.floor(bodyH / 6)), cols = Math.max(6, Math.floor((w - 14) / 6));
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
           {
-            key: "l" + i,
-            x: x + 9 + i * step,
+            x: x + 6,
             y: bodyY,
-            width: slotW,
+            width: w - 12,
             height: bodyH,
-            rx: "0.5",
-            fill: active ? "rgba(48,52,60,.9)" : "rgba(42,46,54,.85)",
-            stroke: "rgba(30,33,40,.5)",
-            strokeWidth: "0.3"
-          }
-        )), Array.from({ length: Math.floor(bodyH / 4) }, (_, i) => /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            key: "lf" + i,
-            x1: x + 9,
-            y1: bodyY + 2 + i * 4,
-            x2: x + 9 + leftW - 8,
-            y2: bodyY + 2 + i * 4,
-            stroke: "rgba(25,28,34,.6)",
-            strokeWidth: "0.5"
-          }
-        )), /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: x + leftW + 4,
-            y: bodyY,
-            width: 6,
-            height: bodyH,
-            rx: "1",
-            fill: active ? "#3c4048" : "#363a40",
-            stroke: "rgba(45,50,58,.6)",
+            rx: "1.5",
+            fill: active ? "rgba(20,22,27,.55)" : "rgba(16,18,22,.5)",
+            stroke: "rgba(15,17,21,.6)",
             strokeWidth: "0.6"
           }
-        ), Array.from({ length: Math.floor(leftW / step) }, (_, i) => /* @__PURE__ */ React.createElement(
-          "rect",
+        ), Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_2, c) => /* @__PURE__ */ React.createElement(
+          "circle",
           {
-            key: "r" + i,
-            x: rightX - 3 + i * step,
-            y: bodyY,
-            width: slotW,
-            height: bodyH,
-            rx: "0.5",
-            fill: active ? "rgba(48,52,60,.9)" : "rgba(42,46,54,.85)",
-            stroke: "rgba(30,33,40,.5)",
-            strokeWidth: "0.3"
+            key: r + "-" + c,
+            cx: x + 9 + c * ((w - 18) / cols),
+            cy: bodyY + 4 + r * (bodyH / rows),
+            r: "0.85",
+            fill: active ? "rgba(80,85,95,.5)" : "rgba(60,65,75,.42)"
           }
-        )), Array.from({ length: Math.floor(bodyH / 4) }, (_, i) => /* @__PURE__ */ React.createElement(
+        ))), /* @__PURE__ */ React.createElement(
           "line",
           {
-            key: "rf" + i,
-            x1: rightX - 3,
-            y1: bodyY + 2 + i * 4,
-            x2: rightX + leftW - 12,
-            y2: bodyY + 2 + i * 4,
-            stroke: "rgba(25,28,34,.6)",
-            strokeWidth: "0.5"
+            x1: midX,
+            y1: bodyY,
+            x2: midX,
+            y2: bodyY + bodyH,
+            stroke: active ? "#26292f" : "#232630",
+            strokeWidth: "1.4"
           }
-        )));
+        ), /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: midX + 1.2,
+            y1: bodyY,
+            x2: midX + 1.2,
+            y2: bodyY + bodyH,
+            stroke: "rgba(90,95,105,.25)",
+            strokeWidth: "0.6"
+          }
+        ));
       })(), active && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -2322,7 +2365,7 @@
           strokeWidth: "0.7"
         }
       ), (() => {
-        const capH = Math.round(h * 0.2);
+        const capH = Math.round(h * 0.24);
         const bodyH = h - capH;
         const cW = Math.round(w * 0.28), cH = Math.round(bodyH * 0.45);
         const cX = x + w - cW - 8, cY = y + capH + bodyH - cH - 10;
@@ -2485,7 +2528,7 @@
         ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH / 2 - 1, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH / 2 + 12, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace" }, "DEHU")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + BW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + BW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + BW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: "14.5", fontFamily: "monospace" }, "ERV")));
       }));
     }
-    const Defs = () => /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("linearGradient", { id: "gold", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#f0d64e" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ab8024" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "silver", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#e4e7ed" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#8b93a3" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "blue", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#1a6cb5" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#2389e0" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "red-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#b91c1c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ef4444" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "orange-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ea580c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#f97316" })), /* @__PURE__ */ React.createElement("filter", { id: "glow" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "2.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-sm" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "1.2", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-uv" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "3.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "shadow", x: "-60%", y: "-60%", width: "220%", height: "220%" }, /* @__PURE__ */ React.createElement("feDropShadow", { dx: "0", dy: "2", stdDeviation: "3", floodColor: "rgba(0,0,0,.55)" })), /* @__PURE__ */ React.createElement("marker", { id: "arr", viewBox: "0 0 8 8", refX: "6", refY: "4", markerWidth: "4", markerHeight: "4", orient: "auto-start-reverse" }, /* @__PURE__ */ React.createElement("path", { d: "M1 1L6 4L1 7", fill: "none", stroke: "context-stroke", strokeWidth: "1.5" })));
+    const Defs = () => /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("linearGradient", { id: "gold", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#f0d64e" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ab8024" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "silver", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#e4e7ed" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#8b93a3" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "cabinet-edge", x1: "0", y1: "0", x2: "1", y2: "1" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ccd2dc" }), /* @__PURE__ */ React.createElement("stop", { offset: "45%", stopColor: "#8b93a3" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#4d5361" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "blue", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#1a6cb5" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#2389e0" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "red-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#b91c1c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ef4444" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "orange-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ea580c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#f97316" })), /* @__PURE__ */ React.createElement("filter", { id: "glow" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "2.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-sm" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "1.2", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-uv" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "3.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "shadow", x: "-60%", y: "-60%", width: "220%", height: "220%" }, /* @__PURE__ */ React.createElement("feDropShadow", { dx: "0", dy: "2", stdDeviation: "3", floodColor: "rgba(0,0,0,.55)" })), /* @__PURE__ */ React.createElement("marker", { id: "arr", viewBox: "0 0 8 8", refX: "6", refY: "4", markerWidth: "4", markerHeight: "4", orient: "auto-start-reverse" }, /* @__PURE__ */ React.createElement("path", { d: "M1 1L6 4L1 7", fill: "none", stroke: "context-stroke", strokeWidth: "1.5" })));
     const compactToggle = frameBox && frameBox.w > 0 && frameBox.w < 700;
     const ToggleUI = ({ style }) => {
       if (compactToggle) {
@@ -3019,7 +3062,8 @@
             height: UNIT_H,
             rx: "4",
             fill: active ? "#050c1c" : "#090909",
-            stroke: active ? evapC + "88" : G + ".42)",
+            stroke: active ? evapC + "88" : "url(#cabinet-edge)",
+            strokeOpacity: active ? 1 : 0.8,
             strokeWidth: active ? 1.8 : 1.5
           }
         ), active && /* @__PURE__ */ React.createElement(
@@ -3041,16 +3085,16 @@
             width: ACOIL_W,
             height: 9,
             rx: "4",
-            fill: active ? refReversed ? "url(#orange-g)" : "url(#blue)" : "url(#gold)",
+            fill: active ? refReversed ? "url(#orange-g)" : "url(#blue)" : "url(#silver)",
             opacity: ".65"
           }
-        ), /* @__PURE__ */ React.createElement(ACoilH, { x: ACOIL_X + 8, y: UNIT_Y + 12, w: ACOIL_W - 16, h: UNIT_H - 20, active }), /* @__PURE__ */ React.createElement("rect", { x: ACOIL_X, y: UNIT_Y + UNIT_H - 2, width: ACOIL_W, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
+        ), !active && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: ACOIL_X, y: UNIT_Y, w: ACOIL_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + 18, cy: UNIT_Y + 4 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: ACOIL_X + ACOIL_W - 7, cy: UNIT_Y + 4 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: ACOIL_X + ACOIL_W / 2 + 5, cy: UNIT_Y + 4, w: 12 }), /* @__PURE__ */ React.createElement(ACoilH, { x: ACOIL_X + 8, y: UNIT_Y + 12, w: ACOIL_W - 16, h: UNIT_H - 20, active }), /* @__PURE__ */ React.createElement("rect", { x: ACOIL_X, y: UNIT_Y + UNIT_H - 2, width: ACOIL_W, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement(
           "text",
           {
             x: ACOIL_X + ACOIL_W / 2,
             y: UNIT_Y - 16,
             textAnchor: "middle",
-            fill: active ? evapC : G + ".55)",
+            fill: active ? evapC : S + ".6)",
             fontSize: "13.5",
             fontFamily: "monospace"
           },
@@ -3971,7 +4015,8 @@
             height: ACOIL_H,
             rx: "5",
             fill: active ? "#050c1c" : "#090909",
-            stroke: active ? evapC + "88" : S + ".54)",
+            stroke: active ? evapC + "88" : "url(#cabinet-edge)",
+            strokeOpacity: active ? 1 : 0.8,
             strokeWidth: active ? 1.8 : 1.5
           }
         ), active && /* @__PURE__ */ React.createElement(
@@ -3996,7 +4041,7 @@
             fill: active ? refReversed ? "url(#orange-g)" : "url(#blue)" : "url(#silver)",
             opacity: ".65"
           }
-        ), hasFurnace ? /* @__PURE__ */ React.createElement(ACoilV, { x: UNIT_X + 8, y: COIL_BOX_Y, w: UNIT_W - 16, h: COIL_BOX_H, active }) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+        ), !active && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: ACOIL_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: ACOIL_Y + 4 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: ACOIL_Y + 4 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: ACOIL_Y + 4, w: 13 }), hasFurnace && /* @__PURE__ */ React.createElement(CabinetPlate, { x: UNIT_X + 8, y: ACOIL_Y + 11, w: 36 }), hasFurnace ? /* @__PURE__ */ React.createElement(ACoilV, { x: UNIT_X + 8, y: COIL_BOX_Y, w: UNIT_W - 16, h: COIL_BOX_H, active }) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "line",
           {
             x1: UNIT_X,
@@ -4113,7 +4158,8 @@
           height: FURN_H,
           rx: "5",
           fill: furnaceActive ? "#0e0606" : "#090909",
-          stroke: furnaceActive ? "rgba(249,115,22,.78)" : S + ".7)",
+          stroke: furnaceActive ? "rgba(249,115,22,.78)" : "url(#cabinet-edge)",
+          strokeOpacity: furnaceActive ? 1 : 0.85,
           strokeWidth: furnaceActive ? 2.1 : 1.7
         }
       ), furnaceActive && /* @__PURE__ */ React.createElement(
@@ -4138,7 +4184,19 @@
           fill: furnaceActive ? "url(#orange-g)" : "url(#silver)",
           opacity: ".72"
         }
-      ), /* @__PURE__ */ React.createElement(
+      ), !furnaceActive && /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: FURN_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: FURN_Y + 4.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: FURN_Y + 4.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: FURN_Y + 4.5, w: 14 }), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 6, y: FURN_Y + 11, width: 78, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 9, y: FURN_Y + 19.5, fill: "#fff", fontSize: "9", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          x: UNIT_X + UNIT_W - 46,
+          y: FURN_Y + 11,
+          width: 40,
+          height: "9",
+          rx: "2",
+          fill: is90 ? "rgba(35,137,224,.13)" : G + ".07)",
+          stroke: is90 ? B + ".24)" : G + ".16)",
+          strokeWidth: "0.5"
+        }
+      ), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + UNIT_W - 26, y: FURN_Y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "9.5", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
         "line",
         {
           x1: UNIT_X,

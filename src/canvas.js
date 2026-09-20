@@ -923,15 +923,81 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     </g>;
   }
 
+  // ── CABINET EXTERIOR DETAIL KIT ─────────────────────────────
+  // Small shared bits reused by all four furnace/air-handler cabinet
+  // shells below (FurnaceH + AirHandlerH here, plus the closet layout's
+  // own inline furnace/A-coil-AH boxes further down) so the "genuine
+  // sheet-metal cabinet" read - rivets, a seam-mounted latch, a brand-
+  // agnostic data plate - looks identical everywhere instead of each
+  // shell re-deriving its own version. Each call site still picks its
+  // own x/y placement (the internals - blower position, badges, labels -
+  // differ enough between shells that a single auto-layout would collide
+  // with something in at least one of them), but the artwork itself is
+  // one definition.
+  function CabinetRivet({cx,cy}){
+    // A single flat-head rivet/screw - dark socket, thin highlight,
+    // slot line. Sized to read at a glance without competing with the
+    // labels/gauges around it.
+    return <g>
+      <circle cx={cx} cy={cy} r="2.3" fill="rgba(35,38,44,.85)" stroke={S+'.55)'} strokeWidth="0.6"/>
+      <line x1={cx-1.2} y1={cy-0.3} x2={cx+1.2} y2={cy+0.3} stroke={S+'.75)'} strokeWidth="0.55" strokeLinecap="round"/>
+    </g>;
+  }
+  // Recessed door latch - the cabinet's access-panel hardware. A short
+  // horizontal handle sunk into a shallow housing, the way a real
+  // furnace/AH front panel's captive latch reads from a few feet away.
+  function CabinetLatch({cx,cy,w}){
+    w=w||15;
+    return <g>
+      <rect x={cx-w/2} y={cy-3.4} width={w} height={6.8} rx="1.6"
+        fill="rgba(20,22,27,.85)" stroke={S+'.4)'} strokeWidth="0.6"/>
+      <rect x={cx-w/2+2.2} y={cy-1.3} width={w-4.4} height={2.6} rx="1.1"
+        fill="rgba(60,65,75,.9)" stroke={S+'.6)'} strokeWidth="0.5"/>
+    </g>;
+  }
+  // Brand-agnostic data plate - a small riveted spec tag, the kind every
+  // real furnace/AH cabinet carries (model/serial/electrical rating)
+  // without inventing a fake brand. Two hairline rules stand in for
+  // print too fine to read at diagram scale, same convention as a real
+  // photo of one reading as "text" from across a room.
+  function CabinetPlate({x,y,w,h}){
+    h=h||9;
+    return <g opacity="0.85">
+      <rect x={x} y={y} width={w} height={h} rx="1"
+        fill="rgba(18,20,25,.8)" stroke={S+'.42)'} strokeWidth="0.55"/>
+      <line x1={x+2.5} y1={y+h*0.36} x2={x+w-2.5} y2={y+h*0.36} stroke={S+'.5)'} strokeWidth="0.6"/>
+      <line x1={x+2.5} y1={y+h*0.66} x2={x+w-3.5-w*0.22} y2={y+h*0.66} stroke={S+'.35)'} strokeWidth="0.6"/>
+    </g>;
+  }
+  // A few faint brushed-metal hairlines across the top accent strip -
+  // reads as a rolled sheet-metal lip catching light unevenly rather
+  // than a flat painted bar. Kept very low-opacity/thin so it never
+  // fights the strip's own gradient or the AFUE/COMMUNICATING badges
+  // that sit just below it.
+  function CabinetStripBrushing({x,y,w}){
+    const n=Math.max(4,Math.min(10,Math.round(w/26)));
+    return <g opacity="0.3">
+      {Array.from({length:n},(_,i)=>{
+        const lx=x+w*(i+0.5)/n;
+        return <line key={i} x1={lx} y1={y+1.2} x2={lx} y2={y+7.8} stroke="#fff" strokeWidth="0.5"/>;
+      })}
+    </g>;
+  }
+
   // Furnace horizontal - blower LEFT | HX RIGHT
   function FurnaceH({x,y,w,h,active,roofY}){
     const mid=x+w/2;
     return <g>
       <rect x={x} y={y} width={w} height={h} rx="4"
         fill={active?"#0d0606":"#0a0a0a"}
-        stroke={active?'rgba(249,115,22,.84)':(S+'.7)')} strokeWidth={active?2.2:1.8}/>
+        stroke={active?'rgba(249,115,22,.84)':"url(#cabinet-edge)"} strokeOpacity={active?1:0.82} strokeWidth={active?2.2:1.8}/>
       {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={O+'.04)'} stroke="none"/>}
       <rect x={x} y={y} width={w} height={9} rx="4" fill={active?"url(#orange-g)":"url(#silver)"} opacity=".72"/>
+      {!active&&<CabinetStripBrushing x={x} y={y} w={w}/>}
+      <CabinetRivet cx={x+8} cy={y+4.5}/>
+      <CabinetRivet cx={x+w-8} cy={y+4.5}/>
+      <CabinetPlate x={x+w-46} y={y+11} w={40}/>
+      <CabinetLatch cx={mid} cy={y+4.5} w={14}/>
       <line x1={mid} y1={y+9} x2={mid} y2={y+h} stroke={S+'.28)'} strokeWidth="1" strokeDasharray="4 3"/>
       {Array.from({length:7},(_,i)=>(
         <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
@@ -1007,9 +1073,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     return <g>
       <rect x={x} y={y} width={w} height={h} rx="4"
         fill={active?"#050c1a":"#090909"}
-        stroke={active?(evapC+'90'):(S+'.54)')} strokeWidth={active?1.9:1.5}/>
+        stroke={active?(evapC+'90'):"url(#cabinet-edge)"} strokeOpacity={active?1:0.8} strokeWidth={active?1.9:1.5}/>
       {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
       <rect x={x} y={y} width={w} height={9} rx="4" fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#silver)"} opacity=".68"/>
+      {!active&&<CabinetStripBrushing x={x} y={y} w={w}/>}
+      {/* Left rivet nudged in - the standalone-AH lineset riser anchors at
+          RL_START_X=AH_X+9 (same corner), same reasoning as the attic
+          furnace's own A-coil box a few lines up. */}
+      <CabinetRivet cx={x+19} cy={y+4}/>
+      <CabinetRivet cx={x+w-8} cy={y+4}/>
+      <CabinetLatch cx={c1} cy={y+4} w={13}/>
       <line x1={c1} y1={y+9} x2={c1} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
       <line x1={c2} y1={y+9} x2={c2} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
       {Array.from({length:7},(_,i)=>(
@@ -1074,11 +1147,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
   // CapFan -- side-perspective view into condenser top cap
   // Fan blades contained by keeping radii tight -- no clipPath needed
-  function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount}){
-    slatCount=slatCount||Math.floor(h*0.7/4.5);
+  function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount,ringColor}){
+    // guardRings: how many concentric wire-guard rings cage the blades -
+    // callers pass a density (higher slatCount = finer cage), fed-min
+    // gets a coarser 2-ring cage, high-eff a finer 4-ring one, reading
+    // as the plainer vs. nicer fan guard at a glance.
+    const guardRings=Math.max(2,Math.min(5,Math.round((slatCount||6)/3)));
     const cx=x+w/2, cy=y+h/2;
-    const fanRx=w*0.40;  // keep well inside width
-    const fanRy=h*0.28;  // keep well inside height
+    const fanRx=w*0.42;  // keep well inside width
+    const fanRy=h*0.34;  // keep well inside height
     const spd=active?0.9:0;
     const spinStyle=active?{
       transformBox:'fill-box',
@@ -1086,6 +1163,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
       animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
     }:{};
     const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
+    const gC=slatFill||ringColor||bC;
     // Blades are laid out on a true circle (radius fanRx) and rotated as
     // one, THEN flattened into the cap's side-perspective ellipse with a
     // static scaleY - not the other way round. Rotating points that were
@@ -1115,13 +1193,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           })}
         </g>
       </g>
-      <ellipse cx={cx} cy={cy} rx={fanRx*0.1} ry={fanRy*0.12}
-        fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
-      {Array.from({length:slatCount},(_,i)=>{
-        const sy=y+2+i*(h-4)/slatCount;
-        return <rect key={i} x={x+2} y={sy} width={w-4} height={(h-4)/slatCount*0.55} rx="0.5"
-          fill={slatFill||"rgba(36,39,46,.9)"} stroke="rgba(18,20,24,.5)" strokeWidth="0.3"/>;
+      {/* Wire guard cage -- concentric rings + crossing spokes, confined
+          to the fan disc itself (not the old full-rect louver bars,
+          which were nearly opaque and blotted the whole cap out,
+          hiding the fan almost entirely). This is what actually reads
+          as "a real fan behind a guard" instead of a flat dark smear,
+          and the ring density is the fed-min/high-eff differentiator:
+          a coarse 2-ring cage vs. a finer 4-ring one. */}
+      {Array.from({length:guardRings},(_,i)=>{
+        const t=(i+1)/(guardRings+0.3);
+        return <ellipse key={i} cx={cx} cy={cy} rx={fanRx*t} ry={fanRy*t} fill="none"
+          stroke={gC} strokeWidth={active?0.9:0.7} opacity={active?0.55:0.42}/>;
       })}
+      <line x1={cx-fanRx} y1={cy} x2={cx+fanRx} y2={cy} stroke={gC} strokeWidth="0.8" opacity={active?0.45:0.34}/>
+      <line x1={cx} y1={cy-fanRy} x2={cx} y2={cy+fanRy} stroke={gC} strokeWidth="0.8" opacity={active?0.45:0.34}/>
+      {/* Outer rim bezel -- the visible edge of the guard cage/fan
+          housing, brighter than the inner rings so the whole assembly
+          still reads as one fan at a glance. */}
+      <ellipse cx={cx} cy={cy} rx={fanRx*0.98} ry={fanRy*0.98} fill="none"
+        stroke={ringColor||bC} strokeWidth="1.2" opacity={active?0.6:0.45}/>
+      <ellipse cx={cx} cy={cy} rx={fanRx*0.12} ry={fanRy*0.14}
+        fill="#1a1c20" stroke="rgba(55,60,68,.6)" strokeWidth="0.8"/>
     </>;
   }
 
@@ -1134,47 +1226,56 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
 
     return <g>
       {isFed&&<>
-        {/* FED MIN: light gray louvered box */}
-        <rect x={x} y={y} width={w} height={h} rx={3}
-          fill={active?"#b8bcc4":"#c2c6ce"}
+        {/* FED MIN: flat, boxy builder-grade cabinet -- square-ish
+            corners, a plain light panel with just two stamped seams
+            (not the old wall-to-wall micro-louvers), reading as the
+            no-frills base unit next to the high-eff cabinet below. */}
+        <rect x={x} y={y} width={w} height={h} rx={2}
+          fill={active?"#b9bdc5":"#c4c8cf"}
           stroke={active?"rgba(150,155,165,.9)":"rgba(130,135,145,.8)"} strokeWidth="1.2"/>
         {/* Dark top cap with CapFan */}
         {(()=>{
-          const capH=Math.round(h*0.16);
+          const capH=Math.round(h*0.20);
           return <>
-            <rect x={x} y={y} width={w} height={capH} rx={3}
+            <rect x={x} y={y} width={w} height={capH} rx={2}
               fill={active?"#3a3d42":"#2e3035"} stroke="rgba(20,22,26,.8)" strokeWidth="1"/>
             <CapFan x={x+2} y={y+1} w={w-4} h={capH-2} active={active}
               bladeColor={active?(refReversed?"rgba(100,160,220,.8)":"rgba(220,90,90,.7)"):"rgba(45,48,55,.6)"}
               slatFill={active?"rgba(44,47,54,.88)":"rgba(36,39,46,.92)"}
-              slatCount={Math.floor((capH-2)*0.7/4.5)}/>
+              ringColor="rgba(120,125,135,.55)"
+              slatCount={Math.max(3,Math.floor((capH-2)*0.7/6.5))}/>
             {[[x+5,y+4],[x+w-5,y+4],[x+5,y+capH-4],[x+w-5,y+capH-4]].map(([sx,sy],i)=>(
               <circle key={i} cx={sx} cy={sy} r={1.8}
                 fill="rgba(50,55,62,.9)" stroke="rgba(80,85,95,.5)" strokeWidth="0.5"/>
             ))}
           </>;
         })()}
-        {/* Horizontal louver slats on body */}
+        {/* Flat panel body -- one stamped seam splits it into two plain
+            panels (a plain flat-sheet builder-grade cabinet), with a
+            sparse, coarse-pitch perforation patch as this tier's basic
+            intake venting -- fewer, bigger holes than the high-eff
+            cabinet's finer mesh below, reading as the plainer unit. */}
         {(()=>{
-          const capH=Math.round(h*0.16);
+          const capH=Math.round(h*0.20);
           const slotY=y+capH+2, slotH=h-capH-4;
-          const count=Math.floor(slotH/5.5), step=slotH/count;
-          return Array.from({length:count},(_,i)=>(
-            <g key={i}>
-              <rect x={x+2} y={slotY+i*step} width={w-4} height={step-1.5} rx="0.5"
-                fill={active?"rgba(145,150,158,.85)":"rgba(155,160,168,.8)"}/>
-              <rect x={x+2} y={slotY+i*step} width={w-4} height={1.5}
-                fill={active?"rgba(190,195,202,.6)":"rgba(200,204,210,.55)"}/>
-              <rect x={x+2} y={slotY+i*step+step-2.5} width={w-4} height={1.2}
-                fill="rgba(100,105,115,.4)"/>
-            </g>
-          ));
+          const seamY=slotY+slotH*0.5;
+          const rows=Math.max(3,Math.floor(slotH/11)), cols=Math.max(5,Math.floor((w-8)/11));
+          return <>
+            <rect x={x+2} y={slotY} width={w-4} height={slotH} rx="1"
+              fill={active?"rgba(150,154,162,.4)":"rgba(160,164,172,.38)"}/>
+            <line x1={x+2} y1={seamY} x2={x+w-2} y2={seamY} stroke="rgba(95,100,110,.5)" strokeWidth="1.3"/>
+            <line x1={x+2} y1={seamY+1.4} x2={x+w-2} y2={seamY+1.4} stroke="rgba(232,235,240,.45)" strokeWidth="0.8"/>
+            {Array.from({length:rows},(_,r)=>Array.from({length:cols},(_,c)=>(
+              <circle key={r+'-'+c} cx={x+6+c*((w-12)/cols)} cy={slotY+5+r*(slotH/rows)} r="1"
+                fill="rgba(70,75,85,.45)"/>
+            )))}
+          </>;
         })()}
         {/* Manufacturer data/rating plate, centered on the door panel -- a
             generic nameplate (rivets + printed spec lines), not a badge or
             monogram, so nothing here reads as a copied logo. */}
         {(()=>{
-          const capH=Math.round(h*0.16);
+          const capH=Math.round(h*0.20);
           const by=y+capH+Math.round((h-capH)*0.36);
           const pw=Math.round(w*0.44), ph=Math.round(h*0.16);
           const px=x+w/2-pw/2;
@@ -1195,7 +1296,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
         ))}
         {/* Compressor outline - visible inside housing */}
         {(()=>{
-          const capH=Math.round(h*0.16);
+          const capH=Math.round(h*0.20);
           const bodyH=h-capH;
           const cW=Math.round(w*0.3), cH=Math.round(bodyH*0.42);
           const cX=x+w-cW-6, cY=y+capH+bodyH-cH-10;
@@ -1306,61 +1407,62 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
       </>}
 
       {isBig&&<>
-        {/* HIGH EFF: tall dark unit, vertical louvers, rounded top cap */}
+        {/* HIGH EFF: dark unibody cabinet, rounded top cap, slim corner
+            posts and a fine perforated micro-mesh panel -- the flagship
+            read next to fed-min's flat plain sheet: cleaner lines, a
+            finer/denser texture, a slim color pinstripe instead of a
+            thick block, subtler overall. */}
         <rect x={x} y={y} width={w} height={h} rx={5}
           fill={active?(refReversed?"#1a1e2e":"#3a3d42"):"#343740"}
           stroke={active?cc:"rgba(55,60,68,.8)"} strokeWidth={active?1.8:1.4}/>
-        {/* Chamfered corner strips */}
-        <rect x={x} y={y+4} width={8} height={h-8} rx="2"
+        {/* Slim corner posts -- narrower than the old chamfer strips, a
+            cleaner structural read instead of thick side blocks */}
+        <rect x={x} y={y+4} width={5} height={h-8} rx="1.5"
           fill={active?"#3e424a":"#383c44"} stroke="rgba(50,55,62,.7)" strokeWidth="0.8"/>
-        <rect x={x+w-8} y={y+4} width={8} height={h-8} rx="2"
+        <rect x={x+w-5} y={y+4} width={5} height={h-8} rx="1.5"
           fill={active?"#3e424a":"#383c44"} stroke="rgba(50,55,62,.7)" strokeWidth="0.8"/>
         {/* Dark rounded top cap with CapFan */}
         {(()=>{
-          const capH=Math.round(h*0.2);
+          const capH=Math.round(h*0.24);
           return <>
             <rect x={x} y={y} width={w} height={capH} rx={5}
               fill="#1e2024" stroke="rgba(15,17,20,.9)" strokeWidth="1.2"/>
             <CapFan x={x+4} y={y+2} w={w-8} h={capH-4} active={active}
               bladeColor={active?(refReversed?"rgba(100,160,220,.7)":"rgba(220,90,90,.65)"):"rgba(40,44,52,.6)"}
               slatFill={active?"rgba(24,27,33,.88)":"rgba(18,21,27,.92)"}
-              slatCount={Math.floor((capH-4)*0.72/5.5)}/>
+              ringColor={active?cc:"rgba(100,105,115,.55)"}
+              slatCount={Math.max(9,Math.floor((capH-4)*0.72/2.6))}/>
             {[[x+6,y+6],[x+w-6,y+6],[x+6,y+capH-6],[x+w-6,y+capH-6]].map(([sx,sy],i)=>(
               <circle key={i} cx={sx} cy={sy} r={2}
                 fill="rgba(35,38,44,.9)" stroke="rgba(55,60,68,.5)" strokeWidth="0.5"/>
             ))}
           </>;
         })()}
-        {/* Top-tier accent trim -- wider than the mid-tier's thin band,
-            reading as the flagship cabinet in the lineup */}
-        <rect x={x} y={y+Math.round(h*0.2)+2} width={w} height={5}
+        {/* Top-tier accent -- a slim pinstripe instead of the old thick
+            block band, a subtler premium cue */}
+        <rect x={x} y={y+Math.round(h*0.24)+2} width={w} height={2}
           fill={active?cc:"rgba(120,128,145,.5)"} opacity={active?0.9:0.55}/>
-        {/* Vertical louver panels */}
+        {/* Fine perforated micro-mesh panel -- a denser, smaller-pitch
+            dot pattern than fed-min's coarse vent (finer mesh reads as
+            the nicer/quieter cabinet), plus one slim center reveal
+            line for a flush unibody-panel look instead of the old
+            dual vertical-louver bands. */}
         {(()=>{
-          const capH=Math.round(h*0.2);
-          const bodyY=y+capH+2, bodyH=h-capH-4;
-          const slotW=3.5, gap=2, step=slotW+gap;
-          const leftW=Math.round(w*0.44);
-          const rightX=x+w-leftW;
+          const capH=Math.round(h*0.24);
+          const bodyY=y+capH+5, bodyH=h-capH-11;
+          const midX=x+w/2;
+          const rows=Math.max(4,Math.floor(bodyH/6)), cols=Math.max(6,Math.floor((w-14)/6));
           return <>
-            {Array.from({length:Math.floor(leftW/step)},(_,i)=>(
-              <rect key={'l'+i} x={x+9+i*step} y={bodyY} width={slotW} height={bodyH} rx="0.5"
-                fill={active?"rgba(48,52,60,.9)":"rgba(42,46,54,.85)"} stroke="rgba(30,33,40,.5)" strokeWidth="0.3"/>
-            ))}
-            {Array.from({length:Math.floor(bodyH/4)},(_,i)=>(
-              <line key={'lf'+i} x1={x+9} y1={bodyY+2+i*4} x2={x+9+leftW-8} y2={bodyY+2+i*4}
-                stroke="rgba(25,28,34,.6)" strokeWidth="0.5"/>
-            ))}
-            <rect x={x+leftW+4} y={bodyY} width={6} height={bodyH} rx="1"
-              fill={active?"#3c4048":"#363a40"} stroke="rgba(45,50,58,.6)" strokeWidth="0.6"/>
-            {Array.from({length:Math.floor(leftW/step)},(_,i)=>(
-              <rect key={'r'+i} x={rightX-3+i*step} y={bodyY} width={slotW} height={bodyH} rx="0.5"
-                fill={active?"rgba(48,52,60,.9)":"rgba(42,46,54,.85)"} stroke="rgba(30,33,40,.5)" strokeWidth="0.3"/>
-            ))}
-            {Array.from({length:Math.floor(bodyH/4)},(_,i)=>(
-              <line key={'rf'+i} x1={rightX-3} y1={bodyY+2+i*4} x2={rightX+leftW-12} y2={bodyY+2+i*4}
-                stroke="rgba(25,28,34,.6)" strokeWidth="0.5"/>
-            ))}
+            <rect x={x+6} y={bodyY} width={w-12} height={bodyH} rx="1.5"
+              fill={active?"rgba(20,22,27,.55)":"rgba(16,18,22,.5)"} stroke="rgba(15,17,21,.6)" strokeWidth="0.6"/>
+            {Array.from({length:rows},(_,r)=>Array.from({length:cols},(_,c)=>(
+              <circle key={r+'-'+c} cx={x+9+c*((w-18)/cols)} cy={bodyY+4+r*(bodyH/rows)} r="0.85"
+                fill={active?"rgba(80,85,95,.5)":"rgba(60,65,75,.42)"}/>
+            )))}
+            <line x1={midX} y1={bodyY} x2={midX} y2={bodyY+bodyH}
+              stroke={active?"#26292f":"#232630"} strokeWidth="1.4"/>
+            <line x1={midX+1.2} y1={bodyY} x2={midX+1.2} y2={bodyY+bodyH}
+              stroke="rgba(90,95,105,.25)" strokeWidth="0.6"/>
           </>;
         })()}
         {active&&<rect x={x} y={y} width={w} height={h} rx={5}
@@ -1369,7 +1471,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           fill="#14151a" stroke="rgba(20,22,28,.8)" strokeWidth="0.7"/>
         {/* Compressor outline -- visible inside housing */}
         {(()=>{
-          const capH=Math.round(h*0.2);
+          const capH=Math.round(h*0.24);
           const bodyH=h-capH;
           const cW=Math.round(w*0.28), cH=Math.round(bodyH*0.45);
           const cX=x+w-cW-8, cY=y+capH+bodyH-cH-10;
@@ -1477,6 +1579,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   const Defs=()=><defs>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#f0d64e"/><stop offset="100%" stopColor="#ab8024"/></linearGradient>
     <linearGradient id="silver" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#e4e7ed"/><stop offset="100%" stopColor="#8b93a3"/></linearGradient>
+    {/* Cabinet refresh pass - a diagonal light-to-dark sweep (same slate
+        hue family as S, just lightened/darkened at the ends) used for
+        the furnace/air-handler cabinet's own border stroke, so the
+        exterior reads as a beveled sheet-metal edge instead of a flat
+        gray line. A flat single color on a stroke has no way to fake a
+        bevel; a diagonal gradient stroke does. Only the border - the
+        cabinet's dark interior stays a plain cutaway view of the
+        components, unchanged. */}
+    <linearGradient id="cabinet-edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stopColor="#ccd2dc"/><stop offset="45%" stopColor="#8b93a3"/><stop offset="100%" stopColor="#4d5361"/>
+    </linearGradient>
     <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#1a6cb5"/><stop offset="100%" stopColor="#2389e0"/></linearGradient>
     <linearGradient id="red-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#b91c1c"/><stop offset="100%" stopColor="#ef4444"/></linearGradient>
     <linearGradient id="orange-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#ea580c"/><stop offset="100%" stopColor="#f97316"/></linearGradient>
@@ -1973,18 +2086,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               return <>
                 <rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={UNIT_H} rx="4"
                   fill={active?"#050c1c":"#090909"}
-                  stroke={active?(evapC+'88'):(G+'.42)')} strokeWidth={active?1.8:1.5}/>
+                  stroke={active?(evapC+'88'):"url(#cabinet-edge)"} strokeOpacity={active?1:0.8} strokeWidth={active?1.8:1.5}/>
                 {active&&<rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={UNIT_H} rx="4"
                   fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
                 <rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={9} rx="4"
-                  fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#gold)"} opacity=".65"/>
+                  fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#silver)"} opacity=".65"/>
+                {!active&&<CabinetStripBrushing x={ACOIL_X} y={UNIT_Y} w={ACOIL_W}/>}
+                {/* Left rivet nudged in from the edge (vs. the usual +7/+8)
+                    - the refrigerant lineset's riser anchors at exactly
+                    RL_START_X=ACOIL_X+8 (see its own comment above) and
+                    climbs up right past this corner, so a rivet sitting
+                    right at the edge lands half-hidden behind the pipe. */}
+                <CabinetRivet cx={ACOIL_X+18} cy={UNIT_Y+4}/>
+                <CabinetRivet cx={ACOIL_X+ACOIL_W-7} cy={UNIT_Y+4}/>
+                <CabinetLatch cx={ACOIL_X+ACOIL_W/2+5} cy={UNIT_Y+4} w={12}/>
                 <ACoilH x={ACOIL_X+8} y={UNIT_Y+12} w={ACOIL_W-16} h={UNIT_H-20} active={active}/>
                 <rect x={ACOIL_X} y={UNIT_Y+UNIT_H-2} width={ACOIL_W} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.6"/>
                 {/* Label moved above the coil - the space below is now clear
                     for the supply ducts to drop straight down with nothing
                     in their way */}
                 <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-16} textAnchor="middle"
-                  fill={active?evapC:(G+'.55)')} fontSize="13.5" fontFamily="monospace">A-COIL</text>
+                  fill={active?evapC:(S+'.6)')} fontSize="13.5" fontFamily="monospace">A-COIL</text>
                 {/* Kept at the original 10px, unlike its sibling status
                     lines elsewhere in the diagram (font-size legibility
                     pass). This label is centered over a narrow coil box
@@ -2691,11 +2813,21 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
               return <>
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
                   fill={active?"#050c1c":"#090909"}
-                  stroke={active?(evapC+'88'):(S+'.54)')} strokeWidth={active?1.8:1.5}/>
+                  stroke={active?(evapC+'88'):"url(#cabinet-edge)"} strokeOpacity={active?1:0.8} strokeWidth={active?1.8:1.5}/>
                 {active&&<rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
                   fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none"/>}
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={9} rx="5"
                   fill={active?(refReversed?"url(#orange-g)":"url(#blue)"):"url(#silver)"} opacity=".65"/>
+                {!active&&<CabinetStripBrushing x={UNIT_X} y={ACOIL_Y} w={UNIT_W}/>}
+                <CabinetRivet cx={UNIT_X+8} cy={ACOIL_Y+4}/>
+                <CabinetRivet cx={UNIT_X+UNIT_W-8} cy={ACOIL_Y+4}/>
+                <CabinetLatch cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+4} w={13}/>
+                {/* Only in the furnace-paired case - when this box is a
+                    standalone air handler, the "ABSORBING HEAT"/"STANDBY"
+                    status line sits inside the box right here (anchored to
+                    ACOIL_Y+20, see that text's own comment below) and a
+                    plate at this spot would sit on top of it. */}
+                {hasFurnace&&<CabinetPlate x={UNIT_X+8} y={ACOIL_Y+11} w={36}/>}
                 {hasFurnace
                   ?<ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}/>
                   :<>
@@ -2764,11 +2896,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu-c'+a.stage}>
             <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
               fill={furnaceActive?"#0e0606":"#090909"}
-              stroke={furnaceActive?'rgba(249,115,22,.78)':(S+'.7)')} strokeWidth={furnaceActive?2.1:1.7}/>
+              stroke={furnaceActive?'rgba(249,115,22,.78)':"url(#cabinet-edge)"} strokeOpacity={furnaceActive?1:0.85} strokeWidth={furnaceActive?2.1:1.7}/>
             {furnaceActive&&<rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={FURN_H} rx="5"
               fill={O+'.04)'} stroke="none"/>}
             <rect x={UNIT_X} y={FURN_Y} width={UNIT_W} height={9} rx="5"
               fill={furnaceActive?"url(#orange-g)":"url(#silver)"} opacity=".72"/>
+            {!furnaceActive&&<CabinetStripBrushing x={UNIT_X} y={FURN_Y} w={UNIT_W}/>}
+            <CabinetRivet cx={UNIT_X+8} cy={FURN_Y+4.5}/>
+            <CabinetRivet cx={UNIT_X+UNIT_W-8} cy={FURN_Y+4.5}/>
+            <CabinetLatch cx={UNIT_X+UNIT_W/2} cy={FURN_Y+4.5} w={14}/>
+            {/* AFUE/COMMUNICATING spec badges - the attic furnace (FurnaceH)
+                has always shown these; the closet furnace never did, a
+                drift between the two layouts' otherwise-shared "furnace
+                cabinet" language found in this pass's audit. Placed on
+                the right so the badge background simply sits in front of
+                the HX curve pattern's right tail (same as the attic
+                version's badge already overlaps its own HX curves) rather
+                than fight it for space. */}
+            {isComm&&<><rect x={UNIT_X+6} y={FURN_Y+11} width={78} height="11" rx="2" fill="url(#blue)"/>
+              <text x={UNIT_X+9} y={FURN_Y+19.5} fill="#fff" fontSize="9" fontFamily="monospace">COMMUNICATING</text></>}
+            <rect x={UNIT_X+UNIT_W-46} y={FURN_Y+11} width={40} height="9" rx="2"
+              fill={is90?"rgba(35,137,224,.13)":(G+'.07)')} stroke={is90?(B+'.24)'):(G+'.16)')} strokeWidth="0.5"/>
+            <text x={UNIT_X+UNIT_W-26} y={FURN_Y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="9.5" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
             <line x1={UNIT_X} y1={FURN_Y+FURN_H/2} x2={UNIT_X+UNIT_W} y2={FURN_Y+FURN_H/2}
               stroke={S+'.28)'} strokeWidth="0.9" strokeDasharray="4 3"/>
             {/* TOP: HX */}
