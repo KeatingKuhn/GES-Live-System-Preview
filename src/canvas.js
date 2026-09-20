@@ -2453,17 +2453,20 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // ══════════════════════════════════════════════════════════
   if(isAttic){
     // The living-space band below the deck line holds just the return
-    // grille now - back down to 95 (from a 140 that was only ever there to
-    // give the thermostat room to breathe in this same band). The
-    // thermostat's since moved to its own spot beside the equipment
-    // instead (see THERM_* below, positioned off UNIT_Y/UNIT_H, not
-    // DECK_Y/LIVING_SPACE at all), so this band no longer needs to be any
-    // taller than the return grille itself actually needs - keeping it
-    // small is the point: it's what lets the supply/return grilles sit
-    // close to the bottom of the diagram instead of floating well above it.
-    const LIVING_SPACE=95;
+    // grille - shrunk again, from 95 down to 40. The lowest content in the
+    // band (the RETURN plenum caption, 21px below DECK_Y) only ever used
+    // about a fifth of the old 95, so the rest was dead black space below
+    // the labels and above the LIVING SPACE watermark. BASE_VH drops by
+    // the exact same 55 this trims off LIVING_SPACE, so DECK_Y (and
+    // everything above it - roof, equipment, outside zone) lands at the
+    // identical SVG-unit position as before; only the viewBox itself gets
+    // shorter. A shorter viewBox at the same frame height raises
+    // SVG_SCALE, so that unchanged-in-SVG-units content renders bigger on
+    // screen - the freed band becomes zoom on the rest of the diagram
+    // instead of just less wasted space at the bottom.
+    const LIVING_SPACE=40;
     const ZOOM=hasCond?1:0.7;
-    const BASE_VH=Math.round(510*ZOOM);
+    const BASE_VH=Math.round(455*ZOOM);
     const BASE_VW=Math.round(1280*ZOOM);
     const BASE_ASPECT=BASE_VW/BASE_VH;
     // Widening the frame used to only add empty canvas around the
