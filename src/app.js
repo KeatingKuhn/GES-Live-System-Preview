@@ -867,6 +867,23 @@ function App(){
         </p>
       </div>
 
+      {/* ── ROTATE PROMPT - attic mode's diagram is wide/short (the unit
+          lies on its side, ductwork runs sideways), the opposite shape of
+          a portrait phone screen - genuinely too condensed to read well
+          in portrait, unlike closet mode's tall/narrow diagram which
+          already fits a phone naturally. Hidden by default; only ever
+          shown by the .rotate-prompt media query in styles.css (portrait
+          + phone-width), never by this condition alone - isAtticMode
+          covers the wizard AND the done/review screen, since both have
+          the same cramped-in-portrait problem. No dismiss/skip control:
+          asked for directly ("force them to turn their phone"), and
+          landscape is one physical rotation away, not a dead end. */}
+      {isAtticMode&&<div className="rotate-prompt no-print" role="alert">
+        <div className="rotate-prompt-icon">⟳</div>
+        <div className="rotate-prompt-text">{tr('Rotate Your Phone','Gire Su Teléfono')}</div>
+        <div className="rotate-prompt-sub">{tr('This system view is built for landscape - turn your phone sideways to see it clearly.','Esta vista del sistema está diseñada para modo horizontal - gire su teléfono de lado para verla con claridad.')}</div>
+      </div>}
+
       {/* ── ATTIC LAYOUT - canvas full width, step bar on bottom ── */}
       {/* inert matches the "out" condition below - see the comment on
           .splash-screen above for why this is needed at all. */}

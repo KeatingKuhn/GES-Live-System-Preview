@@ -701,6 +701,31 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    vh-based sizing not needing this. */
 .canvas-zoom{position:relative;width:100%;height:100%}
 @media(min-width:641px){.canvas-zoom{width:133.3334%;height:133.3334%;transform:scale(.75);transform-origin:top left}}
+/* ── ROTATE PROMPT ── Attic mode's diagram is wide/short by nature (the
+   unit lies on its side, ductwork runs left-right) - the opposite shape of
+   a portrait phone screen, and genuinely too condensed to read well there,
+   unlike closet mode's tall/narrow diagram which already suits a phone.
+   The JSX always renders this (see app.js) whenever isAtticMode is true;
+   display:none here is what actually keeps it invisible everywhere except
+   the one case it's for - a phone-width screen in portrait. max-width:700px
+   matches this file's existing phone/tablet breakpoint convention (see
+   compactToggle's own 700px reasoning in canvas.js) so a portrait TABLET
+   (768px+, already confirmed to render the attic layout cleanly) is never
+   caught by this, only real phones. No dismiss control - asked for
+   directly, and turning the phone sideways is one physical motion away,
+   not a dead end - covers the diagram completely (position:fixed, above
+   everything) since a partial/translucent prompt would just be more
+   clutter on top of the exact crowding it exists to solve. */
+.rotate-prompt{display:none}
+@media(orientation:portrait) and (max-width:700px){
+  .rotate-prompt{display:flex;position:fixed;inset:0;z-index:100;
+    flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    background:var(--bk);padding:32px;text-align:center}
+  .rotate-prompt-icon{font-size:56px;color:var(--gl);animation:rotatePromptSpin 1.8s ease-in-out infinite}
+  .rotate-prompt-text{font-family:var(--ft);font-size:22px;font-weight:700;color:var(--wh)}
+  .rotate-prompt-sub{font-family:var(--fb);font-size:14px;color:rgba(255,255,255,.6);max-width:320px;line-height:1.5}
+}
+@keyframes rotatePromptSpin{0%,20%{transform:rotate(0)}50%,70%{transform:rotate(-90deg)}100%{transform:rotate(-90deg)}}
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
 /* First-load entrance - the very first thing anyone sees gets a short,

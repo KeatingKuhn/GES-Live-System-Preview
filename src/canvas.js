@@ -555,25 +555,25 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
 function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode,monthName}){
     if(compactToggle){
       const modes=isDualFuel?[
-        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
-        {key:'furnace',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='furnace',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}},
+        {key:'cool',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'hp',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'furnace',temp:'28°',active:heatMode&&heatSubMode==='furnace',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}},
       ]:!hasFurnace?[
-        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'hp',icon:'🔥',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
-        {key:'aux',icon:'🔥',temp:'28°',active:heatMode&&heatSubMode==='aux',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}},
+        {key:'cool',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'hp',temp:'52°',active:heatMode&&heatSubMode==='hp',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+        {key:'aux',temp:'28°',active:heatMode&&heatSubMode==='aux',color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}},
       ]:[
-        {key:'cool',icon:'❄',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
-        {key:'heat',icon:'🔥',temp:'28°',active:heatMode,color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>setHeatMode(true)},
+        {key:'cool',temp:'96°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
+        {key:'heat',temp:'28°',active:heatMode,color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>setHeatMode(true)},
       ];
       return <div title="Not a control - tap to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',borderRadius:3,overflow:'hidden',...style}}>
         {modes.map((m,i)=>
           <button key={m.key} onClick={m.onClick} style={{
-            padding:'7px 10px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
+            padding:'6px 9px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
             fontFamily:'monospace',fontSize:'12px',fontWeight:700,letterSpacing:'.02em',
             background:m.active?m.bg:'transparent',color:m.active?m.color:'rgba(255,255,255,.55)',
-            transition:'all .2s',display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}>
-            <span style={{fontSize:11}}>{m.icon}</span><span>{m.temp}</span>
+            transition:'all .2s',display:'flex',alignItems:'center',whiteSpace:'nowrap'}}>
+            <span>{m.temp}</span>
           </button>
         )}
       </div>;
@@ -586,21 +586,24 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
           anything brighter. Folded into the same box the mode buttons
           already have (own #0c0c0c background, same border) so it always
           reads clearly regardless of the diagram underneath. */}
-      <div style={{padding:'5px 10px',fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.75)',textAlign:'right',borderBottom:'1px solid rgba(215,183,64,.18)'}}>
-        {/* Purely informational (current month), not a sales pitch - see
-            the comment on isHeatingSeason above for why this is here. */}
-        ▸ preview how your system runs · {monthName}
+      <div style={{padding:'4px 10px',fontFamily:'monospace',fontSize:'var(--fs-toggle-eyebrow)',letterSpacing:'.06em',color:'rgba(215,183,64,.75)',textAlign:'right',borderBottom:'1px solid rgba(215,183,64,.18)'}}>
+        {/* The actual current month isn't meaningful here (this is a
+            what-if preview across modes, not a live status) - dropped per
+            direct feedback. The per-button (JUN)/(OCT)/(FEB) labels below
+            are a different thing (which month is REPRESENTATIVE of that
+            mode's outside temp) and stay. */}
+        ▸ preview how your system runs
       </div>
       <button onClick={()=>setHeatMode(false)} style={{
-        padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+        padding:'8px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
         background:!heatMode?'rgba(35,137,224,.18)':'transparent',
         color:!heatMode?'#5ba8f5':'rgba(255,255,255,.58)',transition:'all .2s',
-        display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
-        <span>❄</span>
-        {/* Representative month for this mode's outside temp, not the
-            "current month" the eyebrow line above shows - see the
+        display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
+        {/* Representative month for this mode's outside temp - see the
             per-button mapping this file uses (96°→JUN peak summer,
-            52°→OCT mild shoulder season, 28°→FEB deep winter). */}
+            52°→OCT mild shoulder season, 28°→FEB deep winter). Snowflake/
+            flame icons dropped per direct feedback - the temp + mode label
+            already say what this is without them. */}
         <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>(JUN)</span>
         <span>COOL MODE</span>
         <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:!heatMode?1:0.55}}>96°</span>
@@ -610,22 +613,20 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
       {isDualFuel
         ?<>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
-            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+            padding:'8px 12px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='hp'?'rgba(249,115,22,.18)':'transparent',
             color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
-            <span>🔥</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
             <span>HEAT PUMP</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
           </button>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('furnace');}} style={{
-            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+            padding:'8px 12px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='furnace'?'rgba(249,115,22,.18)':'transparent',
             color:heatMode&&heatSubMode==='furnace'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
-            <span>🔥</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>(FEB)</span>
             <span>FURNACE</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.55}}>28°</span>
@@ -635,22 +636,20 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
         :!hasFurnace
         ?<>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('hp');}} style={{
-            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+            padding:'8px 12px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='hp'?'rgba(249,115,22,.18)':'transparent',
             color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
-            <span>🔥</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
             <span>HEAT PUMP</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>52°</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
           </button>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('aux');}} style={{
-            padding:'10px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+            padding:'8px 12px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
             background:heatMode&&heatSubMode==='aux'?'rgba(249,115,22,.18)':'transparent',
             color:heatMode&&heatSubMode==='aux'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
-            <span>🔥</span>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>(FEB)</span>
             <span>AUX HEAT</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='aux'?1:0.55}}>28°</span>
@@ -658,11 +657,10 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
           </button>
         </>
         :<button onClick={()=>setHeatMode(true)} style={{
-          padding:'10px 18px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
+          padding:'8px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
           background:heatMode?'rgba(249,115,22,.18)':'transparent',
           color:heatMode?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
-          display:'flex',alignItems:'center',justifyContent:'flex-end',gap:6}}>
-          <span>🔥</span>
+          display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
           <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>(FEB)</span>
           <span>HEAT MODE</span>
           <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode?1:0.55}}>28°</span>
@@ -2330,12 +2328,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // Condenser: true side-wall view, lineset exits wall at condenser bottom.
   // ══════════════════════════════════════════════════════════
   if(isAttic){
-    // The living-space band below the deck line still has to fit the
-    // thermostat (it sits in this band, to the right of the return duct)
-    // plus the return grille - shrunk to 95 now that the thermostat
-    // itself is a smaller footprint (down from 120 when it needed room
-    // for the full-size version).
-    const LIVING_SPACE=95;
+    // The living-space band below the deck line holds the return grille
+    // and the thermostat. Bumped back up from 95 (which only fit a
+    // thermostat squeezed to 65% of its real footprint, wedged under the
+    // return duct) now that the thermostat has moved into its own column
+    // in the left margin (see MARGIN_L below, THERM_* just after it) -
+    // borrowed from the attic zone's own headroom above, which has ~3x
+    // more height than the equipment needs (see VH's own comment above),
+    // so this doesn't touch VH/the roofline at all, just shifts DECK_Y up
+    // a bit and shrinks that already-generous headroom.
+    const LIVING_SPACE=140;
     const ZOOM=hasCond?1:0.7;
     const BASE_VH=Math.round(510*ZOOM);
     const BASE_VW=Math.round(1280*ZOOM);
@@ -2403,6 +2405,49 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
     const totalW=RET_PLEN_W+(APR_W?APR_W+2:0)+FURN_W+(hasFurnace?ACOIL_W+4:AH_W)+SUP_PLEN_W;
     const MARGIN_L=Math.max(20,Math.round((HOUSE_W-totalW)/2));
     const RET_X=MARGIN_L;
+    // Thermostat's own dedicated column, in the margin the equipment run
+    // is centered within (see totalW/MARGIN_L above) - that gap already
+    // runs the house's full height on both sides of the equipment and
+    // sits genuinely empty today (a little roofline/insulation texture,
+    // nothing structural), the same way the closet layout already has
+    // real breathing room on both sides of ITS unit stack for a full-size
+    // thermostat. Scale derives from however wide MARGIN_L actually is at
+    // this viewport/equipment combo (never a fixed guess): clamped to
+    // [0.65, 1.55] so it never renders smaller than the old squeezed-in
+    // version even in a tight margin, and tops out a bit past the
+    // original pre-shrink 100% size in a roomy one. Below ~70px of
+    // margin (THERM_IN_MARGIN false) there just isn't a legible column to
+    // work with, so the thermostat falls back to its old spot wedged
+    // under the return duct instead - which still benefits from
+    // LIVING_SPACE's own increase above even in that fallback case.
+    const THERM_IN_MARGIN=MARGIN_L>=70;
+    // The nominal box each thermostat design draws is 64 wide, but its
+    // caption text (BASIC PROGRAMMABLE, the widest of the three labels)
+    // is centered on that same 64-wide box and, at this monospace font,
+    // is genuinely wider than it - SVG text doesn't clip to a bounding
+    // box, so the caption has always overflowed a few px past the box's
+    // own left/right edges. Harmless out in the old position, which had
+    // plenty of open room on both sides - but this new column sits right
+    // against the house's left wall (x=0), so sizing/centering off the
+    // narrower nominal box let that overflow clip off the edge of the
+    // canvas outright. CONTENT_W/CONTENT_L below are the real left-to-
+    // right extent including that overflow (measured against "BASIC
+    // PROGRAMMABLE" at its local unscaled coordinates - the other two
+    // captions are narrower and fit safely inside this same box), so
+    // every size/position calc after this is based on what actually
+    // needs to fit, not just the nominal box.
+    const THERM_CONTENT_W=116, THERM_CONTENT_L=-26;
+    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(1.55,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
+    const THERM_W=64*THERM_SCALE, THERM_H=78*THERM_SCALE;
+    // TX/TY here are the <g transform="translate(...)"> origin, not a
+    // bounding-box corner - the thermostat markup below still draws at
+    // local 0-based coordinates (TX=0,TY=0 there) exactly as it always
+    // has, so this places local x=THERM_CONTENT_L (the caption's real
+    // left edge) at a small, constant safety pad from the house wall.
+    const THERM_TX=THERM_IN_MARGIN
+      ?Math.round(8-THERM_CONTENT_L*THERM_SCALE)
+      :RET_X+RET_PLEN_W+8;
+    const THERM_TY=THERM_IN_MARGIN?Math.round(DECK_Y+(LIVING_SPACE-THERM_H)/2):DECK_Y+12;
     // Return plenum stays directly against the filter rack/furnace - the
     // thermostat lives in the living-space band below instead, so it never
     // gets inserted into this chain and pushes this adjacency apart.
@@ -2563,7 +2608,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <line key={'rr'+i} x1={rx} y1={DECK_Y} x2={RIDGE_X} y2={RIDGE_Y}
               stroke="rgba(88,68,32,.09)" strokeWidth="1.5"/>
           ))}
-          <text x="22" y={DECK_Y+18} fill={W+'.09)'} fontSize="12" fontFamily="monospace" letterSpacing="0.8">LIVING SPACE</text>
+          {/* Moved down near the floor (was DECK_Y+18, right where the
+              thermostat's new left-margin column now sits) - this label is
+              faint/decorative (9% opacity) so overlap wasn't a hard
+              collision, but the floor is genuinely empty here regardless
+              of where the thermostat lands. */}
+          <text x="22" y={VH-10} fill={W+'.09)'} fontSize="12" fontFamily="monospace" letterSpacing="0.8">LIVING SPACE</text>
 
           {/* Return grille - duct trunk connects it down to the return plenum
               above instead of floating on its own ── */}
@@ -2904,19 +2954,21 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {hasCond&&<EditZone stepId="cond_tier"
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
 
-          {/* ── THERMOSTAT - down in the living space below the deck line
-               (like a real wall thermostat would be), positioned under the
-               return duct rather than centered under the furnace/coil -
-               keeps it clear of the supply vents' drops without needing
-               any extra width inserted into the return/filter/furnace run
-               above, which has to stay contiguous. ── */}
+          {/* ── THERMOSTAT - its own dedicated column in the left margin
+               (mounted on the interior wall, same real-world spot a
+               thermostat actually goes), not wedged into the equipment
+               run's living-space band below it - see THERM_* above for
+               why/how that column's size is derived. Position+scale live
+               on this one wrapping <g>; every shape inside still uses
+               plain 0-based local coordinates exactly as it did when TX/TY
+               were the absolute position directly, so the three thermostat
+               designs below are untouched other than that. Falls back to
+               the old spot under the return duct (THERM_IN_MARGIN false)
+               when the margin's too narrow for a legible column. ── */}
           {hasTstat&&<g className="snap" key="tstat" style={{animationDelay:'.26s'}}>
+            <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
             {(()=>{
-              // Scaled down (~65%) from the original footprint - smaller
-              // than a real thermostat would read, but it only lives here
-              // to keep the living-space band (and the fixed VH it comes
-              // out of) from needing extra height for it.
-              const TX=RET_X+RET_PLEN_W+8, TY=DECK_Y+12;
+              const TX=0, TY=0;
               const isProprietary=a.thermostat==='proprietary';
               const isWifi=a.thermostat==='wifi'&&!isProprietary;
               const modeColor=heatMode?"#f97316":"#2389e0";
@@ -2968,8 +3020,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
                   <text x={TX+32} y={TY+50} textAnchor="middle" fill={G+'.42)'} fontSize="10" fontFamily="monospace">BASIC PROGRAMMABLE</text>
                 </>;
             })()}
+            </g>
             <EditZone stepId="thermostat"
-              x={RET_X+RET_PLEN_W+6} y={DECK_Y+10} w={68} h={70}/>
+              x={THERM_TX-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
           </g>}
 
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
@@ -3063,7 +3116,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           {hasCond&&<StepFocusRing stepId="cond_tier"
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
           <StepFocusRing stepId="thermostat"
-            x={RET_X+RET_PLEN_W+6} y={DECK_Y+10} w={68} h={70}/>
+            x={THERM_TX-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
           {/* APR_W is 0 only if the (effectively always-on, see hasAprilaire's
               own default) filtration cabinet is somehow off - 32 stand-in
               width matches its real one exactly, so this never looks
