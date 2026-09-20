@@ -1388,6 +1388,10 @@
       note
     ));
   }
+  function DehumidistatWall({ x, y }) {
+    const W = 44, H = 40;
+    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, "45%"), /* @__PURE__ */ React.createElement("text", { x: W / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT")));
+  }
   function Canvas({ a, stepIdx, activeSteps, onEditStep }) {
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
     const MIN_EDIT_PX = 28;
@@ -4080,7 +4084,13 @@
             h: THERM_H + 4
           }
         ), /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: 0, y: wireY, w: 64, letters: wireLetters, note: wireNote })));
-      })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
+      })(), hasDehu && hasTstat && THERM_IN_MARGIN && /* @__PURE__ */ React.createElement(
+        DehumidistatWall,
+        {
+          x: THERM_TX + 32 * THERM_SCALE - 22,
+          y: THERM_TY + THERM_H + 14
+        }
+      ), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
         const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
@@ -5363,6 +5373,10 @@
             }
           )), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 58, textAnchor: "middle", fill: G + ".38)", fontSize: "11", fontFamily: "monospace" }, "BASIC"));
         })(), /* @__PURE__ */ React.createElement(EditZone, { stepId: "thermostat", x: TX - 2, y: TY - 2, w: 82, h: 116 }), /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5 }), /* @__PURE__ */ React.createElement(ThermWireBacking, { x: TX, y: wireYC, w: 76, letters: wireLettersC, note: wireNoteC }));
+      })(), hasDehu && hasTstat && (() => {
+        const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
+        const W2 = 44, H = 40;
+        return /* @__PURE__ */ React.createElement(DehumidistatWall, { x: UNIT_X / 2 - W2 / 2, y: midY - H / 2 });
       })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const rW = hasCond ? HOUSE_W : VW - 8;
         const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));

@@ -728,6 +728,37 @@ function ThermWireBacking({x,y,w,letters,note}){
   </g>;
 }
 
+// Wall-mounted dehumidistat - the humidity-side counterpart to the
+// thermostat, a real second control a whole-home dehumidifier actually
+// wires to (not the DehuErvBoxes equipment box elsewhere, which is the
+// dehumidifier unit itself hanging off the ductwork). Same green/droplet
+// language DehuErvBoxes already uses for "dehu" throughout this file, kept
+// deliberately smaller/simpler than the thermostat (a real dehumidistat is
+// a single-purpose humidity dial, not a multi-tier smart control) so the
+// two don't read as the same device. x/y is its own top-left, always at a
+// fixed real-world size (not run through THERM_SCALE) since it doesn't
+// share the thermostat's margin-width-driven sizing problem.
+function DehumidistatWall({x,y}){
+  const W=44,H=40;
+  // Positioning transform lives on its own inner <g>, separate from the
+  // "snap" entrance animation on the outer one - a CSS animation's own
+  // transform (even just at its rest/"to" keyframe) overrides an SVG
+  // transform ATTRIBUTE on the same element outright rather than composing
+  // with it, so combining them on one <g> silently drops the translate
+  // and leaves this rendering at the SVG's local origin instead of x/y.
+  // Same two-<g> split the thermostat's own outer g.snap/inner positioned-g
+  // already uses just above, for the same reason.
+  return <g className="snap" style={{animationDelay:'.32s'}}>
+    <g transform={`translate(${x} ${y})`}>
+      <rect x={0} y={0} width={W} height={H} rx="4" fill="#05120a" stroke="#22c55e" strokeWidth="1.4"/>
+      <rect x={0} y={0} width={W} height={6} rx="4" fill="rgba(34,197,94,.3)"/>
+      <text x={W/2} y={21} textAnchor="middle" fill="#22c55e" fontSize="13">💧</text>
+      <text x={W/2} y={33} textAnchor="middle" fill="#22c55e" fontSize="9" fontFamily="monospace" fontWeight="700">45%</text>
+      <text x={W/2} y={H+9} textAnchor="middle" fill="rgba(34,197,94,.6)" fontSize="6.2" fontFamily="monospace">DEHUMIDISTAT</text>
+    </g>
+  </g>;
+}
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep}){
   // Clickable overlay on a finished diagram piece - only wired up on the
@@ -3182,6 +3213,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           </g>;
           })()}
 
+          {/* Dehumidistat - below the thermostat, in the same left-margin
+              column (its own dedicated space, per THERM_IN_MARGIN's own
+              comment above) - the ~110-unit gap between the equipment row
+              and DECK_Y comfortably fits it under the thermostat's own
+              footprint without touching LIVING_SPACE. Skipped in the
+              narrow-margin fallback (THERM_IN_MARGIN false), where the
+              thermostat itself is already squeezed into the living-space
+              band with no room to spare below it. */}
+          {hasDehu&&hasTstat&&THERM_IN_MARGIN&&<DehumidistatWall
+            x={THERM_TX+32*THERM_SCALE-22} y={THERM_TY+THERM_H+14}/>}
+
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
             const sysX=hasFurnace?FURN_X:AH_X;
@@ -4101,6 +4143,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
             <ThermModeButtons x={TX} y={btnY} w={36} h={17} gap={4} fontSize={9.5}/>
             <ThermWireBacking x={TX} y={wireYC} w={76} letters={wireLettersC} note={wireNoteC}/>
           </g>;
+          })()}
+
+          {/* Dehumidistat - left side of the unit, mirroring the
+              thermostat's own real breathing room on the right (see the
+              thermostat block's own comment) - the same open floor space
+              exists on both sides of the unit stack here. */}
+          {hasDehu&&hasTstat&&(()=>{
+            const midY=hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2;
+            const W=44,H=40;
+            return <DehumidistatWall x={UNIT_X/2-W/2} y={midY-H/2}/>;
           })()}
 
           {/* Dehu + ERV - hang from roofline in attic zone */}
