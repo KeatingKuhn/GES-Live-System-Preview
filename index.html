@@ -18,7 +18,9 @@
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<script type="text/babel" src="app.js"></script>
+<!-- app.js is now a plain, pre-compiled bundle (built from src/ via
+     npm run build) - no more Babel-standalone needed to transpile JSX
+     in the browser on every page load. -->
+<script src="app.js"></script>
 </body>
 </html>

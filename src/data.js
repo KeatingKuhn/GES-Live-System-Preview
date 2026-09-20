@@ -1,0 +1,296 @@
+// ─── STEPS ──────────────────────────────────────────────────────
+// Chapters turn a flat "step 4 of 9" into a story with acts - each step
+// carries which act it belongs to, and the progress bar (built below)
+// renders as named, segmented chapters instead of one anonymous sliver.
+export const CHAPTERS=['THE BASICS','THE ENGINE','COMFORT','FINAL TOUCHES'];
+export const STEPS=[
+  {id:'location',    q:"Where's your indoor unit?", chapter:0,
+    hint:'Sets the layout of your whole system.',        optional:false},
+  {id:'indoor_type', q:'What Type of Indoor Unit?', chapter:0,
+    hint:'Furnace or air handler?\nFurnace = Gas Heat.\nAir Handler = All-Electric.', optional:false},
+  {id:'insulation',  q:'Fiberglass or spray foam?', chapter:0,
+    hint:'Determines your furnace efficiency.', optional:false,
+    showIf:a=>a.indoor_type==='furnace'},
+  {id:'plenum',      q:'New supply plenum needed?', chapter:1,
+    hint:'Feeds conditioned air to your ductwork.', optional:false},
+  {id:'cond_tier',   q:'Pick your efficiency tier.', chapter:1,
+    hint:'Higher efficiency, lower monthly bills.', optional:false},
+  {id:'system_for',  q:'Heat pump or straight cool?', chapter:1,
+    hint:'Heat pump does more; AC only cools.', optional:false,
+    // Mid efficiency only comes as dual fuel - nothing to actually choose,
+    // so skip the step entirely instead of showing a single-card question.
+    showIf:a=>a.indoor_type==='furnace'&&a.cond_tier!=='mid_ge15'},
+  {id:'thermostat',  q:'Which thermostat?', chapter:2,
+    hint:'Wi-Fi models save 10–15% on your bill.',            optional:false},
+  {id:'purif',       q:'Any add-ons?', chapter:2,
+    hint:'Filtration ships standard; add more here.',optional:true, multi:true},
+  {id:'dehu',        q:'Add a dehumidifier?', chapter:2,
+    hint:"Runs on its own; no buckets to empty.", optional:false},
+  {id:'extras',      q:'Any final add-ons?', chapter:3,
+    hint:'Condensate pump or ERV fresh-air system.', optional:true, multi:true},
+];
+
+// Auto-derive furnace_eff from insulation - never ask separately
+export function deriveFurnaceEff(insulation){
+  return insulation==='spray'?'e90':'e80';
+}
+
+// ─── OPTION DEFS ────────────────────────────────────────────────
+export function getOpts(stepId, answers){
+  switch(stepId){
+    case 'location':return[
+      {v:'attic', label:'Attic',          desc:'Horizontal install, the most common setup in Austin attics.'},
+      {v:'closet',label:'Closet',desc:'Upflow unit in a hallway or utility closet.'},
+    ];
+    case 'indoor_type':return[
+      {v:'furnace',label:'Furnace - Gas Heat',      desc:'Most common in Austin'},
+      {v:'ah',     label:'Air Handler - All Electric', desc:'Auxiliary heat installed'},
+    ];
+    case 'insulation':return[
+      {v:'fiberglass',label:'Fiberglass batts / blown',desc:'Vented attic - pairs with an 80% AFUE furnace. Most Austin homes have this.'},
+      {v:'spray',     label:'Spray foam',               desc:'Sealed attic - needs a 90% AFUE furnace with a PVC flue. Cooler, more efficient.'},
+    ];
+    case 'plenum':return[
+      {v:'ductboard',label:'Ductboard plenum',  desc:'Standard choice, good insulation. Typical lifespan 10–15 years.'},
+      {v:'metal',    label:'Sheet metal plenum',desc:'More durable, lasts 25+ years, better for indoor air quality.'},
+      {v:'none',     label:'Keep existing plenum', desc:'Good condition already - we connect directly, saving on labor.'},
+    ];
+    case 'thermostat':
+      if(answers.cond_tier==='high_ge18')return[
+        {v:'proprietary',label:'Communicating Thermostat', desc:'Required at this tier for precise staging and full diagnostics.'},
+      ];
+      return[
+      {v:'basic',label:'Basic Programmable', desc:'Reliable, no app or subscription. Set your schedule and it runs.'},
+      {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, learns your habits. Saves 10–15% on bills.',badge:true},
+    ];
+    case 'purif':return[
+      // Enhanced Filtration Cabinet isn't listed - it's automatic on every
+      // system (see defaultAnswers), not a real choice to present.
+      {v:'uv',       label:'UV Light System',    desc:'Keeps the evaporator coil clean for lasting efficiency.'},
+      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Neutralizes airborne particles, odors, and VOCs in your ducts.'},
+      {v:'surge',    label:'Surge Protector',    desc:'Shields the compressor from voltage spikes and lightning.'},
+    ];
+    case 'system_for':
+      if(answers.cond_tier==='mid_ge15')return[
+        {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Mid efficiency is dual fuel only - heat pump to ~35°F, then the furnace takes over.'},
+      ];
+      return[
+      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Heat pump handles most of the year, down to ~35°F. Furnace covers the rest.'},
+      {v:'sc', label:'Straight Cool',        desc:'AC cools only - furnace handles all heating. Simpler, lower upfront cost.'},
+    ];
+    case 'cond_tier':{
+      return[
+        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code. Lowest upfront cost.'},
+        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed. Lower bills and better humidity control.'},
+        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier. Eligible for local rebates.'},
+      ];
+    }
+    case 'dehu':return[
+      {v:'yes',label:'Yes - add it',  desc:'Sized to your square footage, runs automatically. No maintenance.'},
+      {v:'no', label:'No thanks',     desc:'Skip for now - easy to add later if humidity becomes an issue.'},
+    ];
+    case 'extras':return[
+      {v:'condensate',label:'Condensate Pump',        desc:'Needed with no gravity drain nearby. Common in closet installs.'},
+      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Fresh filtered air in, stale air out, recovering most of the energy.'},
+    ];
+    default:return[];
+  }
+}
+
+// ─── PRICING DATA ───────────────────────────────────────────────
+// Not wired into any UI yet - pure data, captured as it's confirmed so the
+// schema only gets designed once. Whole dollars, complete installed bundle.
+export const PRICING={
+  equipment:{
+    // fedmin: 14 SEER2 - half-ton granularity, all three system types available
+    fedmin:{
+      straight_cool:{1.5:12465, 2:12767, 2.5:13300, 3:14051, 3.5:14975, 4:15695, 5:16504},
+      dual_fuel:    {1.5:12894, 2:13047, 2.5:13973, 3:14337, 3.5:14978, 4:15410, 5:16286},
+      heat_pump_ah: {1.5:11923, 2:12082, 2.5:13088, 3:13729, 3.5:13916, 4:14171, 5:15513},
+    },
+    // mid_ge15: 18 SEER2 - full tons only, no straight-cool at this tier
+    mid_ge15:{
+      dual_fuel:    {2:16348, 3:17521, 4:21577, 5:21577},
+      heat_pump_ah: {2:13960, 3:15702, 4:17769, 5:18544},
+    },
+    // high_ge18: 21 SEER2 - full tons only, includes communicating system
+    high_ge18:{
+      straight_cool:{2:24564, 3:26259, 4:27822, 5:29834},
+      dual_fuel:    {2:29052, 3:30480, 4:31395, 5:35634},
+      heat_pump_ah: {2:23433, 3:26158, 4:29561, 5:31430},
+    },
+  },
+  // Whole-home dehumidifiers, ductwork tie-in included. Capacity picked by
+  // home/system sq ft - confirmed cutoffs, rounded from Honeywell/Aprilaire specs.
+  dehu:{p65:6482, p90:7966, p120:8362},
+  dehuSqftBreakpoints:{p65Max:2000, p90Max:3500}, // above p90Max => p120
+  // Supply plenum upgrade. plenum:'none' (keep existing) has no charge.
+  plenum:{ductboard:1920, metal:3121},
+  // All furnace equipment pricing above assumes an 80% AFUE furnace. Spray-foam
+  // attics require 90% AFUE (furnace_eff:'e90', auto-derived from insulation) -
+  // that's a flat upgrade on top of the base price, furnace systems only (not
+  // heat_pump_ah, which has no furnace/AFUE at all).
+  furnace90Upgrade:1488,
+  // Air purification add-ons. The enhanced filtration cabinet (purif:'aprilaire')
+  // is bundled into every system at no charge, so it has no price here.
+  purif:{uv:489, ionizer:1428},
+  // Final add-ons. Thermostat (any tier/type) is always included with the system
+  // - no separate charge, so there's no thermostat entry here either.
+  // Note: new roof penetrations for the ERV need a roofer involved.
+  extras:{surge:860, condensate:882, erv:{cfm130:5222, cfm150:5877}},
+  // ERV size picked by home/system sq ft. Approximate - real ASHRAE 62.2 sizing
+  // also factors bedroom count, which this tool doesn't ask, so this assumes a
+  // typical 3-4BR home (~130 CFM covers most homes up to ~3,000 sq ft under that
+  // formula; larger homes or higher bedroom counts exceed it sooner).
+  ervSqftBreakpoints:{cfm130Max:3000}, // above cfm130Max => cfm150
+  // Duct services - separate from the equipment bundles above.
+  duct:{
+    replacementPerStem:920,
+    // Cleaning is flat-rate by system tonnage. Only the 1.5T ($959) and 5T
+    // ($1,776) endpoints were given ("increments as you see fit") - these are
+    // linearly interpolated at a constant $116.71/half-ton step in between.
+    cleaning:{1.5:959, 2:1076, 2.5:1192, 3:1309, 3.5:1426, 4:1543, 5:1776},
+    // Brand-new supply run (not a swap of an existing one) - new duct, boot,
+    // and grille together. In a 2-story house this needs sheetrock removal.
+    newSupplyRun:1188,
+    // Return side - a separate box/run from the supply plenum question above.
+    // Austin homes very commonly have undersized returns. Not a wizard
+    // question anymore - referenced in the "Additional Considerations"
+    // education block on the done screen instead (see additionalConsiderations).
+    returnPlenum:{ductboard:1420, metal:2148},
+    newReturnDuct:1034,
+  },
+  // Zoning: custom pricing only - always routes to "schedule an in-home visit",
+  // never a calculated number. Proprietary zone board + zone sensors +
+  // proprietary dampers, cost varies too much per home to estimate here.
+  zoning:'custom_visit_required',
+};
+
+// ─── PRICING CALCULATION ────────────────────────────────────────
+// Tonnage is picked directly by the homeowner/rep rather than inferred
+// silently from a sq ft range - a hard sq ft cutoff was pushing borderline
+// homes (e.g. ~1,000 sq ft) down to a smaller tonnage than Texas heat load
+// really wants. Each option still shows its reference sq ft (~600 sq ft/ton)
+// so the pick is guided, not a guess. sqftMid also drives dehu/ERV sizing.
+export const TONNAGE_OPTIONS=[
+  {v:'t15', label:'1.5 Tons', sqftLabel:'~900 sq ft',           tons:1.5, sqftMid:900},
+  {v:'t2',  label:'2 Tons',   sqftLabel:'~1,200 sq ft',         tons:2,   sqftMid:1200},
+  {v:'t25', label:'2.5 Tons', sqftLabel:'~1,500 sq ft',         tons:2.5, sqftMid:1500},
+  {v:'t3',  label:'3 Tons',   sqftLabel:'~1,800 sq ft',         tons:3,   sqftMid:1800},
+  {v:'t35', label:'3.5 Tons', sqftLabel:'~2,100 sq ft',         tons:3.5, sqftMid:2100},
+  {v:'t4',  label:'4 Tons',   sqftLabel:'~2,400 sq ft',         tons:4,   sqftMid:2400},
+  {v:'t5',  label:'5 Tons',   sqftLabel:'3,000+ sq ft',         tons:5,   sqftMid:3600},
+];
+// Optional light-touch nudge: typing a sq ft doesn't lock anything in, it just
+// suggests the closest tonnage option so the pick steers toward accuracy
+// instead of a guess - still fully overridable by clicking any card.
+export function nearestTonnageOption(sqft){
+  if(!sqft||sqft<=0)return null;
+  return TONNAGE_OPTIONS.reduce((best,o)=>Math.abs(o.sqftMid-sqft)<Math.abs(best.sqftMid-sqft)?o:best);
+}
+// Picks the closest tonnage this tier/system-type actually offers (fedmin has
+// half-tons, mid/high don't) - ties round up toward the larger, safer size.
+function nearestTonnage(tierSystemPrices, targetTon){
+  const keys=Object.keys(tierSystemPrices).map(Number);
+  let best=keys[0], bestDiff=Infinity;
+  for(const k of keys){
+    const diff=Math.abs(k-targetTon);
+    if(diff<bestDiff||(diff===bestDiff&&k>best)){best=k; bestDiff=diff;}
+  }
+  return best;
+}
+function dehuCapacity(sqft){
+  if(sqft<=PRICING.dehuSqftBreakpoints.p65Max)return'p65';
+  if(sqft<=PRICING.dehuSqftBreakpoints.p90Max)return'p90';
+  return'p120';
+}
+function ervCfmKey(sqft){
+  return sqft<=PRICING.ervSqftBreakpoints.cfm130Max?'cfm130':'cfm150';
+}
+// Rounded to the nearest $25 and shown with a "~" prefix (one number, not a
+// range) so nothing reads as an exact locked-in figure. Source PRICING
+// values stay exact - only this display layer rounds.
+const roundTo25=price=>Math.round(price/25)*25;
+function systemTypeKey(answers){
+  if(answers.indoor_type==='ah')return'heat_pump_ah';
+  // Mid efficiency has no straight_cool pricing at all - furnace + mid_ge15
+  // is always dual fuel (the wizard hides the question and forces this),
+  // so honor that directly here too rather than trusting system_for to
+  // always have been kept in sync through every path that can reach this
+  // combination - the one time it wasn't (indoor_type edited from air
+  // handler to furnace after mid_ge15 was already picked) silently broke
+  // the estimate instead of showing a wrong-but-plausible number.
+  if(answers.cond_tier==='mid_ge15')return'dual_fuel';
+  return answers.system_for==='hp'?'dual_fuel':'straight_cool';
+}
+// Fires a "build completed" conversion event through whatever site-wide GA4 /
+// Meta Pixel install already exists on the host page - this file never loads
+// its own gtag.js or fbq snippet (embedded on the WordPress site, those are
+// already running once for the whole page, and installing a second copy here
+// would double-count pageviews and require hardcoding IDs into this file).
+export function trackBuildCompleted(answers){
+  try{
+    if(typeof window.gtag==='function'){
+      window.gtag('event','build_completed',{
+        event_category:'System Builder',
+        indoor_type:answers.indoor_type||'',
+        efficiency_tier:answers.cond_tier||'',
+      });
+    }
+    if(typeof window.fbq==='function'){
+      window.fbq('trackCustom','BuildCompleted');
+    }
+  }catch(e){/* analytics must never break the build flow */}
+}
+const TIER_LABEL={fedmin:'Federal Minimum - 14 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
+// Returns null if this tier/system-type combo has no pricing (shouldn't happen
+// given the wizard's own filtering, but guards against stale/edge-case answers).
+export function calcEstimate(answers,pricingAnswers){
+  const tier=answers.cond_tier;
+  const sysKey=systemTypeKey(answers);
+  const tierPrices=PRICING.equipment[tier]&&PRICING.equipment[tier][sysKey];
+  if(!tierPrices)return null;
+  const picked=TONNAGE_OPTIONS.find(o=>o.v===pricingAnswers.tonnageChoice)||TONNAGE_OPTIONS[3];
+  const tonnage=nearestTonnage(tierPrices,picked.tons);
+  const lines=[{label:`${tonnage}-ton system - ${TIER_LABEL[tier]||''}`,price:tierPrices[tonnage]}];
+
+  if(answers.indoor_type==='furnace'&&answers.furnace_eff==='e90'){
+    lines.push({label:'90% AFUE furnace upgrade',price:PRICING.furnace90Upgrade});
+  }
+  if(answers.plenum&&answers.plenum!=='none'){
+    lines.push({label:answers.plenum==='metal'?'Sheet metal plenum':'Ductboard plenum',price:PRICING.plenum[answers.plenum]});
+  }
+  const purifList=Array.isArray(answers.purif)?answers.purif:[];
+  if(purifList.includes('uv'))lines.push({label:'UV Light System',price:PRICING.purif.uv});
+  if(purifList.includes('ionizer'))lines.push({label:'Ionizer / Plasma',price:PRICING.purif.ionizer});
+  if(purifList.includes('surge'))lines.push({label:'Surge Protector',price:PRICING.extras.surge});
+
+  if(answers.dehu==='yes'){
+    const cap=dehuCapacity(picked.sqftMid);
+    lines.push({label:`Whole-home dehumidifier (${cap.replace('p','')}pt)`,price:PRICING.dehu[cap]});
+  }
+
+  const extrasList=Array.isArray(answers.extras)?answers.extras:[];
+  if(extrasList.includes('condensate'))lines.push({label:'Condensate Pump',price:PRICING.extras.condensate});
+  if(extrasList.includes('erv')){
+    const cfmKey=ervCfmKey(picked.sqftMid);
+    lines.push({label:`ERV (${cfmKey==='cfm130'?'130':'150'} CFM)`,price:PRICING.extras.erv[cfmKey]});
+  }
+  // Return-side work (plenum, new duct, duct cleaning) stays education-only
+  // (see additionalConsiderations below) with final scope confirmed at the
+  // in-home visit - unlike condensate/ERV, these don't have a self-contained
+  // on-diagram build-out for the customer to see update live.
+
+  if(pricingAnswers.wantDucts&&pricingAnswers.ventCount>0){
+    lines.push({label:`Duct replacement (${pricingAnswers.ventCount} vents)`,price:pricingAnswers.ventCount*PRICING.duct.replacementPerStem});
+  }
+
+  const subtotal=lines.reduce((s,l)=>s+l.price,0);
+  const linesRounded=lines.map(l=>({...l,display:roundTo25(l.price)}));
+  // Sum the already-rounded line items rather than independently rounding
+  // the raw subtotal - roundTo25 isn't linear, so the two can land on
+  // different multiples of 25 and a customer adding up the itemized rows
+  // would get a total that doesn't match the headline price.
+  const display=linesRounded.reduce((s,l)=>s+l.display,0);
+  return{lines:linesRounded,subtotal,display,tonnage};
+}
