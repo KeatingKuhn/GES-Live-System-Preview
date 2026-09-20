@@ -922,6 +922,19 @@ const PART_INFO={
     es:{title:'CLASIFICACIÓN AFUE',text:"La parte de cada dólar de gas que se convierte en calor útil. 90% AFUE desperdicia menos que 80%, usando una chimenea de PVC sellada en vez de metal."}},
   acoil:{en:{title:'A-COIL',text:"Refrigerant flows through it to pull heat and humidity out of the air your blower pushes across it, cooling your home."},
     es:{title:'SERPENTÍN EN A',text:"El refrigerante fluye a través de él para extraer calor y humedad del aire que el motor empuja sobre él, enfriando su hogar."}},
+  // Heat-pump-heating variant - refrigerant flow through this same coil
+  // literally reverses (see refReversed, which also drives the diagram's
+  // own ABSORBING/REJECTING HEAT label), so it's now releasing heat into
+  // the air instead of pulling it out - the opposite of the default
+  // cooling-mode copy above, not just a reworded restatement of it.
+  acoil_heat_reject:{en:{title:'A-COIL',text:"In heat pump mode the refrigerant reverses through it, releasing heat into the air your blower pushes across it to warm your home instead of cooling it."},
+    es:{title:'SERPENTÍN EN A',text:"En modo bomba de calor, el refrigerante se invierte a través de él, liberando calor al aire que el motor empuja sobre él para calentar su hogar en vez de enfriarlo."}},
+  // Furnace-heating variant - the compressor's off and refrigerant isn't
+  // moving at all here (this coil only does anything in cool mode or
+  // while a heat pump is actively heating), so neither the default nor
+  // the heat-pump-heating copy above describes what it's doing right now.
+  acoil_heat_idle:{en:{title:'A-COIL',text:"Only active when you're cooling or when a heat pump is doing the heating - with the furnace running instead, this coil sits idle while air just passes through it."},
+    es:{title:'SERPENTÍN EN A',text:"Solo está activo cuando está enfriando o cuando una bomba de calor está calentando - con el horno funcionando en su lugar, este serpentín queda inactivo mientras el aire simplemente pasa a través de él."}},
   air_handler_cabinet:{en:{title:'AIR HANDLER',text:"The indoor half of a heat-pump-only system - no gas furnace here, just a blower and coil moving air for both heating and cooling."},
     es:{title:'MANEJADOR DE AIRE',text:"La mitad interior de un sistema de solo bomba de calor - sin horno de gas aquí, solo un motor y un serpentín moviendo aire para calefacción y enfriamiento."}},
   condenser_cabinet:{en:{title:'CONDENSER',text:"Your outdoor unit. It releases heat outside to cool your home, or, with a heat pump, pulls heat from the outside air to warm it."},
@@ -940,10 +953,14 @@ const PART_INFO={
     es:{title:'PLENUM DE SUMINISTRO',text:"Donde el aire acondicionado sale de su unidad interior y se distribuye hacia los ductos que alimentan cada habitación."}},
   supply_register:{en:{title:'SUPPLY REGISTER',text:"Where conditioned air actually enters the room, at the end of a duct run off the supply plenum."},
     es:{title:'REJILLA DE SUMINISTRO',text:"Donde el aire acondicionado realmente entra a la habitación, al final de un ducto que sale del plenum de suministro."}},
+  supply_duct:{en:{title:'SUPPLY DUCT',text:"Insulated flex duct carrying conditioned air from the supply plenum down to this room's register."},
+    es:{title:'DUCTO DE SUMINISTRO',text:"Ducto flexible aislado que lleva el aire acondicionado desde el plenum de suministro hasta la rejilla de esta habitación."}},
   return_plenum:{en:{title:'RETURN PLENUM',text:"Pulls room air back into the system so it can be filtered and reconditioned again."},
     es:{title:'PLENUM DE RETORNO',text:"Jala el aire de la habitación de vuelta al sistema para que pueda ser filtrado y acondicionado de nuevo."}},
   return_grille:{en:{title:'RETURN GRILLE',text:"Where room air is pulled back into the ductwork, on its way to the filter and the indoor unit."},
     es:{title:'REJILLA DE RETORNO',text:"Donde el aire de la habitación es jalado de vuelta hacia los ductos, camino al filtro y a la unidad interior."}},
+  return_duct:{en:{title:'RETURN DUCT',text:"Carries room air from the return grille back up to the return plenum and filter, on its way to be reconditioned."},
+    es:{title:'DUCTO DE RETORNO',text:"Lleva el aire de la habitación desde la rejilla de retorno hasta el plenum de retorno y el filtro, para ser acondicionado de nuevo."}},
   filtration_cabinet:{en:{title:'FILTRATION CABINET',text:"Standard on every install - traps far more dust, pollen, and allergens than a typical 1 inch filter."},
     es:{title:'GABINETE DE FILTRACIÓN',text:"Incluido de fábrica en toda instalación - atrapa mucho más polvo, polen y alérgenos que un filtro típico de 1 pulgada."}},
   thermostat_general:{en:{title:'THERMOSTAT',text:"The control for your whole system - set a temperature here and every part of this diagram responds to what it takes to hold it."},
@@ -973,68 +990,89 @@ function partInfo(key,lang){
   return(lang==='es'&&e.es)?e.es:e.en;
 }
 
+// Clickable overlay on a finished diagram piece - only wired up on the done
+// screen (onEditStep is undefined during the wizard itself, where jumping
+// mid-flow doesn't make sense). Hover state is a stroke on a sibling rect,
+// revealed via CSS (.edit-zone:hover .edit-zone-ring in styles.css) so it
+// costs nothing when not hovered.
+//
+// Module-scope, not a Canvas-scoped closure like it used to be - Canvas
+// redefined it as a brand-new function on every single render, and since
+// React treats a JSX tag's underlying function reference as its component
+// identity, every <EditZone> on the page was unmounting and remounting on
+// every render, not just the one whose SVG_SCALE/vw/vh actually changed.
+// Once the hover-info feature added a `hoverPart` state that changes on
+// nearly every mouse movement over the diagram, this went from a rare
+// (wizard step change, window resize) event to a constant one - visible
+// as the furnace/condenser box's glow ring and everything painted after it
+// flickering or "jumping" on almost every hover, the bug reported after
+// hover-info shipped. onEditStep/svgScale/vw/vh - all read from Canvas's
+// own closures before - now come in as explicit props instead, same as
+// HoverInfo's own vw/vh above, so this function's identity stays stable
+// across renders that don't actually change any of them.
+//
+// Some real-world components (the thermostat, mainly) are small enough in
+// their own right that a narrow mobile frame's scale-down (the whole
+// diagram routinely renders at under a third of its native size on a
+// 375-390px phone) shrinks their EDIT hit area well under any usable tap
+// target - the thermostat's alone measured ~19x19 on-screen px at 375px
+// wide before this. This grows any zone that would render smaller than
+// MIN_EDIT_PX (comfortably above the 24px WCAG 2.5.5 AA minimum) back up
+// to that floor, in SVG units scaled for the CURRENT render, centered on
+// its original box so it still sits over the right component - visual
+// component geometry itself (the rects/shapes drawn elsewhere) is
+// untouched, only this invisible/hover-ring overlay grows. Clamped to the
+// canvas bounds so it can never poke off the edge of the SVG.
+const MIN_EDIT_PX=28;
+// children (optional, purely additive - every existing call site passes
+// none) render LAST inside this same <g onClick=...>, i.e. on TOP of
+// EditZone's own two rects. That's what lets a HoverInfo passed as a
+// child of a box's own EditZone actually win hover here on the done
+// screen: EditZone's own hit-rect otherwise has to stay topmost (it's
+// deliberately painted after the equipment it covers, elsewhere in this
+// file, so a click anywhere in the box - not just a thin gap between
+// opaque shapes - reaches it) which means anything painted BEFORE this
+// point (e.g. a HoverInfo nested inside BlowerWheel/Condenser/etc., which
+// only ever runs during the wizard where onEditStep is undefined and
+// EditZone doesn't exist at all) never gets a chance to be hovered once
+// EditZone exists too. Nesting the done-screen version of those same
+// sub-part hovers HERE instead keeps them working in both modes without
+// moving EditZone itself (which would break its own click coverage - see
+// the call sites that pass children for the full reasoning). Clicking a
+// child still does nothing but forward to this SAME onEditStep(stepId) -
+// see HoverInfo's own module comment.
+function EditZone({x,y,w,h,stepId,rx,children,onEditStep,svgScale,vw,vh}){
+  if(!onEditStep)return null;
+  const minUnits=svgScale>0?MIN_EDIT_PX/svgScale:0;
+  let ex=x, ey=y, ew=w, eh=h;
+  if(ew<minUnits){ex-=(minUnits-ew)/2; ew=minUnits;}
+  if(eh<minUnits){ey-=(minUnits-eh)/2; eh=minUnits;}
+  if(vw){if(ex<0)ex=0; if(ex+ew>vw)ex=Math.max(0,vw-ew);}
+  if(vh){if(ey<0)ey=0; if(ey+eh>vh)ey=Math.max(0,vh-eh);}
+  return <g className="edit-zone" onClick={()=>onEditStep(stepId)}>
+    <rect x={ex} y={ey} width={ew} height={eh} rx={rx||4} fill="transparent" stroke="none"/>
+    <rect className="edit-zone-ring" x={ex-3} y={ey-3} width={ew+6} height={eh+6} rx={(rx||4)+3}
+      fill="rgba(215,183,64,.06)" stroke="rgba(215,183,64,.95)" strokeWidth="2.5" filter="url(#glow-sm)"/>
+    {children}
+  </g>;
+}
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // Shorthand for the hover-tooltip copy above, resolved to this render's
   // language once instead of every call site repeating partInfo(key,lang).
   const T=(key)=>partInfo(key,lang);
-  // Clickable overlay on a finished diagram piece - only wired up on the
-  // done screen (onEditStep is undefined during the wizard itself, where
-  // jumping mid-flow doesn't make sense). Hover state is a stroke on a
-  // sibling rect rather than a filter, so it can't collide with any of
-  // this component's own SVG filter="" attributes elsewhere.
   // SVG_SCALE/SVG_VW/SVG_VH are set below once each layout branch knows its
   // own VW/VH and the frame's actual measured box (see frameBox) - same
   // "assigned later, read by a closure that only actually runs after this
   // function returns" pattern already used for G/B/W/O just below. Only one
-  // of the two layout branches ever runs per call, so by the time React
-  // actually invokes EditZone, these hold that branch's real numbers.
+  // of the two layout branches ever runs per call, so by the time anything
+  // downstream (HoverInfo's vw/vh, EditZone's svgScale/vw/vh, both module-
+  // scope and passed these explicitly) actually reads them, they hold that
+  // branch's real numbers. EditZone itself moved to module scope (see its
+  // own comment there for why) - this file's own EditZone now refers to
+  // that one, not a Canvas-local closure.
   let SVG_SCALE=1, SVG_VW=0, SVG_VH=0;
-  // Some real-world components (the thermostat, mainly) are small enough
-  // in their own right that a narrow mobile frame's scale-down (the whole
-  // diagram routinely renders at under a third of its native size on a
-  // 375-390px phone) shrinks their EDIT hit area well under any usable tap
-  // target - the thermostat's alone measured ~19x19 on-screen px at 375px
-  // wide before this. This grows any zone that would render smaller than
-  // MIN_EDIT_PX (comfortably above the 24px WCAG 2.5.5 AA minimum) back up
-  // to that floor, in SVG units scaled for the CURRENT render, centered on
-  // its original box so it still sits over the right component - visual
-  // component geometry itself (the rects/shapes drawn elsewhere) is
-  // untouched, only this invisible/hover-ring overlay grows. Clamped to the
-  // canvas bounds so it can never poke off the edge of the SVG.
-  const MIN_EDIT_PX=28;
-  // children (optional, purely additive - every existing call site passes
-  // none) render LAST inside this same <g onClick=...>, i.e. on TOP of
-  // EditZone's own two rects. That's what lets a HoverInfo passed as a
-  // child of a box's own EditZone actually win hover here on the done
-  // screen: EditZone's own hit-rect otherwise has to stay topmost (it's
-  // deliberately painted after the equipment it covers, elsewhere in this
-  // file, so a click anywhere in the box - not just a thin gap between
-  // opaque shapes - reaches it) which means anything painted BEFORE this
-  // point (e.g. a HoverInfo nested inside BlowerWheel/Condenser/etc.,
-  // which only ever runs during the wizard where onEditStep is undefined
-  // and EditZone doesn't exist at all) never gets a chance to be hovered
-  // once EditZone exists too. Nesting the done-screen version of those
-  // same sub-part hovers HERE instead keeps them working in both modes
-  // without moving EditZone itself (which would break its own click
-  // coverage - see the call sites that pass children for the full
-  // reasoning). Clicking a child still does nothing but forward to this
-  // SAME onEditStep(stepId) - see HoverInfo's own module comment.
-  const EditZone=({x,y,w,h,stepId,rx,children})=>{
-    if(!onEditStep)return null;
-    const minUnits=SVG_SCALE>0?MIN_EDIT_PX/SVG_SCALE:0;
-    let ex=x, ey=y, ew=w, eh=h;
-    if(ew<minUnits){ex-=(minUnits-ew)/2; ew=minUnits;}
-    if(eh<minUnits){ey-=(minUnits-eh)/2; eh=minUnits;}
-    if(SVG_VW){if(ex<0)ex=0; if(ex+ew>SVG_VW)ex=Math.max(0,SVG_VW-ew);}
-    if(SVG_VH){if(ey<0)ey=0; if(ey+eh>SVG_VH)ey=Math.max(0,SVG_VH-eh);}
-    return <g className="edit-zone" onClick={()=>onEditStep(stepId)}>
-      <rect x={ex} y={ey} width={ew} height={eh} rx={rx||4} fill="transparent" stroke="none"/>
-      <rect className="edit-zone-ring" x={ex-3} y={ey-3} width={ew+6} height={eh+6} rx={(rx||4)+3}
-        fill={G+'.06)'} stroke={G+'.95)'} strokeWidth="2.5" filter="url(#glow-sm)"/>
-      {children}
-    </g>;
-  };
   // ── DONE-SCREEN SUB-PART HOVERS ─────────────────────────────
   // Passed as EditZone's own `children` (see its comment above for why) at
   // the indoor_type/cond_tier call sites in both layout branches, so the
@@ -1062,14 +1100,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
         <HoverInfo x={mid+2} y={UNIT_Y+9} w={40} h={12} rx={2} vw={SVG_VW} vh={SVG_VH}
           title={T('afue_badge').title} text={T('afue_badge').text} onClick={go}/>
         <HoverInfo x={ACOIL_X} y={UNIT_Y} w={ACOIL_W} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
-          title={T('acoil').title} text={T('acoil').text} onClick={go}/>
+          title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
       </>;
     }
     return <>
       <HoverInfo x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
         title={T('air_handler_cabinet').title} text={T('air_handler_cabinet').text} onClick={go}/>
       <HoverInfo x={AH_X} y={UNIT_Y} w={AH_W*0.5} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
-        title={T('acoil').title} text={T('acoil').text} onClick={go}/>
+        title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
       <HoverInfo x={AH_X+AH_W*0.5} y={UNIT_Y} w={AH_W*0.5} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
         title={T('blower').title} text={T('blower').text} onClick={go}/>
     </>;
@@ -1085,7 +1123,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     if(hasFurnaceLocal){
       return <>
         <HoverInfo x={UNIT_X} y={ACOIL_Y} w={UNIT_W} h={ACOIL_H} rx={5} vw={SVG_VW} vh={SVG_VH}
-          title={T('acoil').title} text={T('acoil').text} onClick={go}/>
+          title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
         <HoverInfo x={UNIT_X} y={FURN_Y} w={UNIT_W} h={FURN_H} rx={5} vw={SVG_VW} vh={SVG_VH}
           title={T('furnace_cabinet').title} text={T('furnace_cabinet').text} onClick={go}/>
         <HoverInfo x={UNIT_X} y={FURN_Y} w={UNIT_W} h={FURN_H/2} vw={SVG_VW} vh={SVG_VH}
@@ -1102,7 +1140,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       <HoverInfo x={UNIT_X} y={ACOIL_Y} w={UNIT_W} h={ACOIL_H*0.5} rx={5} vw={SVG_VW} vh={SVG_VH}
         title={T('blower').title} text={T('blower').text} onClick={go}/>
       <HoverInfo x={UNIT_X} y={ACOIL_Y+ACOIL_H*0.5} w={UNIT_W} h={ACOIL_H*0.5} rx={5} vw={SVG_VW} vh={SVG_VH}
-        title={T('acoil').title} text={T('acoil').text} onClick={go}/>
+        title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
     </>;
   };
   // Condenser's own fan/compressor/SEER sub-hovers, shared by both layout
@@ -1380,6 +1418,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   const evapActive=!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut));
   const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut)));
   const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
+  // A-coil hover copy: which of the three PART_INFO acoil* keys actually
+  // describes what this coil is doing right now - see those keys' own
+  // comments for why cooling/heat-pump-heating/furnace-heating each need
+  // their own text rather than one description that covers all three.
+  const acoilInfoKey=()=>heatMode?(refReversed?'acoil_heat_reject':'acoil_heat_idle'):'acoil';
   // For a standard heat pump (hpLockedOut), aux heat is the ONLY thing
   // running - the compressor's off. For a low-ambient heat pump (mid
   // efficiency), the compressor never locks out, but the heat strip still
@@ -1734,7 +1777,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
           reasoning as BlowerWheel's own hover above. */}
       <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={SVG_VW} vh={SVG_VH}
-        title={T('acoil').title} text={T('acoil').text}
+        title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text}
         onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
     </g>;
   }
@@ -1801,7 +1844,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
           reasoning as BlowerWheel's own hover above. */}
       <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={SVG_VW} vh={SVG_VH}
-        title={T('acoil').title} text={T('acoil').text}
+        title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text}
         onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
     </g>;
   }
@@ -3192,6 +3235,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasCoil&&<g>
             <rect x={RET_X+RET_PLEN_W/2-27} y={UNIT_Y+UNIT_H} width={54} height={Math.max(0,DECK_Y-(UNIT_Y+UNIT_H))}
               fill="rgba(255,182,193,.18)" stroke="rgba(255,182,193,.5)" strokeWidth="1.6"/>
+            {/* Duct trunk's own hover, painted first/bottommost so the more
+                specific return_grille hover just below (painted later, on
+                top) wins the small strip where the two boxes overlap near
+                the deck line - no EditZone covers this, so no onClick. */}
+            <HoverInfo x={RET_X+RET_PLEN_W/2-27} y={UNIT_Y+UNIT_H} w={54} h={Math.max(0,DECK_Y-3-(UNIT_Y+UNIT_H))} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('return_duct').title} text={T('return_duct').text}/>
             <rect x={RET_X+2} y={DECK_Y-1} width={RET_PLEN_W-4} height={11} rx="1"
               fill="rgba(0,0,0,.65)" stroke="rgba(255,182,193,.45)" strokeWidth="1.2"/>
             {Array.from({length:7},(_,i)=>(
@@ -3240,13 +3289,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 conditioned yet, it's on its way TO the coil/furnace, so
                 it's colored the temperature it's about to be corrected
                 FROM, not the temperature supply air already IS. */}
-            {DECK_Y-(UNIT_Y+UNIT_H)>16&&<>
+            {/* pointerEvents:none on the wrapper - the glow duplicate below
+                has no class of its own to hang a CSS rule on the way
+                .airflow's own pointer-events:none covers its animated
+                sibling, and at 7px wide it's a real hit target that was
+                swallowing hover from the return-duct trunk underneath it
+                (found by hovering directly over this arrow). */}
+            {DECK_Y-(UNIT_Y+UNIT_H)>16&&<g style={{pointerEvents:'none'}}>
               <path d={`M${RET_X+RET_PLEN_W/2} ${DECK_Y-4} L${RET_X+RET_PLEN_W/2} ${UNIT_Y+UNIT_H*0.5} L${RET_X+RET_PLEN_W-16} ${UNIT_Y+UNIT_H*0.5}`}
                 fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
               <path d={`M${RET_X+RET_PLEN_W/2} ${DECK_Y-4} L${RET_X+RET_PLEN_W/2} ${UNIT_Y+UNIT_H*0.5} L${RET_X+RET_PLEN_W-16} ${UNIT_Y+UNIT_H*0.5}`}
                 fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4" strokeLinejoin="round"
                 strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
-            </>}
+            </g>}
             {/* No EditZone covers this - free-standing hover, no onClick.
                 Painted last/topmost in this group (after the airflow
                 arrow above) so that thin animated path never shadows the
@@ -3332,7 +3387,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     ACoilH (embedded below) adds its own more specific
                     hover on top of this for the coil itself. */}
                 <HoverInfo x={ACOIL_X} y={UNIT_Y} w={ACOIL_W} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
-                  title={T('acoil').title} text={T('acoil').text}
+                  title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text}
                   onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
                 {/* Exterior housing stays silver in both states - see the
                     comment on FurnaceH's border/strip above. */}
@@ -3398,7 +3453,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
             </text>
           </g>}
-          {hasCoil&&<EditZone stepId="indoor_type"
+          {hasCoil&&<EditZone stepId="indoor_type" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={(hasFurnace?FURN_X:AH_X)-4} y={UNIT_Y-2} rx={6}
             w={(hasFurnace?ACOIL_X+ACOIL_W-FURN_X:AH_W)+8} h={UNIT_H+4}>
             {indoorSubHoversH(hasFurnace,FURN_X,FURN_W,ACOIL_X,ACOIL_W,AH_X,AH_W,UNIT_Y,UNIT_H)}
@@ -3424,7 +3479,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+16} textAnchor="middle"
                   fill={G+'.32)'} fontSize="11.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
                 {[SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.28), SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.72)].map((ay,i)=>(
-                  <g key={"af"+i}>
+                  // pointerEvents:none on the wrapper - see the return
+                  // plenum's own airflow-arrow comment above for why the
+                  // 7px glow duplicate needs this too, not just .airflow's
+                  // own pointer-events:none on its animated sibling.
+                  <g key={"af"+i} style={{pointerEvents:'none'}}>
                     <line x1={SUP_X+8} y1={ay} x2={SUP_X+SUP_PLEN_W-8} y2={ay}
                       fill="none" stroke={(heatMode?O:B)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
                     <line x1={SUP_X+8} y1={ay} x2={SUP_X+SUP_PLEN_W-8} y2={ay}
@@ -3458,7 +3517,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               </>;
             })()}
           </g>}
-          {hasPlenum&&hasCoil&&<EditZone stepId="plenum"
+          {hasPlenum&&hasCoil&&<EditZone stepId="plenum" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={SUP_X-2} y={SUP_PLEN_Y-2} w={SUP_PLEN_W+4} h={SUP_PLEN_H+4} rx={5}/>}
           {/* Same box as the EditZone just above - painted after it (on
               top), so the onClick here forwards to the identical
@@ -3501,6 +3560,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   <DuctClamp x={cx-DW/2} y={pBot+2} w={DW} vertical/>
                   <DuctClamp x={cx-DW/2} y={DECK_Y-5} w={DW} vertical/>
                   {DECK_Y-pBot>10&&ductArrow(`M${cx},${pBot+3} L${cx},${DECK_Y-4}`,'arrow')}
+                  {/* No EditZone covers duct geometry - free-standing hover,
+                      no onClick. Painted before the grille below so its own
+                      more specific hover (RegisterGrille's built-in one)
+                      wins the small strip where the two overlap near the
+                      deck line. */}
+                  <HoverInfo x={cx-DW/2-2} y={pBot} w={DW+4} h={Math.max(0,DECK_Y-pBot)} rx={2}
+                    vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
                   {grille(cx)}
                 </g>
               );
@@ -3520,6 +3586,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <DuctClamp x={topX-DW/2} y={pBot+2} w={DW} vertical/>
                     <DuctClamp x={botX-DW/2} y={DECK_Y-5} w={DW} vertical/>
                     {ductArrow(`M${topX},${pBot+3} L${botX},${bendY} L${botX},${DECK_Y-4}`,'arrow')}
+                    {/* Two boxes tracing the actual bent run (elbow leg,
+                        then straight drop) rather than one bounding rect,
+                        same reasoning as the lineset's own L-shaped hover
+                        elsewhere in this file - a single rect spanning the
+                        full diagonal would swallow whatever sits beside it. */}
+                    <HoverInfo x={Math.min(topX,botX)-DW/2-2} y={pBot-2} w={Math.abs(botX-topX)+DW+4} h={bendY-pBot+4} rx={2}
+                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                    <HoverInfo x={botX-DW/2-2} y={bendY} w={DW+4} h={Math.max(0,DECK_Y-bendY)} rx={2}
+                      vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
                     {grille(botX)}
                   </g>
                 );
@@ -3595,7 +3670,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
               active={condenserActive} tierKey={a.cond_tier}/>}/>}
-          {hasCond&&<EditZone stepId="cond_tier"
+          {hasCond&&<EditZone stepId="cond_tier" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}>
             {condenserSubHovers(COND_X,COND_Y,COND_W,COND_H,a.cond_tier)}
           </EditZone>}
@@ -3733,7 +3808,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 </>;
             })()}
             </g>
-            <EditZone stepId="thermostat"
+            <EditZone stepId="thermostat" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
               x={THERM_TX-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
             {/* Painted after EditZone (topmost in paint order) so a click
                 lands on the button, not the done-screen's edit-zone overlay
@@ -4195,7 +4270,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             })()}
           </g>}
 
-          {hasPlenum&&hasCoil&&<EditZone stepId="plenum"
+          {hasPlenum&&hasCoil&&<EditZone stepId="plenum" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={UNIT_X-2} y={PLEN_TOP-2} w={PLEN_W+4} h={PLEN_TOTAL+4} rx={5}/>}
           {/* Same box as the EditZone just above - see the attic layout's
               own supply-plenum hover call site for why the onClick here
@@ -4248,6 +4323,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <DuctClamp x={UNIT_X-DW-3} y={exitY} h={DW} vertical={false}/>
                 <DuctClamp x={leftDropX} y={DECK_Y-5} w={DW} vertical/>
                 {ductArrow(`M${UNIT_X-3},${exitY+DW/2} L${leftDropX+DW/2},${exitY+DW/2} L${leftDropX+DW/2},${DECK_Y-4}`,'la')}
+                {/* No EditZone covers duct geometry - free-standing hover,
+                    no onClick. Two boxes tracing the actual bent run
+                    (horizontal leg off the plenum, then the vertical drop)
+                    same as the attic layout's own angled duct hover, rather
+                    than one rect spanning the whole L that would swallow
+                    the plenum/unit sitting beside it. Painted before the
+                    grille below so its own more specific hover wins the
+                    small overlap near the deck line. */}
+                <HoverInfo x={leftDropX-2} y={exitY-2} w={UNIT_X-leftDropX+2} h={DW+4} rx={2}
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                <HoverInfo x={leftDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
                 <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
 
                 {/* ── RIGHT DUCT ── */}
@@ -4260,6 +4347,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <DuctClamp x={UNIT_X+PLEN_W+3} y={exitY} h={DW} vertical={false}/>
                 <DuctClamp x={rightDropX} y={DECK_Y-5} w={DW} vertical/>
                 {ductArrow(`M${UNIT_X+PLEN_W+3},${exitY+DW/2} L${rightDropX+DW/2},${exitY+DW/2} L${rightDropX+DW/2},${DECK_Y-4}`,'ra')}
+                <HoverInfo x={UNIT_X+PLEN_W} y={exitY-2} w={rightDropX-(UNIT_X+PLEN_W)+DW+2} h={DW+4} rx={2}
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
+                <HoverInfo x={rightDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text}/>
                 <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
               </>;
             })()}
@@ -4276,8 +4367,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     (furnace-paired) and BlowerWheel (standalone AH) each
                     add their own more specific hover internally. */}
                 <HoverInfo x={UNIT_X} y={ACOIL_Y} w={UNIT_W} h={ACOIL_H} rx={5} vw={SVG_VW} vh={SVG_VH}
-                  title={T(hasFurnace?'acoil':'air_handler_cabinet').title}
-                  text={T(hasFurnace?'acoil':'air_handler_cabinet').text}
+                  title={T(hasFurnace?acoilInfoKey():'air_handler_cabinet').title}
+                  text={T(hasFurnace?acoilInfoKey():'air_handler_cabinet').text}
                   onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
                 {/* Exterior housing stays silver in both states - see the
                     comment on FurnaceH's border/strip above. */}
@@ -4567,7 +4658,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             </g>;
           })()}
 
-          {hasCoil&&<EditZone stepId="indoor_type"
+          {hasCoil&&<EditZone stepId="indoor_type" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={UNIT_X-4} y={ACOIL_Y-2} rx={6}
             w={UNIT_W+8} h={(hasFurnace?FURN_Y+FURN_H-ACOIL_Y:ACOIL_H)+4}>
             {indoorSubHoversV(hasFurnace,UNIT_X,UNIT_W,ACOIL_Y,ACOIL_H,FURN_Y,FURN_H)}
@@ -4606,12 +4697,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 purpose - this air hasn't been conditioned yet, it's on its
                 way TO the coil/furnace, so it's colored the temperature
                 it's about to be corrected FROM, not the temperature supply
-                air already IS. */}
-            <path d={`M${UNIT_X+UNIT_W/2} ${VH-20} L${UNIT_X+UNIT_W/2} ${CHASE_Y+10}`}
-              fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
-            <path d={`M${UNIT_X+UNIT_W/2} ${VH-20} L${UNIT_X+UNIT_W/2} ${CHASE_Y+10}`}
-              fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
-              strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+                air already IS. pointerEvents:none on the wrapper - see the
+                attic return plenum's own airflow-arrow comment for why the
+                7px glow duplicate needs this too. */}
+            <g style={{pointerEvents:'none'}}>
+              <path d={`M${UNIT_X+UNIT_W/2} ${VH-20} L${UNIT_X+UNIT_W/2} ${CHASE_Y+10}`}
+                fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
+              <path d={`M${UNIT_X+UNIT_W/2} ${VH-20} L${UNIT_X+UNIT_W/2} ${CHASE_Y+10}`}
+                fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
+                strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+            </g>
             <text x={UNIT_X+UNIT_W/2} y={VH-8} textAnchor="middle"
               fill="rgba(138,98,42,.62)" fontSize="11.5" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
             {/* No EditZone covers this - free-standing hover, no onClick.
@@ -4722,7 +4817,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
               active={condenserActive} tierKey={a.cond_tier}/>}/>}
-          {hasCond&&<EditZone stepId="cond_tier"
+          {hasCond&&<EditZone stepId="cond_tier" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}>
             {condenserSubHovers(COND_X,COND_Y,COND_W,COND_H,a.cond_tier)}
           </EditZone>}
@@ -4823,7 +4918,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   <text x={TX+38} y={TY+58} textAnchor="middle" fill={G+'.38)'} fontSize="11" fontFamily="monospace">BASIC</text>
                 </>;
             })()}
-            <EditZone stepId="thermostat" x={TX-2} y={TY-2} w={82} h={116}/>
+            <EditZone stepId="thermostat" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
+              x={TX-2} y={TY-2} w={82} h={116}/>
             {/* Painted after EditZone (topmost in paint order) so a click
                 lands on the button, not the done-screen's edit-zone overlay
                 underneath it - see EditZone's own onClick above. */}

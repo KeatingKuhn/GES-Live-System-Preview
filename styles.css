@@ -261,11 +261,20 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 @keyframes snap{from{opacity:0;transform:translateY(-14px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
 .fadein{animation:fadein .3s ease both}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
-.draw{stroke-dasharray:300;stroke-dashoffset:300;animation:draw .7s ease forwards}
+/* pointer-events:none on draw/spin/airflow (and glow-pulse/line-pulse
+   below) - all four are purely decorative animated marks (a duct's flow
+   arrow, a fan's spin, a refrigerant line's pulse) layered on top of or
+   inside a component's own hover-info zone, never a click/hover target in
+   their own right. Without this, a stroked <path> (the airflow arrow's
+   glow duplicate is 7px wide) sitting on top of a HoverInfo hit-rect
+   swallows the pointer along its own thin line, leaving a dead strip
+   where hovering shows nothing instead of the component underneath -
+   found by hovering directly over the return duct's own flow arrow. */
+.draw{stroke-dasharray:300;stroke-dashoffset:300;animation:draw .7s ease forwards;pointer-events:none}
 @keyframes draw{to{stroke-dashoffset:0}}
-.spin{animation:spin 4s linear infinite}
+.spin{animation:spin 4s linear infinite;pointer-events:none}
 @keyframes spin{to{transform:rotate(360deg)}}
-.airflow{stroke-dasharray:10 6;animation:airflow 2s linear infinite}
+.airflow{stroke-dasharray:10 6;animation:airflow 2s linear infinite;pointer-events:none}
 @keyframes airflow{to{stroke-dashoffset:-32}}
 /* Rain/snow: each drop/flake carries its own --fx/--fy (total travel, set
    inline per-element from real zone geometry so the fall actually crosses
@@ -309,10 +318,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    its mid-pulse brightness; gpulse then takes over, delayed to start right
    where glowIn leaves off (opacity .5) so there's no visible seam between
    the two. The always-running pulse itself is unchanged. */
-.glow-pulse{animation:glowIn .22s ease-out both,gpulse 2.5s ease-in-out .22s infinite}
+.glow-pulse{animation:glowIn .22s ease-out both,gpulse 2.5s ease-in-out .22s infinite;pointer-events:none}
 @keyframes glowIn{from{opacity:0}to{opacity:.5}}
 @keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
-.line-pulse{animation:gpulse 2.2s ease-in-out infinite}
+.line-pulse{animation:gpulse 2.2s ease-in-out infinite;pointer-events:none}
 /* Done-screen diagram is clickable - hover reveals which piece each
    component maps back to, so "edit this" doesn't require finding it in a list. */
 .edit-zone{cursor:pointer}

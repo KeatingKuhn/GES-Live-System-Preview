@@ -1557,6 +1557,23 @@
       en: { title: "A-COIL", text: "Refrigerant flows through it to pull heat and humidity out of the air your blower pushes across it, cooling your home." },
       es: { title: "SERPENT\xCDN EN A", text: "El refrigerante fluye a trav\xE9s de \xE9l para extraer calor y humedad del aire que el motor empuja sobre \xE9l, enfriando su hogar." }
     },
+    // Heat-pump-heating variant - refrigerant flow through this same coil
+    // literally reverses (see refReversed, which also drives the diagram's
+    // own ABSORBING/REJECTING HEAT label), so it's now releasing heat into
+    // the air instead of pulling it out - the opposite of the default
+    // cooling-mode copy above, not just a reworded restatement of it.
+    acoil_heat_reject: {
+      en: { title: "A-COIL", text: "In heat pump mode the refrigerant reverses through it, releasing heat into the air your blower pushes across it to warm your home instead of cooling it." },
+      es: { title: "SERPENT\xCDN EN A", text: "En modo bomba de calor, el refrigerante se invierte a trav\xE9s de \xE9l, liberando calor al aire que el motor empuja sobre \xE9l para calentar su hogar en vez de enfriarlo." }
+    },
+    // Furnace-heating variant - the compressor's off and refrigerant isn't
+    // moving at all here (this coil only does anything in cool mode or
+    // while a heat pump is actively heating), so neither the default nor
+    // the heat-pump-heating copy above describes what it's doing right now.
+    acoil_heat_idle: {
+      en: { title: "A-COIL", text: "Only active when you're cooling or when a heat pump is doing the heating - with the furnace running instead, this coil sits idle while air just passes through it." },
+      es: { title: "SERPENT\xCDN EN A", text: "Solo est\xE1 activo cuando est\xE1 enfriando o cuando una bomba de calor est\xE1 calentando - con el horno funcionando en su lugar, este serpent\xEDn queda inactivo mientras el aire simplemente pasa a trav\xE9s de \xE9l." }
+    },
     air_handler_cabinet: {
       en: { title: "AIR HANDLER", text: "The indoor half of a heat-pump-only system - no gas furnace here, just a blower and coil moving air for both heating and cooling." },
       es: { title: "MANEJADOR DE AIRE", text: "La mitad interior de un sistema de solo bomba de calor - sin horno de gas aqu\xED, solo un motor y un serpent\xEDn moviendo aire para calefacci\xF3n y enfriamiento." }
@@ -1593,6 +1610,10 @@
       en: { title: "SUPPLY REGISTER", text: "Where conditioned air actually enters the room, at the end of a duct run off the supply plenum." },
       es: { title: "REJILLA DE SUMINISTRO", text: "Donde el aire acondicionado realmente entra a la habitaci\xF3n, al final de un ducto que sale del plenum de suministro." }
     },
+    supply_duct: {
+      en: { title: "SUPPLY DUCT", text: "Insulated flex duct carrying conditioned air from the supply plenum down to this room's register." },
+      es: { title: "DUCTO DE SUMINISTRO", text: "Ducto flexible aislado que lleva el aire acondicionado desde el plenum de suministro hasta la rejilla de esta habitaci\xF3n." }
+    },
     return_plenum: {
       en: { title: "RETURN PLENUM", text: "Pulls room air back into the system so it can be filtered and reconditioned again." },
       es: { title: "PLENUM DE RETORNO", text: "Jala el aire de la habitaci\xF3n de vuelta al sistema para que pueda ser filtrado y acondicionado de nuevo." }
@@ -1600,6 +1621,10 @@
     return_grille: {
       en: { title: "RETURN GRILLE", text: "Where room air is pulled back into the ductwork, on its way to the filter and the indoor unit." },
       es: { title: "REJILLA DE RETORNO", text: "Donde el aire de la habitaci\xF3n es jalado de vuelta hacia los ductos, camino al filtro y a la unidad interior." }
+    },
+    return_duct: {
+      en: { title: "RETURN DUCT", text: "Carries room air from the return grille back up to the return plenum and filter, on its way to be reconditioned." },
+      es: { title: "DUCTO DE RETORNO", text: "Lleva el aire de la habitaci\xF3n desde la rejilla de retorno hasta el plenum de retorno y el filtro, para ser acondicionado de nuevo." }
     },
     filtration_cabinet: {
       en: { title: "FILTRATION CABINET", text: "Standard on every install - traps far more dust, pollen, and allergens than a typical 1 inch filter." },
@@ -1643,46 +1668,46 @@
     if (!e) return { title: "", text: "" };
     return lang === "es" && e.es ? e.es : e.en;
   }
+  var MIN_EDIT_PX = 28;
+  function EditZone({ x, y, w, h, stepId, rx, children, onEditStep, svgScale, vw, vh }) {
+    if (!onEditStep) return null;
+    const minUnits = svgScale > 0 ? MIN_EDIT_PX / svgScale : 0;
+    let ex = x, ey = y, ew = w, eh = h;
+    if (ew < minUnits) {
+      ex -= (minUnits - ew) / 2;
+      ew = minUnits;
+    }
+    if (eh < minUnits) {
+      ey -= (minUnits - eh) / 2;
+      eh = minUnits;
+    }
+    if (vw) {
+      if (ex < 0) ex = 0;
+      if (ex + ew > vw) ex = Math.max(0, vw - ew);
+    }
+    if (vh) {
+      if (ey < 0) ey = 0;
+      if (ey + eh > vh) ey = Math.max(0, vh - eh);
+    }
+    return /* @__PURE__ */ React.createElement("g", { className: "edit-zone", onClick: () => onEditStep(stepId) }, /* @__PURE__ */ React.createElement("rect", { x: ex, y: ey, width: ew, height: eh, rx: rx || 4, fill: "transparent", stroke: "none" }), /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        className: "edit-zone-ring",
+        x: ex - 3,
+        y: ey - 3,
+        width: ew + 6,
+        height: eh + 6,
+        rx: (rx || 4) + 3,
+        fill: "rgba(215,183,64,.06)",
+        stroke: "rgba(215,183,64,.95)",
+        strokeWidth: "2.5",
+        filter: "url(#glow-sm)"
+      }
+    ), children);
+  }
   function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
     const T = (key) => partInfo(key, lang);
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
-    const MIN_EDIT_PX = 28;
-    const EditZone = ({ x, y, w, h, stepId, rx, children }) => {
-      if (!onEditStep) return null;
-      const minUnits = SVG_SCALE > 0 ? MIN_EDIT_PX / SVG_SCALE : 0;
-      let ex = x, ey = y, ew = w, eh = h;
-      if (ew < minUnits) {
-        ex -= (minUnits - ew) / 2;
-        ew = minUnits;
-      }
-      if (eh < minUnits) {
-        ey -= (minUnits - eh) / 2;
-        eh = minUnits;
-      }
-      if (SVG_VW) {
-        if (ex < 0) ex = 0;
-        if (ex + ew > SVG_VW) ex = Math.max(0, SVG_VW - ew);
-      }
-      if (SVG_VH) {
-        if (ey < 0) ey = 0;
-        if (ey + eh > SVG_VH) ey = Math.max(0, SVG_VH - eh);
-      }
-      return /* @__PURE__ */ React.createElement("g", { className: "edit-zone", onClick: () => onEditStep(stepId) }, /* @__PURE__ */ React.createElement("rect", { x: ex, y: ey, width: ew, height: eh, rx: rx || 4, fill: "transparent", stroke: "none" }), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          className: "edit-zone-ring",
-          x: ex - 3,
-          y: ey - 3,
-          width: ew + 6,
-          height: eh + 6,
-          rx: (rx || 4) + 3,
-          fill: G + ".06)",
-          stroke: G + ".95)",
-          strokeWidth: "2.5",
-          filter: "url(#glow-sm)"
-        }
-      ), children);
-    };
     const indoorSubHoversH = (hasFurnaceLocal, FURN_X, FURN_W, ACOIL_X, ACOIL_W, AH_X, AH_W, UNIT_Y, UNIT_H) => {
       const go = () => onEditStep("indoor_type");
       if (hasFurnaceLocal) {
@@ -1752,8 +1777,8 @@
             rx: 4,
             vw: SVG_VW,
             vh: SVG_VH,
-            title: T("acoil").title,
-            text: T("acoil").text,
+            title: T(acoilInfoKey()).title,
+            text: T(acoilInfoKey()).text,
             onClick: go
           }
         ));
@@ -1782,8 +1807,8 @@
           rx: 4,
           vw: SVG_VW,
           vh: SVG_VH,
-          title: T("acoil").title,
-          text: T("acoil").text,
+          title: T(acoilInfoKey()).title,
+          text: T(acoilInfoKey()).text,
           onClick: go
         }
       ), /* @__PURE__ */ React.createElement(
@@ -1815,8 +1840,8 @@
             rx: 5,
             vw: SVG_VW,
             vh: SVG_VH,
-            title: T("acoil").title,
-            text: T("acoil").text,
+            title: T(acoilInfoKey()).title,
+            text: T(acoilInfoKey()).text,
             onClick: go
           }
         ), /* @__PURE__ */ React.createElement(
@@ -1914,8 +1939,8 @@
           rx: 5,
           vw: SVG_VW,
           vh: SVG_VH,
-          title: T("acoil").title,
-          text: T("acoil").text,
+          title: T(acoilInfoKey()).title,
+          text: T(acoilInfoKey()).text,
           onClick: go
         }
       ));
@@ -2165,6 +2190,7 @@
     const evapActive = !heatMode || (isDualFuel ? heatSubMode === "hp" : !hasFurnace && !hpLockedOut);
     const condenserActive = hasCond && (!heatMode || (isDualFuel ? heatSubMode === "hp" : !hasFurnace && !hpLockedOut));
     const refReversed = heatMode && (!hasFurnace || isDualFuel && heatSubMode === "hp");
+    const acoilInfoKey = () => heatMode ? refReversed ? "acoil_heat_reject" : "acoil_heat_idle" : "acoil";
     const auxHeatActive = !hasFurnace && heatMode && heatSubMode === "aux";
     const blowerActive = !heatMode || furnaceActive || evapActive || auxHeatActive;
     const thermostatTemp = !heatMode ? hasDehu ? 76 : 74 : (isDualFuel || !hasFurnace) && heatSubMode === "hp" ? 70 : 67;
@@ -2513,8 +2539,8 @@
           rx: 3,
           vw: SVG_VW,
           vh: SVG_VH,
-          title: T("acoil").title,
-          text: T("acoil").text,
+          title: T(acoilInfoKey()).title,
+          text: T(acoilInfoKey()).text,
           onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
         }
       ));
@@ -2582,8 +2608,8 @@
           rx: 3,
           vw: SVG_VW,
           vh: SVG_VH,
-          title: T("acoil").title,
-          text: T("acoil").text,
+          title: T(acoilInfoKey()).title,
+          text: T(acoilInfoKey()).text,
           onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
         }
       ));
@@ -4233,6 +4259,19 @@
           strokeWidth: "1.6"
         }
       ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: RET_X + RET_PLEN_W / 2 - 27,
+          y: UNIT_Y + UNIT_H,
+          w: 54,
+          h: Math.max(0, DECK_Y - 3 - (UNIT_Y + UNIT_H)),
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("return_duct").title,
+          text: T("return_duct").text
+        }
+      ), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: RET_X + 2,
@@ -4319,7 +4358,7 @@
           strokeWidth: "2.8",
           strokeLinecap: "round"
         }
-      )), DECK_Y - (UNIT_Y + UNIT_H) > 16 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      )), DECK_Y - (UNIT_Y + UNIT_H) > 16 && /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
         "path",
         {
           d: `M${RET_X + RET_PLEN_W / 2} ${DECK_Y - 4} L${RET_X + RET_PLEN_W / 2} ${UNIT_Y + UNIT_H * 0.5} L${RET_X + RET_PLEN_W - 16} ${UNIT_Y + UNIT_H * 0.5}`,
@@ -4448,8 +4487,8 @@
             rx: 4,
             vw: SVG_VW,
             vh: SVG_VH,
-            title: T("acoil").title,
-            text: T("acoil").text,
+            title: T(acoilInfoKey()).title,
+            text: T(acoilInfoKey()).text,
             onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
           }
         ), /* @__PURE__ */ React.createElement(
@@ -4536,6 +4575,10 @@
         EditZone,
         {
           stepId: "indoor_type",
+          onEditStep,
+          svgScale: SVG_SCALE,
+          vw: SVG_VW,
+          vh: SVG_VH,
           x: (hasFurnace ? FURN_X : AH_X) - 4,
           y: UNIT_Y - 2,
           rx: 6,
@@ -4585,35 +4628,41 @@
             fontFamily: "monospace"
           },
           "4\u20136 FT SUPPLY"
-        ), [SUP_PLEN_Y + Math.round(SUP_PLEN_H * 0.28), SUP_PLEN_Y + Math.round(SUP_PLEN_H * 0.72)].map((ay, i) => /* @__PURE__ */ React.createElement("g", { key: "af" + i }, /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: SUP_X + 8,
-            y1: ay,
-            x2: SUP_X + SUP_PLEN_W - 8,
-            y2: ay,
-            fill: "none",
-            stroke: (heatMode ? O : B) + ".3)",
-            strokeWidth: "7",
-            strokeLinecap: "round",
-            opacity: "0.4"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: SUP_X + 8,
-            y1: ay,
-            x2: SUP_X + SUP_PLEN_W - 8,
-            y2: ay,
-            fill: "none",
-            stroke: (heatMode ? O : B) + ".8)",
-            strokeWidth: "1.4",
-            strokeDasharray: "8 5",
-            className: "airflow",
-            style: { strokeDashoffset: 0 },
-            markerEnd: "url(#arr)"
-          }
-        ))), hasIonizer && (() => {
+        ), [SUP_PLEN_Y + Math.round(SUP_PLEN_H * 0.28), SUP_PLEN_Y + Math.round(SUP_PLEN_H * 0.72)].map((ay, i) => (
+          // pointerEvents:none on the wrapper - see the return
+          // plenum's own airflow-arrow comment above for why the
+          // 7px glow duplicate needs this too, not just .airflow's
+          // own pointer-events:none on its animated sibling.
+          /* @__PURE__ */ React.createElement("g", { key: "af" + i, style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
+            "line",
+            {
+              x1: SUP_X + 8,
+              y1: ay,
+              x2: SUP_X + SUP_PLEN_W - 8,
+              y2: ay,
+              fill: "none",
+              stroke: (heatMode ? O : B) + ".3)",
+              strokeWidth: "7",
+              strokeLinecap: "round",
+              opacity: "0.4"
+            }
+          ), /* @__PURE__ */ React.createElement(
+            "line",
+            {
+              x1: SUP_X + 8,
+              y1: ay,
+              x2: SUP_X + SUP_PLEN_W - 8,
+              y2: ay,
+              fill: "none",
+              stroke: (heatMode ? O : B) + ".8)",
+              strokeWidth: "1.4",
+              strokeDasharray: "8 5",
+              className: "airflow",
+              style: { strokeDashoffset: 0 },
+              markerEnd: "url(#arr)"
+            }
+          ))
+        )), hasIonizer && (() => {
           const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
           const plenTop = SUP_PLEN_Y;
           const ionBulbY = plenTop - 14;
@@ -4624,6 +4673,10 @@
         EditZone,
         {
           stepId: "plenum",
+          onEditStep,
+          svgScale: SVG_SCALE,
+          vw: SVG_VW,
+          vh: SVG_VH,
           x: SUP_X - 2,
           y: SUP_PLEN_Y - 2,
           w: SUP_PLEN_W + 4,
@@ -4666,12 +4719,51 @@
             markerEnd: "url(#arr)"
           }
         );
-        const straight = (cx, key) => /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("rect", { x: cx - DW / 2, y: pBot, width: DW, height: Math.max(0, DECK_Y - pBot), fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: cx - DW / 2, y: pBot, w: DW, h: Math.max(0, DECK_Y - pBot), vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: cx - DW / 2, y: pBot + 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: cx - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), DECK_Y - pBot > 10 && ductArrow(`M${cx},${pBot + 3} L${cx},${DECK_Y - 4}`, "arrow"), grille(cx));
+        const straight = (cx, key) => /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("rect", { x: cx - DW / 2, y: pBot, width: DW, height: Math.max(0, DECK_Y - pBot), fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: cx - DW / 2, y: pBot, w: DW, h: Math.max(0, DECK_Y - pBot), vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: cx - DW / 2, y: pBot + 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: cx - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), DECK_Y - pBot > 10 && ductArrow(`M${cx},${pBot + 3} L${cx},${DECK_Y - 4}`, "arrow"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: cx - DW / 2 - 2,
+            y: pBot,
+            w: DW + 4,
+            h: Math.max(0, DECK_Y - pBot),
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("supply_duct").title,
+            text: T("supply_duct").text
+          }
+        ), grille(cx));
         const angled = (topX, dir, key) => {
           const bendY = Math.min(pBot + FAN, DECK_Y - 6);
           const botX = topX + dir * (bendY - pBot);
           const d = `M${topX},${pBot} L${botX},${bendY} L${botX},${DECK_Y}`;
-          return /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DS, strokeWidth: DW + 2, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DC, strokeWidth: DW, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: topX, y1: pBot + 2, x2: botX, y2: bendY, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: botX, y1: bendY, x2: botX, y2: DECK_Y - 4, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctClamp, { x: topX - DW / 2, y: pBot + 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: botX - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${topX},${pBot + 3} L${botX},${bendY} L${botX},${DECK_Y - 4}`, "arrow"), grille(botX));
+          return /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DS, strokeWidth: DW + 2, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DC, strokeWidth: DW, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: topX, y1: pBot + 2, x2: botX, y2: bendY, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: botX, y1: bendY, x2: botX, y2: DECK_Y - 4, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctClamp, { x: topX - DW / 2, y: pBot + 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: botX - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${topX},${pBot + 3} L${botX},${bendY} L${botX},${DECK_Y - 4}`, "arrow"), /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: Math.min(topX, botX) - DW / 2 - 2,
+              y: pBot - 2,
+              w: Math.abs(botX - topX) + DW + 4,
+              h: bendY - pBot + 4,
+              rx: 2,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("supply_duct").title,
+              text: T("supply_duct").text
+            }
+          ), /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: botX - DW / 2 - 2,
+              y: bendY,
+              w: DW + 4,
+              h: Math.max(0, DECK_Y - bendY),
+              rx: 2,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("supply_duct").title,
+              text: T("supply_duct").text
+            }
+          ), grille(botX));
         };
         const leftX = SUP_X + SUP_PLEN_W * 0.25, midX = SUP_X + SUP_PLEN_W * 0.5, rightX = SUP_X + SUP_PLEN_W * 0.75;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, angled(leftX, -1, "l"), straight(midX, "m"), angled(rightX, 1, "r"));
@@ -4801,6 +4893,10 @@
         EditZone,
         {
           stepId: "cond_tier",
+          onEditStep,
+          svgScale: SVG_SCALE,
+          vw: SVG_VW,
+          vh: SVG_VH,
           x: COND_X - 2,
           y: COND_Y - 2,
           w: COND_W + 4,
@@ -4994,6 +5090,10 @@
             EditZone,
             {
               stepId: "thermostat",
+              onEditStep,
+              svgScale: SVG_SCALE,
+              vw: SVG_VW,
+              vh: SVG_VH,
               x: THERM_TX - 2,
               y: THERM_TY - 2,
               w: THERM_W + 4,
@@ -5505,6 +5605,10 @@
         EditZone,
         {
           stepId: "plenum",
+          onEditStep,
+          svgScale: SVG_SCALE,
+          vw: SVG_VW,
+          vh: SVG_VH,
           x: UNIT_X - 2,
           y: PLEN_TOP - 2,
           w: PLEN_W + 4,
@@ -5547,7 +5651,59 @@
             markerEnd: "url(#arr)"
           }
         );
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: leftDropX, y: exitY, width: UNIT_X - leftDropX, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: leftDropX, y: exitY, w: UNIT_X - leftDropX, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: leftDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: leftDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X - DW - 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: leftDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X - 3},${exitY + DW / 2} L${leftDropX + DW / 2},${exitY + DW / 2} L${leftDropX + DW / 2},${DECK_Y - 4}`, "la"), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: leftDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W, y: exitY, width: rightDropX - (UNIT_X + PLEN_W) + DW, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: UNIT_X + PLEN_W, y: exitY, w: rightDropX - (UNIT_X + PLEN_W) + DW, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: rightDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: rightDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X + PLEN_W + 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: rightDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X + PLEN_W + 3},${exitY + DW / 2} L${rightDropX + DW / 2},${exitY + DW / 2} L${rightDropX + DW / 2},${DECK_Y - 4}`, "ra"), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: rightDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY" }));
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: leftDropX, y: exitY, width: UNIT_X - leftDropX, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: leftDropX, y: exitY, w: UNIT_X - leftDropX, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: leftDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: leftDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X - DW - 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: leftDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X - 3},${exitY + DW / 2} L${leftDropX + DW / 2},${exitY + DW / 2} L${leftDropX + DW / 2},${DECK_Y - 4}`, "la"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: leftDropX - 2,
+            y: exitY - 2,
+            w: UNIT_X - leftDropX + 2,
+            h: DW + 4,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("supply_duct").title,
+            text: T("supply_duct").text
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: leftDropX - 2,
+            y: exitY,
+            w: DW + 4,
+            h: DECK_Y - exitY,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("supply_duct").title,
+            text: T("supply_duct").text
+          }
+        ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: leftDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W, y: exitY, width: rightDropX - (UNIT_X + PLEN_W) + DW, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: UNIT_X + PLEN_W, y: exitY, w: rightDropX - (UNIT_X + PLEN_W) + DW, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: rightDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: rightDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X + PLEN_W + 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: rightDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X + PLEN_W + 3},${exitY + DW / 2} L${rightDropX + DW / 2},${exitY + DW / 2} L${rightDropX + DW / 2},${DECK_Y - 4}`, "ra"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X + PLEN_W,
+            y: exitY - 2,
+            w: rightDropX - (UNIT_X + PLEN_W) + DW + 2,
+            h: DW + 4,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("supply_duct").title,
+            text: T("supply_duct").text
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: rightDropX - 2,
+            y: exitY,
+            w: DW + 4,
+            h: DECK_Y - exitY,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("supply_duct").title,
+            text: T("supply_duct").text
+          }
+        ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: rightDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY" }));
       })()), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac-c" + a.cond_tier, style: { animationDelay: ".07s" } }, (() => {
         const active = evapActive;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
@@ -5560,8 +5716,8 @@
             rx: 5,
             vw: SVG_VW,
             vh: SVG_VH,
-            title: T(hasFurnace ? "acoil" : "air_handler_cabinet").title,
-            text: T(hasFurnace ? "acoil" : "air_handler_cabinet").text,
+            title: T(hasFurnace ? acoilInfoKey() : "air_handler_cabinet").title,
+            text: T(hasFurnace ? acoilInfoKey() : "air_handler_cabinet").text,
             onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
           }
         ), /* @__PURE__ */ React.createElement(
@@ -6015,6 +6171,10 @@
         EditZone,
         {
           stepId: "indoor_type",
+          onEditStep,
+          svgScale: SVG_SCALE,
+          vw: SVG_VW,
+          vh: SVG_VH,
           x: UNIT_X - 4,
           y: ACOIL_Y - 2,
           rx: 6,
@@ -6107,7 +6267,7 @@
           strokeWidth: "0.5",
           strokeDasharray: "4 3"
         }
-      ), /* @__PURE__ */ React.createElement(
+      ), /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
         "path",
         {
           d: `M${UNIT_X + UNIT_W / 2} ${VH - 20} L${UNIT_X + UNIT_W / 2} ${CHASE_Y + 10}`,
@@ -6129,7 +6289,7 @@
           style: { strokeDashoffset: 0 },
           markerEnd: "url(#arr)"
         }
-      ), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement(
         "text",
         {
           x: UNIT_X + UNIT_W / 2,
@@ -6342,6 +6502,10 @@
         EditZone,
         {
           stepId: "cond_tier",
+          onEditStep,
+          svgScale: SVG_SCALE,
+          vw: SVG_VW,
+          vh: SVG_VH,
           x: COND_X - 2,
           y: COND_Y - 2,
           w: COND_W + 4,
@@ -6533,7 +6697,20 @@
               }
             )), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 58, textAnchor: "middle", fill: G + ".38)", fontSize: "11", fontFamily: "monospace" }, "BASIC"));
           })(),
-          /* @__PURE__ */ React.createElement(EditZone, { stepId: "thermostat", x: TX - 2, y: TY - 2, w: 82, h: 116 }),
+          /* @__PURE__ */ React.createElement(
+            EditZone,
+            {
+              stepId: "thermostat",
+              onEditStep,
+              svgScale: SVG_SCALE,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              x: TX - 2,
+              y: TY - 2,
+              w: 82,
+              h: 116
+            }
+          ),
           /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5 }),
           /* @__PURE__ */ React.createElement(ThermWireBacking, { x: TX, y: wireYC, w: 76, letters: wireLettersC, note: wireNoteC })
         );
