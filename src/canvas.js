@@ -1432,8 +1432,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep}){
           const fanAreaH=h-Math.round(h*0.1)-4;
           const fanAreaY=y+Math.round(h*0.1)+2;
           const fCX=x+fanAreaW/2, fCY=fanAreaY+fanAreaH/2;
-          // Slightly smaller per direct feedback - was 0.43.
-          const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.39);
+          // Sized to read as close as possible to the fed-min cap's fan
+          // circle (CapFan's fanRx), which the user specifically liked -
+          // maxed out against this cabinet's available front-face height
+          // (the tight dimension here), the largest this can go without
+          // the outer glow rim clipping the fan-area box edges.
+          const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.41);
           // Woven-wire crosshatch mesh (two crossing diagonal line sets,
           // clipped to the grille circle) instead of the old sparse dot
           // pattern - closer to how a real fan guard mesh actually reads,

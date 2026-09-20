@@ -2131,7 +2131,7 @@
         const fanAreaH = h - Math.round(h * 0.1) - 4;
         const fanAreaY = y + Math.round(h * 0.1) + 2;
         const fCX = x + fanAreaW / 2, fCY = fanAreaY + fanAreaH / 2;
-        const fR = Math.round(Math.min(fanAreaW, fanAreaH) * 0.39);
+        const fR = Math.round(Math.min(fanAreaW, fanAreaH) * 0.41);
         const meshLines = [];
         const pitch = 4.2;
         for (let i = -Math.ceil((fanAreaW + fanAreaH) / pitch); i <= Math.ceil((fanAreaW + fanAreaH) / pitch); i++) {
