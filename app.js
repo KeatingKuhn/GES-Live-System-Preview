@@ -483,7 +483,7 @@
     lang,
     vw,
     vh,
-    linesetRingBox
+    linesetRingPath
   }) {
     const groundY = zoneH - 28;
     const padY = groundY - 10;
@@ -925,7 +925,8 @@
           vh,
           title: partInfo("lineset", lang).title,
           text: partInfo("lineset", lang).text,
-          ringBox: linesetRingBox
+          ringPath: linesetRingPath,
+          ringStrokeWidth: 16
         }
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
@@ -939,7 +940,8 @@
           vh,
           title: partInfo("lineset", lang).title,
           text: partInfo("lineset", lang).text,
-          ringBox: linesetRingBox
+          ringPath: linesetRingPath,
+          ringStrokeWidth: 16
         }
       ));
     })(), (() => {
@@ -1411,19 +1413,32 @@
     const { x, y, w, h, rx, vw, vh, title, text, highlight, group } = part;
     const siblings = group && groupBoxes && groupBoxes[group] ? Object.values(groupBoxes[group]).filter((b) => !(b.x === x && b.y === y && b.w === w && b.h === h)) : [];
     const ring = (box, bright) => {
-      if (box.ringPath) return /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: box.ringPath,
-          fill: "none",
-          stroke: bright ? "rgba(215,183,64,.95)" : "rgba(215,183,64,.7)",
-          strokeWidth: box.ringStrokeWidth || 10,
-          strokeLinecap: "round",
-          strokeLinejoin: "round",
-          filter: "url(#glow-sm)",
-          style: { pointerEvents: "none" }
-        }
-      );
+      if (box.ringPath) {
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          "path",
+          {
+            d: box.ringPath,
+            fill: "none",
+            stroke: bright ? "rgba(215,183,64,.16)" : "rgba(215,183,64,.10)",
+            strokeWidth: box.ringStrokeWidth || 10,
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            filter: "url(#glow-sm)",
+            style: { pointerEvents: "none" }
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "path",
+          {
+            d: box.ringPath,
+            fill: "none",
+            stroke: bright ? "rgba(215,183,64,.95)" : "rgba(215,183,64,.7)",
+            strokeWidth: bright ? 2.5 : 2,
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            style: { pointerEvents: "none" }
+          }
+        ));
+      }
       const rb = box.ringBox || box;
       return /* @__PURE__ */ React.createElement(
         "rect",
@@ -4059,13 +4074,7 @@
       const DISC_ZONE = 52;
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const COND_Y = VH - 28 - 10 - COND_H;
-      const linesetRingBox = {
-        x: RL_START_X - 7,
-        y: Math.min(UNIT_Y + UNIT_H * 0.35, RL_ROOF_Y) - 6,
-        w: COND_X + 6 - (RL_START_X - 7),
-        h: COND_Y + COND_H * 0.86 + 6 - (Math.min(UNIT_Y + UNIT_H * 0.35, RL_ROOF_Y) - 6),
-        rx: 4
-      };
+      const linesetRingPath = `M${RL_START_X + 2.5} ${UNIT_Y + UNIT_H * 0.45} L${RL_START_X + 2.5} ${RL_ROOF_Y + 4.5} L${EXT_WALL_X + 9} ${RL_ROOF_Y + 4.5} L${EXT_WALL_X + 9} ${COND_Y + COND_H * 0.82} L${COND_X} ${COND_Y + COND_H * 0.82}`;
       return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -4843,7 +4852,8 @@
             vh: SVG_VH,
             title: T("lineset").title,
             text: T("lineset").text,
-            ringBox: linesetRingBox
+            ringPath: linesetRingPath,
+            ringStrokeWidth: 16
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -4857,7 +4867,8 @@
             vh: SVG_VH,
             title: T("lineset").title,
             text: T("lineset").text,
-            ringBox: linesetRingBox
+            ringPath: linesetRingPath,
+            ringStrokeWidth: 16
           }
         ));
       })()), hasCond && /* @__PURE__ */ React.createElement(
@@ -4887,7 +4898,7 @@
           lang,
           vw: SVG_VW,
           vh: SVG_VH,
-          linesetRingBox,
+          linesetRingPath,
           condenserEl: /* @__PURE__ */ React.createElement(
             Condenser,
             {
@@ -5374,13 +5385,7 @@
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const GROUND_Y = VH - 40;
       const COND_Y = GROUND_Y - COND_H;
-      const linesetRingBox = {
-        x: UNIT_X + UNIT_W,
-        y: Math.min(LS_Y1, LS_Y2) - 6,
-        w: COND_X + 6 - (UNIT_X + UNIT_W),
-        h: COND_Y + COND_H * 0.86 + 6 - (Math.min(LS_Y1, LS_Y2) - 6),
-        rx: 4
-      };
+      const linesetRingPath = `M${UNIT_X + UNIT_W} ${(LS_Y1 + LS_Y2) / 2} L${EXT_WALL_X + 9} ${(LS_Y1 + LS_Y2) / 2} L${EXT_WALL_X + 9} ${COND_Y + COND_H * 0.82} L${COND_X} ${COND_Y + COND_H * 0.82}`;
       return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -6392,6 +6397,7 @@
         const pt2X = pt1X;
         const pt3X = pt2X - offset;
         const pt3Y = pt2Y + offset;
+        const drainD = `M${exitX} ${exitY} L${pt1X} ${pt1Y} L${pt2X} ${pt2Y} L${pt3X} ${pt3Y}`;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "line",
           {
@@ -6439,7 +6445,9 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("condensate_drain").title,
-            text: T("condensate_drain").text
+            text: T("condensate_drain").text,
+            ringPath: drainD,
+            ringStrokeWidth: 9
           }
         ), !hasPump && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "text",
@@ -6524,7 +6532,8 @@
           vh: SVG_VH,
           title: T("lineset").title,
           text: T("lineset").text,
-          ringBox: linesetRingBox
+          ringPath: linesetRingPath,
+          ringStrokeWidth: 16
         }
       )), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
@@ -6553,7 +6562,7 @@
           lang,
           vw: SVG_VW,
           vh: SVG_VH,
-          linesetRingBox,
+          linesetRingPath,
           condenserEl: /* @__PURE__ */ React.createElement(
             Condenser,
             {

@@ -50,7 +50,7 @@ function rnd(seed){
 // skips recomputation when only unrelated wizard state changed.
 function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, lineY2, active,
   heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl, tierKey, eaveY,
-  lang, vw, vh, linesetRingBox}){
+  lang, vw, vh, linesetRingPath}){
   const groundY=zoneH-28;
   const padY=groundY-10;
   const wallThick=18;   // visible wall cross-section width
@@ -398,17 +398,19 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
             one full bounding rect spanning the whole wall face - that
             used to swallow the disconnect/surge boxes sitting in the
             same span. Both (and the indoor segments in Canvas's own
-            attic/closet branches) share the caller's linesetRingBox so
-            the ring reads as ONE run regardless of which narrow segment
-            triggered it - see HoverPanel's own `ring()` comment. */}
+            attic/closet branches) share the caller's linesetRingPath so
+            the ring traces the WHOLE run as one continuous line
+            regardless of which narrow segment triggered it, instead of
+            each drawing its own little rect - see HoverPanel's own
+            `ring()` comment. */}
         <HoverInfo x={Math.min(px1,px2)-6} y={Math.min(lineY1,lineY2)-4}
           w={Math.abs(px2-px1)+12} h={exitY1-Math.min(lineY1,lineY2)+4}
           rx={3} vw={vw} vh={vh} title={partInfo('lineset',lang).title} text={partInfo('lineset',lang).text}
-          ringBox={linesetRingBox}/>
+          ringPath={linesetRingPath} ringStrokeWidth={16}/>
         <HoverInfo x={Math.min(px1,px2)-6} y={Math.min(exitY1,exitY2)-6}
           w={condX-Math.min(px1,px2)+6} h={Math.abs(exitY2-exitY1)+12}
           rx={3} vw={vw} vh={vh} title={partInfo('lineset',lang).title} text={partInfo('lineset',lang).text}
-          ringBox={linesetRingBox}/>
+          ringPath={linesetRingPath} ringStrokeWidth={16}/>
       </>;
     })()}
 
@@ -841,9 +843,24 @@ function HoverPanel({part,groupBoxes}){
   // "this whole pipe" outline instead of 4 different small disconnected
   // boxes depending on exactly where you're hovering.
   const ring=(box,bright)=>{
-    if(box.ringPath)return <path d={box.ringPath} fill="none" stroke={bright?"rgba(215,183,64,.95)":"rgba(215,183,64,.7)"}
-      strokeWidth={box.ringStrokeWidth||10} strokeLinecap="round" strokeLinejoin="round"
-      filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>;
+    if(box.ringPath){
+      // Mirrors the rect ring's own fill+border duality (a soft translucent
+      // wash plus a crisp thin border) rather than one fat opaque stroke -
+      // a single wide stroke at near-full opacity painted the pipe solid
+      // gold instead of reading as a highlight. The wide pass is the
+      // "fill" (soft, translucent, `ringStrokeWidth` wide - a halo the
+      // pipe still shows clearly through), the thin pass is the "border"
+      // (same 2/2.5px weight the rect ring already uses) tracing the
+      // route crisply on top.
+      return <>
+        <path d={box.ringPath} fill="none" stroke={bright?"rgba(215,183,64,.16)":"rgba(215,183,64,.10)"}
+          strokeWidth={box.ringStrokeWidth||10} strokeLinecap="round" strokeLinejoin="round"
+          filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>
+        <path d={box.ringPath} fill="none" stroke={bright?"rgba(215,183,64,.95)":"rgba(215,183,64,.7)"}
+          strokeWidth={bright?2.5:2} strokeLinecap="round" strokeLinejoin="round"
+          style={{pointerEvents:'none'}}/>
+      </>;
+    }
     const rb=box.ringBox||box;
     return <rect x={rb.x-3} y={rb.y-3} width={rb.w+6} height={rb.h+6} rx={(rb.rx||3)+3}
       fill={bright?"rgba(215,183,64,.06)":"rgba(215,183,64,.04)"}
@@ -3309,22 +3326,23 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // Condenser sits at ground level in the outside zone
     // OutsideZone groundY = VH-28 = 467. padY = 457. condY = 457-COND_H.
     const COND_Y=VH-28-10-COND_H;
-    // One shared ring box for the WHOLE lineset run - indoor riser, indoor
-    // roof run, OutsideZone's own wall drop, and its condenser entry -
-    // even though the run itself stays split into 4 narrow hit-boxes (see
-    // each one's own comment) so none of them swallows a neighboring
-    // component. Passed as `ringBox` to all 4, so the ring drawn is
-    // always this same "whole pipe" outline no matter which narrow
-    // segment the cursor is actually over. exitY2's 0.86 factor mirrors
-    // OutsideZone's own exitY2 (computed inside its own closure from the
-    // same condY/condH this passes it) - keep the two in sync if that
-    // ever changes.
-    const linesetRingBox={
-      x:RL_START_X-7, y:Math.min(UNIT_Y+UNIT_H*0.35,RL_ROOF_Y)-6,
-      w:(COND_X+6)-(RL_START_X-7),
-      h:(COND_Y+COND_H*0.86+6)-(Math.min(UNIT_Y+UNIT_H*0.35,RL_ROOF_Y)-6),
-      rx:4,
-    };
+    // One shared ring PATH tracing the WHOLE lineset run's own centerline -
+    // indoor riser, indoor roof run, OutsideZone's own wall drop, and its
+    // condenser entry - even though the run itself stays split into 4
+    // narrow hit-boxes (see each one's own comment) so none of them
+    // swallows a neighboring component. Passed as `ringPath` to all 4, so
+    // the ring drawn is always this same single traced line no matter
+    // which narrow segment the cursor is actually over, instead of a
+    // bounding rect around the whole run (tried first - way too big, read
+    // as "half the page" rather than tracing the pipe). ry1's 0.35/0.45
+    // factors mirror the indoor riser's own ry1/ry2 (defined further down,
+    // in the nested closure that draws it) - this is just their midpoint.
+    // exitY's 0.82 splits the difference between OutsideZone's own
+    // exitY1/exitY2 (0.78/0.86 of condH, computed inside its own closure)
+    // - keep these in sync if either ever changes.
+    const linesetRingPath=
+      `M${RL_START_X+2.5} ${UNIT_Y+UNIT_H*0.45} L${RL_START_X+2.5} ${RL_ROOF_Y+4.5} `+
+      `L${EXT_WALL_X+9} ${RL_ROOF_Y+4.5} L${EXT_WALL_X+9} ${COND_Y+COND_H*0.82} L${COND_X} ${COND_Y+COND_H*0.82}`;
 
     return(
       <HoverCtx.Provider value={setHoverPart}>
@@ -3887,10 +3905,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <HoverInfo x={RL_START_X-7} y={Math.min(ry1,RL_ROOF_Y)-6} w={14}
                   h={ry2-Math.min(ry1,RL_ROOF_Y)+6} rx={3}
                   vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
-                  ringBox={linesetRingBox}/>
+                  ringPath={linesetRingPath} ringStrokeWidth={16}/>
                 <HoverInfo x={RL_START_X-7} y={RL_ROOF_Y-6} w={wallX-RL_START_X+14} h={21} rx={3}
                   vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
-                  ringBox={linesetRingBox}/>
+                  ringPath={linesetRingPath} ringStrokeWidth={16}/>
               </>;
             })()}
           </g>}
@@ -3904,7 +3922,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             heatMode={heatMode} isMildHp={isMildHp}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
-            linesetRingBox={linesetRingBox}
+            linesetRingPath={linesetRingPath}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
               active={condenserActive} tierKey={a.cond_tier}
               condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
@@ -4287,14 +4305,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // Lineset exits the RIGHT face of the A-coil at its midpoint - NOT the plenum
     // ACOIL_Y is defined below, so we compute after unit stack constants
     // (will be: ACOIL_Y + ACOIL_H * 0.35 and 0.55)
-    // Same shared ring box idea as the attic layout's own linesetRingBox -
+    // Same shared ring PATH idea as the attic layout's own linesetRingPath -
     // see its comment there.
-    const linesetRingBox={
-      x:UNIT_X+UNIT_W, y:Math.min(LS_Y1,LS_Y2)-6,
-      w:(COND_X+6)-(UNIT_X+UNIT_W),
-      h:(COND_Y+COND_H*0.86+6)-(Math.min(LS_Y1,LS_Y2)-6),
-      rx:4,
-    };
+    const linesetRingPath=
+      `M${UNIT_X+UNIT_W} ${(LS_Y1+LS_Y2)/2} L${EXT_WALL_X+9} ${(LS_Y1+LS_Y2)/2} `+
+      `L${EXT_WALL_X+9} ${COND_Y+COND_H*0.82} L${COND_X} ${COND_Y+COND_H*0.82}`;
 
     return(
       <HoverCtx.Provider value={setHoverPart}>
@@ -4981,6 +4996,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const pt2X=pt1X;
             const pt3X=pt2X-offset; // back left 45°
             const pt3Y=pt2Y+offset;
+            // Same path the three <line> segments below trace (exit →
+            // 45° down-right → straight down → 45° down-left into the
+            // chase), reused as the hover ring's ringPath - the hit-rect
+            // just below is still a loose bounding box (fine for hit-
+            // testing), but this S-curve zigzags inside it, so a rect
+            // ring around that box would read as a big box floating
+            // around a thin bent line instead of hugging the actual
+            // drain run, same reasoning as the attic layout's angled
+            // supply duct elbow.
+            const drainD=`M${exitX} ${exitY} L${pt1X} ${pt1Y} L${pt2X} ${pt2Y} L${pt3X} ${pt3Y}`;
             return <>
               {/* 45° right-down from unit */}
               <line x1={exitX} y1={exitY} x2={pt1X} y2={pt1Y}
@@ -4997,7 +5022,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   drain line's own path, not the pump box past pt3X. */}
               <HoverInfo x={Math.min(exitX,pt3X)-4} y={Math.min(exitY,pt2Y)-4}
                 w={Math.max(exitX,pt1X)-Math.min(exitX,pt3X)+8} h={Math.max(pt2Y,pt3Y)-Math.min(exitY,pt2Y)+8}
-                rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}/>
+                rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                ringPath={drainD} ringStrokeWidth={9}/>
               {!hasPump&&<>
                 <text x={pt1X+5} y={pt1Y+12} textAnchor="start"
                   fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">DRAIN</text>
@@ -5050,7 +5076,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 the outside portion of this same run separately. */}
             <HoverInfo x={UNIT_X+UNIT_W} y={Math.min(LS_Y1,LS_Y2)-6} w={EXT_WALL_X-(UNIT_X+UNIT_W)} h={Math.abs(LS_Y2-LS_Y1)+12}
               rx={3} vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
-              ringBox={linesetRingBox}/>
+              ringPath={linesetRingPath} ringStrokeWidth={16}/>
           </g>}
 
           {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}
@@ -5062,7 +5088,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             heatMode={heatMode} isMildHp={isMildHp}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
-            linesetRingBox={linesetRingBox}
+            linesetRingPath={linesetRingPath}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
               active={condenserActive} tierKey={a.cond_tier}
               condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
