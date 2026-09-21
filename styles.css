@@ -219,17 +219,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .review-edit-btn:hover{background:rgba(215,183,64,.22);border-color:rgba(215,183,64,.6);color:var(--gl)}
 .review-edit-btn:active{transform:scale(.93);background:rgba(215,183,64,.3)}
 
-/* Attic mode's "system is built" header lives over the canvas's dead
-   letterboxed space on desktop (see the canvas-frame overlay in the
-   done-screen JSX) but that space doesn't exist once the canvas drops to
-   a short mobile strip - keep the original in-sidebar header there instead
-   of stacking both. */
-.done-header-desktop-only{display:none}
-.done-header-mobile-only{display:flex}
-@media(min-width:1025px){
-  .done-header-desktop-only{display:flex}
-  .done-header-mobile-only{display:none}
-}
 
 /* Attic-only: stretch to full width and left-align text instead of the
    base rule's centered column, since the wide/short attic panel reads
@@ -1266,14 +1255,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .sidebar{border:none!important}
   .done-wrap{animation:none!important}
   .btn-back,.btn-next,.btn-skip,.info-btn,.done-restart,.no-print{display:none!important}
-  /* Floats as an absolute overlay pinned to the diagram's own top-left
-     corner (see its style in app.js) - harmless on screen since it sits
-     on top of open sky/attic space there, but now that the diagram
-     actually prints (see .done-canvas-frame above) it would overlap real
-     equipment art instead. Everything it says (system built, selections
-     below) is already on the page via the letterhead/review grid, so
-     it's dropped for print rather than repositioned. */
-  .done-header-desktop-only{display:none!important}
   body,.done-wrap,.sidebar{color:#000!important;background:#fff!important}
   .done-wrap *{color:#000!important;border-color:#999!important}
   .done-title,.opt-label{color:#000!important}

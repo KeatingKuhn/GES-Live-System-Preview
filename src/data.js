@@ -408,8 +408,14 @@ export function trackBuildCompleted(answers){
 // simply doesn't render a button (no placeholder/broken link goes live).
 // Add an entry with its url and it appears automatically, no other code
 // change needed.
+// label is what the compact quick-actions button shows - "Financing"
+// instead of the lender's own brand name, since most visitors don't
+// recognize "Wisetack" on sight and a generic label reads clearer in a
+// small button (the fuller "prequalify online with Wisetack" sentence
+// elsewhere in the price reveal still names the actual partner, where
+// there's room to explain it).
 export const FINANCING_OPTIONS=[
-  {key:'wisetack',label:'Wisetack',url:'https://wisetack.us/#/hyhu11w/prequalify'},
+  {key:'wisetack',label:'Financing',labelEs:'Financiamiento',url:'https://wisetack.us/#/hyhu11w/prequalify'},
 ];
 
 // ─── CONTACT-FORM GATE ──────────────────────────────────────────

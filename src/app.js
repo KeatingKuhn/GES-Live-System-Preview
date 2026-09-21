@@ -1226,23 +1226,6 @@ function App(){
             <Canvas a={answers} stepIdx={stepIdx} activeSteps={activeSteps} onEditStep={jumpToStep} lang={lang}/>
           </div>
           <div className="done-canvas-sweep"/>
-          {/* Attic layout's diagram never fills the full frame width (it
-              keeps its own aspect ratio) - the dead space it leaves on the
-              left is real screen room, so the "system is built" header
-              lives here instead of costing the sidebar a row underneath. */}
-          {isAtticMode&&(pricingFlow?
-            <div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.7)",padding:"6px 10px"}}>
-              <span style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.8)"}}>✓ {tr('Your system is built','Su sistema está construido')}</span>
-              <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-pricing-fine)"}}>{tr('Edit selections','Editar selecciones')}</button>
-            </div>
-            :<div className="done-header-desktop-only" style={{position:"absolute",top:8,left:8,zIndex:10,alignItems:"center",gap:8,background:"rgba(11,13,20,.55)",padding:"6px 10px 6px 7px"}}>
-              <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:28,height:28,fontSize:14,flexShrink:0}}>✓</div></div>
-              <div>
-                <div className="done-title" style={{fontSize:14.5,marginBottom:0}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
-                <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
-              </div>
-            </div>
-          )}
         </div>
         <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"200px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           {/* PRINT LETTERHEAD - invisible on-screen (.print-letterhead is
@@ -1362,7 +1345,7 @@ function App(){
               );
               return pricingFlow?
                 <>
-                  <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
                     <span style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-pricing-meta)",color:"rgba(255,255,255,.78)"}}>✓ {tr('Your system is built','Su sistema está construido')}</span>
                     <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)"}}>{tr('Edit selections','Editar selecciones')}</button>
                   </div>
@@ -1374,7 +1357,7 @@ function App(){
                 </>
               :
                 <>
-                  <div className={isAtticMode?"done-header-mobile-only":undefined} style={{display:isAtticMode?undefined:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
                     <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:isAtticMode?38:42,height:isAtticMode?38:42,fontSize:isAtticMode?17:19,flexShrink:0}}>✓</div></div>
                     <div>
                       <div className="done-title" style={{fontSize:isAtticMode?17:19,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
@@ -1710,7 +1693,7 @@ function App(){
             {/* ── QUICK ACTIONS - one compact button grid instead of five
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
-            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"12px",fontSize:16}} onClick={()=>{
+            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"9px",fontSize:14}} onClick={()=>{
               trackEvent('pricing_started');
               if(leadUnlocked){setPricingFlow('sizing');setPricingSubStep(0);}
               else{trackEvent('contact_form_shown');setPricingFlow('leadgate');}
@@ -1738,7 +1721,7 @@ function App(){
                   FINANCING_OPTIONS in data.js) - an entry with no url
                   simply doesn't render here. */}
               {FINANCING_OPTIONS.filter(f=>f.url).map(f=>(
-                <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {f.label}</a>
+                <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {tr(f.label,f.labelEs)}</a>
               ))}
               <button onClick={()=>{trackEvent('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ {tr('Save / Print','Guardar / Imprimir')}</button>
               {/* Q14 - mailto: link, no backend. Body built fresh per-click
