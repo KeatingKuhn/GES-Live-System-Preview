@@ -5617,7 +5617,38 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>}
 
           {/* 2×4 return chase */}
-          {hasCoil&&<g className="snap" key="chase">
+          {hasCoil&&(()=>{
+            // Same pump-box geometry the condensate-drain block below
+            // computes for itself (kept duplicated rather than hoisted -
+            // these two blocks are separate top-level JSX expressions, and
+            // the formula is a fixed, self-contained one, not derived from
+            // anything that could drift between the two copies) - needed
+            // here so the return-airflow arrow below can detour around the
+            // pump box instead of running straight through its text.
+            const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
+            const chaseBottomY=VH-20, pumpH=28, pumpY=chaseBottomY-pumpH-6;
+            const pumpX=UNIT_X-28+Math.round((UNIT_W+56)*0.5)-28;
+            const cx=UNIT_X+UNIT_W/2;
+            // The pump (per direct client feedback, see the drain block's
+            // own comment) sits centered-ish in the chase, which used to
+            // put it directly in this arrow's straight-line path - its
+            // dashes and glow cut right across "COND. PUMP"/"condensate".
+            // Only the vertical span actually overlapping the pump box
+            // needs to dodge; above/below it the arrow still runs straight
+            // up the chase's centerline like before.
+            const dodgeX=pumpX-10;
+            // Bottom jog stays tight (+3, not the top dodge's own +10) -
+            // the gap here is a lot tighter: pump-box-bottom to the
+            // "2×4 RETURN AIR CHASE" label's own baseline is well under
+            // half the room the pump-box-top to the filtration cabinet
+            // above has to work with. A wider offset here just traded the
+            // arrow-through-pump-text collision for an arrow-through-
+            // chase-label one instead.
+            const dodgeBottomY=pumpY+pumpH+1;
+            const arrowD=hasPump
+              ?`M${cx} ${VH-20} L${cx} ${dodgeBottomY} L${dodgeX} ${dodgeBottomY} L${dodgeX} ${pumpY-10} L${cx} ${pumpY-10} L${cx} ${CHASE_Y+10}`
+              :`M${cx} ${VH-20} L${cx} ${CHASE_Y+10}`;
+            return <g className="snap" key="chase">
             <rect x={UNIT_X-28} y={CHASE_Y} width={UNIT_W+56} height={VH-CHASE_Y} rx="3"
               fill="rgba(100,75,34,.07)" stroke="rgba(138,98,42,.42)" strokeWidth="1.5"/>
             {[0,1,2,3,4].map(i=>(
@@ -5635,12 +5666,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 it's about to be corrected FROM, not the temperature supply
                 air already IS. pointerEvents:none on the wrapper - see the
                 attic return plenum's own airflow-arrow comment for why the
-                7px glow duplicate needs this too. */}
+                7px glow duplicate needs this too. Detours around the
+                condensate pump box when present - see arrowD above. */}
             <g style={{pointerEvents:'none'}}>
-              <path d={`M${UNIT_X+UNIT_W/2} ${VH-20} L${UNIT_X+UNIT_W/2} ${CHASE_Y+10}`}
-                fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" opacity="0.4"/>
-              <path d={`M${UNIT_X+UNIT_W/2} ${VH-20} L${UNIT_X+UNIT_W/2} ${CHASE_Y+10}`}
-                fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
+              <path d={arrowD}
+                fill="none" stroke={(heatMode?B:O)+'.3)'} strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
+              <path d={arrowD}
+                fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4" strokeLinejoin="round"
                 strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
             </g>
             {/* Return-air temp - room-temp reading, opposite heat/cool
@@ -5668,7 +5700,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 slats; this one doesn't). */}
             <HoverInfo x={UNIT_X-28} y={CHASE_Y} w={UNIT_W+56} h={VH-CHASE_Y} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('return_chase').title} text={T('return_chase').text}/>
-          </g>}
+            </g>;
+          })()}
 
           {/* Condensate drain - exits right face of AH, S-curves into 2x4 chase */}
           {hasCoil&&(()=>{

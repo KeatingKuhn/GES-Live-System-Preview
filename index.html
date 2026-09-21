@@ -7940,103 +7940,114 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           title: T("filtration_cabinet").title,
           text: T("filtration_cabinet").text
         }
-      )), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "chase" }, /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: UNIT_X - 28,
-          y: CHASE_Y,
-          width: UNIT_W + 56,
-          height: VH - CHASE_Y,
-          rx: "3",
-          fill: "rgba(100,75,34,.07)",
-          stroke: "rgba(138,98,42,.42)",
-          strokeWidth: "1.5"
-        }
-      ), [0, 1, 2, 3, 4].map((i) => /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          key: i,
-          x: UNIT_X - 28 + i * (UNIT_W + 56) / 5,
-          y: CHASE_Y,
-          width: 9,
-          height: VH - CHASE_Y,
-          fill: "rgba(118,82,32,.18)",
-          stroke: "rgba(148,104,40,.28)",
-          strokeWidth: "0.7"
-        }
-      )), /* @__PURE__ */ React.createElement(
-        "rect",
-        {
-          x: UNIT_X - 24,
-          y: CHASE_Y + 4,
-          width: UNIT_W + 48,
-          height: VH - CHASE_Y - 8,
-          fill: "rgba(35,137,224,.03)",
-          stroke: B + ".1)",
-          strokeWidth: "0.5",
-          strokeDasharray: "4 3"
-        }
-      ), /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${UNIT_X + UNIT_W / 2} ${VH - 20} L${UNIT_X + UNIT_W / 2} ${CHASE_Y + 10}`,
-          fill: "none",
-          stroke: (heatMode ? B : O) + ".3)",
-          strokeWidth: "7",
-          strokeLinecap: "round",
-          opacity: "0.4"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${UNIT_X + UNIT_W / 2} ${VH - 20} L${UNIT_X + UNIT_W / 2} ${CHASE_Y + 10}`,
-          fill: "none",
-          stroke: (heatMode ? B : O) + ".8)",
-          strokeWidth: "1.4",
-          strokeDasharray: "6 4",
-          className: "airflow",
-          style: { strokeDashoffset: 0 },
-          markerEnd: "url(#arr)"
-        }
-      )), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          className: "phase-color",
-          x: UNIT_X - 28 + 10,
-          y: CHASE_Y + 18,
-          textAnchor: "start",
-          fill: heatMode ? "#2389e0" : "#f97316",
-          fontSize: "14",
-          fontWeight: "700",
-          fontFamily: "monospace"
-        },
-        returnTemp,
-        "\xB0"
-      ), /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: UNIT_X + UNIT_W / 2,
-          y: VH - 8,
-          textAnchor: "middle",
-          fill: "rgba(138,98,42,.62)",
-          fontSize: "11.5",
-          fontFamily: "monospace"
-        },
-        "2\xD74 RETURN AIR CHASE"
-      ), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: UNIT_X - 28,
-          y: CHASE_Y,
-          w: UNIT_W + 56,
-          h: VH - CHASE_Y,
-          rx: 3,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("return_chase").title,
-          text: T("return_chase").text
-        }
       )), hasCoil && (() => {
+        const hasPump = Array.isArray(a.extras) && a.extras.includes("condensate");
+        const chaseBottomY = VH - 20, pumpH = 28, pumpY = chaseBottomY - pumpH - 6;
+        const pumpX = UNIT_X - 28 + Math.round((UNIT_W + 56) * 0.5) - 28;
+        const cx = UNIT_X + UNIT_W / 2;
+        const dodgeX = pumpX - 10;
+        const dodgeBottomY = pumpY + pumpH + 1;
+        const arrowD = hasPump ? `M${cx} ${VH - 20} L${cx} ${dodgeBottomY} L${dodgeX} ${dodgeBottomY} L${dodgeX} ${pumpY - 10} L${cx} ${pumpY - 10} L${cx} ${CHASE_Y + 10}` : `M${cx} ${VH - 20} L${cx} ${CHASE_Y + 10}`;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", key: "chase" }, /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: UNIT_X - 28,
+            y: CHASE_Y,
+            width: UNIT_W + 56,
+            height: VH - CHASE_Y,
+            rx: "3",
+            fill: "rgba(100,75,34,.07)",
+            stroke: "rgba(138,98,42,.42)",
+            strokeWidth: "1.5"
+          }
+        ), [0, 1, 2, 3, 4].map((i) => /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            key: i,
+            x: UNIT_X - 28 + i * (UNIT_W + 56) / 5,
+            y: CHASE_Y,
+            width: 9,
+            height: VH - CHASE_Y,
+            fill: "rgba(118,82,32,.18)",
+            stroke: "rgba(148,104,40,.28)",
+            strokeWidth: "0.7"
+          }
+        )), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: UNIT_X - 24,
+            y: CHASE_Y + 4,
+            width: UNIT_W + 48,
+            height: VH - CHASE_Y - 8,
+            fill: "rgba(35,137,224,.03)",
+            stroke: B + ".1)",
+            strokeWidth: "0.5",
+            strokeDasharray: "4 3"
+          }
+        ), /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
+          "path",
+          {
+            d: arrowD,
+            fill: "none",
+            stroke: (heatMode ? B : O) + ".3)",
+            strokeWidth: "7",
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            opacity: "0.4"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "path",
+          {
+            d: arrowD,
+            fill: "none",
+            stroke: (heatMode ? B : O) + ".8)",
+            strokeWidth: "1.4",
+            strokeLinejoin: "round",
+            strokeDasharray: "6 4",
+            className: "airflow",
+            style: { strokeDashoffset: 0 },
+            markerEnd: "url(#arr)"
+          }
+        )), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            className: "phase-color",
+            x: UNIT_X - 28 + 10,
+            y: CHASE_Y + 18,
+            textAnchor: "start",
+            fill: heatMode ? "#2389e0" : "#f97316",
+            fontSize: "14",
+            fontWeight: "700",
+            fontFamily: "monospace"
+          },
+          returnTemp,
+          "\xB0"
+        ), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            x: UNIT_X + UNIT_W / 2,
+            y: VH - 8,
+            textAnchor: "middle",
+            fill: "rgba(138,98,42,.62)",
+            fontSize: "11.5",
+            fontFamily: "monospace"
+          },
+          "2\xD74 RETURN AIR CHASE"
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X - 28,
+            y: CHASE_Y,
+            w: UNIT_W + 56,
+            h: VH - CHASE_Y,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("return_chase").title,
+            text: T("return_chase").text
+          }
+        ));
+      })(), hasCoil && (() => {
         const hasPump = Array.isArray(a.extras) && a.extras.includes("condensate");
         const exitX = UNIT_X + UNIT_W;
         const exitY = hasFurnace ? ACOIL_Y + Math.round(ACOIL_H * 0.85) : ACOIL_Y + Math.round(ACOIL_H * 0.85);
@@ -8818,7 +8829,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     }, [activeSteps, answers]);
     const pickLocation = (loc2) => {
       trackEvent("wizard_started", { location: loc2 });
-      setA("location", loc2);
+      setAnswers({ ...defaultAnswers(), location: loc2 });
       setStepIdx(1);
       setPricingFlow(null);
       setPricingSubStep(0);
@@ -9410,7 +9421,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           type: "number",
           min: "1",
           max: "40",
-          value: pricingAnswers.ventCount || "",
+          value: pricingAnswers.ventCount ?? "",
           onChange: (e) => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(40, Math.max(0, parseInt(e.target.value) || 0)) })),
           className: "pricing-input" + (isAtticMode ? " compact" : "")
         }
@@ -9483,6 +9494,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 ", tr("Save / Print", "Guardar / Imprimir")), /* @__PURE__ */ React.createElement("a", { href: buildEmailHref(), onClick: () => trackEvent("email_build_clicked"), className: "quick-print-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em", textDecoration: "none", boxSizing: "border-box" } }, "\u2709 ", tr("Email My Build", "Enviar por Correo")), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
       setDone(false);
       setStepIdx(activeSteps.length - 1);
+      setPricingFlow(null);
+      setPricingSubStep(0);
+      setPricingAnswers({});
     } }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "quick-restart-btn", style: { width: "100%", fontFamily: "var(--fb)", fontSize: "var(--fs-restart)", padding: "9px" }, onClick: restart }, tr("Start Over", "Empezar de Nuevo"))))))));
   }
   ReactDOM.createRoot(document.getElementById("root")).render(/* @__PURE__ */ React.createElement(App, null));
