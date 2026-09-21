@@ -1390,7 +1390,7 @@ function App(){
                       {item.parts.map((p,pi)=>(
                         <div key={pi} style={{display:"flex",alignItems:"center",gap:10}}>
                           <span className="review-val" style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={p.full}>{p.short}</span>
-                          <button className="no-print review-edit-btn" onClick={()=>jumpToStep(p.step)} style={{flexShrink:0,fontSize:"var(--fs-review-edit)",padding:"2px 5px"}}>{tr('EDIT','EDITAR')}</button>
+                          <button className="no-print review-edit-btn" onClick={()=>jumpToStep(p.step)} style={{flexShrink:0,fontSize:"var(--fs-review-edit)",padding:"6px 5px"}}>{tr('EDIT','EDITAR')}</button>
                         </div>
                       ))}
                     </div>
@@ -1403,7 +1403,7 @@ function App(){
                       {item.parts.map((p,pi)=>(
                         <div key={pi} style={{display:"flex",alignItems:"center",gap:10}}>
                           <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.3}} title={p.full}>{p.short}</span>
-                          <button className="no-print review-edit-btn" onClick={()=>jumpToStep(p.step)} style={{flexShrink:0,fontSize:"var(--fs-review-edit-md)",padding:"3px 6px"}}>{tr('EDIT','EDITAR')}</button>
+                          <button className="no-print review-edit-btn" onClick={()=>jumpToStep(p.step)} style={{flexShrink:0,fontSize:"var(--fs-review-edit-md)",padding:"6px 6px"}}>{tr('EDIT','EDITAR')}</button>
                         </div>
                       ))}
                     </div>)
@@ -1440,7 +1440,12 @@ function App(){
                         ?{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"visible",whiteSpace:"normal"}
                         :{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}
                         title={item.val}>{item.short||item.val}</span>
-                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>{tr('EDIT','EDITAR')}</button>
+                      {/* MOBILE QA FIX - vertical padding bumped from 3px to
+                          6px (measured ~19px tall before, under the 24px
+                          WCAG 2.5.8 AA touch-target floor); lands at ~25px,
+                          with margin to spare before overlapping the cell's
+                          own content. */}
+                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"6px 6px"}}>{tr('EDIT','EDITAR')}</button>
                     </div>
                     :
                     // Closet's cell doesn't reserve a fixed right-hand gutter for
@@ -1474,7 +1479,13 @@ function App(){
                           up on the same baseline regardless of how much either
                           value wrapped. */}
                       <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal"}} title={item.val}>{item.short||item.val}</span>
-                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",marginTop:"auto"}}>{tr('EDIT','EDITAR')}</button>
+                      {/* MOBILE QA FIX - same 24px WCAG 2.5.8 touch-target
+                          floor as attic's EDIT chip above; vertical padding
+                          bumped from 4px to 6px. marginTop:"auto" already
+                          pins it to the cell's bottom, so the extra height
+                          just grows the cell slightly instead of risking
+                          overlap with anything else in it. */}
+                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"6px 7px",marginTop:"auto"}}>{tr('EDIT','EDITAR')}</button>
                     </div>)
                   ):null)}
                 </div>
