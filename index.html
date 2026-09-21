@@ -6773,31 +6773,37 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             }
           ));
         }
-      })()), a.insulation && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
-        "text",
-        {
-          x: isSpray ? RET_X + RET_PLEN_W / 2 : HOUSE_W / 2,
-          y: isSpray ? UNIT_Y - 16 : VH - 10,
-          textAnchor: "middle",
-          fill: isSpray ? "rgba(232,236,246,.6)" : "rgba(255,182,193,.6)",
-          fontSize: "12",
-          fontFamily: "monospace"
-        },
-        isSpray ? "SPRAY FOAM - SEALED ATTIC" : "FIBERGLASS INSULATION"
-      ), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: (isSpray ? RET_X + RET_PLEN_W / 2 : HOUSE_W / 2) - 70,
-          y: (isSpray ? UNIT_Y - 16 : VH - 10) - 12,
-          w: 140,
-          h: 18,
-          rx: 3,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("insulation").title,
-          text: T("insulation").text
-        }
-      )), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: 20, fill: G + ".85)", fontSize: "12", fontWeight: "700", fontFamily: "monospace", letterSpacing: ".18em" }, "LIVE SYSTEM PREVIEW"), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, "Choose your location to begin building"), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, "Components assemble here in real time \u2192")), /* @__PURE__ */ React.createElement(
+      })()), a.insulation && (() => {
+        const insulCX = isSpray ? RET_X + RET_PLEN_W / 2 : HOUSE_W / 2, insulY = isSpray ? UNIT_Y - 16 : VH - 10;
+        let insulL = insulCX - 70, insulR = insulCX + 70;
+        if (isSpray && hasDehu) insulR = Math.min(insulR, RET_X + RET_PLEN_W - 14 - 6);
+        return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            x: insulCX,
+            y: insulY,
+            textAnchor: "middle",
+            style: { pointerEvents: "none" },
+            fill: isSpray ? "rgba(232,236,246,.6)" : "rgba(255,182,193,.6)",
+            fontSize: "12",
+            fontFamily: "monospace"
+          },
+          isSpray ? "SPRAY FOAM - SEALED ATTIC" : "FIBERGLASS INSULATION"
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: insulL,
+            y: insulY - 12,
+            w: Math.max(20, insulR - insulL),
+            h: 18,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("insulation").title,
+            text: T("insulation").text
+          }
+        ));
+      })(), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: 20, fill: G + ".85)", fontSize: "12", fontWeight: "700", fontFamily: "monospace", letterSpacing: ".18em" }, "LIVE SYSTEM PREVIEW"), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, "Choose your location to begin building"), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, "Components assemble here in real time \u2192")), /* @__PURE__ */ React.createElement(
         StepFocusRing,
         {
           onEditStep,
@@ -8047,7 +8053,70 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             text: T("return_chase").text
           }
         ));
-      })(), hasCoil && (() => {
+      })(), hasCoil && hasCond && /* @__PURE__ */ React.createElement("g", { key: "rl-c" }, /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${UNIT_X + UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`,
+          fill: "none",
+          stroke: "rgba(22,22,42,.55)",
+          strokeWidth: "11",
+          strokeLinecap: "round"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${UNIT_X + UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`,
+          fill: "none",
+          stroke: "rgba(22,22,42,.45)",
+          strokeWidth: "11",
+          strokeLinecap: "round"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${UNIT_X + UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`,
+          fill: "none",
+          stroke: line1C,
+          strokeWidth: "4.5",
+          strokeLinecap: "round",
+          className: "line-pulse"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "path",
+        {
+          d: `M${UNIT_X + UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`,
+          fill: "none",
+          stroke: line2C,
+          strokeWidth: "4.5",
+          strokeLinecap: "round",
+          className: "line-pulse",
+          style: { animationDelay: ".15s" }
+        }
+      ), evapActive && Array.from({ length: 6 }, (_, i) => {
+        const isLine1 = i < 3;
+        const pColor = isLine1 ? line1C : line2C;
+        const lY = isLine1 ? LS_Y1 : LS_Y2;
+        {
+        }
+        const toWall = isLine1 ? refReversed : !refReversed;
+        const p = toWall ? `M${UNIT_X + UNIT_W} ${lY} L${EXT_WALL_X} ${lY}` : `M${EXT_WALL_X} ${lY} L${UNIT_X + UNIT_W} ${lY}`;
+        return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 1.8 + i % 3 * 0.4 + "s", repeatCount: "indefinite", begin: i * 0.55 + "s", path: p }));
+      }), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X + UNIT_W,
+          y: Math.min(LS_Y1, LS_Y2) - 6,
+          w: EXT_WALL_X - (UNIT_X + UNIT_W),
+          h: Math.abs(LS_Y2 - LS_Y1) + 12,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("lineset").title,
+          text: T("lineset").text,
+          ringPath: linesetRingPath,
+          ringStrokeWidth: 16
+        }
+      )), hasCoil && (() => {
         const hasPump = Array.isArray(a.extras) && a.extras.includes("condensate");
         const exitX = UNIT_X + UNIT_W;
         const exitY = hasFurnace ? ACOIL_Y + Math.round(ACOIL_H * 0.85) : ACOIL_Y + Math.round(ACOIL_H * 0.85);
@@ -8137,70 +8206,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             strokeDasharray: "4 3"
           }
         )));
-      })(), hasCoil && hasCond && /* @__PURE__ */ React.createElement("g", { key: "rl-c" }, /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${UNIT_X + UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`,
-          fill: "none",
-          stroke: "rgba(22,22,42,.55)",
-          strokeWidth: "11",
-          strokeLinecap: "round"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${UNIT_X + UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`,
-          fill: "none",
-          stroke: "rgba(22,22,42,.45)",
-          strokeWidth: "11",
-          strokeLinecap: "round"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${UNIT_X + UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`,
-          fill: "none",
-          stroke: line1C,
-          strokeWidth: "4.5",
-          strokeLinecap: "round",
-          className: "line-pulse"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "path",
-        {
-          d: `M${UNIT_X + UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`,
-          fill: "none",
-          stroke: line2C,
-          strokeWidth: "4.5",
-          strokeLinecap: "round",
-          className: "line-pulse",
-          style: { animationDelay: ".15s" }
-        }
-      ), evapActive && Array.from({ length: 6 }, (_, i) => {
-        const isLine1 = i < 3;
-        const pColor = isLine1 ? line1C : line2C;
-        const lY = isLine1 ? LS_Y1 : LS_Y2;
-        {
-        }
-        const toWall = isLine1 ? refReversed : !refReversed;
-        const p = toWall ? `M${UNIT_X + UNIT_W} ${lY} L${EXT_WALL_X} ${lY}` : `M${EXT_WALL_X} ${lY} L${UNIT_X + UNIT_W} ${lY}`;
-        return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 1.8 + i % 3 * 0.4 + "s", repeatCount: "indefinite", begin: i * 0.55 + "s", path: p }));
-      }), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: UNIT_X + UNIT_W,
-          y: Math.min(LS_Y1, LS_Y2) - 6,
-          w: EXT_WALL_X - (UNIT_X + UNIT_W),
-          h: Math.abs(LS_Y2 - LS_Y1) + 12,
-          rx: 3,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("lineset").title,
-          text: T("lineset").text,
-          ringPath: linesetRingPath,
-          ringStrokeWidth: 16
-        }
-      )), hasCond && /* @__PURE__ */ React.createElement(
+      })(), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
           wallX: EXT_WALL_X,

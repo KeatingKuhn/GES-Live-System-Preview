@@ -4690,15 +4690,45 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               rather than left-aligned like that label. Still painted this
               late (after furnace/coil/condenser) so nothing else paints
               over it here either. */}
-          {a.insulation&&<g>
-            <text x={isSpray?RET_X+RET_PLEN_W/2:HOUSE_W/2} y={isSpray?UNIT_Y-16:VH-10} textAnchor="middle"
-              fill={isSpray?"rgba(232,236,246,.6)":"rgba(255,182,193,.6)"} fontSize="12" fontFamily="monospace">
-              {isSpray?"SPRAY FOAM - SEALED ATTIC":"FIBERGLASS INSULATION"}
-            </text>
-            {/* No EditZone covers this - free-standing hover, no onClick. */}
-            <HoverInfo x={(isSpray?RET_X+RET_PLEN_W/2:HOUSE_W/2)-70} y={(isSpray?UNIT_Y-16:VH-10)-12} w={140} h={18} rx={3}
-              vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
-          </g>}
+          {a.insulation&&(()=>{
+            const insulCX=isSpray?RET_X+RET_PLEN_W/2:HOUSE_W/2, insulY=isSpray?UNIT_Y-16:VH-10;
+            let insulL=insulCX-70, insulR=insulCX+70;
+            // Spray foam's copy of this label sits up in the open attic
+            // near the return plenum, whose right edge (RET_X+RET_PLEN_W)
+            // is also where the dehu return duct's own vertical leg lands
+            // when a dehumidifier is on the build (see that duct's own
+            // HoverInfo above) - this label paints AFTER (on top of) that
+            // duct, so its full ±70 reach used to swallow a few px of the
+            // duct's own hit-box right where the real dashed line runs,
+            // not just open air beside it (found via a grid-sweep hover
+            // audit: hovering the actual duct line showed this label's
+            // tooltip instead). Clamped clear of that leg instead of
+            // widening the duct's own box - the label's real text is much
+            // narrower than 140px, so losing a little of its right-hand
+            // margin here never crowds the text itself. Fiberglass's own
+            // copy sits down by the floor, nowhere near the dehu run, so
+            // it's untouched.
+            if(isSpray&&hasDehu)insulR=Math.min(insulR,RET_X+RET_PLEN_W-14-6);
+            return <g>
+              {/* pointerEvents:none - a plain <text> is still hit-tested
+                  by its own painted glyph area by default (same "wide
+                  decorative shape silently swallows a hover zone
+                  underneath" bug already fixed for the flue pipe/active-
+                  cabinet tint elsewhere in this file - see their own
+                  comments). Clamping the HoverInfo rect just above wasn't
+                  enough on its own: this text's own glyphs (untouched by
+                  that clamp) still sat on top of the dehu return duct's
+                  own vertical leg and kept swallowing it, confirmed via
+                  the same grid-sweep hover audit. */}
+              <text x={insulCX} y={insulY} textAnchor="middle" style={{pointerEvents:'none'}}
+                fill={isSpray?"rgba(232,236,246,.6)":"rgba(255,182,193,.6)"} fontSize="12" fontFamily="monospace">
+                {isSpray?"SPRAY FOAM - SEALED ATTIC":"FIBERGLASS INSULATION"}
+              </text>
+              {/* No EditZone covers this - free-standing hover, no onClick. */}
+              <HoverInfo x={insulL} y={insulY-12} w={Math.max(20,insulR-insulL)} h={18} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
+            </g>;
+          })()}
 
           {/* LIVE SYSTEM PREVIEW label - moved off the eave line itself
               (used to sit at EAVE_Y-4, right where the dark roof wedge's
@@ -5703,7 +5733,67 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             </g>;
           })()}
 
-          {/* Condensate drain - exits right face of AH, S-curves into 2x4 chase */}
+          {/* ── REFRIGERANT LINE STUBS - exit right face of A-coil, run to wall ──
+              Painted BEFORE (so the condensate drain below wins hover
+              priority over) the drain - both pipes exit the unit at nearly
+              the same corner (the drain's own run starts right at
+              UNIT_X+UNIT_W too, a few px below this lineset's LS_Y1/LS_Y2),
+              so their hit-boxes unavoidably overlap in that shared corner
+              even though each is already sized tight to its own real
+              shape. This block used to sit AFTER the drain, so its own box
+              (painted later, thus on top) won that sliver - hovering the
+              drain's own real first diagonal segment there read back as
+              "LINE SET" instead (confirmed via a grid-sweep hover audit
+              sampling points directly on each part's own drawn line, same
+              technique already used to find the original lineset-vs-
+              supply-plenum overlap). Same fix, same reasoning as that one:
+              only this block's paint-order position changed, not its
+              geometry. */}
+          {hasCoil&&hasCond&&<g key="rl-c">
+            {/* Foam sleeve background */}
+            <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
+              fill="none" stroke="rgba(22,22,42,.55)" strokeWidth="11" strokeLinecap="round"/>
+            <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
+              fill="none" stroke="rgba(22,22,42,.45)" strokeWidth="11" strokeLinecap="round"/>
+            {/* Liquid line - always bold */}
+            <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
+              fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse"/>
+            {/* Suction line - always bold */}
+            <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
+              fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
+            {/* Flow dots -- both pipes. Gated on evapActive, same as the
+                attic layout's equivalent block - refrigerant only actually
+                moves through these lines while the compressor is active
+                (e.g. NOT during dual-fuel's furnace sub-mode, where the
+                heat pump/compressor is off and the furnace alone is
+                heating). This lacked that gate here, so the dots kept
+                animating flow even with the compressor in standby. */}
+            {evapActive&&Array.from({length:6},(_,i)=>{
+              const isLine1=i<3;
+              const pColor=isLine1?line1C:line2C;
+              const lY=isLine1?LS_Y1:LS_Y2;
+              {/* Same fix, same reasoning, as OutsideZone's own
+                  toCondenser above - was inverted, now correct. */}
+              const toWall=isLine1?refReversed:!refReversed;
+              const p=toWall
+                ?`M${UNIT_X+UNIT_W} ${lY} L${EXT_WALL_X} ${lY}`
+                :`M${EXT_WALL_X} ${lY} L${UNIT_X+UNIT_W} ${lY}`;
+              return <circle key={i} r="3" fill={pColor} opacity="0.82" filter="url(#glow-sm)">
+                <animateMotion dur={(1.8+(i%3)*0.4)+'s'} repeatCount="indefinite" begin={(i*0.55)+'s'} path={p}/>
+              </circle>;
+            })}
+            {/* No EditZone covers this indoor stub run - free-standing
+                hover, no onClick. OutsideZone's own lineset hover covers
+                the outside portion of this same run separately. */}
+            <HoverInfo x={UNIT_X+UNIT_W} y={Math.min(LS_Y1,LS_Y2)-6} w={EXT_WALL_X-(UNIT_X+UNIT_W)} h={Math.abs(LS_Y2-LS_Y1)+12}
+              rx={3} vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
+              ringPath={linesetRingPath} ringStrokeWidth={16}/>
+          </g>}
+
+          {/* Condensate drain - exits right face of AH, S-curves into 2x4
+              chase. Painted AFTER (so it wins hover priority over) the
+              refrigerant line stubs just above - see that block's own
+              comment for why. */}
           {hasCoil&&(()=>{
             const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
             // Exit point: right face of AH/coil, lower portion
@@ -5768,48 +5858,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               </>}
             </>;
           })()}
-
-          {/* ── REFRIGERANT LINE STUBS - exit right face of A-coil, run to wall ── */}
-          {hasCoil&&hasCond&&<g key="rl-c">
-            {/* Foam sleeve background */}
-            <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
-              fill="none" stroke="rgba(22,22,42,.55)" strokeWidth="11" strokeLinecap="round"/>
-            <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
-              fill="none" stroke="rgba(22,22,42,.45)" strokeWidth="11" strokeLinecap="round"/>
-            {/* Liquid line - always bold */}
-            <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${EXT_WALL_X} ${LS_Y1}`}
-              fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse"/>
-            {/* Suction line - always bold */}
-            <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${EXT_WALL_X} ${LS_Y2}`}
-              fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
-            {/* Flow dots -- both pipes. Gated on evapActive, same as the
-                attic layout's equivalent block - refrigerant only actually
-                moves through these lines while the compressor is active
-                (e.g. NOT during dual-fuel's furnace sub-mode, where the
-                heat pump/compressor is off and the furnace alone is
-                heating). This lacked that gate here, so the dots kept
-                animating flow even with the compressor in standby. */}
-            {evapActive&&Array.from({length:6},(_,i)=>{
-              const isLine1=i<3;
-              const pColor=isLine1?line1C:line2C;
-              const lY=isLine1?LS_Y1:LS_Y2;
-              {/* Same fix, same reasoning, as OutsideZone's own
-                  toCondenser above - was inverted, now correct. */}
-              const toWall=isLine1?refReversed:!refReversed;
-              const p=toWall
-                ?`M${UNIT_X+UNIT_W} ${lY} L${EXT_WALL_X} ${lY}`
-                :`M${EXT_WALL_X} ${lY} L${UNIT_X+UNIT_W} ${lY}`;
-              return <circle key={i} r="3" fill={pColor} opacity="0.82" filter="url(#glow-sm)">
-                <animateMotion dur={(1.8+(i%3)*0.4)+'s'} repeatCount="indefinite" begin={(i*0.55)+'s'} path={p}/>
-              </circle>;
-            })}
-            {/* No EditZone covers this indoor stub run - free-standing
-                hover, no onClick. OutsideZone's own lineset hover covers
-                the outside portion of this same run separately. */}
-            <HoverInfo x={UNIT_X+UNIT_W} y={Math.min(LS_Y1,LS_Y2)-6} w={EXT_WALL_X-(UNIT_X+UNIT_W)} h={Math.abs(LS_Y2-LS_Y1)+12}
-              rx={3} vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
-              ringPath={linesetRingPath} ringStrokeWidth={16}/>
-          </g>}
 
           {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}
           {hasCond&&<OutsideZone
