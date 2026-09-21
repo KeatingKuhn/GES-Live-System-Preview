@@ -2692,8 +2692,20 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,hasDehu,hasERV,snap,l
     // centers its label/arrows/pipes correctly instead of them drifting
     // toward one edge.
     const boxW=isDehu?BW:(ervW||BW);
-    const r1X=BX+boxW*0.28, r2X=BX+boxW*0.72;
     const pipe1X=BX+Math.round(boxW*0.28), pipe2X=BX+Math.round(boxW*0.68);
+    // Hang-kit anchor X's - straight down the box centerline (0.28/0.72)
+    // for the dehu, which has nothing else up there to dodge. The ERV
+    // can't reuse that same pair: its own IN/OUT roof stubs already run
+    // through very nearly that exact X (pipe1X/pipe2X above, computed off
+    // the same 0.28/0.68 split), so hanging the bracket+strap there landed
+    // it stacked right on top of the pipe cap/arrowhead and "IN"/"OUT"
+    // labels - a strap that's supposed to read as separate mounting
+    // hardware instead read as noise fused into the ductwork art. Flanking
+    // the box's outer thirds (0.08/0.92) keeps both brackets clear of
+    // both pipes with room to spare, while still landing on the box's own
+    // top lip like the dehu's pair does. Off boxW (not a flat BW) so this
+    // still holds when the ERV has been narrowed to fit a tight wall slot.
+    const r1X=isDehu?BX+boxW*0.28:BX+boxW*0.08, r2X=isDehu?BX+boxW*0.72:BX+boxW*0.92;
     // ERV defaults to the same shared roofY as the dehu (closet call
     // site never passes ervRoofY, and there the two boxes are far
     // enough apart that a shared flat roofline reads fine) - the attic
