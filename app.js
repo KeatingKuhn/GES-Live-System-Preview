@@ -1639,6 +1639,18 @@
       en: { title: "ERV", text: "Energy recovery ventilator - brings in fresh outdoor air while venting stale air out, recovering most of the energy either way." },
       es: { title: "ERV", text: "Ventilador de recuperaci\xF3n de energ\xEDa - introduce aire fresco del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio." }
     },
+    dehu_return_duct: {
+      en: { title: "DEHUMIDIFIER RETURN DUCT", text: "Its own dedicated tap into the return plenum, pulling house air through the dehumidifier before it ever reaches the coil." },
+      es: { title: "DUCTO DE RETORNO DEL DESHUMIDIFICADOR", text: "Su propia toma dedicada en el plenum de retorno, que jala el aire de la casa a trav\xE9s del deshumidificador antes de que llegue al serpent\xEDn." }
+    },
+    dehu_supply_duct: {
+      en: { title: "DEHUMIDIFIER SUPPLY DUCT", text: "Feeds the dehumidified air into the supply plenum, where it blends in and reaches every room through the same ductwork." },
+      es: { title: "DUCTO DE SUMINISTRO DEL DESHUMIDIFICADOR", text: "Env\xEDa el aire deshumidificado al plenum de suministro, donde se mezcla y llega a cada habitaci\xF3n por el mismo sistema de ductos." }
+    },
+    backdraft_damper: {
+      en: { title: "BACKDRAFT DAMPER", text: "A one-way flap on the dehumidifier's supply duct that keeps the blower's much stronger airflow from pushing air backward through the dehumidifier when it isn't running." },
+      es: { title: "COMPUERTA DE CONTRATIRO", text: "Una v\xE1lvula de un solo sentido en el ducto de suministro del deshumidificador, que evita que el flujo de aire, mucho m\xE1s fuerte, del soplador empuje el aire hacia atr\xE1s a trav\xE9s del deshumidificador cuando no est\xE1 funcionando." }
+    },
     lineset: {
       en: { title: "LINE SET", text: "The two insulated copper lines carrying refrigerant between the indoor coil and the outdoor condenser." },
       es: { title: "L\xCDNEAS DE REFRIGERANTE", text: "Las dos l\xEDneas de cobre aisladas que transportan refrigerante entre el serpent\xEDn interior y el condensador exterior." }
@@ -3389,18 +3401,29 @@
       }
     ));
   }
-  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, hasDehu, hasERV, snap, lang, vw, vh }) {
+  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, hasDehu, hasERV, snap, lang, vw, vh }) {
     if (!hasDehu && !hasERV) return null;
     const BW = 80, BH = 48;
     const boxes = [];
     if (hasERV) boxes.push("erv");
     if (hasDehu) boxes.push("dehu");
+    const hangKit = (x, ry, stroke) => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+      "path",
+      {
+        d: `M${x - 4.5} ${ry - 1} L${x - 4.5} ${ry - 5.5} L${x + 4.5} ${ry - 5.5} L${x + 4.5} ${ry - 1}`,
+        fill: "none",
+        stroke,
+        strokeWidth: "1.1",
+        strokeLinejoin: "round"
+      }
+    ), /* @__PURE__ */ React.createElement("circle", { cx: x - 3.2, cy: ry - 5.5, r: "0.8", fill: stroke }), /* @__PURE__ */ React.createElement("circle", { cx: x + 3.2, cy: ry - 5.5, r: "0.8", fill: stroke }), /* @__PURE__ */ React.createElement("line", { x1: x, y1: ry - 1, x2: x, y2: BY + 2, stroke, strokeWidth: "1.3", strokeDasharray: "1.2 2.2" }), /* @__PURE__ */ React.createElement("path", { d: `M${x - 3} ${BY + 2} Q${x} ${BY - 2} ${x + 3} ${BY + 2}`, fill: "none", stroke, strokeWidth: "1.2" }));
     return /* @__PURE__ */ React.createElement("g", null, boxes.map((type, i) => {
       const BX = type === "dehu" ? dehuBX : ervBX;
       const r1X = BX + BW * 0.28, r2X = BX + BW * 0.72;
       const isDehu = type === "dehu";
       const pipe1X = BX + Math.round(BW * 0.28), pipe2X = BX + Math.round(BW * 0.68);
-      return /* @__PURE__ */ React.createElement("g", { key: type, className: snap ? "snap" : void 0, style: snap ? { animationDelay: 0.32 + i * 0.05 + "s" } : void 0 }, isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("line", { x1: r1X, y1: roofY, x2: r1X, y2: BY, stroke: "#22c55e", strokeWidth: "1", strokeDasharray: "4 2", opacity: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: r2X, y1: roofY, x2: r2X, y2: BY, stroke: "#22c55e", strokeWidth: "1", strokeDasharray: "4 2", opacity: "0.6" }), /* @__PURE__ */ React.createElement("rect", { x: r1X - 3, y: roofY - 4, width: "7", height: "5", rx: "1", fill: "rgba(34,197,94,.3)", stroke: "#22c55e", strokeWidth: "0.7" }), /* @__PURE__ */ React.createElement("rect", { x: r2X - 3, y: roofY - 4, width: "7", height: "5", rx: "1", fill: "rgba(34,197,94,.3)", stroke: "#22c55e", strokeWidth: "0.7" })) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 2, y: roofY, width: 5, height: Math.max(0, BY - roofY), rx: "1", fill: B + ".3)", stroke: B + ".5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 5, y: roofY - 4, width: "11", height: 5, rx: "1", fill: B + ".35)", stroke: B + ".55)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: pipe1X, y: roofY - 6, textAnchor: "middle", fill: B + ".6)", fontSize: "12", fontFamily: "monospace" }, "IN"), /* @__PURE__ */ React.createElement("rect", { x: pipe2X - 2, y: roofY, width: 5, height: Math.max(0, BY - roofY), rx: "1", fill: "rgba(249,115,22,.3)", stroke: "rgba(249,115,22,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (pipe2X - 4) + " " + (roofY - 2) + " L" + pipe2X + " " + (roofY - 9) + " L" + (pipe2X + 4) + " " + (roofY - 2), fill: "rgba(249,115,22,.4)" }), /* @__PURE__ */ React.createElement("text", { x: pipe2X, y: roofY - 11, textAnchor: "middle", fill: "rgba(249,115,22,.6)", fontSize: "12", fontFamily: "monospace" }, "OUT"), /* @__PURE__ */ React.createElement("line", { x1: r1X, y1: roofY, x2: r1X, y2: BY, stroke: G + ".4)", strokeWidth: "1", strokeDasharray: "4 2", opacity: "0.5" }), /* @__PURE__ */ React.createElement("line", { x1: r2X, y1: roofY, x2: r2X, y2: BY, stroke: G + ".4)", strokeWidth: "1", strokeDasharray: "4 2", opacity: "0.5" })), /* @__PURE__ */ React.createElement(
+      const ry = isDehu ? roofY : ervRoofY != null ? ervRoofY : roofY;
+      return /* @__PURE__ */ React.createElement("g", { key: type, className: snap ? "snap" : void 0, style: snap ? { animationDelay: 0.32 + i * 0.05 + "s" } : void 0 }, isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, hangKit(r1X, ry, "#22c55e"), hangKit(r2X, ry, "#22c55e")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: B + ".3)", stroke: B + ".5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 5, y: ry - 4, width: "11", height: 5, rx: "1", fill: B + ".35)", stroke: B + ".55)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: pipe1X, y: ry - 6, textAnchor: "middle", fill: B + ".6)", fontSize: "12", fontFamily: "monospace" }, "IN"), /* @__PURE__ */ React.createElement("rect", { x: pipe2X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: "rgba(249,115,22,.3)", stroke: "rgba(249,115,22,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (pipe2X - 4) + " " + (ry - 2) + " L" + pipe2X + " " + (ry - 9) + " L" + (pipe2X + 4) + " " + (ry - 2), fill: "rgba(249,115,22,.4)" }), /* @__PURE__ */ React.createElement("text", { x: pipe2X, y: ry - 11, textAnchor: "middle", fill: "rgba(249,115,22,.6)", fontSize: "12", fontFamily: "monospace" }, "OUT"), hangKit(r1X, ry, G + ".55)"), hangKit(r2X, ry, G + ".55)")), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: BX,
@@ -5030,7 +5053,8 @@
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
         const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
-        const ervBX = Math.max(8, RET_X - BW + 80);
+        const ervBX = Math.max(SUP_X + SUP_PLEN_W + 20, RL_WALL_X - BW - 24);
+        const ervRoofY = roofY(ervBX + BW / 2) + RL_ROOF_GAP + 36;
         return /* @__PURE__ */ React.createElement(
           DehuErvBoxes,
           {
@@ -5038,6 +5062,7 @@
             ervBX,
             BY: UNIT_Y - 48 - 14,
             roofY: EAVE_Y + 14,
+            ervRoofY,
             hasDehu,
             hasERV: Array.isArray(a.extras) && a.extras.includes("erv"),
             snap: true,
@@ -5046,6 +5071,62 @@
             vh: SVG_VH
           }
         );
+      })(), hasDehu && hasCoil && hasPlenum && (() => {
+        const sysX = hasFurnace ? FURN_X : AH_X;
+        const BW = 80, BH = 48;
+        const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
+        const midY = UNIT_Y - 35;
+        const DW2 = 4;
+        const RC = "rgba(255,182,193,";
+        const retTgtX = RET_X + RET_PLEN_W - 14;
+        const supTgtX = SUP_X + Math.round(SUP_PLEN_W * 0.75);
+        const retD = `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
+        const supD = `M${dehuBX + BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
+        const dampX = (dehuBX + BW + supTgtX) / 2;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".14)", strokeWidth: DW2 + 4, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".75)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: Math.min(dehuBX, retTgtX) - 4,
+            y: Math.min(midY, UNIT_Y) - 4,
+            w: Math.abs(retTgtX - dehuBX) + 8,
+            h: Math.abs(UNIT_Y - midY) + 8,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("dehu_return_duct").title,
+            text: T("dehu_return_duct").text,
+            ringPath: retD,
+            ringStrokeWidth: DW2 + 8
+          }
+        ), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".13)", strokeWidth: DW2 + 4, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".65)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement("g", { transform: `translate(${dampX} ${midY})` }, /* @__PURE__ */ React.createElement("rect", { x: -8, y: -6, width: 16, height: 12, rx: "2", fill: "#151515", stroke: G + ".6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("line", { x1: -5, y1: -4, x2: 4, y2: 4, stroke: G + ".8)", strokeWidth: "1.5", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: -5, cy: -4, r: "1", fill: G + ".85)" })), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: Math.min(dehuBX + BW, supTgtX) - 4,
+            y: Math.min(midY, SUP_PLEN_Y) - 4,
+            w: Math.abs(supTgtX - dehuBX - BW) + 8,
+            h: Math.abs(SUP_PLEN_Y - midY) + 8,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("dehu_supply_duct").title,
+            text: T("dehu_supply_duct").text,
+            ringPath: supD,
+            ringStrokeWidth: DW2 + 8
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: dampX - 8,
+            y: midY - 6,
+            w: 16,
+            h: 12,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("backdraft_damper").title,
+            text: T("backdraft_damper").text
+          }
+        ));
       })(), hasCoil && /* @__PURE__ */ React.createElement("g", { key: "attic-drain" }, (() => {
         const hasPump = Array.isArray(a.extras) && a.extras.includes("condensate");
         const coilCX = hasFurnace ? ACOIL_X + ACOIL_W * 0.12 : AH_X + Math.round(AH_W * 0.6);

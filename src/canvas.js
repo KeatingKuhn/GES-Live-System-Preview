@@ -1025,6 +1025,12 @@ const PART_INFO={
     es:{title:'DESHUMIDIFICADOR',text:"Se conecta a sus ductos y extrae el exceso de humedad del aire en toda la casa - sin cubetas que vaciar, sin mantenimiento de su parte."}},
   erv_box:{en:{title:'ERV',text:"Energy recovery ventilator - brings in fresh outdoor air while venting stale air out, recovering most of the energy either way."},
     es:{title:'ERV',text:"Ventilador de recuperación de energía - introduce aire fresco del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energía en el intercambio."}},
+  dehu_return_duct:{en:{title:'DEHUMIDIFIER RETURN DUCT',text:"Its own dedicated tap into the return plenum, pulling house air through the dehumidifier before it ever reaches the coil."},
+    es:{title:'DUCTO DE RETORNO DEL DESHUMIDIFICADOR',text:"Su propia toma dedicada en el plenum de retorno, que jala el aire de la casa a través del deshumidificador antes de que llegue al serpentín."}},
+  dehu_supply_duct:{en:{title:'DEHUMIDIFIER SUPPLY DUCT',text:"Feeds the dehumidified air into the supply plenum, where it blends in and reaches every room through the same ductwork."},
+    es:{title:'DUCTO DE SUMINISTRO DEL DESHUMIDIFICADOR',text:"Envía el aire deshumidificado al plenum de suministro, donde se mezcla y llega a cada habitación por el mismo sistema de ductos."}},
+  backdraft_damper:{en:{title:'BACKDRAFT DAMPER',text:"A one-way flap on the dehumidifier's supply duct that keeps the blower's much stronger airflow from pushing air backward through the dehumidifier when it isn't running."},
+    es:{title:'COMPUERTA DE CONTRATIRO',text:"Una válvula de un solo sentido en el ducto de suministro del deshumidificador, que evita que el flujo de aire, mucho más fuerte, del soplador empuje el aire hacia atrás a través del deshumidificador cuando no está funcionando."}},
   lineset:{en:{title:'LINE SET',text:"The two insulated copper lines carrying refrigerant between the indoor coil and the outdoor condenser."},
     es:{title:'LÍNEAS DE REFRIGERANTE',text:"Las dos líneas de cobre aisladas que transportan refrigerante entre el serpentín interior y el condensador exterior."}},
   condensate_drain:{en:{title:'CONDENSATE DRAIN',text:"Carries the water that condenses off the coil safely out of the house, the same way a window A/C drips outside."},
@@ -2642,36 +2648,60 @@ function CondensatePump({x,y,w=88,h=28,lang,vw,vh}){
 // bounce-in pop, the same "jump" EditZone's own `.snap` remount was
 // originally flagged for. lang/vw/vh come in as explicit props instead
 // of Canvas closures.
-function DehuErvBoxes({dehuBX,ervBX,BY,roofY,hasDehu,hasERV,snap,lang,vw,vh}){
+function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,hasDehu,hasERV,snap,lang,vw,vh}){
   if(!hasDehu&&!hasERV) return null;
   const BW=80,BH=48;
   const boxes=[];
   if(hasERV) boxes.push('erv');
   if(hasDehu) boxes.push('dehu');
+  // Hanging kit -- a rafter bracket up top (small angled flange + two
+  // screws standing in for a real joist-hanger bracket, replacing the
+  // old flat pin-like rect) with a perforated strap run down to the
+  // box, the strap itself shown wrapping over the box's own top lip
+  // (a small U) instead of just terminating in mid-air above it. Same
+  // hardware for both units, only the color changes. Takes its own
+  // roof-attachment height (ry) since the ERV can now sit at a
+  // different roofY than the dehu (see ervRoofY below).
+  const hangKit=(x,ry,stroke)=>(
+    <>
+      <path d={`M${x-4.5} ${ry-1} L${x-4.5} ${ry-5.5} L${x+4.5} ${ry-5.5} L${x+4.5} ${ry-1}`}
+        fill="none" stroke={stroke} strokeWidth="1.1" strokeLinejoin="round"/>
+      <circle cx={x-3.2} cy={ry-5.5} r="0.8" fill={stroke}/>
+      <circle cx={x+3.2} cy={ry-5.5} r="0.8" fill={stroke}/>
+      <line x1={x} y1={ry-1} x2={x} y2={BY+2} stroke={stroke} strokeWidth="1.3" strokeDasharray="1.2 2.2"/>
+      <path d={`M${x-3} ${BY+2} Q${x} ${BY-2} ${x+3} ${BY+2}`} fill="none" stroke={stroke} strokeWidth="1.2"/>
+    </>
+  );
   return <g>{boxes.map((type,i)=>{
     const BX=type==='dehu'?dehuBX:ervBX;
     const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
     const isDehu=type==='dehu';
     const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
+    // ERV defaults to the same shared roofY as the dehu (closet call
+    // site never passes ervRoofY, and there the two boxes are far
+    // enough apart that a shared flat roofline reads fine) - the attic
+    // call site passes a real per-X roofY(ervCenterX) instead, since
+    // the ERV now hangs right where the rerouted refrigerant lineset's
+    // own roofline run passes overhead and needs its own clearance
+    // below it.
+    const ry=isDehu?roofY:(ervRoofY!=null?ervRoofY:roofY);
     return <g key={type} className={snap?"snap":undefined} style={snap?{animationDelay:(0.32+i*0.05)+'s'}:undefined}>
       {isDehu
         ?<>
-          <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
-          <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
-          <rect x={r1X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
-          <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+          {hangKit(r1X,ry,"#22c55e")}
+          {hangKit(r2X,ry,"#22c55e")}
         </>
         :<>
           {/* ERV -- blue IN + orange OUT through roof. Pipes stop right
-              at the roofline (roofY), not the literal top of the canvas. */}
-          <rect x={pipe1X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
-          <rect x={pipe1X-5} y={roofY-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
-          <text x={pipe1X} y={roofY-6} textAnchor="middle" fill={B+'.6)'} fontSize="12" fontFamily="monospace">IN</text>
-          <rect x={pipe2X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
-          <path d={'M'+(pipe2X-4)+' '+(roofY-2)+' L'+pipe2X+' '+(roofY-9)+' L'+(pipe2X+4)+' '+(roofY-2)} fill="rgba(249,115,22,.4)"/>
-          <text x={pipe2X} y={roofY-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="12" fontFamily="monospace">OUT</text>
-          <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-          <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+              at the roofline (ry), not the literal top of the canvas. */}
+          <rect x={pipe1X-2} y={ry} width={5} height={Math.max(0,BY-ry)} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
+          <rect x={pipe1X-5} y={ry-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
+          <text x={pipe1X} y={ry-6} textAnchor="middle" fill={B+'.6)'} fontSize="12" fontFamily="monospace">IN</text>
+          <rect x={pipe2X-2} y={ry} width={5} height={Math.max(0,BY-ry)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
+          <path d={'M'+(pipe2X-4)+' '+(ry-2)+' L'+pipe2X+' '+(ry-9)+' L'+(pipe2X+4)+' '+(ry-2)} fill="rgba(249,115,22,.4)"/>
+          <text x={pipe2X} y={ry-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="12" fontFamily="monospace">OUT</text>
+          {hangKit(r1X,ry,G+'.55)')}
+          {hangKit(r2X,ry,G+'.55)')}
         </>
       }
       <rect x={BX} y={BY} width={BW} height={BH} rx="4"
@@ -4182,7 +4212,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             x={THERM_TX+32*THERM_SCALE-22} y={THERM_TY+THERM_H+14}
             lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
 
-                    {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline */}
+                    {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline.
+              ERV now hangs near the right outside wall - the space the
+              refrigerant lineset used to cut straight across before it
+              was rerouted to hug the roofline instead (see
+              linesetWaypoints above), freeing up this corner. Keeping the
+              dehu where it already was, centered over the equipment, lets
+              its own dedicated return/supply ducts (drawn just below)
+              reach both plenums without crossing the whole attic. */}
           {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
             const sysX=hasFurnace?FURN_X:AH_X;
             const BW=80;
@@ -4198,11 +4235,83 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // every tier/condenser state, and stays clear of the supply
             // plenum starting just past the cabinet's right edge.
             const dehuBX=hasFurnace?sysX+44:sysX+AH_W-BW-8;
-            // ERV: far left of return plenum
-            const ervBX=Math.max(8, RET_X-BW+80);
-            return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} BY={UNIT_Y-48-14} roofY={EAVE_Y+14}
+            // ERV: near the right outside wall, tucked in before the
+            // lineset's own roofline run drops down to cross it (RL_WALL_X)
+            // - the Math.max floor is only there for a narrow canvas where
+            // the supply plenum runs long enough to reach that far right
+            // itself.
+            const ervBX=Math.max(SUP_X+SUP_PLEN_W+20, RL_WALL_X-BW-24);
+            // The ERV now hangs right under where the rerouted lineset's own
+            // roofline run passes overhead on its way to the wall - a flat
+            // EAVE_Y+14 (fine for the dehu, over near the ridge-ish middle
+            // of the run where the lineset isn't) would put the ERV's IN/OUT
+            // roof stubs right on top of those two pipes here. Using the
+            // real roof height at the ERV's own X, plus enough clearance to
+            // clear both lineset lines and their glow, keeps the two apart.
+            const ervRoofY=roofY(ervBX+BW/2)+RL_ROOF_GAP+36;
+            return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} BY={UNIT_Y-48-14} roofY={EAVE_Y+14} ervRoofY={ervRoofY}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
+          })()}
+
+          {/* Dehu's own dedicated return + supply ducts, tapping the same
+              two plenums every room's ductwork uses - a dedicated return
+              pulls house air in ahead of the coil, a dedicated supply
+              (through a backdraft damper, so the blower's much stronger
+              airflow can't push air backward through an idle dehu) feeds
+              the dehumidified air back in. Matches how these are actually
+              installed in the field - the dehu box previously had no
+              ductwork of its own drawn at all. */}
+          {hasDehu&&hasCoil&&hasPlenum&&(()=>{
+            const sysX=hasFurnace?FURN_X:AH_X;
+            const BW=80,BH=48;
+            const dehuBX=hasFurnace?sysX+44:sysX+AH_W-BW-8;
+            // Routed through the open attic air between the equipment tops
+            // and the dehu/ERV box row (BY..BY+BH, i.e. UNIT_Y-62..UNIT_Y-14)
+            // rather than the ~14px gap right above the cabinets - that
+            // narrow band is already spoken for by the "ABSORBING HEAT"/
+            // "B-VENT" status text and the flue, so a duct run through it
+            // just came out as an opaque bar smeared across that text.
+            // Tapping off the box's own left/right SIDE at mid-height (not
+            // its bottom, which is where the hanging straps already run)
+            // keeps this clear of both.
+            const midY=UNIT_Y-35;
+            const DW2=4;
+            const RC='rgba(255,182,193,';
+            // Return: right edge of the return plenum (nearest the dehu,
+            // shortest run, clear of its own left-edge vent-slot marks).
+            const retTgtX=RET_X+RET_PLEN_W-14;
+            // Supply: well right-of-center on the supply plenum, clear of
+            // the ionizer's own UV rod (enters at ~0.18 of plenum width,
+            // see hasIonizer block above) and the plenum's centered label.
+            const supTgtX=SUP_X+Math.round(SUP_PLEN_W*0.75);
+            const retD=`M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
+            const supD=`M${dehuBX+BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
+            const dampX=(dehuBX+BW+supTgtX)/2;
+            return <g className="snap" style={{animationDelay:'0.4s'}}>
+              <path d={retD} fill="none" stroke={RC+'.14)'} strokeWidth={DW2+4} strokeLinejoin="round" strokeLinecap="round"/>
+              <path d={retD} fill="none" stroke={RC+'.75)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
+              <HoverInfo x={Math.min(dehuBX,retTgtX)-4} y={Math.min(midY,UNIT_Y)-4} w={Math.abs(retTgtX-dehuBX)+8} h={Math.abs(UNIT_Y-midY)+8} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
+                ringPath={retD} ringStrokeWidth={DW2+8}/>
+
+              <path d={supD} fill="none" stroke={G+'.13)'} strokeWidth={DW2+4} strokeLinejoin="round" strokeLinecap="round"/>
+              <path d={supD} fill="none" stroke={G+'.65)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
+              {/* Backdraft damper -- a small valve body with a hinged flap,
+                  sitting mid-run on the supply leg, so the blower's much
+                  stronger airflow can't push air backward through the dehu
+                  when it isn't running. */}
+              <g transform={`translate(${dampX} ${midY})`}>
+                <rect x={-8} y={-6} width={16} height={12} rx="2" fill="#151515" stroke={G+'.6)'} strokeWidth="1"/>
+                <line x1={-5} y1={-4} x2={4} y2={4} stroke={G+'.8)'} strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx={-5} cy={-4} r="1" fill={G+'.85)'}/>
+              </g>
+              <HoverInfo x={Math.min(dehuBX+BW,supTgtX)-4} y={Math.min(midY,SUP_PLEN_Y)-4} w={Math.abs(supTgtX-dehuBX-BW)+8} h={Math.abs(SUP_PLEN_Y-midY)+8} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('dehu_supply_duct').title} text={T('dehu_supply_duct').text}
+                ringPath={supD} ringStrokeWidth={DW2+8}/>
+              <HoverInfo x={dampX-8} y={midY-6} w={16} h={12} rx={2} vw={SVG_VW} vh={SVG_VH}
+                title={T('backdraft_damper').title} text={T('backdraft_damper').text}/>
+            </g>;
           })()}
 
           {/* Condensate drain - dashed blue line below coil, pump box if selected */}
