@@ -391,6 +391,20 @@ function App(){
   const stepCountText=cur&&cur.id!=='location'?tr('STEP','PASO')+" "+stepIdx+(totalKnown?" "+tr('OF','DE')+" "+totalSteps:""):"";
   const chapterNames=lang==='es'?CHAPTERS_ES:CHAPTERS;
 
+  // Screen-reader announcement of what changed - the wizard's question text
+  // (and the diagram building alongside it) only ever changes visually
+  // today; nothing tells a non-visual user a new step loaded after they hit
+  // Next/Back, so they'd have to go hunting for the new question by touch.
+  // Rendered into a persistent, visually-hidden aria-live region below
+  // (kept OUTSIDE the per-step key={stepIdx} remounted nodes so the region
+  // itself is never torn down - only its text content changes, which is
+  // what actually triggers an announcement). Scoped to just the question
+  // text, not the full option list, so it reads once per step instead of
+  // rattling off every option's label on every render.
+  const liveMessage=done
+    ?tr('Your system is built. Review your selections below.','Su sistema está construido. Revise sus selecciones abajo.')
+    :(cur&&cur.id!=='location'?(stepCountText?stepCountText+". ":"")+curQ:"");
+
   // Review-grid item list - what the done screen's review grid shows,
   // pulled out to component level (was inline inside the review-grid JSX
   // below) so the same list can also drive the "Email My Build" plain-
@@ -793,6 +807,12 @@ function App(){
           toggle, which lives down on the splash screen now (see below). */}
       <div className="site-header-spacer no-print"/>
     <div ref={topRef} className="app-root">
+      {/* Visually-hidden live region - see the liveMessage comment above.
+          A stable, never-remounted node (no key, no conditional unmount)
+          so screen readers treat every stepIdx/done change as a content
+          mutation of the SAME region and announce it, rather than a fresh
+          region appearing that some assistive tech would stay silent on. */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">{liveMessage}</div>
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
       {resumePending&&<div className="fadein" style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
         <div className="splash-logo" style={{fontSize:"clamp(28px,6vw,44px)"}}>{tr('WELCOME BACK','BIENVENIDO DE NUEVO')}</div>
