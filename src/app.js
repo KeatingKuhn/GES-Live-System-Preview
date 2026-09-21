@@ -615,20 +615,7 @@ function App(){
     system_for:{hp:tr("Efficient through Austin winters.","Eficiente durante los inviernos de Austin."),sc:tr("Furnace handles all the heating.","El horno se encarga de toda la calefacción.")},
     dehu:{yes:tr("Added, for noticeably drier air.","Agregado, para un aire notablemente más seco."),no:tr("Skipping it, easy to add later.","Omitido por ahora, fácil de agregar después.")},
   };
-  // Spanish counterpart to REACTION above - a QA pass caught this reaction
-  // line rendering in English even under the Spanish toggle, since it had
-  // no override table at all (every other piece of step copy does - see
-  // STEPS_ES/OPTS_ES in data.js and INFO_TEXT_ES above). Same shape/keys as
-  // REACTION; reactionText below picks whichever table matches `lang`.
-  const REACTION_ES={
-    insulation:{fiberglass:"Ático ventilado, compatible con un horno del 80%.",spray:"Ático sellado, sube a un horno del 90%."},
-    plenum:{ductboard:"Ductboard, una opción estándar y confiable.",metal:"Plenum de metal, dura más que el sistema.",none:"Conservar su plenum ahorra en mano de obra."},
-    cond_tier:{fedmin:"Menor costo inicial, ya decidido.",mid_ge15:"Nuestra mejor opción en general.",high_ge18:"Nuestro nivel más silencioso y eficiente."},
-    thermostat:{basic:"Confiable, sin necesidad de app.",wifi:"Contrólelo desde su teléfono.",proprietary:"Diseñado para el mejor diagnóstico."},
-    system_for:{hp:"Eficiente durante todo el invierno en Austin.",sc:"El horno se encarga de toda la calefacción."},
-    dehu:{yes:"Agregado, para un aire notablemente más seco.",no:"Por ahora sin él, fácil de agregar después."},
-  };
-  const reactionText=cur&&(lang==='es'?REACTION_ES[cur.id]&&REACTION_ES[cur.id][answers[cur.id]]:REACTION[cur.id]&&REACTION[cur.id][answers[cur.id]]);
+  const reactionText=cur&&REACTION[cur.id]&&REACTION[cur.id][answers[cur.id]];
 
 
   const loc = answers.location;

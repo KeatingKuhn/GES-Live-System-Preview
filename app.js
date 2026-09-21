@@ -7363,15 +7363,7 @@
       system_for: { hp: tr("Efficient through Austin winters.", "Eficiente durante los inviernos de Austin."), sc: tr("Furnace handles all the heating.", "El horno se encarga de toda la calefacci\xF3n.") },
       dehu: { yes: tr("Added, for noticeably drier air.", "Agregado, para un aire notablemente m\xE1s seco."), no: tr("Skipping it, easy to add later.", "Omitido por ahora, f\xE1cil de agregar despu\xE9s.") }
     };
-    const REACTION_ES = {
-      insulation: { fiberglass: "\xC1tico ventilado, compatible con un horno del 80%.", spray: "\xC1tico sellado, sube a un horno del 90%." },
-      plenum: { ductboard: "Ductboard, una opci\xF3n est\xE1ndar y confiable.", metal: "Plenum de metal, dura m\xE1s que el sistema.", none: "Conservar su plenum ahorra en mano de obra." },
-      cond_tier: { fedmin: "Menor costo inicial, ya decidido.", mid_ge15: "Nuestra mejor opci\xF3n en general.", high_ge18: "Nuestro nivel m\xE1s silencioso y eficiente." },
-      thermostat: { basic: "Confiable, sin necesidad de app.", wifi: "Contr\xF3lelo desde su tel\xE9fono.", proprietary: "Dise\xF1ado para el mejor diagn\xF3stico." },
-      system_for: { hp: "Eficiente durante todo el invierno en Austin.", sc: "El horno se encarga de toda la calefacci\xF3n." },
-      dehu: { yes: "Agregado, para un aire notablemente m\xE1s seco.", no: "Por ahora sin \xE9l, f\xE1cil de agregar despu\xE9s." }
-    };
-    const reactionText = cur && (lang === "es" ? REACTION_ES[cur.id] && REACTION_ES[cur.id][answers[cur.id]] : REACTION[cur.id] && REACTION[cur.id][answers[cur.id]]);
+    const reactionText = cur && REACTION[cur.id] && REACTION[cur.id][answers[cur.id]];
     const loc = answers.location;
     const isAtticMode = loc === "attic";
     const isClosetMode = loc === "closet";
