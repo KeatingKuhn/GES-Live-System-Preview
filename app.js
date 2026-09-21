@@ -5272,9 +5272,9 @@
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: coilCX - 6,
+            x: coilCX - 10,
             y: drainTopY - 4,
-            w: 80,
+            w: 20,
             h: DECK_Y + 20 - drainTopY + 8,
             rx: 3,
             vw: SVG_VW,

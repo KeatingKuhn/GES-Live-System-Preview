@@ -4819,8 +4819,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   stroke={B+'.35)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
                 <text x={coilCX+7} y={DECK_Y+14} textAnchor="start"
                   fill={B+'.35)'} fontSize="12" fontFamily="monospace">DRAIN</text>
-                {/* No EditZone covers this - free-standing hover, no onClick. */}
-                <HoverInfo x={coilCX-6} y={drainTopY-4} w={80} h={DECK_Y+20-drainTopY+8} rx={3}
+                {/* QA FIX - was 80 wide (a leftover from when this box also
+                    had to reach sideways to a condensate pump, now removed
+                    - see this block's own comment). For a straight 1.5px
+                    dashed line that read as a huge gold hover box floating
+                    well past the line on both sides, swallowing whatever
+                    diagram content happened to sit under it (direct
+                    feedback: "big ass box"). Narrowed to hug the line
+                    itself, same width convention every other straight
+                    duct/line hover in this file uses. No EditZone covers
+                    this - free-standing hover, no onClick. */}
+                <HoverInfo x={coilCX-10} y={drainTopY-4} w={20} h={DECK_Y+20-drainTopY+8} rx={3}
                   vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}/>
               </>;
             })()}
