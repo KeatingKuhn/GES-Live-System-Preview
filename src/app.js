@@ -605,7 +605,20 @@ function App(){
     system_for:{hp:"Efficient through Austin winters.",sc:"Furnace handles all the heating."},
     dehu:{yes:"Added, for noticeably drier air.",no:"Skipping it, easy to add later."},
   };
-  const reactionText=cur&&REACTION[cur.id]&&REACTION[cur.id][answers[cur.id]];
+  // Spanish counterpart to REACTION above - a QA pass caught this reaction
+  // line rendering in English even under the Spanish toggle, since it had
+  // no override table at all (every other piece of step copy does - see
+  // STEPS_ES/OPTS_ES in data.js and INFO_TEXT_ES above). Same shape/keys as
+  // REACTION; reactionText below picks whichever table matches `lang`.
+  const REACTION_ES={
+    insulation:{fiberglass:"Ático ventilado, compatible con un horno del 80%.",spray:"Ático sellado, sube a un horno del 90%."},
+    plenum:{ductboard:"Ductboard, una opción estándar y confiable.",metal:"Plenum de metal, dura más que el sistema.",none:"Conservar su plenum ahorra en mano de obra."},
+    cond_tier:{fedmin:"Menor costo inicial, ya decidido.",mid_ge15:"Nuestra mejor opción en general.",high_ge18:"Nuestro nivel más silencioso y eficiente."},
+    thermostat:{basic:"Confiable, sin necesidad de app.",wifi:"Contrólelo desde su teléfono.",proprietary:"Diseñado para el mejor diagnóstico."},
+    system_for:{hp:"Eficiente durante todo el invierno en Austin.",sc:"El horno se encarga de toda la calefacción."},
+    dehu:{yes:"Agregado, para un aire notablemente más seco.",no:"Por ahora sin él, fácil de agregar después."},
+  };
+  const reactionText=cur&&(lang==='es'?REACTION_ES[cur.id]&&REACTION_ES[cur.id][answers[cur.id]]:REACTION[cur.id]&&REACTION[cur.id][answers[cur.id]]);
 
 
   const loc = answers.location;
@@ -773,20 +786,22 @@ function App(){
     <div ref={topRef} className="app-root">
       {/* ── RESUME PROMPT - shown once on load if a saved build exists ── */}
       {resumePending&&<div className="fadein" style={{position:"absolute",inset:0,zIndex:40,background:"var(--bk)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center"}}>
-        <div className="splash-logo" style={{fontSize:"clamp(28px,6vw,44px)"}}>WELCOME BACK</div>
+        <div className="splash-logo" style={{fontSize:"clamp(28px,6vw,44px)"}}>{tr('WELCOME BACK','BIENVENIDO DE NUEVO')}</div>
         <p style={{fontFamily:"var(--fb)",fontSize:15,color:"rgba(255,255,255,.6)",maxWidth:420,lineHeight:1.6}}>
           {(()=>{
             const savedSteps=STEPS.filter(s=>!s.showIf||s.showIf(savedBuild.answers));
             const savedCur=savedSteps[savedBuild.stepIdx];
+            const savedQ=savedCur&&(lang==='es'&&STEPS_ES[savedCur.id]?STEPS_ES[savedCur.id].q:savedCur.q);
             return savedBuild.done
-              ? "You already finished building a system. Pick up right where you left off?"
+              ? tr('You already finished building a system. Pick up right where you left off?','Ya terminó de armar un sistema. ¿Continuamos donde lo dejó?')
               : savedCur
-                ? <>You were on <strong style={{color:"rgba(255,255,255,.85)"}}>"{savedCur.q}"</strong> - want to keep going?</>
-                : "You have a build in progress. Want to keep going?";
+                ? tr(<>You were on <strong style={{color:"rgba(255,255,255,.85)"}}>"{savedQ}"</strong> - want to keep going?</>,
+                     <>Estaba en <strong style={{color:"rgba(255,255,255,.85)"}}>"{savedQ}"</strong> - ¿desea continuar?</>)
+                : tr('You have a build in progress. Want to keep going?','Tiene un sistema en progreso. ¿Desea continuar?');
           })()}
         </p>
-        <button className="done-cta" style={{width:220}} onClick={resumeBuild}>Resume My Build</button>
-        <button className="done-restart" onClick={discardSavedBuild}>Start Fresh Instead</button>
+        <button className="done-cta" style={{width:220}} onClick={resumeBuild}>{tr('Resume My Build','Continuar Mi Sistema')}</button>
+        <button className="done-restart" onClick={discardSavedBuild}>{tr('Start Fresh Instead','Empezar de Nuevo')}</button>
       </div>}
 
       {/* ── PROGRESS BAR - segmented by chapter, not a bare percentage ── */}
@@ -1281,8 +1296,8 @@ function App(){
                         {TONNAGE_OPTIONS.map(o=>(
                           <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
                             <div className="opt-inner"><div className="opt-body">
-                              <span className="opt-label">{o.label}{recommended&&recommended.v===o.v&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
-                              <span className="opt-desc">{isAtticMode?o.sqftLabel:tr(`Typical for ${o.sqftLabel} homes`,`Típico para casas de ${o.sqftLabel}`)}</span>
+                              <span className="opt-label">{tr(o.label,o.labelEs)}{recommended&&recommended.v===o.v&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
+                              <span className="opt-desc">{isAtticMode?tr(o.sqftLabel,o.sqftLabelEs):tr(`Typical for ${o.sqftLabel} homes`,`Típico para casas de ${o.sqftLabelEs}`)}</span>
                             </div></div>
                           </button>
                         ))}
