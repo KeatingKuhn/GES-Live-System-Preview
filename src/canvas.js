@@ -985,6 +985,16 @@ const PART_INFO={
   // the heat-pump-heating copy above describes what it's doing right now.
   acoil_heat_idle:{en:{title:'A-COIL',text:"Only active when you're cooling or when a heat pump is doing the heating - with the furnace running instead, this coil sits idle while air just passes through it."},
     es:{title:'SERPENTÍN EN A',text:"Solo está activo cuando está enfriando o cuando una bomba de calor está calentando - con el horno funcionando en su lugar, este serpentín queda inactivo mientras el aire simplemente pasa a través de él."}},
+  // Standard-efficiency heat-pump-only (air handler) variant, once the
+  // compressor has locked out on a very cold day (hpLockedOut, aux
+  // sub-mode) - refReversed stays true in that state (see its own
+  // comment: it only checks !hasFurnace/heatMode, not lockout), so
+  // without this branch acoilInfoKey kept pointing at
+  // acoil_heat_reject's "refrigerant reverses through it" copy right
+  // over a coil the diagram itself is drawing dim/idle with an "AUX
+  // HEAT ONLY" label - the compressor's actually off here, not reversed.
+  acoil_aux_lockout:{en:{title:'A-COIL',text:"The compressor's locked out at this outdoor temperature, so this coil sits idle - aux/emergency electric heat strips are carrying the entire heating load instead."},
+    es:{title:'SERPENTÍN EN A',text:"El compresor está bloqueado a esta temperatura exterior, así que este serpentín permanece inactivo - las resistencias eléctricas de calefacción auxiliar/de emergencia se encargan de toda la carga de calefacción en su lugar."}},
   air_handler_cabinet:{en:{title:'AIR HANDLER',text:"The indoor half of a heat-pump-only system - no gas furnace here, just a blower and coil moving air for both heating and cooling."},
     es:{title:'MANEJADOR DE AIRE',text:"La mitad interior de un sistema de solo bomba de calor - sin horno de gas aquí, solo un motor y un serpentín moviendo aire para calefacción y enfriamiento."}},
   condenser_cabinet:{en:{title:'CONDENSER',text:"Your outdoor unit. It releases heat outside to cool your home, or, with a heat pump, pulls heat from the outside air to warm it."},
@@ -3134,11 +3144,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   const evapActive=!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut));
   const condenserActive=hasCond&&(!heatMode||(isDualFuel?(heatSubMode==='hp'):(!hasFurnace&&!hpLockedOut)));
   const refReversed=heatMode&&(!hasFurnace||(isDualFuel&&heatSubMode==='hp'));
-  // A-coil hover copy: which of the three PART_INFO acoil* keys actually
+  // A-coil hover copy: which of the four PART_INFO acoil* keys actually
   // describes what this coil is doing right now - see those keys' own
-  // comments for why cooling/heat-pump-heating/furnace-heating each need
-  // their own text rather than one description that covers all three.
-  const acoilInfoKey=()=>heatMode?(refReversed?'acoil_heat_reject':'acoil_heat_idle'):'acoil';
+  // comments for why cooling/heat-pump-heating/furnace-heating/aux-
+  // lockout each need their own text rather than one description that
+  // covers all four. Checked before refReversed's own branch since
+  // refReversed only tests !hasFurnace/heatMode - it stays true through
+  // a standard heat pump's aux lockout too (the refrigerant loop just
+  // isn't running at all right then), which used to leave acoilInfoKey
+  // pointing at acoil_heat_reject's "refrigerant reverses through it"
+  // copy over a coil the diagram itself draws dim/idle with an "AUX HEAT
+  // ONLY" label right next to it.
+  const acoilInfoKey=()=>!heatMode?'acoil':hpLockedOut?'acoil_aux_lockout':(refReversed?'acoil_heat_reject':'acoil_heat_idle');
   // For a standard heat pump (hpLockedOut), aux heat is the ONLY thing
   // running - the compressor's off. For a low-ambient heat pump (mid
   // efficiency), the compressor never locks out, but the heat strip still
