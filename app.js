@@ -7472,6 +7472,9 @@
       document.querySelector(".attic-bar-body")?.scrollTo(0, 0);
     }, [stepIdx]);
     React.useEffect(() => {
+      document.querySelector(".closet-layout .sidebar")?.scrollTo(0, 0);
+    }, [stepIdx]);
+    React.useEffect(() => {
       document.querySelector(".done-screen .sidebar")?.scrollTo(0, 0);
       document.querySelector(".done-wrap")?.scrollTo(0, 0);
     }, [pricingFlow, pricingSubStep]);

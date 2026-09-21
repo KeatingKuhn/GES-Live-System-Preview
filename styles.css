@@ -806,8 +806,40 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .rotate-prompt-sub{font-family:var(--fb);font-size:14px;color:rgba(255,255,255,.6);max-width:320px;line-height:1.5}
 }
 @keyframes rotatePromptSpin{0%,20%{transform:rotate(0)}50%,70%{transform:rotate(-90deg)}100%{transform:rotate(-90deg)}}
-.splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s}
+/* overflow-y:auto is a safety net for the max-height:800px rule below:
+   centering (justify-content:center) splits any overflow evenly above AND
+   below the box, and with no scroll affordance that top half - including
+   the "BUILD YOUR OWN SYSTEM" title, this whole screen's own headline -
+   was clipped off above the viewport with no way to reach it. Harmless
+   here when content fits (the normal desktop case): no overflow, nothing
+   to scroll. */
+.splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s;overflow-y:auto}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
+/* Splash content (title + intro copy + trust bullets + both location
+   cards + language toggle) is tall enough that on any viewport under
+   ~800px of HEIGHT - not just short-portrait phones (740/667px tall) but
+   every phone in LANDSCAPE too (a 390-wide phone sideways is only ~390px
+   tall) - it no longer fits centered without overflowing. Confirmed via
+   getBoundingClientRect: on a portrait 360x740 the title's own box
+   started at y=-35 (partly above the viewport); on any of our landscape
+   phone widths (e.g. 844x390) the ENTIRE title box landed above y=0,
+   fully off-screen with nothing on screen to indicate it existed, let
+   alone reach it - centering splits overflow evenly above and below, and
+   the overflow-y:auto safety net a few lines up can only help once
+   there's a sensible, discoverable scroll direction to use. flex-start
+   below anchors content to the top instead, so the title is always the
+   first thing rendered and any overflow lands below - a normal,
+   discoverable "scroll down for more" fold, the same pattern the wizard
+   steps already use. 800px stays clear of the tallest known-fine case in
+   testing (390x844 fits centered with only ~1px to spare) while safely
+   covering every shorter case, including every landscape phone width
+   tested. Must come after the base rule above, not just inside its own
+   media query - same specificity, so source order alone decides which
+   justify-content wins, and a plain .splash-screen rule anywhere later
+   in the file would silently re-win this override back to center. */
+@media(max-height:800px){
+  .splash-screen{justify-content:flex-start;padding:24px 16px}
+}
 /* First-load entrance - the very first thing anyone sees gets a short,
    staged rise instead of popping in fully-formed in one frame. Each direct
    line/block gets .splash-rise plus its own small stagger (see the
@@ -960,7 +992,21 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 
   /* Attic layout: canvas top 55%, bar bottom 45% scrollable */
   .attic-layout{flex-direction:column}
-  .attic-canvas-area{flex:none;height:52vh;min-height:220px}
+  /* Same dead-space bug as .done-canvas-frame below, same fix - a flat
+     height:52vh (percentage of viewport HEIGHT only) ignores this frame's
+     own WIDTH too. The live wizard canvas is a separate element from the
+     done-screen's .done-canvas-frame (this one wraps the in-progress
+     step-by-step diagram, live while answering questions; that one wraps
+     the finished review diagram), so the aspect-ratio/max-height fix
+     applied there never reached this one - on a portrait tablet
+     (768x1024) this produced the exact same ~532px-tall box for a diagram
+     that only needs ~300px at 768px wide, confirmed via
+     getBoundingClientRect. Landscape phones (e.g. 844x390) are already
+     handled by the separate max-height:430px rule further down (30vh,
+     which lands well under the aspect-driven height here regardless), so
+     they're unaffected by this change - max-height keeps the old 52vh as
+     an upper bound either way. */
+  .attic-canvas-area{flex:none;height:auto;aspect-ratio:2.5;max-height:52vh;min-height:220px}
   .attic-bar{height:auto;flex:1;min-height:0;overflow-y:auto}
   /* Back/Skip/Info/Next stay reachable without scrolling a long option
      list on a phone-height viewport - sticking this row is what replaces
@@ -1067,7 +1113,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 
 @media(max-width:600px){
   /* Phone: smaller canvas, single-column options */
-  .attic-canvas-area{height:45vh}
+  .attic-canvas-area{height:auto;aspect-ratio:2.5;max-height:45vh}
   .closet-canvas-area{height:45vh}
   .done-screen.attic-mode .done-canvas-frame{height:auto;aspect-ratio:2.5;max-height:45vh}
   .sidebar{max-height:50vh}
