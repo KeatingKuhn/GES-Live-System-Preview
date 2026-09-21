@@ -4587,18 +4587,45 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // its bottom, which is where the hanging straps already run)
             // keeps this clear of both.
             const midY=UNIT_Y-35;
-            const DW2=4;
+            // Pipe body thickness, matched to the backdraft damper's own
+            // 12px housing height per direct feedback ("as thick as the
+            // backdraft damper") - these used to be thin 1.4px dashed
+            // lines with only a soft glow standing in for real duct width,
+            // reading as a wire, not a duct. DW2 (the old glow-only width)
+            // is gone; pipeW is the actual solid pipe body now, with a
+            // thin dashed centerline on top as the flow-direction accent
+            // (same "line drawn again, thinner, dashed, on top" technique
+            // the main refrigerant linesets elsewhere in this file use).
+            const pipeW=11;
             const RC='rgba(255,182,193,';
-            // Return: right edge of the return plenum (nearest the dehu,
-            // shortest run, clear of its own left-edge vent-slot marks).
-            const retTgtX=RET_X+RET_PLEN_W-14;
+            // Return: plenum's own CENTER, not its right edge, per direct
+            // feedback. (The return-air register's own arrow/"RETURN
+            // PLENUM" label/temp readout already converge on this same
+            // centerline from below - this duct enters from above it, at
+            // UNIT_Y, clear of all of that, which sits lower in the box.)
+            const retTgtX=RET_X+RET_PLEN_W/2;
             // Supply: well right-of-center on the supply plenum, clear of
             // the ionizer's own UV rod (enters at ~0.18 of plenum width,
             // see hasIonizer block above) and the plenum's centered label.
             const supTgtX=SUP_X+Math.round(SUP_PLEN_W*0.75);
-            const retD=`M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
+            // The plenum's own center (retTgtX) now sits almost directly
+            // under the ERV, which moved to this same far-left corner (see
+            // that box's own call site comment) - a straight horizontal run
+            // at midY would pass right through the ERV's box/hanging-kit
+            // footprint (BY..BY+BH spans the same band midY sits in) instead
+            // of past it. When ERV is on the build, the return duct instead
+            // runs past the ERV's right edge first, THEN drops below the
+            // whole dehu/ERV box row before jogging back to the plenum's
+            // true center - same "route around, not through, a box in the
+            // way" idea as the closet return-chase's own pump detour.
+            const hasERVHere=Array.isArray(a.extras)&&a.extras.includes('erv');
+            const retDodgeX=Math.max(8,RET_X)+BW+14;
+            const retDodgeY=UNIT_Y-10;
+            const retD=hasERVHere
+              ?`M${dehuBX} ${midY} L${retDodgeX} ${midY} L${retDodgeX} ${retDodgeY} L${retTgtX} ${retDodgeY} L${retTgtX} ${UNIT_Y}`
+              :`M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
             const supD=`M${dehuBX+BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
-            // Hit-testing pad, half the stroke+glow width (DW2+4=8) plus a
+            // Hit-testing pad, half the pipe's own outer glow width plus a
             // couple px of slop - deliberately NOT one rect spanning "the
             // whole bounding box of the bent path" (what this used to be):
             // an L-shaped run's bounding box is a full RECTANGLE spanning
@@ -4613,7 +4640,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // their own "two boxes tracing the actual bent run" comment).
             // Two thin rects, one per straight segment, hug the actual
             // drawn stroke instead.
-            const dpad=6;
+            const dpad=pipeW/2+4;
             // Biased toward the plenum end of the run rather than sitting
             // at its midpoint - the midpoint landed close enough to the
             // dehu box's own end of the run to read as crowding the
@@ -4621,22 +4648,42 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // near SUP_X) even though the duct itself clears it with room
             // to spare.
             const dampX=Math.max(dehuBX+BW+15,supTgtX-30);
+            // Scoop (bellmouth) fitting where the supply duct's vertical
+            // leg meets the plenum's top edge, per direct feedback - a
+            // real HVAC fitting that flares the duct opening wider right
+            // at the plenum tie-in to smooth the airflow transition and
+            // cut static pressure loss, instead of the duct just butting
+            // square into the plenum wall. A simple flared trapezoid,
+            // same solid-fill-plus-stroke treatment as the duct pipes
+            // themselves.
+            const scoopW=pipeW*1.9, scoopH=11;
+            const scoopD=`M${supTgtX-pipeW/2} ${SUP_PLEN_Y-scoopH} L${supTgtX-scoopW/2} ${SUP_PLEN_Y} L${supTgtX+scoopW/2} ${SUP_PLEN_Y} L${supTgtX+pipeW/2} ${SUP_PLEN_Y-scoopH} Z`;
             return <g className="snap" style={{animationDelay:'0.4s'}}>
-              <path d={retD} fill="none" stroke={RC+'.14)'} strokeWidth={DW2+4} strokeLinejoin="round" strokeLinecap="round"/>
-              <path d={retD} fill="none" stroke={RC+'.75)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
-              {/* Two segment-hugging hit-rects (horizontal run, then the
-                  vertical drop into the plenum) instead of one rect spanning
-                  the whole bent path's bounding box - see dpad's own comment
-                  above for why. Both still show the same title/ring. */}
-              <HoverInfo x={Math.min(dehuBX,retTgtX)-2} y={midY-dpad} w={Math.abs(retTgtX-dehuBX)+4} h={dpad*2} rx={2}
+              <path d={retD} fill="none" stroke={RC+'.16)'} strokeWidth={pipeW+6} strokeLinejoin="round" strokeLinecap="round"/>
+              <path d={retD} fill="none" stroke={RC+'.4)'} strokeWidth={pipeW} strokeLinejoin="round" strokeLinecap="round"/>
+              <path d={retD} fill="none" stroke={RC+'.8)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
+              {/* Segment-hugging hit-rects tracing the actual bent path
+                  (see dpad's own comment above for why one loose bounding
+                  box isn't used) - 2 segments normally, or 3 when the ERV
+                  dodge above is active. All still show the same title/
+                  ring. */}
+              <HoverInfo x={Math.min(dehuBX,retDodgeX)-2} y={midY-dpad} w={Math.abs((hasERVHere?retDodgeX:retTgtX)-dehuBX)+4} h={dpad*2} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
-                ringPath={retD} ringStrokeWidth={DW2+8}/>
-              <HoverInfo x={retTgtX-dpad} y={Math.min(midY,UNIT_Y)-2} w={dpad*2} h={Math.abs(UNIT_Y-midY)+4} rx={2}
+                ringPath={retD} ringStrokeWidth={pipeW+8}/>
+              {hasERVHere&&<HoverInfo x={retDodgeX-dpad} y={Math.min(midY,retDodgeY)-2} w={dpad*2} h={Math.abs(retDodgeY-midY)+4} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
-                ringPath={retD} ringStrokeWidth={DW2+8}/>
+                ringPath={retD} ringStrokeWidth={pipeW+8}/>}
+              {hasERVHere&&<HoverInfo x={Math.min(retDodgeX,retTgtX)-2} y={retDodgeY-dpad} w={Math.abs(retTgtX-retDodgeX)+4} h={dpad*2} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
+                ringPath={retD} ringStrokeWidth={pipeW+8}/>}
+              <HoverInfo x={retTgtX-dpad} y={Math.min(hasERVHere?retDodgeY:midY,UNIT_Y)-2} w={dpad*2} h={Math.abs(UNIT_Y-(hasERVHere?retDodgeY:midY))+4} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
+                ringPath={retD} ringStrokeWidth={pipeW+8}/>
 
-              <path d={supD} fill="none" stroke={G+'.13)'} strokeWidth={DW2+4} strokeLinejoin="round" strokeLinecap="round"/>
-              <path d={supD} fill="none" stroke={G+'.65)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
+              <path d={supD} fill="none" stroke={G+'.16)'} strokeWidth={pipeW+6} strokeLinejoin="round" strokeLinecap="round"/>
+              <path d={supD} fill="none" stroke={G+'.3)'} strokeWidth={pipeW} strokeLinejoin="round" strokeLinecap="round"/>
+              <path d={supD} fill="none" stroke={G+'.7)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
+              <path d={scoopD} fill={G+'.18)'} stroke={G+'.55)'} strokeWidth="1"/>
               {/* Backdraft damper -- a small valve body with a hinged flap,
                   sitting mid-run on the supply leg, so the blower's much
                   stronger airflow can't push air backward through the dehu
@@ -4648,10 +4695,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               </g>
               <HoverInfo x={Math.min(dehuBX+BW,supTgtX)-2} y={midY-dpad} w={Math.abs(supTgtX-dehuBX-BW)+4} h={dpad*2} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_supply_duct').title} text={T('dehu_supply_duct').text}
-                ringPath={supD} ringStrokeWidth={DW2+8}/>
+                ringPath={supD} ringStrokeWidth={pipeW+8}/>
               <HoverInfo x={supTgtX-dpad} y={Math.min(midY,SUP_PLEN_Y)-2} w={dpad*2} h={Math.abs(SUP_PLEN_Y-midY)+4} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_supply_duct').title} text={T('dehu_supply_duct').text}
-                ringPath={supD} ringStrokeWidth={DW2+8}/>
+                ringPath={supD} ringStrokeWidth={pipeW+8}/>
               <HoverInfo x={dampX-8} y={midY-6} w={16} h={12} rx={2} vw={SVG_VW} vh={SVG_VH}
                 title={T('backdraft_damper').title} text={T('backdraft_damper').text}/>
             </g>;

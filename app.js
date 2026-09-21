@@ -5231,20 +5231,25 @@
         const BW = 80, BH = 48;
         const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
         const midY = UNIT_Y - 35;
-        const DW2 = 4;
+        const pipeW = 11;
         const RC = "rgba(255,182,193,";
-        const retTgtX = RET_X + RET_PLEN_W - 14;
+        const retTgtX = RET_X + RET_PLEN_W / 2;
         const supTgtX = SUP_X + Math.round(SUP_PLEN_W * 0.75);
-        const retD = `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
+        const hasERVHere = Array.isArray(a.extras) && a.extras.includes("erv");
+        const retDodgeX = Math.max(8, RET_X) + BW + 14;
+        const retDodgeY = UNIT_Y - 10;
+        const retD = hasERVHere ? `M${dehuBX} ${midY} L${retDodgeX} ${midY} L${retDodgeX} ${retDodgeY} L${retTgtX} ${retDodgeY} L${retTgtX} ${UNIT_Y}` : `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
         const supD = `M${dehuBX + BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
-        const dpad = 6;
+        const dpad = pipeW / 2 + 4;
         const dampX = Math.max(dehuBX + BW + 15, supTgtX - 30);
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".14)", strokeWidth: DW2 + 4, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".75)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement(
+        const scoopW = pipeW * 1.9, scoopH = 11;
+        const scoopD = `M${supTgtX - pipeW / 2} ${SUP_PLEN_Y - scoopH} L${supTgtX - scoopW / 2} ${SUP_PLEN_Y} L${supTgtX + scoopW / 2} ${SUP_PLEN_Y} L${supTgtX + pipeW / 2} ${SUP_PLEN_Y - scoopH} Z`;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".16)", strokeWidth: pipeW + 6, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".4)", strokeWidth: pipeW, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".8)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: Math.min(dehuBX, retTgtX) - 2,
+            x: Math.min(dehuBX, retDodgeX) - 2,
             y: midY - dpad,
-            w: Math.abs(retTgtX - dehuBX) + 4,
+            w: Math.abs((hasERVHere ? retDodgeX : retTgtX) - dehuBX) + 4,
             h: dpad * 2,
             rx: 2,
             vw: SVG_VW,
@@ -5252,24 +5257,54 @@
             title: T("dehu_return_duct").title,
             text: T("dehu_return_duct").text,
             ringPath: retD,
-            ringStrokeWidth: DW2 + 8
+            ringStrokeWidth: pipeW + 8
           }
-        ), /* @__PURE__ */ React.createElement(
+        ), hasERVHere && /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: retTgtX - dpad,
-            y: Math.min(midY, UNIT_Y) - 2,
+            x: retDodgeX - dpad,
+            y: Math.min(midY, retDodgeY) - 2,
             w: dpad * 2,
-            h: Math.abs(UNIT_Y - midY) + 4,
+            h: Math.abs(retDodgeY - midY) + 4,
             rx: 2,
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("dehu_return_duct").title,
             text: T("dehu_return_duct").text,
             ringPath: retD,
-            ringStrokeWidth: DW2 + 8
+            ringStrokeWidth: pipeW + 8
           }
-        ), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".13)", strokeWidth: DW2 + 4, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".65)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement("g", { transform: `translate(${dampX} ${midY})` }, /* @__PURE__ */ React.createElement("rect", { x: -8, y: -6, width: 16, height: 12, rx: "2", fill: "#151515", stroke: G + ".6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("line", { x1: -5, y1: -4, x2: 4, y2: 4, stroke: G + ".8)", strokeWidth: "1.5", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: -5, cy: -4, r: "1", fill: G + ".85)" })), /* @__PURE__ */ React.createElement(
+        ), hasERVHere && /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: Math.min(retDodgeX, retTgtX) - 2,
+            y: retDodgeY - dpad,
+            w: Math.abs(retTgtX - retDodgeX) + 4,
+            h: dpad * 2,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("dehu_return_duct").title,
+            text: T("dehu_return_duct").text,
+            ringPath: retD,
+            ringStrokeWidth: pipeW + 8
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: retTgtX - dpad,
+            y: Math.min(hasERVHere ? retDodgeY : midY, UNIT_Y) - 2,
+            w: dpad * 2,
+            h: Math.abs(UNIT_Y - (hasERVHere ? retDodgeY : midY)) + 4,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("dehu_return_duct").title,
+            text: T("dehu_return_duct").text,
+            ringPath: retD,
+            ringStrokeWidth: pipeW + 8
+          }
+        ), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".16)", strokeWidth: pipeW + 6, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".3)", strokeWidth: pipeW, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".7)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement("path", { d: scoopD, fill: G + ".18)", stroke: G + ".55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("g", { transform: `translate(${dampX} ${midY})` }, /* @__PURE__ */ React.createElement("rect", { x: -8, y: -6, width: 16, height: 12, rx: "2", fill: "#151515", stroke: G + ".6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("line", { x1: -5, y1: -4, x2: 4, y2: 4, stroke: G + ".8)", strokeWidth: "1.5", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: -5, cy: -4, r: "1", fill: G + ".85)" })), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: Math.min(dehuBX + BW, supTgtX) - 2,
@@ -5282,7 +5317,7 @@
             title: T("dehu_supply_duct").title,
             text: T("dehu_supply_duct").text,
             ringPath: supD,
-            ringStrokeWidth: DW2 + 8
+            ringStrokeWidth: pipeW + 8
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5297,7 +5332,7 @@
             title: T("dehu_supply_duct").title,
             text: T("dehu_supply_duct").text,
             ringPath: supD,
-            ringStrokeWidth: DW2 + 8
+            ringStrokeWidth: pipeW + 8
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
