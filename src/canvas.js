@@ -2948,6 +2948,91 @@ function ThermModeButtons({modes,cx,y,totalW,gap,h,fontSize}){
   </g>;
 }
 
+// Shared thermostat face - the SAME local geometry (76-wide face, same
+// dial/screen sizing) painted by BOTH layouts, instead of two hand-kept-
+// in-sync copies (which had drifted: attic's was a smaller, independently
+// -scaled 64-wide design). The attic call site wraps this in its own
+// translate+scale <g> for its narrow-margin fallback; the closet call
+// site passes its real, always-unscaled TX/TY straight through. Sharing
+// one function is what makes "both thermostats the same size, same
+// button size, same text size" (direct feedback) actually hold instead
+// of being two numbers a future edit can nudge out of sync again.
+// Caption text is NOT drawn here - see THERM_CAP_Y/THERM_BTN_Y below for
+// why that moved out to its own call-site-painted line under the
+// COOL/HEAT row.
+function ThermostatFace({TX,TY,isProprietary,isWifi,thermostatTemp,showRange,heatMode,G,B}){
+  const tempDisplay=showRange?<>{thermostatTemp-2}°-{thermostatTemp+2}°</>:<>{thermostatTemp}°</>;
+  const modeColor=heatMode?"#f97316":"#2389e0";
+  return isProprietary
+    // PROPRIETARY COMMUNICATING -- edge-to-edge glass touchscreen
+    // (Ecobee-style rectangle), deliberately not the round dial used for
+    // the Wi-Fi tier below, so it reads as a distinct, more premium
+    // control rather than the same thermostat with a different label.
+    ?<>
+      <rect x={TX} y={TY} width={76} height={68} rx="10" fill="#0a0a0d" stroke={G+'.62)'} strokeWidth="1.6"/>
+      <rect x={TX+3} y={TY+3} width={70} height={52} rx="7" fill="#050810" stroke={B+'.3)'} strokeWidth="0.8"/>
+      <text x={TX+38} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize={showRange?"14.5":"23.5"}
+        fontFamily="monospace" filter="url(#glow)">{tempDisplay}</text>
+      <text x={TX+38} y={TY+48} textAnchor="middle" fill={B+'.55)'} fontSize="9"
+        fontFamily="monospace">{heatMode?'HEAT':'COOL'} · AUTO</text>
+      <circle cx={TX+67} cy={TY+11} r={1.9} fill={B+'.55)'}/>
+      <rect x={TX+6} y={TY+59} width={64} height="3.5" rx="1.75" fill={modeColor} opacity="0.8"/>
+    </>
+    :isWifi
+    ?<>
+      <circle cx={TX+38} cy={TY+38} r={36} fill="#0d0d0d" stroke={G+'.62)'} strokeWidth="1.8"/>
+      <circle cx={TX+38} cy={TY+38} r={28} fill="#060e1c" stroke={B+'.42)'} strokeWidth="1.1"/>
+      <text x={TX+38} y={TY+43} textAnchor="middle" fill={B+'.92)'} fontSize={showRange?"13":"21"}
+        fontFamily="monospace" filter="url(#glow)">{tempDisplay}</text>
+      <path d={`M${TX+12} ${TY+38} A26 26 0 0 1 ${TX+64} ${TY+38}`}
+        fill="none" stroke={modeColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.55"/>
+      <path d={`M${TX+24} ${TY+62} Q${TX+38} ${TY+53} ${TX+52} ${TY+62}`}
+        fill="none" stroke={B+'.5)'} strokeWidth="1.8" strokeLinecap="round"/>
+      <path d={`M${TX+28} ${TY+67} Q${TX+38} ${TY+61} ${TX+48} ${TY+67}`}
+        fill="none" stroke={B+'.7)'} strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx={TX+38} cy={TY+71} r={2.5} fill={B+'.8)'}/>
+    </>
+    :<>
+      <rect x={TX} y={TY} width={76} height={62} rx="3" fill="#0d0d0d" stroke={G+'.55)'} strokeWidth="1.6"/>
+      <rect x={TX+5} y={TY+6} width={66} height={34} rx="2" fill="#050d18" stroke={B+'.36)'} strokeWidth="0.9"/>
+      <text x={TX+38} y={TY+28} textAnchor="middle" fill={B+'.9)'} fontSize="21"
+        fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
+      {[10,24,38,52,66].map((bx,i)=>(
+        <rect key={i} x={TX+bx-4} y={TY+46} width="9" height="5" rx="1.5"
+          fill={G+'.22)'} stroke={G+'.12)'} strokeWidth="0.4"/>
+      ))}
+    </>;
+}
+// Button-row top-y and caption-y, keyed by variant, local to TX=0/TY=0 -
+// shared by both layouts so the "caption moved below the COOL/HEAT row"
+// fix (direct feedback: the wifi caption used to sit sandwiched between
+// the dial and the buttons, the basic caption crammed onto the face
+// itself) is one set of numbers, not two. Buttons sit right under each
+// variant's own face (whose heights differ - 68/72/62), then the
+// caption sits under the buttons (h=17) with a small gap, using the
+// spare room the hover/edit box already has below the button row.
+const THERM_BTN_Y={proprietary:76,wifi:82,basic:70};
+const THERM_CAP_Y={proprietary:107,wifi:113,basic:101};
+// Shortened per direct feedback ("rename the thermostats... basic wifi
+// and comm for simplicity") - same three variant keys, just terser
+// captions. Applies to both layouts since this map is shared.
+const THERM_CAP_TEXT={proprietary:'COMM',wifi:'WIFI',basic:'BASIC'};
+const THERM_CAP_FILL_A={proprietary:'.45)',wifi:'.45)',basic:'.38)'};
+const THERM_CAP_SIZE={proprietary:'11.5',wifi:'11.5',basic:'11'};
+function thermVariant(isProprietary,isWifi){return isProprietary?'proprietary':isWifi?'wifi':'basic';}
+// Both layouts render their thermostat at this exact same scale - see
+// THERM_SCALE's own comment (attic) for the measurement behind the
+// number. Measured directly (via the rendered SVG, not guessed): a
+// Furnace-based attic build's own left-margin column is ~74 local units
+// wide regardless of plenum/tier/heat-type choice (Air Handler's own
+// column measures ~80) - that column, not anything about the closet
+// layout, is the real ceiling on how big either thermostat can be while
+// still matching. Closet had genuine spare room (its own thermostat used
+// to render close to full local size), so IT scales down to meet this
+// ceiling instead of attic trying and failing to reach closet's old,
+// larger size.
+const THERM_TARGET_SCALE=0.58;
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // Shorthand for the hover-tooltip copy above, resolved to this render's
@@ -3530,44 +3615,46 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // just isn't a legible column to work with, so the thermostat falls
     // back to its old spot wedged under the return duct instead.
     const THERM_IN_MARGIN=MARGIN_L>=70;
-    // The nominal box each thermostat design draws is 64 wide, but its
-    // caption text (BASIC PROGRAMMABLE, the widest of the three labels)
-    // is centered on that same 64-wide box and, at this monospace font,
-    // is genuinely wider than it - SVG text doesn't clip to a bounding
-    // box, so the caption has always overflowed a few px past the box's
-    // own left/right edges. Harmless out in the old position, which had
-    // plenty of open room on both sides - but this new column sits right
-    // against the house's left wall (x=0), so sizing/centering off the
-    // narrower nominal box let that overflow clip off the edge of the
-    // canvas outright. CONTENT_W/CONTENT_L below are the real left-to-
-    // right extent including that overflow (measured against "BASIC
-    // PROGRAMMABLE" at its local unscaled coordinates - the other two
-    // captions are narrower and fit safely inside this same box), so
-    // every size/position calc after this is based on what actually
-    // needs to fit, not just the nominal box.
-    const THERM_CONTENT_W=116, THERM_CONTENT_L=-26;
-    // 96 is the real bottom-to-top extent of the tallest variant now that
-    // a COOL/HEAT button row is painted below each one's caption - see the
-    // button row's own y offsets a bit further down. THERM_MAX_SCALE caps
-    // the thermostat at (just under) its own real-world size relative to
-    // the equipment beside it: UNIT_H is a fixed 105 regardless of
-    // viewport (see its own comment - it's a real-world 15" dimension, not
-    // frame-derived), so this cap is a constant too, not something that
-    // keeps growing the thermostat bigger on a wider screen the way sizing
-    // off MARGIN_L alone used to. The MARGIN_L term still shrinks it
-    // further on a narrower margin than that.
-    const THERM_MAX_SCALE=(UNIT_H-10)/96;
-    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(THERM_MAX_SCALE,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
+    // ThermostatFace (shared with the closet layout - see its own
+    // comment) draws a 76-wide face, same real size as the closet's own,
+    // so "same size, same text size" between the two layouts holds
+    // structurally rather than needing two hand-tuned copies. The widest
+    // real content at these local (TX=0,TY=0) coordinates isn't the face
+    // itself though - it's the 3-button COOL/HP/FURN row (cx=38,
+    // totalW=96, so it spans -10..86) and the "COMMUNICATING" caption
+    // (13 chars @ fontSize 11.5, spans roughly -7..83) - both wider than
+    // the 76-wide face they're centered under/above. CONTENT_W/CONTENT_L
+    // are that real left-to-right extent (with a couple px of safety
+    // pad), so every size/position calc after this is based on what
+    // actually needs to fit, not just the face's own nominal width.
+    const THERM_CONTENT_W=100, THERM_CONTENT_L=-12;
+    // 120 is the real top-to-bottom extent of the tallest variant now
+    // that the caption sits below the COOL/HEAT row (moved there per
+    // direct feedback - see THERM_CAP_Y) instead of on the face itself.
+    // No UNIT_H-based height cap here (there used to be one, pegging the
+    // thermostat to roughly the equipment cabinet's own real-world
+    // height) - the open margin column has comfortably more vertical
+    // room than this needs, so width (MARGIN_L, below) is the only real
+    // constraint. Capped at THERM_TARGET_SCALE (see its own comment) -
+    // MEASURED, not assumed: a Furnace build's own MARGIN_L lands at
+    // ~74 regardless of plenum/tier/heat-type choice (Air Handler's at
+    // ~80), so (MARGIN_L-16)/THERM_CONTENT_W already equals ~0.58-0.64
+    // in practice - this basically always hits the target exactly (or
+    // with a little room to spare for Air Handler) rather than actually
+    // reaching 1. The closet layout scales to this SAME target (see its
+    // own call site) so the two stay identical instead of attic quietly
+    // rendering smaller.
+    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.5,Math.min(THERM_TARGET_SCALE,(MARGIN_L-16)/THERM_CONTENT_W)):0.5;
     // A heat-pump-only or dual-fuel system needs a 3rd thermostat button
-    // (COOL/HP/FURN or COOL/HP/AUX, matching ToggleUI's own preview) - the
-    // row grows to 84 (still well inside the 116-wide CONTENT_W/CONTENT_L
-    // bounds above, which already account for overflow past the nominal
-    // 64-wide box) instead of squeezing a 3rd label into the same 64.
-    // Only the button ROW widens - the face itself (rects/circles/captions
-    // below) keeps its original 64-wide coordinates untouched.
+    // (COOL/HP/FURN or COOL/HP/AUX, matching ToggleUI's own preview) -
+    // same 96/76 row widths the closet layout's own thermostat uses, so
+    // the button row is genuinely identical in both places, not just
+    // similar. Only the button ROW widens - the face itself (rects/
+    // circles, from ThermostatFace) keeps its own 76-wide coordinates
+    // untouched.
     const THERM_BTN_N=(isDualFuel||!hasFurnace)?3:2;
-    const THERM_ROW_W=THERM_BTN_N===3?84:64;
-    const THERM_W=THERM_ROW_W*THERM_SCALE, THERM_H=96*THERM_SCALE;
+    const THERM_ROW_W=THERM_BTN_N===3?96:76;
+    const THERM_W=THERM_ROW_W*THERM_SCALE, THERM_H=120*THERM_SCALE;
     // TX/TY here are the <g transform="translate(...)"> origin, not a
     // bounding-box corner - the thermostat markup below still draws at
     // local 0-based coordinates (TX=0,TY=0 there) exactly as it always
@@ -3584,12 +3671,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     const THERM_TY=THERM_IN_MARGIN?Math.round(UNIT_Y+(UNIT_H-THERM_H)/2):DECK_Y+12;
     // Hover/focus-ring boxes below (hoverPart, EditZone, StepFocusRing) key
     // off THERM_TX/THERM_W, which describe the FACE's own origin+width
-    // (unchanged at nominal 64) - the button row, when widened to 84 for a
-    // 3rd button, is centered under the face (local x=-10..74) rather than
-    // flush with its left edge, so those boxes need this same leftward
-    // nudge to still fully surround the row instead of clipping its left
-    // side. Zero for the unwidened 2-button case (32-64/2=0).
-    const THERM_ROW_X=THERM_TX+(32-THERM_ROW_W/2)*THERM_SCALE;
+    // (unchanged at nominal 76, centered on local x=38) - the button row,
+    // when widened to 96 for a 3rd button, is centered under the face
+    // (local x=-10..86) rather than flush with its left edge, so those
+    // boxes need this same leftward nudge to still fully surround the row
+    // instead of clipping its left side. Zero for the unwidened 2-button
+    // case (38-76/2=0).
+    const THERM_ROW_X=THERM_TX+(38-THERM_ROW_W/2)*THERM_SCALE;
     // Return plenum stays directly against the filter rack/furnace - the
     // thermostat lives off to the left in its own margin column instead,
     // so it never gets inserted into this chain and pushes this adjacency
@@ -4404,11 +4492,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasTstat&&(()=>{
             const isProprietary=a.thermostat==='proprietary';
             const isWifi=a.thermostat==='wifi'&&!isProprietary;
-            // COOL/HEAT button row's top y, local to the TX=0/TY=0 origin
-            // below - each variant's own caption sits at a different y (the
-            // three designs aren't the same height), so this places the
-            // row just under whichever caption this build actually shows.
-            const btnY=isProprietary?76:isWifi?74:56;
+            const variant=thermVariant(isProprietary,isWifi);
             // Shoulder-season swing readout - see isMildHp's own definition
             // far below (reused as-is, not redefined here, so this always
             // agrees with thermostatTemp's own 70-vs-67 split just above
@@ -4419,9 +4503,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // (see outsideFill/intFill/CondenserFan just below), so this
             // does too.
             const showRange=heatMode&&isMildHp;
-            const tempDisplay=showRange
-              ?<>{thermostatTemp-2}°-{thermostatTemp+2}°</>
-              :<>{thermostatTemp}°</>;
             return <g className="snap therm-hover-zone" key="tstat" style={{animationDelay:'.26s'}}
               onMouseEnter={()=>setHoverPart({x:THERM_ROW_X,y:THERM_TY,w:THERM_W,h:THERM_H,
                 vw:SVG_VW,vh:SVG_VH,title:T('thermostat_general').title,text:T('thermostat_general').text,highlight:true})}
@@ -4445,66 +4526,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 reports its own hover to setHoverPart, same mechanism
                 HoverInfo itself uses - see the module comment on
                 HoverCtx), so it never fights the COOL/HEAT buttons/EditZone
-                painted after it for clicks. */}
+                painted after it for clicks. Face markup itself now lives in
+                the shared ThermostatFace (see its own comment) - both
+                layouts paint the exact same 76-wide design, only the
+                wrapping transform (scale here for the narrow-margin
+                fallback, none in the closet layout) differs. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
-            {(()=>{
-              const TX=0, TY=0;
-              const modeColor=heatMode?"#f97316":"#2389e0";
-              return isProprietary
-                // PROPRIETARY COMMUNICATING -- edge-to-edge glass touchscreen
-                // (Ecobee-style rectangle), deliberately not the round dial
-                // used for the Wi-Fi tier below, so it reads as a distinct,
-                // more premium control rather than the same thermostat with
-                // a different label.
-                ?<>
-                  <rect x={TX} y={TY} width={64} height={58} rx="9"
-                    fill="#0a0a0d" stroke={G+'.6)'} strokeWidth="1.4"/>
-                  <rect x={TX+2.5} y={TY+2.5} width={59} height={45} rx="6.5"
-                    fill="#050810" stroke={B+'.3)'} strokeWidth="0.7"/>
-                  <text x={TX+32} y={TY+30} textAnchor="middle" fill={B+'.95)'} fontSize={showRange?"12.5":"20.5"}
-                    fontFamily="monospace" filter="url(#glow)">{tempDisplay}</text>
-                  <text x={TX+32} y={TY+41} textAnchor="middle" fill={B+'.55)'} fontSize="8"
-                    fontFamily="monospace">{heatMode?'HEAT':'COOL'} · AUTO</text>
-                  <circle cx={TX+56} cy={TY+9} r={1.6} fill={B+'.55)'}/>
-                  <rect x={TX+5} y={TY+50} width={54} height="3" rx="1.5" fill={modeColor} opacity="0.8"/>
-                  <text x={TX+32} y={TY+70} textAnchor="middle" fill={G+'.5)'} fontSize="10.5" fontFamily="monospace">COMMUNICATING</text>
-                </>
-                :isWifi
-                ?<>
-                  <circle cx={TX+32} cy={TY+30} r={28} fill="#0d0d0d" stroke={G+'.65)'} strokeWidth="1.6"/>
-                  <circle cx={TX+32} cy={TY+30} r={22} fill="#060e1c" stroke={B+'.45)'} strokeWidth="1"/>
-                  <text x={TX+32} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize={showRange?"11.5":"18"}
-                    fontFamily="monospace" filter="url(#glow)">{tempDisplay}</text>
-                  <path d={`M${TX+11} ${TY+30} A21 21 0 0 1 ${TX+53} ${TY+30}`}
-                    fill="none" stroke={modeColor} strokeWidth="2.2" strokeLinecap="round" opacity="0.55"/>
-                  <path d={`M${TX+21} ${TY+48} Q${TX+32} ${TY+41} ${TX+43} ${TY+48}`}
-                    fill="none" stroke={B+'.5)'} strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d={`M${TX+24} ${TY+52} Q${TX+32} ${TY+47} ${TX+40} ${TY+52}`}
-                    fill="none" stroke={B+'.7)'} strokeWidth="1.5" strokeLinecap="round"/>
-                  <circle cx={TX+32} cy={TY+56} r={2.2} fill={B+'.8)'}/>
-                  <text x={TX+32} y={TY+68} textAnchor="middle" fill={G+'.5)'} fontSize="10.5" fontFamily="monospace">WI-FI SMART</text>
-                </>
-                :<>
-                  <rect x={TX} y={TY} width={64} height={54} rx="3"
-                    fill="#0d0d0d" stroke={G+'.58)'} strokeWidth="1.4"/>
-                  <rect x={TX+4} y={TY+5} width={56} height={28} rx="2"
-                    fill="#050d18" stroke={B+'.38)'} strokeWidth="0.8"/>
-                  <text x={TX+32} y={TY+24} textAnchor="middle" fill={B+'.92)'} fontSize="20"
-                    fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
-                  {[7,18,29,40,51].map((bx,i)=>(
-                    <rect key={i} x={TX+bx} y={TY+38} width="7" height="4" rx="1"
-                      fill={G+'.22)'} stroke={G+'.12)'} strokeWidth="0.4"/>
-                  ))}
-                  {/* QA FIX - "BASIC PROGRAMMABLE" (19 chars) at this
-                      fontSize is much wider than the 64px-wide face
-                      itself, overflowing onto whatever sits beside the
-                      thermostat in the diagram instead of staying inside
-                      its own box. Shortened to "BASIC", matching the
-                      closet layout's own thermostat, which already made
-                      this exact call. */}
-                  <text x={TX+32} y={TY+50} textAnchor="middle" fill={G+'.42)'} fontSize="10" fontFamily="monospace">BASIC</text>
-                </>;
-            })()}
+              <ThermostatFace TX={0} TY={0} isProprietary={isProprietary} isWifi={isWifi}
+                thermostatTemp={thermostatTemp} showRange={showRange} heatMode={heatMode} G={G} B={B}/>
             </g>
             <EditZone stepId="thermostat" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
               x={THERM_ROW_X-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
@@ -4513,7 +4542,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 underneath it - see EditZone's own onClick above. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
               <ThermModeButtons modes={thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode)}
-                cx={32} y={btnY} totalW={THERM_ROW_W} gap={4} h={15} fontSize={THERM_BTN_N===3?7.5:8.5}/>
+                cx={38} y={THERM_BTN_Y[variant]} totalW={THERM_ROW_W} gap={4} h={17} fontSize={THERM_BTN_N===3?8.5:9.5}/>
+              {/* Caption moved below the COOL/HEAT row per direct feedback
+                  ("wifi smart is in between the thermostat and the
+                  buttons... that could go below too", "'Basic' wording can
+                  go underneath the thermostat buttons, since theres room")
+                  - uses the spare room the hover/edit box already reserves
+                  below the button row instead of crowding the face itself. */}
+              <text x={38} y={THERM_CAP_Y[variant]} textAnchor="middle" fill={G+THERM_CAP_FILL_A[variant]}
+                fontSize={THERM_CAP_SIZE[variant]} fontFamily="monospace">{THERM_CAP_TEXT[variant]}</text>
             </g>
           </g>;
           })()}
@@ -4552,7 +4589,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // clears the (narrower, centered) title with room to spare on
             // every tier/condenser state, and stays clear of the supply
             // plenum starting just past the cabinet's right edge.
-            const dehuBX=hasFurnace?sysX+44:sysX+AH_W-BW-8;
+            // QA FIX - was sysX+44, crowding the flue (which pokes up
+            // through the roof at FURN_X+FURN_W*0.7) with only ~13px of
+            // real clearance. Shifted further left (+30) for real breathing
+            // room between the two.
+            const dehuBX=hasFurnace?sysX+30:sysX+AH_W-BW-8;
             // ERV: far-left corner of the attic, above the return plenum/
             // thermostat column - genuinely on its own there, clear of
             // everything else in the equipment run. Used to hang near the
@@ -4566,8 +4607,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // this step (see the stepId="extras" StepFocusRing below,
             // x={Math.max(8,RET_X)}) - the real box just never matched it.
             // Full 80-wide box now, no shrinking needed - there's no tight
-            // slot to fit into over here.
-            const ervW=BW;
+            // slot to fit into over here. Bumped a bit past the standard
+            // BW (96 vs 80) per direct feedback that it read as cramped
+            // sitting alone in the corner - nothing else occupies this
+            // far-left strip up near the eave, so there's room to spare.
+            const ervW=96;
             // Scooted flush against the left wall (was Math.max(8,RET_X),
             // which - since RET_X/MARGIN_L is always >=20 - actually never
             // hit the 8 floor and left the box sitting further right than
@@ -4581,7 +4625,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // spot on the pitched roof above this now-far-left position,
             // same pattern as the flue's and closet ERV's own roof stubs
             // elsewhere in this file.
-            const ervRoofY=roofY(ervBX+ervW/2);
+            // Evaluated at the LEFT hang-bracket's own X (DehuErvBoxes'
+            // r1X=BX+boxW*0.08), not the box center - this box now sits
+            // hard against the eave (ervBX=8) where the roof drops fast,
+            // and both brackets share this single ry. A center-based Y
+            // was too high (too close to the ridge) for the true roof
+            // height at the left bracket's own, further-left position,
+            // so that bracket's strap poked up above the actual roofline.
+            // Anchoring to the left bracket's real X fixes that; the
+            // right bracket (closer to the ridge, where the roof is
+            // genuinely higher) ends up anchored a bit lower than it
+            // could reach - a safe under-reach, never a roofline-poking
+            // over-reach.
+            const ervRoofY=roofY(ervBX+ervW*0.08);
             return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} ervW={ervW} BY={UNIT_Y-48-14} roofY={EAVE_Y+14} ervRoofY={ervRoofY}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
@@ -4598,7 +4654,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasDehu&&hasCoil&&hasPlenum&&(()=>{
             const sysX=hasFurnace?FURN_X:AH_X;
             const BW=80,BH=48;
-            const dehuBX=hasFurnace?sysX+44:sysX+AH_W-BW-8;
+            // Matches the dehu box's own call site above - see its comment
+            // for why this moved from +44 to +30.
+            const dehuBX=hasFurnace?sysX+30:sysX+AH_W-BW-8;
             // Routed through the open attic air between the equipment tops
             // and the dehu/ERV box row (BY..BY+BH, i.e. UNIT_Y-62..UNIT_Y-14)
             // rather than the ~14px gap right above the cabinets - that
@@ -4887,9 +4945,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               title below it - see that call site's comment) so this ghost
               preview lands in the same spot the real box will. */}
           <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu"
-            x={hasFurnace?FURN_X+44:AH_X+AH_W-80-8} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
+            x={hasFurnace?FURN_X+30:AH_X+AH_W-80-8} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
           <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="extras"
-            x={8} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
+            x={8} y={UNIT_Y-48-14} w={96} h={48} rx={4}/>
           {/* Single always-topmost hover tooltip - see the module comment
               on HoverCtx/HoverInfo for why this has to be the very last
               thing painted in the whole <svg> rather than living next to
@@ -5974,32 +6032,37 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasTstat&&(()=>{
             const gapLeft=UNIT_X+UNIT_W+16, gapRight=EXT_WALL_X-16;
             const midY=hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2;
-            const TX=gapLeft+(gapRight-gapLeft)/2-38, TY=midY-38;
             const isProprietaryC=a.thermostat==='proprietary';
             const isWifiC=a.thermostat==='wifi'&&!isProprietaryC;
-            // COOL/HEAT button row's top y - each variant's own caption
-            // sits at a different y below TY (the three designs aren't the
-            // same height), so this places the row just under whichever
-            // caption this build actually shows, same reasoning as the
-            // attic thermostat's own btnY just above.
-            const btnY=isProprietaryC?TY+90:isWifiC?TY+93:TY+65;
+            const variantC=thermVariant(isProprietaryC,isWifiC);
             // isMildHp alone doesn't imply heatMode - see the attic
             // thermostat's own showRange comment above.
             const showRangeC=heatMode&&isMildHp;
-            const tempDisplayC=showRangeC
-              ?<>{thermostatTemp-2}°-{thermostatTemp+2}°</>
-              :<>{thermostatTemp}°</>;
             // Same 2-vs-3-button widening as the attic thermostat - see
             // THERM_BTN_N/THERM_ROW_W/THERM_ROW_X's own comments there.
-            // Row is centered on the face's own center (TX+38); 76 (the
-            // 2-button case) reduces THERM_ROW_X_C back to TX exactly, so
-            // every box below is an unchanged no-op for a straight-cool
-            // system.
             const THERM_BTN_N_C=(isDualFuel||!hasFurnace)?3:2;
             const THERM_ROW_W_C=THERM_BTN_N_C===3?96:76;
-            const THERM_ROW_X_C=TX+38-THERM_ROW_W_C/2;
+            // Total local content height - same 120 the attic layout's
+            // own THERM_H is built from (see its comment): face + button
+            // row + the caption now sitting below it, with a little pad.
+            const THERM_CONTENT_H_C=120;
+            // Scaled to THERM_TARGET_SCALE - see its own comment. This
+            // layout never had a real space constraint of its own (the
+            // open floor space on both sides of the unit stack was
+            // always "genuine breathing room"), so it just always
+            // targets that shared scale rather than computing its own
+            // margin-fit fallback the way the attic layout's THERM_SCALE
+            // has to. TX/TY are the <g transform="translate(...)"> origin
+            // (local x=0/y=0), chosen so the SCALED content still centers
+            // on the same column/row the unscaled version used to.
+            const TX=gapLeft+(gapRight-gapLeft)/2-38*THERM_TARGET_SCALE;
+            const TY=midY-(THERM_CONTENT_H_C/2)*THERM_TARGET_SCALE;
+            const THERM_W_C=THERM_ROW_W_C*THERM_TARGET_SCALE, THERM_H_C=THERM_CONTENT_H_C*THERM_TARGET_SCALE;
+            // Row is centered on the face's own local center (local
+            // x=38); mirrors THERM_ROW_X's own formula (attic).
+            const THERM_ROW_X_C=TX+38*THERM_TARGET_SCALE-THERM_W_C/2;
             return <g className="snap therm-hover-zone" key="tstat-c" style={{animationDelay:'.26s'}}
-              onMouseEnter={()=>setHoverPart({x:THERM_ROW_X_C,y:TY,w:THERM_ROW_W_C,h:70,
+              onMouseEnter={()=>setHoverPart({x:THERM_ROW_X_C,y:TY,w:THERM_W_C,h:THERM_H_C,
                 vw:SVG_VW,vh:SVG_VH,title:T('thermostat_general').title,text:T('thermostat_general').text,highlight:true})}
               onMouseLeave={()=>setHoverPart(null)}>
             {/* General "what is this" thermostat tooltip - same purely-
@@ -6007,65 +6070,30 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 (see its comment): no new hit-rect, and the enter/leave
                 pair lives on the outer g (not this rect) for the same
                 "EditZone/buttons paint after this and would otherwise be
-                the actual hover target" reason as there. */}
-            <rect x={THERM_ROW_X_C-2} y={TY-2} width={THERM_ROW_W_C+6} height={116}
+                the actual hover target" reason as there. Face markup
+                itself now lives in the shared ThermostatFace (see its own
+                comment) - both layouts paint the exact same 76-wide
+                design at the exact same THERM_TARGET_SCALE. */}
+            <rect x={THERM_ROW_X_C-2} y={TY-2} width={THERM_W_C+4} height={THERM_H_C+4}
               fill="transparent" style={{pointerEvents:'all'}}/>
-            {(()=>{
-              const modeColorC=heatMode?"#f97316":"#2389e0";
-              return isProprietaryC
-                // PROPRIETARY COMMUNICATING -- edge-to-edge glass touchscreen
-                // (Ecobee-style rectangle), kept visually distinct from the
-                // round Wi-Fi dial below so the matched-communicating tier
-                // reads as a genuinely different, more premium control.
-                ?<>
-                  <rect x={TX} y={TY} width={76} height={68} rx="10"
-                    fill="#0a0a0d" stroke={G+'.62)'} strokeWidth="1.6"/>
-                  <rect x={TX+3} y={TY+3} width={70} height={52} rx="7"
-                    fill="#050810" stroke={B+'.3)'} strokeWidth="0.8"/>
-                  <text x={TX+38} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize={showRangeC?"14.5":"23.5"}
-                    fontFamily="monospace" filter="url(#glow)">{tempDisplayC}</text>
-                  <text x={TX+38} y={TY+48} textAnchor="middle" fill={B+'.55)'} fontSize="9"
-                    fontFamily="monospace">{heatMode?'HEAT':'COOL'} · AUTO</text>
-                  <circle cx={TX+67} cy={TY+11} r={1.9} fill={B+'.55)'}/>
-                  <rect x={TX+6} y={TY+59} width={64} height="3.5" rx="1.75" fill={modeColorC} opacity="0.8"/>
-                  <text x={TX+38} y={TY+82} textAnchor="middle" fill={G+'.45)'} fontSize="11.5" fontFamily="monospace">COMMUNICATING</text>
-                </>
-                :isWifiC
-                ?<>
-                  <circle cx={TX+38} cy={TY+38} r={36} fill="#0d0d0d" stroke={G+'.62)'} strokeWidth="1.8"/>
-                  <circle cx={TX+38} cy={TY+38} r={28} fill="#060e1c" stroke={B+'.42)'} strokeWidth="1.1"/>
-                  <text x={TX+38} y={TY+43} textAnchor="middle" fill={B+'.92)'} fontSize={showRangeC?"13":"21"}
-                    fontFamily="monospace" filter="url(#glow)">{tempDisplayC}</text>
-                  <path d={`M${TX+12} ${TY+38} A26 26 0 0 1 ${TX+64} ${TY+38}`}
-                    fill="none" stroke={modeColorC} strokeWidth="2.5" strokeLinecap="round" opacity="0.55"/>
-                  <path d={`M${TX+24} ${TY+62} Q${TX+38} ${TY+53} ${TX+52} ${TY+62}`}
-                    fill="none" stroke={B+'.5)'} strokeWidth="1.8" strokeLinecap="round"/>
-                  <path d={`M${TX+28} ${TY+67} Q${TX+38} ${TY+61} ${TX+48} ${TY+67}`}
-                    fill="none" stroke={B+'.7)'} strokeWidth="1.8" strokeLinecap="round"/>
-                  <circle cx={TX+38} cy={TY+71} r={2.5} fill={B+'.8)'}/>
-                  <text x={TX+38} y={TY+85} textAnchor="middle" fill={G+'.45)'} fontSize="11.5" fontFamily="monospace">WI-FI SMART</text>
-                </>
-                :<>
-                  <rect x={TX} y={TY} width={76} height={62} rx="3"
-                    fill="#0d0d0d" stroke={G+'.55)'} strokeWidth="1.6"/>
-                  <rect x={TX+5} y={TY+6} width={66} height={34} rx="2"
-                    fill="#050d18" stroke={B+'.36)'} strokeWidth="0.9"/>
-                  <text x={TX+38} y={TY+28} textAnchor="middle" fill={B+'.9)'} fontSize="21"
-                    fontFamily="monospace" filter="url(#glow)">{thermostatTemp}°</text>
-                  {[10,24,38,52,66].map((bx,i)=>(
-                    <rect key={i} x={TX+bx-4} y={TY+46} width="9" height="5" rx="1.5"
-                      fill={G+'.22)'} stroke={G+'.12)'} strokeWidth="0.4"/>
-                  ))}
-                  <text x={TX+38} y={TY+58} textAnchor="middle" fill={G+'.38)'} fontSize="11" fontFamily="monospace">BASIC</text>
-                </>;
-            })()}
+            <g transform={`translate(${TX} ${TY}) scale(${THERM_TARGET_SCALE})`}>
+              <ThermostatFace TX={0} TY={0} isProprietary={isProprietaryC} isWifi={isWifiC}
+                thermostatTemp={thermostatTemp} showRange={showRangeC} heatMode={heatMode} G={G} B={B}/>
+            </g>
             <EditZone stepId="thermostat" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
-              x={THERM_ROW_X_C-2} y={TY-2} w={THERM_ROW_W_C+6} h={116}/>
+              x={THERM_ROW_X_C-2} y={TY-2} w={THERM_W_C+4} h={THERM_H_C+4}/>
             {/* Painted after EditZone (topmost in paint order) so a click
                 lands on the button, not the done-screen's edit-zone overlay
                 underneath it - see EditZone's own onClick above. */}
-            <ThermModeButtons modes={thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode)}
-              cx={TX+38} y={btnY} totalW={THERM_ROW_W_C} gap={4} h={17} fontSize={THERM_BTN_N_C===3?8.5:9.5}/>
+            <g transform={`translate(${TX} ${TY}) scale(${THERM_TARGET_SCALE})`}>
+              <ThermModeButtons modes={thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode)}
+                cx={38} y={THERM_BTN_Y[variantC]} totalW={THERM_ROW_W_C} gap={4} h={17} fontSize={THERM_BTN_N_C===3?8.5:9.5}/>
+              {/* Caption moved below the COOL/HEAT row - see the attic
+                  thermostat's own identical comment above; same shared
+                  THERM_CAP_Y/THERM_CAP_TEXT keeps this in lockstep with it. */}
+              <text x={38} y={THERM_CAP_Y[variantC]} textAnchor="middle" fill={G+THERM_CAP_FILL_A[variantC]}
+                fontSize={THERM_CAP_SIZE[variantC]} fontFamily="monospace">{THERM_CAP_TEXT[variantC]}</text>
+            </g>
           </g>;
           })()}
 
@@ -6159,15 +6187,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 x={UNIT_X-2} y={focusPlenTop-2} w={PLEN_W+4} h={focusPlenTotal+4} rx={5}/>
               {hasCond&&<StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="cond_tier"
                 x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
-              {/* QA FIX - this used to drop the real thermostat's own "+38"
-                  re-center term (TX is the row's LEFT edge, not its
-                  center - the real EditZone below centers on TX+38, the
-                  face's own midpoint), landing the ghost preview a flat
-                  38px left of where the real thermostat actually renders. */}
+              {/* Mirrors the real thermostat's own THERM_ROW_X_C/TY/
+                  THERM_W_C/THERM_H_C formulas (see that call site's
+                  comments) at THERM_TARGET_SCALE, so this ghost preview
+                  lands exactly where the real box will once it renders. */}
               <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="thermostat"
-                x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-((isDualFuel||!hasFurnace)?96:76)/2-2}
-                y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40}
-                w={((isDualFuel||!hasFurnace)?96:76)+6} h={116}/>
+                x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-((isDualFuel||!hasFurnace)?96:76)*THERM_TARGET_SCALE/2-2}
+                y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-60*THERM_TARGET_SCALE-2}
+                w={((isDualFuel||!hasFurnace)?96:76)*THERM_TARGET_SCALE+4} h={120*THERM_TARGET_SCALE+4}/>
               {/* APR_H is 0 only if the (effectively always-on) filtration
                   cabinet is somehow off - 28 stand-in matches its real
                   height exactly, see the attic layout's own APR_W comment. */}

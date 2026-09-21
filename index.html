@@ -4992,6 +4992,110 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       ));
     }));
   }
+  function ThermostatFace({ TX, TY, isProprietary, isWifi, thermostatTemp, showRange, heatMode, G: G2, B: B2 }) {
+    const tempDisplay = showRange ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
+    const modeColor = heatMode ? "#f97316" : "#2389e0";
+    return isProprietary ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: TX, y: TY, width: 76, height: 68, rx: "10", fill: "#0a0a0d", stroke: G2 + ".62)", strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 3, y: TY + 3, width: 70, height: 52, rx: "7", fill: "#050810", stroke: B2 + ".3)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement(
+      "text",
+      {
+        x: TX + 38,
+        y: TY + 35,
+        textAnchor: "middle",
+        fill: B2 + ".95)",
+        fontSize: showRange ? "14.5" : "23.5",
+        fontFamily: "monospace",
+        filter: "url(#glow)"
+      },
+      tempDisplay
+    ), /* @__PURE__ */ React.createElement(
+      "text",
+      {
+        x: TX + 38,
+        y: TY + 48,
+        textAnchor: "middle",
+        fill: B2 + ".55)",
+        fontSize: "9",
+        fontFamily: "monospace"
+      },
+      heatMode ? "HEAT" : "COOL",
+      " \xB7 AUTO"
+    ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 67, cy: TY + 11, r: 1.9, fill: B2 + ".55)" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 6, y: TY + 59, width: 64, height: "3.5", rx: "1.75", fill: modeColor, opacity: "0.8" })) : isWifi ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 36, fill: "#0d0d0d", stroke: G2 + ".62)", strokeWidth: "1.8" }), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 28, fill: "#060e1c", stroke: B2 + ".42)", strokeWidth: "1.1" }), /* @__PURE__ */ React.createElement(
+      "text",
+      {
+        x: TX + 38,
+        y: TY + 43,
+        textAnchor: "middle",
+        fill: B2 + ".92)",
+        fontSize: showRange ? "13" : "21",
+        fontFamily: "monospace",
+        filter: "url(#glow)"
+      },
+      tempDisplay
+    ), /* @__PURE__ */ React.createElement(
+      "path",
+      {
+        d: `M${TX + 12} ${TY + 38} A26 26 0 0 1 ${TX + 64} ${TY + 38}`,
+        fill: "none",
+        stroke: modeColor,
+        strokeWidth: "2.5",
+        strokeLinecap: "round",
+        opacity: "0.55"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "path",
+      {
+        d: `M${TX + 24} ${TY + 62} Q${TX + 38} ${TY + 53} ${TX + 52} ${TY + 62}`,
+        fill: "none",
+        stroke: B2 + ".5)",
+        strokeWidth: "1.8",
+        strokeLinecap: "round"
+      }
+    ), /* @__PURE__ */ React.createElement(
+      "path",
+      {
+        d: `M${TX + 28} ${TY + 67} Q${TX + 38} ${TY + 61} ${TX + 48} ${TY + 67}`,
+        fill: "none",
+        stroke: B2 + ".7)",
+        strokeWidth: "1.8",
+        strokeLinecap: "round"
+      }
+    ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 71, r: 2.5, fill: B2 + ".8)" })) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: TX, y: TY, width: 76, height: 62, rx: "3", fill: "#0d0d0d", stroke: G2 + ".55)", strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 5, y: TY + 6, width: 66, height: 34, rx: "2", fill: "#050d18", stroke: B2 + ".36)", strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement(
+      "text",
+      {
+        x: TX + 38,
+        y: TY + 28,
+        textAnchor: "middle",
+        fill: B2 + ".9)",
+        fontSize: "21",
+        fontFamily: "monospace",
+        filter: "url(#glow)"
+      },
+      thermostatTemp,
+      "\xB0"
+    ), [10, 24, 38, 52, 66].map((bx, i) => /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        key: i,
+        x: TX + bx - 4,
+        y: TY + 46,
+        width: "9",
+        height: "5",
+        rx: "1.5",
+        fill: G2 + ".22)",
+        stroke: G2 + ".12)",
+        strokeWidth: "0.4"
+      }
+    )));
+  }
+  var THERM_BTN_Y = { proprietary: 76, wifi: 82, basic: 70 };
+  var THERM_CAP_Y = { proprietary: 107, wifi: 113, basic: 101 };
+  var THERM_CAP_TEXT = { proprietary: "COMM", wifi: "WIFI", basic: "BASIC" };
+  var THERM_CAP_FILL_A = { proprietary: ".45)", wifi: ".45)", basic: ".38)" };
+  var THERM_CAP_SIZE = { proprietary: "11.5", wifi: "11.5", basic: "11" };
+  function thermVariant(isProprietary, isWifi) {
+    return isProprietary ? "proprietary" : isWifi ? "wifi" : "basic";
+  }
+  var THERM_TARGET_SCALE = 0.58;
   function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
     const T = (key) => partInfo(key, lang);
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
@@ -5444,15 +5548,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const MARGIN_L = Math.max(20, Math.round((HOUSE_W - totalW) / 2));
       const RET_X = MARGIN_L;
       const THERM_IN_MARGIN = MARGIN_L >= 70;
-      const THERM_CONTENT_W = 116, THERM_CONTENT_L = -26;
-      const THERM_MAX_SCALE = (UNIT_H - 10) / 96;
-      const THERM_SCALE = THERM_IN_MARGIN ? Math.max(0.65, Math.min(THERM_MAX_SCALE, (MARGIN_L - 16) / THERM_CONTENT_W)) : 0.65;
+      const THERM_CONTENT_W = 100, THERM_CONTENT_L = -12;
+      const THERM_SCALE = THERM_IN_MARGIN ? Math.max(0.5, Math.min(THERM_TARGET_SCALE, (MARGIN_L - 16) / THERM_CONTENT_W)) : 0.5;
       const THERM_BTN_N = isDualFuel || !hasFurnace ? 3 : 2;
-      const THERM_ROW_W = THERM_BTN_N === 3 ? 84 : 64;
-      const THERM_W = THERM_ROW_W * THERM_SCALE, THERM_H = 96 * THERM_SCALE;
+      const THERM_ROW_W = THERM_BTN_N === 3 ? 96 : 76;
+      const THERM_W = THERM_ROW_W * THERM_SCALE, THERM_H = 120 * THERM_SCALE;
       const THERM_TX = THERM_IN_MARGIN ? Math.round(8 - THERM_CONTENT_L * THERM_SCALE) : RET_X + RET_PLEN_W + 8;
       const THERM_TY = THERM_IN_MARGIN ? Math.round(UNIT_Y + (UNIT_H - THERM_H) / 2) : DECK_Y + 12;
-      const THERM_ROW_X = THERM_TX + (32 - THERM_ROW_W / 2) * THERM_SCALE;
+      const THERM_ROW_X = THERM_TX + (38 - THERM_ROW_W / 2) * THERM_SCALE;
       const APR_X = RET_X + RET_PLEN_W + (APR_W ? 2 : 0);
       const UNIT_X = APR_X + APR_W + (APR_W ? 2 : 0);
       const FURN_X = UNIT_X;
@@ -6377,9 +6480,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       ), hasTstat && (() => {
         const isProprietary = a.thermostat === "proprietary";
         const isWifi = a.thermostat === "wifi" && !isProprietary;
-        const btnY = isProprietary ? 76 : isWifi ? 74 : 56;
+        const variant = thermVariant(isProprietary, isWifi);
         const showRange = heatMode && isMildHp;
-        const tempDisplay = showRange ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
         return /* @__PURE__ */ React.createElement(
           "g",
           {
@@ -6410,149 +6512,20 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               style: { pointerEvents: "all" }
             }
           ),
-          /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, (() => {
-            const TX = 0, TY = 0;
-            const modeColor = heatMode ? "#f97316" : "#2389e0";
-            return isProprietary ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                x: TX,
-                y: TY,
-                width: 64,
-                height: 58,
-                rx: "9",
-                fill: "#0a0a0d",
-                stroke: G + ".6)",
-                strokeWidth: "1.4"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                x: TX + 2.5,
-                y: TY + 2.5,
-                width: 59,
-                height: 45,
-                rx: "6.5",
-                fill: "#050810",
-                stroke: B + ".3)",
-                strokeWidth: "0.7"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "text",
-              {
-                x: TX + 32,
-                y: TY + 30,
-                textAnchor: "middle",
-                fill: B + ".95)",
-                fontSize: showRange ? "12.5" : "20.5",
-                fontFamily: "monospace",
-                filter: "url(#glow)"
-              },
-              tempDisplay
-            ), /* @__PURE__ */ React.createElement(
-              "text",
-              {
-                x: TX + 32,
-                y: TY + 41,
-                textAnchor: "middle",
-                fill: B + ".55)",
-                fontSize: "8",
-                fontFamily: "monospace"
-              },
-              heatMode ? "HEAT" : "COOL",
-              " \xB7 AUTO"
-            ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 56, cy: TY + 9, r: 1.6, fill: B + ".55)" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 5, y: TY + 50, width: 54, height: "3", rx: "1.5", fill: modeColor, opacity: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 70, textAnchor: "middle", fill: G + ".5)", fontSize: "10.5", fontFamily: "monospace" }, "COMMUNICATING")) : isWifi ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 30, r: 28, fill: "#0d0d0d", stroke: G + ".65)", strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 30, r: 22, fill: "#060e1c", stroke: B + ".45)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement(
-              "text",
-              {
-                x: TX + 32,
-                y: TY + 35,
-                textAnchor: "middle",
-                fill: B + ".95)",
-                fontSize: showRange ? "11.5" : "18",
-                fontFamily: "monospace",
-                filter: "url(#glow)"
-              },
-              tempDisplay
-            ), /* @__PURE__ */ React.createElement(
-              "path",
-              {
-                d: `M${TX + 11} ${TY + 30} A21 21 0 0 1 ${TX + 53} ${TY + 30}`,
-                fill: "none",
-                stroke: modeColor,
-                strokeWidth: "2.2",
-                strokeLinecap: "round",
-                opacity: "0.55"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "path",
-              {
-                d: `M${TX + 21} ${TY + 48} Q${TX + 32} ${TY + 41} ${TX + 43} ${TY + 48}`,
-                fill: "none",
-                stroke: B + ".5)",
-                strokeWidth: "1.5",
-                strokeLinecap: "round"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "path",
-              {
-                d: `M${TX + 24} ${TY + 52} Q${TX + 32} ${TY + 47} ${TX + 40} ${TY + 52}`,
-                fill: "none",
-                stroke: B + ".7)",
-                strokeWidth: "1.5",
-                strokeLinecap: "round"
-              }
-            ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 32, cy: TY + 56, r: 2.2, fill: B + ".8)" }), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 68, textAnchor: "middle", fill: G + ".5)", fontSize: "10.5", fontFamily: "monospace" }, "WI-FI SMART")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                x: TX,
-                y: TY,
-                width: 64,
-                height: 54,
-                rx: "3",
-                fill: "#0d0d0d",
-                stroke: G + ".58)",
-                strokeWidth: "1.4"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                x: TX + 4,
-                y: TY + 5,
-                width: 56,
-                height: 28,
-                rx: "2",
-                fill: "#050d18",
-                stroke: B + ".38)",
-                strokeWidth: "0.8"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "text",
-              {
-                x: TX + 32,
-                y: TY + 24,
-                textAnchor: "middle",
-                fill: B + ".92)",
-                fontSize: "20",
-                fontFamily: "monospace",
-                filter: "url(#glow)"
-              },
+          /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(
+            ThermostatFace,
+            {
+              TX: 0,
+              TY: 0,
+              isProprietary,
+              isWifi,
               thermostatTemp,
-              "\xB0"
-            ), [7, 18, 29, 40, 51].map((bx, i) => /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                key: i,
-                x: TX + bx,
-                y: TY + 38,
-                width: "7",
-                height: "4",
-                rx: "1",
-                fill: G + ".22)",
-                stroke: G + ".12)",
-                strokeWidth: "0.4"
-              }
-            )), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 50, textAnchor: "middle", fill: G + ".42)", fontSize: "10", fontFamily: "monospace" }, "BASIC"));
-          })()),
+              showRange,
+              heatMode,
+              G,
+              B
+            }
+          )),
           /* @__PURE__ */ React.createElement(
             EditZone,
             {
@@ -6571,13 +6544,24 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             ThermModeButtons,
             {
               modes: thermModes(isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode),
-              cx: 32,
-              y: btnY,
+              cx: 38,
+              y: THERM_BTN_Y[variant],
               totalW: THERM_ROW_W,
               gap: 4,
-              h: 15,
-              fontSize: THERM_BTN_N === 3 ? 7.5 : 8.5
+              h: 17,
+              fontSize: THERM_BTN_N === 3 ? 8.5 : 9.5
             }
+          ), /* @__PURE__ */ React.createElement(
+            "text",
+            {
+              x: 38,
+              y: THERM_CAP_Y[variant],
+              textAnchor: "middle",
+              fill: G + THERM_CAP_FILL_A[variant],
+              fontSize: THERM_CAP_SIZE[variant],
+              fontFamily: "monospace"
+            },
+            THERM_CAP_TEXT[variant]
           ))
         );
       })(), hasDehu && hasTstat && THERM_IN_MARGIN && /* @__PURE__ */ React.createElement(
@@ -6593,10 +6577,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       ), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
-        const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
-        const ervW = BW;
+        const dehuBX = hasFurnace ? sysX + 30 : sysX + AH_W - BW - 8;
+        const ervW = 96;
         const ervBX = 8;
-        const ervRoofY = roofY(ervBX + ervW / 2);
+        const ervRoofY = roofY(ervBX + ervW * 0.08);
         return /* @__PURE__ */ React.createElement(
           DehuErvBoxes,
           {
@@ -6617,7 +6601,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       })(), hasDehu && hasCoil && hasPlenum && (() => {
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80, BH = 48;
-        const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
+        const dehuBX = hasFurnace ? sysX + 30 : sysX + AH_W - BW - 8;
         const midY = UNIT_Y - 35;
         const pipeW = 11;
         const RC = "rgba(255,182,193,";
@@ -6935,7 +6919,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           vw: SVG_VW,
           vh: SVG_VH,
           stepId: "dehu",
-          x: hasFurnace ? FURN_X + 44 : AH_X + AH_W - 80 - 8,
+          x: hasFurnace ? FURN_X + 30 : AH_X + AH_W - 80 - 8,
           y: UNIT_Y - 48 - 14,
           w: 80,
           h: 48,
@@ -6952,7 +6936,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           stepId: "extras",
           x: 8,
           y: UNIT_Y - 48 - 14,
-          w: 80,
+          w: 96,
           h: 48,
           rx: 4
         }
@@ -8292,15 +8276,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       ), hasTstat && (() => {
         const gapLeft = UNIT_X + UNIT_W + 16, gapRight = EXT_WALL_X - 16;
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
-        const TX = gapLeft + (gapRight - gapLeft) / 2 - 38, TY = midY - 38;
         const isProprietaryC = a.thermostat === "proprietary";
         const isWifiC = a.thermostat === "wifi" && !isProprietaryC;
-        const btnY = isProprietaryC ? TY + 90 : isWifiC ? TY + 93 : TY + 65;
+        const variantC = thermVariant(isProprietaryC, isWifiC);
         const showRangeC = heatMode && isMildHp;
-        const tempDisplayC = showRangeC ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
         const THERM_BTN_N_C = isDualFuel || !hasFurnace ? 3 : 2;
         const THERM_ROW_W_C = THERM_BTN_N_C === 3 ? 96 : 76;
-        const THERM_ROW_X_C = TX + 38 - THERM_ROW_W_C / 2;
+        const THERM_CONTENT_H_C = 120;
+        const TX = gapLeft + (gapRight - gapLeft) / 2 - 38 * THERM_TARGET_SCALE;
+        const TY = midY - THERM_CONTENT_H_C / 2 * THERM_TARGET_SCALE;
+        const THERM_W_C = THERM_ROW_W_C * THERM_TARGET_SCALE, THERM_H_C = THERM_CONTENT_H_C * THERM_TARGET_SCALE;
+        const THERM_ROW_X_C = TX + 38 * THERM_TARGET_SCALE - THERM_W_C / 2;
         return /* @__PURE__ */ React.createElement(
           "g",
           {
@@ -8310,8 +8296,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             onMouseEnter: () => setHoverPart({
               x: THERM_ROW_X_C,
               y: TY,
-              w: THERM_ROW_W_C,
-              h: 70,
+              w: THERM_W_C,
+              h: THERM_H_C,
               vw: SVG_VW,
               vh: SVG_VH,
               title: T("thermostat_general").title,
@@ -8325,154 +8311,26 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             {
               x: THERM_ROW_X_C - 2,
               y: TY - 2,
-              width: THERM_ROW_W_C + 6,
-              height: 116,
+              width: THERM_W_C + 4,
+              height: THERM_H_C + 4,
               fill: "transparent",
               style: { pointerEvents: "all" }
             }
           ),
-          (() => {
-            const modeColorC = heatMode ? "#f97316" : "#2389e0";
-            return isProprietaryC ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                x: TX,
-                y: TY,
-                width: 76,
-                height: 68,
-                rx: "10",
-                fill: "#0a0a0d",
-                stroke: G + ".62)",
-                strokeWidth: "1.6"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                x: TX + 3,
-                y: TY + 3,
-                width: 70,
-                height: 52,
-                rx: "7",
-                fill: "#050810",
-                stroke: B + ".3)",
-                strokeWidth: "0.8"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "text",
-              {
-                x: TX + 38,
-                y: TY + 35,
-                textAnchor: "middle",
-                fill: B + ".95)",
-                fontSize: showRangeC ? "14.5" : "23.5",
-                fontFamily: "monospace",
-                filter: "url(#glow)"
-              },
-              tempDisplayC
-            ), /* @__PURE__ */ React.createElement(
-              "text",
-              {
-                x: TX + 38,
-                y: TY + 48,
-                textAnchor: "middle",
-                fill: B + ".55)",
-                fontSize: "9",
-                fontFamily: "monospace"
-              },
-              heatMode ? "HEAT" : "COOL",
-              " \xB7 AUTO"
-            ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 67, cy: TY + 11, r: 1.9, fill: B + ".55)" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 6, y: TY + 59, width: 64, height: "3.5", rx: "1.75", fill: modeColorC, opacity: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 82, textAnchor: "middle", fill: G + ".45)", fontSize: "11.5", fontFamily: "monospace" }, "COMMUNICATING")) : isWifiC ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 36, fill: "#0d0d0d", stroke: G + ".62)", strokeWidth: "1.8" }), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 28, fill: "#060e1c", stroke: B + ".42)", strokeWidth: "1.1" }), /* @__PURE__ */ React.createElement(
-              "text",
-              {
-                x: TX + 38,
-                y: TY + 43,
-                textAnchor: "middle",
-                fill: B + ".92)",
-                fontSize: showRangeC ? "13" : "21",
-                fontFamily: "monospace",
-                filter: "url(#glow)"
-              },
-              tempDisplayC
-            ), /* @__PURE__ */ React.createElement(
-              "path",
-              {
-                d: `M${TX + 12} ${TY + 38} A26 26 0 0 1 ${TX + 64} ${TY + 38}`,
-                fill: "none",
-                stroke: modeColorC,
-                strokeWidth: "2.5",
-                strokeLinecap: "round",
-                opacity: "0.55"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "path",
-              {
-                d: `M${TX + 24} ${TY + 62} Q${TX + 38} ${TY + 53} ${TX + 52} ${TY + 62}`,
-                fill: "none",
-                stroke: B + ".5)",
-                strokeWidth: "1.8",
-                strokeLinecap: "round"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "path",
-              {
-                d: `M${TX + 28} ${TY + 67} Q${TX + 38} ${TY + 61} ${TX + 48} ${TY + 67}`,
-                fill: "none",
-                stroke: B + ".7)",
-                strokeWidth: "1.8",
-                strokeLinecap: "round"
-              }
-            ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 71, r: 2.5, fill: B + ".8)" }), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 85, textAnchor: "middle", fill: G + ".45)", fontSize: "11.5", fontFamily: "monospace" }, "WI-FI SMART")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                x: TX,
-                y: TY,
-                width: 76,
-                height: 62,
-                rx: "3",
-                fill: "#0d0d0d",
-                stroke: G + ".55)",
-                strokeWidth: "1.6"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                x: TX + 5,
-                y: TY + 6,
-                width: 66,
-                height: 34,
-                rx: "2",
-                fill: "#050d18",
-                stroke: B + ".36)",
-                strokeWidth: "0.9"
-              }
-            ), /* @__PURE__ */ React.createElement(
-              "text",
-              {
-                x: TX + 38,
-                y: TY + 28,
-                textAnchor: "middle",
-                fill: B + ".9)",
-                fontSize: "21",
-                fontFamily: "monospace",
-                filter: "url(#glow)"
-              },
+          /* @__PURE__ */ React.createElement("g", { transform: `translate(${TX} ${TY}) scale(${THERM_TARGET_SCALE})` }, /* @__PURE__ */ React.createElement(
+            ThermostatFace,
+            {
+              TX: 0,
+              TY: 0,
+              isProprietary: isProprietaryC,
+              isWifi: isWifiC,
               thermostatTemp,
-              "\xB0"
-            ), [10, 24, 38, 52, 66].map((bx, i) => /* @__PURE__ */ React.createElement(
-              "rect",
-              {
-                key: i,
-                x: TX + bx - 4,
-                y: TY + 46,
-                width: "9",
-                height: "5",
-                rx: "1.5",
-                fill: G + ".22)",
-                stroke: G + ".12)",
-                strokeWidth: "0.4"
-              }
-            )), /* @__PURE__ */ React.createElement("text", { x: TX + 38, y: TY + 58, textAnchor: "middle", fill: G + ".38)", fontSize: "11", fontFamily: "monospace" }, "BASIC"));
-          })(),
+              showRange: showRangeC,
+              heatMode,
+              G,
+              B
+            }
+          )),
           /* @__PURE__ */ React.createElement(
             EditZone,
             {
@@ -8483,22 +8341,33 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               vh: SVG_VH,
               x: THERM_ROW_X_C - 2,
               y: TY - 2,
-              w: THERM_ROW_W_C + 6,
-              h: 116
+              w: THERM_W_C + 4,
+              h: THERM_H_C + 4
             }
           ),
-          /* @__PURE__ */ React.createElement(
+          /* @__PURE__ */ React.createElement("g", { transform: `translate(${TX} ${TY}) scale(${THERM_TARGET_SCALE})` }, /* @__PURE__ */ React.createElement(
             ThermModeButtons,
             {
               modes: thermModes(isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode),
-              cx: TX + 38,
-              y: btnY,
+              cx: 38,
+              y: THERM_BTN_Y[variantC],
               totalW: THERM_ROW_W_C,
               gap: 4,
               h: 17,
               fontSize: THERM_BTN_N_C === 3 ? 8.5 : 9.5
             }
-          )
+          ), /* @__PURE__ */ React.createElement(
+            "text",
+            {
+              x: 38,
+              y: THERM_CAP_Y[variantC],
+              textAnchor: "middle",
+              fill: G + THERM_CAP_FILL_A[variantC],
+              fontSize: THERM_CAP_SIZE[variantC],
+              fontFamily: "monospace"
+            },
+            THERM_CAP_TEXT[variantC]
+          ))
         );
       })(), hasDehu && hasTstat && (() => {
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
@@ -8641,10 +8510,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             vw: SVG_VW,
             vh: SVG_VH,
             stepId: "thermostat",
-            x: UNIT_X + UNIT_W + 16 + (EXT_WALL_X - 16 - (UNIT_X + UNIT_W + 16)) / 2 - (isDualFuel || !hasFurnace ? 96 : 76) / 2 - 2,
-            y: (hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2) - 40,
-            w: (isDualFuel || !hasFurnace ? 96 : 76) + 6,
-            h: 116
+            x: UNIT_X + UNIT_W + 16 + (EXT_WALL_X - 16 - (UNIT_X + UNIT_W + 16)) / 2 - (isDualFuel || !hasFurnace ? 96 : 76) * THERM_TARGET_SCALE / 2 - 2,
+            y: (hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2) - 60 * THERM_TARGET_SCALE - 2,
+            w: (isDualFuel || !hasFurnace ? 96 : 76) * THERM_TARGET_SCALE + 4,
+            h: 120 * THERM_TARGET_SCALE + 4
           }
         ), /* @__PURE__ */ React.createElement(
           StepFocusRing,
