@@ -4389,8 +4389,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <line x1={ionX} y1={plenTop} x2={ionX} y2={plenTop+ionRodLen} stroke="rgba(253,224,71,.8)" strokeWidth={2} strokeLinecap="round"/>
                     <circle cx={ionX} cy={plenTop+ionRodLen} r={2.5} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
                     <text x={ionX+14} y={ionBulbY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="11" fontFamily="monospace">IONIZER</text>
-                    <HoverInfo x={ionX-14} y={ionBulbY-14} w={28} h={plenTop+ionRodLen-(ionBulbY-14)+6} rx={3}
-                      vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
                   </g>;
                 })()}
               </>;
@@ -4658,6 +4656,25 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasPlenum&&hasCoil&&<HoverInfo x={SUP_X-2} y={SUP_PLEN_Y-2} w={SUP_PLEN_W+4} h={SUP_PLEN_H+4} rx={5}
             vw={SVG_VW} vh={SVG_VH} title={T('supply_plenum').title} text={T('supply_plenum').text}
             onClick={onEditStep?()=>onEditStep('plenum'):undefined}/>}
+
+          {/* QA FIX - ionizer's own hover used to live right where it's
+              drawn (bulb+rod, above/inside the plenum), which left its
+              "IONIZER" text label - painted further right, starting past
+              the box's own right edge - entirely outside the hoverable
+              area, and left the rod's own lower stretch (which dips down
+              INSIDE the plenum box) losing out to the plenum's hover since
+              that box paints later/on top. Moved here (after the plenum's
+              own hover, same "wins the overlap strip" fix already applied
+              to the lineset/plenum pair above) and widened to also cover
+              the label reliably beats the plenum in their shared area
+              while still reading "SUPPLY PLENUM" everywhere else on it. */}
+          {hasIonizer&&(()=>{
+            const ionX=SUP_X+Math.round(SUP_PLEN_W*0.18);
+            const ionBulbY=SUP_PLEN_Y-14;
+            const ionRodLen=Math.round(SUP_PLEN_H*0.55);
+            return <HoverInfo x={ionX-14} y={ionBulbY-14} w={14+58} h={SUP_PLEN_Y+ionRodLen-(ionBulbY-14)+6} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>;
+          })()}
 
           {/* ── OUTSIDE ZONE - exterior wall + condenser ── */}
           {hasCond&&<OutsideZone
@@ -5084,10 +5101,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               the underside of the deck rather than floating at an angle
               against it. */}
           {a.insulation&&(()=>{
+            // QA FIX - dead-centered at HOUSE_W/2, this sat directly under
+            // the no-furnace air-handler's own SERVICE SWITCH column
+            // (AH_W*0.675, itself roughly centered once a plenum's picked
+            // and the equipment run re-centers) whenever no condenser's
+            // been selected yet - HOUSE_W is still the full VW-12 width
+            // then, so its own center lines up with the switch. Once a
+            // tier's picked HOUSE_W shrinks to 2/3 width and the two drift
+            // apart on their own, which is why this only ever showed up on
+            // the pre-tier steps. The furnace branch's own switch sits at
+            // FURN_W*0.15 (left side, nowhere near center) so it never had
+            // this problem - only the no-furnace case needs the nudge.
+            const fibX=(!hasFurnace&&!hasCond)?HOUSE_W*0.32:HOUSE_W/2;
             if(!isSpray)return <g>
-              <text x={HOUSE_W/2} y={VH-10} textAnchor="middle" style={{pointerEvents:'none'}}
+              <text x={fibX} y={VH-10} textAnchor="middle" style={{pointerEvents:'none'}}
                 fill="rgba(255,182,193,.6)" fontSize="12" fontFamily="monospace">FIBERGLASS INSULATION</text>
-              <HoverInfo x={HOUSE_W/2-70} y={VH-10-12} w={140} h={18} rx={3}
+              <HoverInfo x={fibX-70} y={VH-10-12} w={140} h={18} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
             </g>;
             // Right-descending half of the roof (ridge to the outside
@@ -5272,6 +5301,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     const ACOIL_H=hasFurnace?COIL_H:AH_H;
     const ACOIL_Y=UNIT_TOP;
     const FURN_Y=ACOIL_Y+ACOIL_H+4;
+    // Flue's own exit point (top of the furnace HX section, left half of
+    // furnace) - hoisted out here, not just declared inside the routed
+    // flue's own IIFE further down, so the FURNACE label rendered right
+    // after it can also reference this same X and keep clear of the
+    // elbow that turns right there (see that label's own QA FIX comment).
+    const flueExitX=UNIT_X+UNIT_W*0.38;
     const APR_H=hasAprilaire?28:0;
     const APR_Y=hasFurnace?FURN_Y+FURN_H:ACOIL_Y+ACOIL_H;
     const CHASE_Y=APR_Y+APR_H+2;
@@ -5574,8 +5609,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <line x1={UNIT_X+PLEN_W} y1={rodY} x2={rodTip} y2={rodY} stroke="rgba(253,224,71,.8)" strokeWidth={2.2} strokeLinecap="round"/>
                     <circle cx={rodTip} cy={rodY} r={3} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
                     <text x={bulbX+18} y={rodY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="11" fontFamily="monospace">IONIZER</text>
-                    <HoverInfo x={rodTip-4} y={rodY-16} w={bulbX+16-rodTip+4} h={32} rx={3}
-                      vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
                   </g>;
                 })()}
               </>;
@@ -5590,6 +5623,25 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasPlenum&&hasCoil&&<HoverInfo x={UNIT_X-2} y={PLEN_TOP-2} w={PLEN_W+4} h={PLEN_TOTAL+4} rx={5}
             vw={SVG_VW} vh={SVG_VH} title={T('supply_plenum').title} text={T('supply_plenum').text}
             onClick={onEditStep?()=>onEditStep('plenum'):undefined}/>}
+
+          {/* QA FIX - the ionizer's rod runs almost the full width of the
+              plenum at 88% of its height (rodY), so its whole hit-box used
+              to sit entirely INSIDE the plenum's own box above - painted
+              after it, the plenum won every hover there, leaving only a
+              sliver of the ionizer genuinely hoverable (and its "IONIZER"
+              label, starting 2px past the old box's own right edge, wasn't
+              covered at all). Moved here (after the plenum's hover, same
+              fix as the attic layout's equivalent block) and widened to
+              the label's real width so it reliably reads IONIZER along its
+              whole rod + bulb + label, not just a thin strip of it. */}
+          {hasIonizer&&(()=>{
+            const rodLen=Math.round(PLEN_W*0.62);
+            const bulbX=UNIT_X+PLEN_W+12;
+            const rodY=PLEN_TOP+PLEN_TOTAL*0.88;
+            const rodTip=UNIT_X+PLEN_W-rodLen;
+            return <HoverInfo x={rodTip-4} y={rodY-16} w={bulbX+58-rodTip} h={32} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>;
+          })()}
 
           {/* Upflow supply ducts - exit plenum sides, run long, drop to ceiling grille.
               Ducts route off the plenum whether the plenum itself is new or
@@ -5900,7 +5952,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               const PIPE_C=is90?"#bfdbfe":"#c0c0c0";
               const PIPE_S=is90?"#93c5fd":"#999";
               // Exit point: top of furnace HX section (left half of furnace)
-              const EXIT_X=UNIT_X+UNIT_W*0.38;
+              const EXIT_X=flueExitX;
               const EXIT_Y=FURN_Y;
               // Elbow 1: rise a bit then turn left
               const ELB1_Y=EXIT_Y-18;
@@ -5990,19 +6042,20 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             })()}
             {isComm&&<><rect x={UNIT_X+4} y={FURN_Y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={UNIT_X+7} y={FURN_Y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">COMMUNICATING</text></>}
             {/* Kept at the original 9.5px, unlike its sibling "FURNACE"
-                label in the attic layout. Confirmed against the unmodified
-                file: the flue's exit stub (EXIT_X=UNIT_X+UNIT_W*0.38, in
-                the routing block above) already sits almost exactly under
-                this centered label's left edge even at the original size,
-                a pre-existing near-miss (not introduced by this pass)
-                where the pipe's stroke width wins the pixel and the "F" of
-                "FURNACE" goes missing. Enlarging this text widens it
-                enough to make that overlap worse, and there isn't a clean
-                same-size fix without moving the flue's exit point (which
-                is deliberately anchored to the furnace's own HX geometry,
-                not this label) - out of scope for a font-size-only pass,
-                so left at its original size. */}
-            <text x={UNIT_X+UNIT_W/2} y={FURN_Y-13} textAnchor="middle"
+                label in the attic layout - enlarging it widens the overlap
+                below.
+                QA FIX - this label used to sit dead-centered regardless,
+                which put its left edge almost exactly under the flue's
+                elbow (flueExitX, ~8px radius) whenever the unit was narrow
+                enough for the two to collide, and the pipe's stroke won
+                the pixel - the "F" of "FURNACE" reading as clipped/missing.
+                Since this label (unlike the flue's own exit, anchored to
+                the furnace's real HX geometry) has no fixed anchor of its
+                own, it's the one free to move: clamped to never sit closer
+                than the elbow's own radius + a small gap to flueExitX,
+                sliding right off dead-center only on the narrow layouts
+                where the two would actually collide. */}
+            <text x={Math.max(UNIT_X+UNIT_W/2,flueExitX+8+6+20)} y={FURN_Y-13} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="9.5" fontFamily="monospace">FURNACE</text>
           </g>}
 
@@ -6295,13 +6348,33 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   Bumped well up so the outdoor run actually reads. */}
               <line x1={wallX2} y1={groundY2} x2={drainEndX} y2={groundY2}
                 stroke={B+'.85)'} strokeWidth="2" strokeDasharray="5 3" strokeLinecap="round"/>
-              {/* No EditZone covers this line run - free-standing hover, no
-                  onClick. Loose bounding rect for the actual hit-test (fine
-                  since it's just hit-testing), ringPath traces the real
-                  bent route for the visible ring, same reasoning as every
-                  other bent-pipe hover in this file. */}
-              <HoverInfo x={exitX-4} y={exitY-4}
-                w={drainEndX-exitX+8} h={groundY2-exitY+8}
+              {/* QA FIX - this used to be ONE HoverInfo whose loose
+                  bounding rect ran corner-to-corner from the unit's exit
+                  point all the way to the outdoor terminus, which in
+                  practice meant a box covering nearly the entire outside
+                  zone - confirmed via QA sweep to be silently swallowing
+                  hover AND click for the disconnect box, surge protector,
+                  compressor, condenser, gas line, drip leg, ionizer and
+                  flue pipe, and blocking the condenser's own EditZone
+                  clicks. No EditZone covers this drain - free-standing
+                  hover, no onClick - but "loose bounding rect, fine since
+                  it's just hit-testing" (the convention every other
+                  bent-pipe hover in this file uses) only holds when that
+                  box stays small/local, same as the lineset's own 4
+                  separate narrow segments (see its comment) instead of
+                  one box spanning its whole run. Split into 3 narrow
+                  per-segment zones, same convention, each hugging just
+                  its own leg. */}
+              <HoverInfo x={Math.min(exitX,wallX2)-4} y={Math.min(exitY,slopeY)-4}
+                w={Math.abs(wallX2-exitX)+8} h={Math.abs(slopeY-exitY)+8}
+                rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                ringPath={drainD} ringStrokeWidth={9}/>
+              <HoverInfo x={wallX2-4} y={Math.min(slopeY,groundY2)-4}
+                w={8} h={Math.abs(groundY2-slopeY)+8}
+                rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                ringPath={drainD} ringStrokeWidth={9}/>
+              <HoverInfo x={Math.min(wallX2,drainEndX)-4} y={groundY2-4}
+                w={Math.abs(drainEndX-wallX2)+8} h={8}
                 rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
                 ringPath={drainD} ringStrokeWidth={9}/>
               <text x={wallX2+6} y={slopeY-6} textAnchor="start"

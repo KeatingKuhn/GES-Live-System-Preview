@@ -1416,10 +1416,25 @@ function App(){
                     // that width instead, cutting this row from ~4 stacked
                     // lines down to 1 and buying back real vertical room for
                     // the Get Pricing button below on a short viewport.
+                    // QA FIX - this row's label+value used to sit in a fixed-
+                    // nowrap flex pair (`flexShrink:0` label, `nowrap`+
+                    // `ellipsis` value), which read fine for short English
+                    // copy but silently truncated real data once the value
+                    // ran long (a longer non-IAQ `val` landing here as the
+                    // odd one out) or the label itself ran long (Spanish
+                    // labels routinely do) - same failure mode attic's own
+                    // cell above already had to fix for Spanish. This row
+                    // has the full grid width to spend and no fixed-height
+                    // panel forcing a single line (unlike attic's 200px
+                    // bar), so instead of clipping, the label+value pair
+                    // gets `flex:1` (uses the space before the EDIT chip
+                    // claims its own) and wraps normally - full text always
+                    // reaches the screen, at the cost of an occasional
+                    // second line instead of losing data.
                     <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"baseline",gap:8,minWidth:0,overflow:"hidden"}}>
-                        <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em",flexShrink:0}}>{item.label}</span>
-                        <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.short||item.val}</span>
+                      <div style={{display:"flex",flexWrap:"wrap",alignItems:"baseline",gap:8,flex:1,minWidth:0}}>
+                        <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
+                        <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",overflowWrap:"break-word",whiteSpace:"normal"}}>{item.short||item.val}</span>
                       </div>
                       <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{fontSize:"var(--fs-review-edit-md)",padding:"6px 7px",flexShrink:0}}>{tr('EDIT','EDITAR')}</button>
                     </div>

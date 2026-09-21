@@ -6357,20 +6357,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           const plenTop = SUP_PLEN_Y;
           const ionBulbY = plenTop - 14;
           const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: ionBulbY, r: 12, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 8, ry: 10, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 5, ry: 6.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: ionX - 2, y1: ionBulbY - 4, x2: ionX + 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: ionX + 2, y1: ionBulbY - 4, x2: ionX - 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: ionX - 6, y: plenTop - 6, width: 12, height: 8, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.22)", strokeWidth: 6, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.8)", strokeWidth: 2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: plenTop + ionRodLen, r: 2.5, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: ionX + 14, y: ionBulbY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"), /* @__PURE__ */ React.createElement(
-            HoverInfo,
-            {
-              x: ionX - 14,
-              y: ionBulbY - 14,
-              w: 28,
-              h: plenTop + ionRodLen - (ionBulbY - 14) + 6,
-              rx: 3,
-              vw: SVG_VW,
-              vh: SVG_VH,
-              title: T("ionizer").title,
-              text: T("ionizer").text
-            }
-          ));
+          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: ionBulbY, r: 12, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 8, ry: 10, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 5, ry: 6.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: ionX - 2, y1: ionBulbY - 4, x2: ionX + 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: ionX + 2, y1: ionBulbY - 4, x2: ionX - 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: ionX - 6, y: plenTop - 6, width: 12, height: 8, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.22)", strokeWidth: 6, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.8)", strokeWidth: 2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: plenTop + ionRodLen, r: 2.5, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: ionX + 14, y: ionBulbY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"));
         })());
       })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
@@ -6584,7 +6571,25 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           text: T("supply_plenum").text,
           onClick: onEditStep ? () => onEditStep("plenum") : void 0
         }
-      ), hasCond && /* @__PURE__ */ React.createElement(
+      ), hasIonizer && (() => {
+        const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
+        const ionBulbY = SUP_PLEN_Y - 14;
+        const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
+        return /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: ionX - 14,
+            y: ionBulbY - 14,
+            w: 14 + 58,
+            h: SUP_PLEN_Y + ionRodLen - (ionBulbY - 14) + 6,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("ionizer").title,
+            text: T("ionizer").text
+          }
+        );
+      })(), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
           wallX: EXT_WALL_X,
@@ -6959,10 +6964,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           }
         ));
       })(), a.insulation && (() => {
+        const fibX = !hasFurnace && !hasCond ? HOUSE_W * 0.32 : HOUSE_W / 2;
         if (!isSpray) return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
           "text",
           {
-            x: HOUSE_W / 2,
+            x: fibX,
             y: VH - 10,
             textAnchor: "middle",
             style: { pointerEvents: "none" },
@@ -6974,7 +6980,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: HOUSE_W / 2 - 70,
+            x: fibX - 70,
             y: VH - 10 - 12,
             w: 140,
             h: 18,
@@ -7174,6 +7180,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const ACOIL_H = hasFurnace ? COIL_H : AH_H;
       const ACOIL_Y = UNIT_TOP;
       const FURN_Y = ACOIL_Y + ACOIL_H + 4;
+      const flueExitX = UNIT_X + UNIT_W * 0.38;
       const APR_H = hasAprilaire ? 28 : 0;
       const APR_Y = hasFurnace ? FURN_Y + FURN_H : ACOIL_Y + ACOIL_H;
       const CHASE_Y = APR_Y + APR_H + 2;
@@ -7461,20 +7468,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           const bulbX = UNIT_X + PLEN_W + 12;
           const rodY = PLEN_TOP + PLEN_TOTAL * 0.88;
           const rodTip = UNIT_X + PLEN_W - rodLen;
-          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: bulbX, cy: rodY, r: 16, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 10, ry: 12, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 6, ry: 7.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 3, y1: rodY - 5, x2: bulbX + 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX + 3, y1: rodY - 5, x2: bulbX - 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W - 2, y: rodY - 5, width: 16, height: 10, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.22)", strokeWidth: 8, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.8)", strokeWidth: 2.2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: rodTip, cy: rodY, r: 3, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: bulbX + 18, y: rodY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"), /* @__PURE__ */ React.createElement(
-            HoverInfo,
-            {
-              x: rodTip - 4,
-              y: rodY - 16,
-              w: bulbX + 16 - rodTip + 4,
-              h: 32,
-              rx: 3,
-              vw: SVG_VW,
-              vh: SVG_VH,
-              title: T("ionizer").title,
-              text: T("ionizer").text
-            }
-          ));
+          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: bulbX, cy: rodY, r: 16, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 10, ry: 12, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 6, ry: 7.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 3, y1: rodY - 5, x2: bulbX + 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX + 3, y1: rodY - 5, x2: bulbX - 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W - 2, y: rodY - 5, width: 16, height: 10, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.22)", strokeWidth: 8, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.8)", strokeWidth: 2.2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: rodTip, cy: rodY, r: 3, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: bulbX + 18, y: rodY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"));
         })());
       })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
@@ -7504,7 +7498,26 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           text: T("supply_plenum").text,
           onClick: onEditStep ? () => onEditStep("plenum") : void 0
         }
-      ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "upflow-ducts", style: { animationDelay: ".2s" } }, (() => {
+      ), hasIonizer && (() => {
+        const rodLen = Math.round(PLEN_W * 0.62);
+        const bulbX = UNIT_X + PLEN_W + 12;
+        const rodY = PLEN_TOP + PLEN_TOTAL * 0.88;
+        const rodTip = UNIT_X + PLEN_W - rodLen;
+        return /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: rodTip - 4,
+            y: rodY - 16,
+            w: bulbX + 58 - rodTip,
+            h: 32,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("ionizer").title,
+            text: T("ionizer").text
+          }
+        );
+      })(), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "upflow-ducts", style: { animationDelay: ".2s" } }, (() => {
         const DW = 13;
         const DC = G + ".30)";
         const DS = G + ".16)";
@@ -7983,7 +7996,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const PIPE_W = is90 ? 5 : 7;
         const PIPE_C = is90 ? "#bfdbfe" : "#c0c0c0";
         const PIPE_S = is90 ? "#93c5fd" : "#999";
-        const EXIT_X = UNIT_X + UNIT_W * 0.38;
+        const EXIT_X = flueExitX;
         const EXIT_Y = FURN_Y;
         const ELB1_Y = EXIT_Y - 18;
         const HORIZ_X = UNIT_X - 52;
@@ -8104,7 +8117,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 4, y: FURN_Y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 7, y: FURN_Y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement(
         "text",
         {
-          x: UNIT_X + UNIT_W / 2,
+          x: Math.max(UNIT_X + UNIT_W / 2, flueExitX + 8 + 6 + 20),
           y: FURN_Y - 13,
           textAnchor: "middle",
           fill: furnaceActive ? "rgba(249,115,22,.78)" : S + ".65)",
@@ -8513,10 +8526,40 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: exitX - 4,
-            y: exitY - 4,
-            w: drainEndX - exitX + 8,
-            h: groundY2 - exitY + 8,
+            x: Math.min(exitX, wallX2) - 4,
+            y: Math.min(exitY, slopeY) - 4,
+            w: Math.abs(wallX2 - exitX) + 8,
+            h: Math.abs(slopeY - exitY) + 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condensate_drain").title,
+            text: T("condensate_drain").text,
+            ringPath: drainD,
+            ringStrokeWidth: 9
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: wallX2 - 4,
+            y: Math.min(slopeY, groundY2) - 4,
+            w: 8,
+            h: Math.abs(groundY2 - slopeY) + 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condensate_drain").title,
+            text: T("condensate_drain").text,
+            ringPath: drainD,
+            ringStrokeWidth: 9
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: Math.min(wallX2, drainEndX) - 4,
+            y: groundY2 - 4,
+            w: Math.abs(drainEndX - wallX2) + 8,
+            h: 8,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -9514,7 +9557,22 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             // that width instead, cutting this row from ~4 stacked
             // lines down to 1 and buying back real vertical room for
             // the Get Pricing button below on a short viewport.
-            /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 8, minWidth: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em", flexShrink: 0 } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, title: item.val }, item.short || item.val)), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { fontSize: "var(--fs-review-edit-md)", padding: "6px 7px", flexShrink: 0 } }, tr("EDIT", "EDITAR")))
+            // QA FIX - this row's label+value used to sit in a fixed-
+            // nowrap flex pair (`flexShrink:0` label, `nowrap`+
+            // `ellipsis` value), which read fine for short English
+            // copy but silently truncated real data once the value
+            // ran long (a longer non-IAQ `val` landing here as the
+            // odd one out) or the label itself ran long (Spanish
+            // labels routinely do) - same failure mode attic's own
+            // cell above already had to fix for Spanish. This row
+            // has the full grid width to spend and no fixed-height
+            // panel forcing a single line (unlike attic's 200px
+            // bar), so instead of clipping, the label+value pair
+            // gets `flex:1` (uses the space before the EDIT chip
+            // claims its own) and wraps normally - full text always
+            // reaches the screen, at the cost of an occasional
+            // second line instead of losing data.
+            /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 8, flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", overflowWrap: "break-word", whiteSpace: "normal" } }, item.short || item.val)), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { fontSize: "var(--fs-review-edit-md)", padding: "6px 7px", flexShrink: 0 } }, tr("EDIT", "EDITAR")))
           ) : (
             // Closet's cell doesn't reserve a fixed right-hand gutter for
             // an absolutely-positioned EDIT chip (that's what attic does
