@@ -3966,7 +3966,17 @@
       const SUP_X = unitRightEdge + 4;
       const SUP_PLEN_Y = UNIT_Y;
       const RL_START_X = hasFurnace ? ACOIL_X + 8 : AH_X + 9;
-      const RL_ROOF_Y = EAVE_Y + 14;
+      const RL_ROOF_GAP = 14;
+      const RL_WALL_X = HOUSE_W - 14;
+      const RL_RISER_Y = roofY(RL_START_X) + RL_ROOF_GAP;
+      const RL_WALL_Y = roofY(RL_WALL_X) + RL_ROOF_GAP;
+      const linesetWaypoints = (startX, startY, yOffset) => {
+        const pts = [[startX, startY], [startX, roofY(startX) + RL_ROOF_GAP + yOffset]];
+        if (startX < RIDGE_X) pts.push([RIDGE_X, roofY(RIDGE_X) + RL_ROOF_GAP + yOffset]);
+        pts.push([RL_WALL_X, RL_WALL_Y + yOffset]);
+        return pts;
+      };
+      const linesetPathD = (startX, startY, yOffset) => linesetWaypoints(startX, startY, yOffset || 0).map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
       const PX_C = SCALE_PX;
       const COND_SIZES = {
         fedmin: { w: Math.round(30 * PX_C), h: Math.round(28 * PX_C) },
@@ -3981,7 +3991,12 @@
       const DISC_ZONE = 52;
       const COND_X = EXT_WALL_X + WALL_THICK + DISC_ZONE + 8;
       const COND_Y = VH - 28 - 10 - COND_H;
-      const linesetRingPath = `M${RL_START_X + 2.5} ${UNIT_Y + UNIT_H * 0.45} L${RL_START_X + 2.5} ${RL_ROOF_Y + 4.5} L${EXT_WALL_X + 9} ${RL_ROOF_Y + 4.5} L${EXT_WALL_X + 9} ${COND_Y + COND_H * 0.82} L${COND_X} ${COND_Y + COND_H * 0.82}`;
+      const linesetRingPath = (() => {
+        const pts = linesetWaypoints(RL_START_X + 2.5, UNIT_Y + UNIT_H * 0.45, 4.5);
+        pts[pts.length - 1] = [EXT_WALL_X + 9, roofY(EXT_WALL_X + 9) + RL_ROOF_GAP + 4.5];
+        pts.push([EXT_WALL_X + 9, COND_Y + COND_H * 0.82], [COND_X, COND_Y + COND_H * 0.82]);
+        return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
+      })();
       return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -4325,7 +4340,7 @@
         }
       )), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "fu" + a.stage + a.furnace_eff, filter: "url(#shadow)" }, (() => {
         const flueX = FURN_X + FURN_W * 0.7;
-        const flueRoofY = (flueX <= RIDGE_X ? EAVE_Y - flueX / RIDGE_X * (EAVE_Y - RIDGE_Y) : RIDGE_Y + (flueX - RIDGE_X) / (HOUSE_W - RIDGE_X) * (EAVE_Y - RIDGE_Y)) + 14;
+        const flueRoofY = roofY(flueX) + 14;
         return /* @__PURE__ */ React.createElement(
           FurnaceH,
           {
@@ -4715,83 +4730,25 @@
       })()), hasCoil && hasCond && /* @__PURE__ */ React.createElement("g", { key: "rl" }, (() => {
         const active = evapActive;
         const ry1 = UNIT_Y + UNIT_H * 0.35, ry2 = UNIT_Y + UNIT_H * 0.55;
-        const wallX = EXT_WALL_X - 14;
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${RL_START_X} ${ry1} L${RL_START_X} ${RL_ROOF_Y} L${wallX} ${RL_ROOF_Y}`,
-            fill: "none",
-            stroke: "rgba(20,20,36,.75)",
-            strokeWidth: "12",
-            strokeLinecap: "round",
-            strokeLinejoin: "round"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${RL_START_X + 5} ${ry2} L${RL_START_X + 5} ${RL_ROOF_Y + 9} L${wallX} ${RL_ROOF_Y + 9}`,
-            fill: "none",
-            stroke: "rgba(20,20,36,.6)",
-            strokeWidth: "12",
-            strokeLinecap: "round",
-            strokeLinejoin: "round"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${RL_START_X} ${ry1} L${RL_START_X} ${RL_ROOF_Y} L${wallX} ${RL_ROOF_Y}`,
-            fill: "none",
-            stroke: line1C,
-            strokeWidth: "4.5",
-            strokeLinecap: "round",
-            strokeLinejoin: "round",
-            className: "line-pulse"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "path",
-          {
-            d: `M${RL_START_X + 5} ${ry2} L${RL_START_X + 5} ${RL_ROOF_Y + 9} L${wallX} ${RL_ROOF_Y + 9}`,
-            fill: "none",
-            stroke: line2C,
-            strokeWidth: "4.5",
-            strokeLinecap: "round",
-            strokeLinejoin: "round",
-            className: "line-pulse",
-            style: { animationDelay: ".15s" }
-          }
-        ), active && Array.from({ length: 6 }, (_, i) => {
+        const d1 = linesetPathD(RL_START_X, ry1, 0);
+        const d2 = linesetPathD(RL_START_X + 5, ry2, 9);
+        const d1r = linesetWaypoints(RL_START_X, ry1, 0).slice().reverse().map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
+        const d2r = linesetWaypoints(RL_START_X + 5, ry2, 9).slice().reverse().map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: d1, fill: "none", stroke: "rgba(20,20,36,.75)", strokeWidth: "12", strokeLinecap: "round", strokeLinejoin: "round" }), /* @__PURE__ */ React.createElement("path", { d: d2, fill: "none", stroke: "rgba(20,20,36,.6)", strokeWidth: "12", strokeLinecap: "round", strokeLinejoin: "round" }), /* @__PURE__ */ React.createElement("path", { d: d1, fill: "none", stroke: line1C, strokeWidth: "4.5", strokeLinecap: "round", strokeLinejoin: "round", className: "line-pulse" }), /* @__PURE__ */ React.createElement("path", { d: d2, fill: "none", stroke: line2C, strokeWidth: "4.5", strokeLinecap: "round", strokeLinejoin: "round", className: "line-pulse", style: { animationDelay: ".15s" } }), active && Array.from({ length: 6 }, (_, i) => {
           const isLine1 = i < 3;
           const pColor = isLine1 ? line1C : line2C;
-          const sx = RL_START_X + (isLine1 ? 0 : 5);
-          const sy = isLine1 ? ry1 : ry2;
-          const rY = isLine1 ? RL_ROOF_Y : RL_ROOF_Y + 9;
           {
           }
           const toWall = isLine1 ? refReversed : !refReversed;
-          const p = toWall ? `M${sx} ${sy} L${sx} ${rY} L${wallX} ${rY}` : `M${wallX} ${rY} L${sx} ${rY} L${sx} ${sy}`;
+          const p = toWall ? isLine1 ? d1 : d2 : isLine1 ? d1r : d2r;
           return /* @__PURE__ */ React.createElement("circle", { key: i, r: "3", fill: pColor, opacity: "0.82", filter: "url(#glow-sm)" }, /* @__PURE__ */ React.createElement("animateMotion", { dur: 2.2 + i % 3 * 0.5 + "s", repeatCount: "indefinite", begin: i * 0.7 + "s", path: p }));
         }), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: RL_START_X - 7,
-            y: Math.min(ry1, RL_ROOF_Y) - 6,
-            w: 14,
-            h: ry2 - Math.min(ry1, RL_ROOF_Y) + 6,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("lineset").title,
-            text: T("lineset").text,
-            ringPath: linesetRingPath,
-            ringStrokeWidth: 16
-          }
-        ), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: RL_START_X - 7,
-            y: RL_ROOF_Y - 6,
-            w: wallX - RL_START_X + 14,
-            h: 21,
+            y: Math.min(roofY(RIDGE_X) + RL_ROOF_GAP, ry1) - 6,
+            w: RL_WALL_X - RL_START_X + 14,
+            h: Math.max(ry1, ry2) - Math.min(roofY(RIDGE_X) + RL_ROOF_GAP, ry1) + 12,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -4811,8 +4768,8 @@
           condY: COND_Y,
           condW: COND_W,
           condH: COND_H,
-          lineY1: RL_ROOF_Y,
-          lineY2: RL_ROOF_Y + 9,
+          lineY1: RL_WALL_Y,
+          lineY2: RL_WALL_Y + 9,
           active: condenserActive,
           tierKey: a.cond_tier,
           eaveY: EAVE_Y,

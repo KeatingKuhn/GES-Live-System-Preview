@@ -3374,7 +3374,35 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // rose past that label on its way to the roofline - the base sits far
     // enough left of that centered label to clear it entirely.
     const RL_START_X=hasFurnace?(ACOIL_X+8):(AH_X+9);
-    const RL_ROOF_Y=EAVE_Y+14;
+    // Real installers run the lineset up along the underside of the roof
+    // deck (stapled to the trusses) rather than straight across open
+    // attic space - also why roofers occasionally catch one with a nail.
+    // RL_ROOF_GAP is how far below the deck the pipe hangs (matches the
+    // old fixed EAVE_Y+14 offset, at the eave itself); RL_RISER_Y/
+    // RL_WALL_Y are the roof surface's own height (via roofY, above)
+    // right where the riser meets it and where the run reaches the wall,
+    // so the horizontal run actually traces the roofline - rising toward
+    // the ridge, then back down - instead of one flat line cutting
+    // across the attic at a fixed height regardless of the ridge.
+    const RL_ROOF_GAP=14;
+    const RL_WALL_X=HOUSE_W-14; // mirrors EXT_WALL_X-14, defined below as an alias for HOUSE_W
+    const RL_RISER_Y=roofY(RL_START_X)+RL_ROOF_GAP;
+    const RL_WALL_Y=roofY(RL_WALL_X)+RL_ROOF_GAP;
+    // Builds this run's own route as a flat list of [x,y] waypoints -
+    // riser bottom (caller's own y), up to the roofline, over the ridge
+    // if the riser sits left of it, across to the wall. `yOffset` shifts
+    // every roofline-derived point uniformly (not the riser start, which
+    // already carries its own real y) so the two parallel physical lines
+    // (0 and +9) and the ring's own centerline (+4.5) all trace the same
+    // shape, offset from each other exactly like the old flat run was.
+    const linesetWaypoints=(startX,startY,yOffset)=>{
+      const pts=[[startX,startY],[startX,roofY(startX)+RL_ROOF_GAP+yOffset]];
+      if(startX<RIDGE_X)pts.push([RIDGE_X,roofY(RIDGE_X)+RL_ROOF_GAP+yOffset]);
+      pts.push([RL_WALL_X,RL_WALL_Y+yOffset]);
+      return pts;
+    };
+    const linesetPathD=(startX,startY,yOffset)=>
+      linesetWaypoints(startX,startY,yOffset||0).map(([x,y],i)=>`${i===0?'M':'L'}${x} ${y}`).join(' ');
 
     // Real-world condenser sizes, fixed regardless of canvas width - these
     // used to be rescaled to fill 62% of the outside zone, which meant
@@ -3400,22 +3428,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // OutsideZone groundY = VH-28 = 467. padY = 457. condY = 457-COND_H.
     const COND_Y=VH-28-10-COND_H;
     // One shared ring PATH tracing the WHOLE lineset run's own centerline -
-    // indoor riser, indoor roof run, OutsideZone's own wall drop, and its
-    // condenser entry - even though the run itself stays split into 4
+    // indoor riser, indoor roofline run, OutsideZone's own wall drop, and
+    // its condenser entry - even though the run itself stays split into 4
     // narrow hit-boxes (see each one's own comment) so none of them
     // swallows a neighboring component. Passed as `ringPath` to all 4, so
     // the ring drawn is always this same single traced line no matter
     // which narrow segment the cursor is actually over, instead of a
     // bounding rect around the whole run (tried first - way too big, read
-    // as "half the page" rather than tracing the pipe). ry1's 0.35/0.45
-    // factors mirror the indoor riser's own ry1/ry2 (defined further down,
-    // in the nested closure that draws it) - this is just their midpoint.
-    // exitY's 0.82 splits the difference between OutsideZone's own
-    // exitY1/exitY2 (0.78/0.86 of condH, computed inside its own closure)
-    // - keep these in sync if either ever changes.
-    const linesetRingPath=
-      `M${RL_START_X+2.5} ${UNIT_Y+UNIT_H*0.45} L${RL_START_X+2.5} ${RL_ROOF_Y+4.5} `+
-      `L${EXT_WALL_X+9} ${RL_ROOF_Y+4.5} L${EXT_WALL_X+9} ${COND_Y+COND_H*0.82} L${COND_X} ${COND_Y+COND_H*0.82}`;
+    // as "half the page" rather than tracing the pipe). Reuses
+    // linesetWaypoints for the indoor roofline portion (+4.5 centers it
+    // between the two physical lines' own 0/+9 offsets), then swaps the
+    // last (indoor) wall point for the outdoor wall-crossing point
+    // (EXT_WALL_X+9, matching OutsideZone's own wallMidX) and continues
+    // down to the condenser - exitY's 0.82 splits the difference between
+    // OutsideZone's own exitY1/exitY2 (0.78/0.86 of condH, computed
+    // inside its own closure) - keep these in sync if either ever changes.
+    const linesetRingPath=(()=>{
+      const pts=linesetWaypoints(RL_START_X+2.5,UNIT_Y+UNIT_H*0.45,4.5);
+      pts[pts.length-1]=[EXT_WALL_X+9,roofY(EXT_WALL_X+9)+RL_ROOF_GAP+4.5];
+      pts.push([EXT_WALL_X+9,COND_Y+COND_H*0.82],[COND_X,COND_Y+COND_H*0.82]);
+      return pts.map(([x,y],i)=>`${i===0?'M':'L'}${x} ${y}`).join(' ');
+    })();
 
     return(
       <HoverCtx.Provider value={setHoverPart}>
@@ -3639,13 +3672,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasCoil&&hasFurnace&&<g className="snap" key={'fu'+a.stage+a.furnace_eff} filter="url(#shadow)">
             {(()=>{
               // Roof surface height at the flue's actual X (mid+w*0.2 inside
-              // FurnaceH) - EAVE_Y alone only holds at the eave itself, and
-              // the flue usually sits well in toward the ridge, where the
-              // sloped roof is much higher up (smaller y) than that.
+              // FurnaceH) via the shared roofY(x) helper above - EAVE_Y
+              // alone only holds at the eave itself, and the flue usually
+              // sits well in toward the ridge, where the sloped roof is
+              // much higher up (smaller y) than that.
               const flueX=FURN_X+FURN_W*0.7;
-              const flueRoofY=(flueX<=RIDGE_X
-                ?EAVE_Y-(flueX/RIDGE_X)*(EAVE_Y-RIDGE_Y)
-                :RIDGE_Y+((flueX-RIDGE_X)/(HOUSE_W-RIDGE_X))*(EAVE_Y-RIDGE_Y))+14;
+              const flueRoofY=roofY(flueX)+14;
               return <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive} roofY={flueRoofY}
                 onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}
                 blowerActive={blowerActive} is90={is90} isComm={isComm} blowerMotorLabel={BLOWER_MOTOR}/>;
@@ -3940,37 +3972,42 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             })()}
           </g>}
 
-          {/* ── REFRIGERANT LINES - up to roofline, across to wall ── */}
+          {/* ── REFRIGERANT LINES - up the riser, then following the
+               ROOFLINE (not a flat line) across to the wall - matches
+               how installers actually run a lineset in an attic, stapled
+               along the underside of the roof deck rather than crossing
+               open space (also why a roofer occasionally punches a nail
+               through one). Frees up the flat band this used to cut
+               across the middle of the attic for other equipment (ERV
+               moved into it - see its own comment below). ── */}
           {hasCoil&&hasCond&&<g key="rl">
             {(()=>{
               const active=evapActive;
               const ry1=UNIT_Y+UNIT_H*0.35, ry2=UNIT_Y+UNIT_H*0.55;
-              const wallX=EXT_WALL_X-14;
+              const d1=linesetPathD(RL_START_X,ry1,0);
+              const d2=linesetPathD(RL_START_X+5,ry2,9);
+              // Reversed-direction copies of the same two paths, for the
+              // "away from wall" flow-dot case below - animateMotion has
+              // no built-in reverse, so this walks the same waypoints
+              // starting from the wall end instead of the riser end.
+              const d1r=linesetWaypoints(RL_START_X,ry1,0).slice().reverse().map(([x,y],i)=>`${i===0?'M':'L'}${x} ${y}`).join(' ');
+              const d2r=linesetWaypoints(RL_START_X+5,ry2,9).slice().reverse().map(([x,y],i)=>`${i===0?'M':'L'}${x} ${y}`).join(' ');
               return <>
                 {/* Foam sleeve */}
-                <path d={`M${RL_START_X} ${ry1} L${RL_START_X} ${RL_ROOF_Y} L${wallX} ${RL_ROOF_Y}`}
-                  fill="none" stroke="rgba(20,20,36,.75)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d={`M${RL_START_X+5} ${ry2} L${RL_START_X+5} ${RL_ROOF_Y+9} L${wallX} ${RL_ROOF_Y+9}`}
-                  fill="none" stroke="rgba(20,20,36,.6)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d={d1} fill="none" stroke="rgba(20,20,36,.75)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d={d2} fill="none" stroke="rgba(20,20,36,.6)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
                 {/* Line 1 -- always bold red/blue */}
-                <path d={`M${RL_START_X} ${ry1} L${RL_START_X} ${RL_ROOF_Y} L${wallX} ${RL_ROOF_Y}`}
-                  fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse"/>
+                <path d={d1} fill="none" stroke={line1C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse"/>
                 {/* Line 2 -- always bold, opposite color */}
-                <path d={`M${RL_START_X+5} ${ry2} L${RL_START_X+5} ${RL_ROOF_Y+9} L${wallX} ${RL_ROOF_Y+9}`}
-                  fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
+                <path d={d2} fill="none" stroke={line2C} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="line-pulse" style={{animationDelay:'.15s'}}/>
                 {/* Flow dots -- both pipes */}
                 {active&&Array.from({length:6},(_,i)=>{
                   const isLine1=i<3;
                   const pColor=isLine1?line1C:line2C;
-                  const sx=RL_START_X+(isLine1?0:5);
-                  const sy=isLine1?ry1:ry2;
-                  const rY=isLine1?RL_ROOF_Y:RL_ROOF_Y+9;
                   {/* Same fix, same reasoning, as OutsideZone's own
                       toCondenser above - was inverted, now correct. */}
                   const toWall=isLine1?refReversed:!refReversed;
-                  const p=toWall
-                    ?`M${sx} ${sy} L${sx} ${rY} L${wallX} ${rY}`
-                    :`M${wallX} ${rY} L${sx} ${rY} L${sx} ${sy}`;
+                  const p=toWall?(isLine1?d1:d2):(isLine1?d1r:d2r);
                   return <circle key={i} r="3" fill={pColor} opacity="0.82" filter="url(#glow-sm)">
                     <animateMotion dur={(2.2+(i%3)*0.5)+'s'} repeatCount="indefinite" begin={(i*0.7)+'s'} path={p}/>
                   </circle>;
@@ -3978,17 +4015,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 {/* No EditZone covers this indoor run - free-standing
                     hover, no onClick. OutsideZone's own lineset hover
                     covers the outside portion of this same run
-                    separately. Two narrow boxes tracing the actual L-
-                    shaped pipe run (riser, then the horizontal run under
-                    the roof) rather than one full bounding rect - a
-                    single rect spanning riser-to-wall at full height
-                    would have swallowed the supply plenum/A-coil sitting
-                    in that same span below the roofline. */}
-                <HoverInfo x={RL_START_X-7} y={Math.min(ry1,RL_ROOF_Y)-6} w={14}
-                  h={ry2-Math.min(ry1,RL_ROOF_Y)+6} rx={3}
-                  vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
-                  ringPath={linesetRingPath} ringStrokeWidth={16}/>
-                <HoverInfo x={RL_START_X-7} y={RL_ROOF_Y-6} w={wallX-RL_START_X+14} h={21} rx={3}
+                    separately. One generous bounding box (the run's own
+                    up-to-the-ridge-and-back-down shape doesn't reduce to
+                    a couple of tight rects the way the old flat run did)
+                    - fine for hit-testing since the ringPath already
+                    traces the actual route precisely for the visible
+                    ring; anything painted later in this same layout
+                    (the ridge cap's own hover, the ERV) still wins its
+                    own smaller area on top of this. */}
+                <HoverInfo x={RL_START_X-7} y={Math.min(roofY(RIDGE_X)+RL_ROOF_GAP,ry1)-6}
+                  w={RL_WALL_X-RL_START_X+14} h={Math.max(ry1,ry2)-Math.min(roofY(RIDGE_X)+RL_ROOF_GAP,ry1)+12} rx={3}
                   vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
                   ringPath={linesetRingPath} ringStrokeWidth={16}/>
               </>;
@@ -3999,7 +4035,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasCond&&<OutsideZone
             wallX={EXT_WALL_X} zoneW={OUTSIDE_W} zoneH={VH}
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
-            lineY1={RL_ROOF_Y} lineY2={RL_ROOF_Y+9}
+            lineY1={RL_WALL_Y} lineY2={RL_WALL_Y+9}
             active={condenserActive} tierKey={a.cond_tier} eaveY={EAVE_Y}
             heatMode={heatMode} isMildHp={isMildHp}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
