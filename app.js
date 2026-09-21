@@ -7212,8 +7212,8 @@
         {
           step: "thermostat",
           label: tr("Thermostat", "Termostato"),
-          val: answers.thermostat === "wifi" ? tr("Wi-Fi smart thermostat", "Termostato inteligente Wi-Fi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Proprietary communicating thermostat", "Termostato comunicante propietario") : null,
-          short: answers.thermostat === "wifi" ? tr("Wi-Fi smart t-stat", "Termostato Wi-Fi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Proprietary t-stat", "Termostato propietario") : null
+          val: answers.thermostat === "wifi" ? tr("Wi-Fi smart thermostat", "Termostato inteligente Wi-Fi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Communicating thermostat", "Termostato comunicante") : null,
+          short: answers.thermostat === "wifi" ? tr("Wi-Fi smart t-stat", "Wi-Fi inteligente") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Communicating t-stat", "Comunicante") : null
         },
         Array.isArray(answers.purif) && answers.purif.length > 0 ? {
           step: "purif",
@@ -7356,12 +7356,12 @@
       // height overflow with a reaction line showing, 0 without) - and the
       // 3-line hint already spells out both choices, so the reaction line
       // wouldn't be telling the homeowner anything the hint didn't just say.
-      insulation: { fiberglass: "Vented attic, 80% furnace fits.", spray: "Sealed attic, stepping up to 90%." },
-      plenum: { ductboard: "Ductboard, a solid standard choice.", metal: "Steel plenum, outlasts the system.", none: "Keeping your plenum saves labor." },
-      cond_tier: { fedmin: "Lowest upfront cost, locked in.", mid_ge15: "Our best overall value.", high_ge18: "Our quietest, most efficient tier." },
-      thermostat: { basic: "Reliable, no app required.", wifi: "Control it from your phone.", proprietary: "Built for the best diagnostics." },
-      system_for: { hp: "Efficient through Austin winters.", sc: "Furnace handles all the heating." },
-      dehu: { yes: "Added, for noticeably drier air.", no: "Skipping it, easy to add later." }
+      insulation: answers.indoor_type === "furnace" ? { fiberglass: tr("Vented attic, 80% furnace fits.", "\xC1tico ventilado, horno de 80% ideal."), spray: tr("Sealed attic, stepping up to 90%.", "\xC1tico sellado, subiendo a 90%.") } : { fiberglass: tr("Vented attic, the most common setup.", "\xC1tico ventilado, la instalaci\xF3n m\xE1s com\xFAn."), spray: tr("Sealed attic, cooler and more efficient.", "\xC1tico sellado, m\xE1s fresco y eficiente.") },
+      plenum: { ductboard: tr("Ductboard, a solid standard choice.", "Ductboard, una opci\xF3n est\xE1ndar s\xF3lida."), metal: tr("Steel plenum, outlasts the system.", "Plenum de acero, dura m\xE1s que el sistema."), none: tr("Keeping your plenum saves labor.", "Conservar su plenum ahorra mano de obra.") },
+      cond_tier: { fedmin: tr("Lowest upfront cost, locked in.", "Menor costo inicial, asegurado."), mid_ge15: tr("Our best overall value.", "Nuestro mejor valor general."), high_ge18: tr("Our quietest, most efficient tier.", "Nuestro nivel m\xE1s silencioso y eficiente.") },
+      thermostat: { basic: tr("Reliable, no app required.", "Confiable, sin necesidad de app."), wifi: tr("Control it from your phone.", "Contr\xF3lelo desde su tel\xE9fono."), proprietary: tr("Built for the best diagnostics.", "Dise\xF1ado para los mejores diagn\xF3sticos.") },
+      system_for: { hp: tr("Efficient through Austin winters.", "Eficiente durante los inviernos de Austin."), sc: tr("Furnace handles all the heating.", "El horno se encarga de toda la calefacci\xF3n.") },
+      dehu: { yes: tr("Added, for noticeably drier air.", "Agregado, para un aire notablemente m\xE1s seco."), no: tr("Skipping it, easy to add later.", "Omitido por ahora, f\xE1cil de agregar despu\xE9s.") }
     };
     const REACTION_ES = {
       insulation: { fiberglass: "\xC1tico ventilado, compatible con un horno del 80%.", spray: "\xC1tico sellado, sube a un horno del 90%." },

@@ -402,8 +402,8 @@ function App(){
         :(answers.furnace_eff==="e90"?tr("Spray foam","Espuma aislante"):tr("Fiberglass","Fibra de vidrio"))}:null,
       {step:"plenum",label:tr("Plenum","Plenum"),val:answers.plenum==="ductboard"?tr("New ductboard plenum","Nuevo plenum de ductboard"):answers.plenum==="metal"?tr("New sheet metal plenum","Nuevo plenum de lámina metálica"):answers.plenum==="none"?tr("Keep existing plenum","Conservar plenum actual"):null},
       {step:"thermostat",label:tr("Thermostat","Termostato"),
-        val:answers.thermostat==="wifi"?tr("Wi-Fi smart thermostat","Termostato inteligente Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Proprietary communicating thermostat","Termostato comunicante propietario"):null,
-        short:answers.thermostat==="wifi"?tr("Wi-Fi smart t-stat","Termostato Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Proprietary t-stat","Termostato propietario"):null},
+        val:answers.thermostat==="wifi"?tr("Wi-Fi smart thermostat","Termostato inteligente Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating thermostat","Termostato comunicante"):null,
+        short:answers.thermostat==="wifi"?tr("Wi-Fi smart t-stat","Wi-Fi inteligente"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating t-stat","Comunicante"):null},
       Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:tr("Add-ons","Complementos"),
         val:answers.purif.map(v=>v==="aprilaire"?tr("Enhanced Filtration Cabinet","Gabinete de filtración mejorada"):v==="uv"?tr("UV Light","Luz UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge protector","Protector de sobrevoltaje"):v).join(" + "),
         short:answers.purif.map(v=>v==="aprilaire"?tr("Filtration Cabinet","Gabinete de filtración"):v==="uv"?tr("UV Light","Luz UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge Protector","Protector de sobrevoltaje"):v).join(" + ")}:null,
@@ -590,6 +590,14 @@ function App(){
   // the generic instructional hint once there's an actual answer to react
   // to, so the tool reads as a co-pilot responding to you instead of a
   // form reciting the same paragraph regardless of what you clicked.
+  // Translated via tr() per entry (same overlay approach as INFO_TEXT/
+  // INFO_TEXT_ES above) so this line never falls back to raw English under
+  // the Spanish toggle - it used to, since this dict was plain English-only
+  // strings with nothing routing them through tr() at all.
+  // insulation's furnace/AFUE mention only makes sense for indoor_type
+  // 'furnace' - same air-handler carve-out as infoTextId/insulation_ah
+  // above; a furnace-flavored reaction line was showing up under an air
+  // handler build, telling that homeowner about a furnace they don't have.
   const REACTION={
     // indoor_type has no entry here on purpose - its hint is forced to 3
     // lines (see STEPS above), already 2 lines taller than every other
@@ -598,12 +606,14 @@ function App(){
     // height overflow with a reaction line showing, 0 without) - and the
     // 3-line hint already spells out both choices, so the reaction line
     // wouldn't be telling the homeowner anything the hint didn't just say.
-    insulation:{fiberglass:"Vented attic, 80% furnace fits.",spray:"Sealed attic, stepping up to 90%."},
-    plenum:{ductboard:"Ductboard, a solid standard choice.",metal:"Steel plenum, outlasts the system.",none:"Keeping your plenum saves labor."},
-    cond_tier:{fedmin:"Lowest upfront cost, locked in.",mid_ge15:"Our best overall value.",high_ge18:"Our quietest, most efficient tier."},
-    thermostat:{basic:"Reliable, no app required.",wifi:"Control it from your phone.",proprietary:"Built for the best diagnostics."},
-    system_for:{hp:"Efficient through Austin winters.",sc:"Furnace handles all the heating."},
-    dehu:{yes:"Added, for noticeably drier air.",no:"Skipping it, easy to add later."},
+    insulation:answers.indoor_type==='furnace'
+      ?{fiberglass:tr("Vented attic, 80% furnace fits.","Ático ventilado, horno de 80% ideal."),spray:tr("Sealed attic, stepping up to 90%.","Ático sellado, subiendo a 90%.")}
+      :{fiberglass:tr("Vented attic, the most common setup.","Ático ventilado, la instalación más común."),spray:tr("Sealed attic, cooler and more efficient.","Ático sellado, más fresco y eficiente.")},
+    plenum:{ductboard:tr("Ductboard, a solid standard choice.","Ductboard, una opción estándar sólida."),metal:tr("Steel plenum, outlasts the system.","Plenum de acero, dura más que el sistema."),none:tr("Keeping your plenum saves labor.","Conservar su plenum ahorra mano de obra.")},
+    cond_tier:{fedmin:tr("Lowest upfront cost, locked in.","Menor costo inicial, asegurado."),mid_ge15:tr("Our best overall value.","Nuestro mejor valor general."),high_ge18:tr("Our quietest, most efficient tier.","Nuestro nivel más silencioso y eficiente.")},
+    thermostat:{basic:tr("Reliable, no app required.","Confiable, sin necesidad de app."),wifi:tr("Control it from your phone.","Contrólelo desde su teléfono."),proprietary:tr("Built for the best diagnostics.","Diseñado para los mejores diagnósticos.")},
+    system_for:{hp:tr("Efficient through Austin winters.","Eficiente durante los inviernos de Austin."),sc:tr("Furnace handles all the heating.","El horno se encarga de toda la calefacción.")},
+    dehu:{yes:tr("Added, for noticeably drier air.","Agregado, para un aire notablemente más seco."),no:tr("Skipping it, easy to add later.","Omitido por ahora, fácil de agregar después.")},
   };
   // Spanish counterpart to REACTION above - a QA pass caught this reaction
   // line rendering in English even under the Spanish toggle, since it had
