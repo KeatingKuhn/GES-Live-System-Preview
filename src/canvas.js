@@ -1117,6 +1117,31 @@ function EditZone({x,y,w,h,stepId,rx,children,onEditStep,svgScale,vw,vh}){
   </g>;
 }
 
+const MIN_FOCUS_PX=28;
+// Dashed marching-ants ring drawn around the spot where the wizard's
+// CURRENT step's part is about to appear (or already has) - the "here's
+// what we're building next" cue described in EditZone's own comment
+// above, distinct from EditZone's solid on-hover ring. Module-scope for
+// the same remount reason as EditZone itself: this used to be a Canvas-
+// local const closing over onEditStep/curStepId/SVG_SCALE/SVG_VW/SVG_VH,
+// which meant a fresh component identity - and a restarted marching-ants
+// animation (.step-focus-ring in styles.css reuses the ductwork's own
+// .airflow keyframe) - on every single hoverPart change during the
+// wizard's live preview, i.e. constantly, since that's exactly when this
+// ring is on screen. onEditStep/curStepId/svgScale/vw/vh now come in as
+// explicit props, same convention as EditZone just above.
+function StepFocusRing({x,y,w,h,stepId,rx,onEditStep,curStepId,svgScale,vw,vh}){
+  if(onEditStep||curStepId!==stepId)return null;
+  const minUnits=svgScale>0?MIN_FOCUS_PX/svgScale:0;
+  let fx=x, fy=y, fw=w, fh=h;
+  if(fw<minUnits){fx-=(minUnits-fw)/2; fw=minUnits;}
+  if(fh<minUnits){fy-=(minUnits-fh)/2; fh=minUnits;}
+  if(vw){if(fx<0)fx=0; if(fx+fw>vw)fx=Math.max(0,vw-fw);}
+  if(vh){if(fy<0)fy=0; if(fy+fh>vh)fy=Math.max(0,vh-fh);}
+  return <rect className="step-focus-ring" x={fx-4} y={fy-4} width={fw+8} height={fh+8}
+    rx={(rx||4)+4} fill="none" filter="url(#glow-sm)"/>;
+}
+
 // Equipment-diagram color palette - gold/blue/white/orange/silver rgba
 // prefixes shared by every cabinet sub-component below (FurnaceH,
 // BlowerWheel, ACoilH/V, Condenser, CondenserFan, CapFan, and the small
@@ -2258,6 +2283,491 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanFa
   </g>;
 }
 
+// Aux heat kit - a bordered strip of heat-strip elements with a
+// caption label. Drawn once in its natural wide-short orientation
+// (matching how the closet/vertical air handler has room to show it -
+// the column there is wide), and reused as-is for the attic/horizontal
+// air handler by wrapping it in a 90-degree rotation instead of
+// re-deriving a different layout for that column - so both layouts
+// show literally the same artwork, just turned to fit whichever
+// column is actually the narrow one there.
+//
+// Module-scope, not nested inside Canvas like AirHandlerH (which calls
+// it) used to be - see that component's own module comment for why.
+// This one has zero closure dependencies beyond its own params (S is
+// already module-scope), so it was always trivially hoistable; it only
+// stayed nested because its one caller did.
+function AuxHeatKit({x,y,w,h,auxHeat,segCount}){
+  segCount=segCount||4;
+  const rectY=y, rectH=h*0.62;
+  const rectX=x+w*0.03, rectW=w*0.94;
+  const segGap=rectW*0.04;
+  const segW=(rectW-segGap*(segCount+1))/segCount;
+  const segH=rectH*0.6, segY=rectY+rectH*0.2;
+  return <g>
+    <rect x={rectX} y={rectY} width={rectW} height={rectH} rx="2"
+      fill={auxHeat?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
+      stroke={auxHeat?"rgba(249,115,22,.6)":(S+'.2)')} strokeWidth="0.8"/>
+    {Array.from({length:segCount},(_,i)=>{
+      const bx=rectX+segGap+i*(segW+segGap);
+      return <g key={i}>
+        <rect x={bx} y={segY} width={Math.max(1,segW)} height={Math.max(1,segH)} rx="1"
+          fill={auxHeat?"#1a0805":"#0a0a0f"} stroke={auxHeat?"rgba(249,115,22,.4)":"rgba(48,20,5,.2)"} strokeWidth="0.5"/>
+        {auxHeat&&<ellipse cx={bx+segW/2} cy={segY+segH/2} rx={segW/2} ry={Math.min(3,segH/2)}
+          fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
+      </g>;
+    })}
+    <text x={x+w/2} y={y+h*0.92} textAnchor="middle"
+      fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize={Math.min(12,h*0.22)} fontFamily="monospace">AUX HEAT KIT</text>
+  </g>;
+}
+
+// Air handler horizontal - blower LEFT | A-coil RIGHT.
+//
+// Module-scope - this had the exact same remount bug FurnaceH/BlowerWheel/
+// ACoilH/ACoilV/Condenser/CondenserFan were already fixed for (see
+// FurnaceH's own module comment above for the full diagnosis), just missed
+// in that pass because it's only used on air-handler builds (no furnace) -
+// defined fresh inside Canvas on every render, so every hoverPart change
+// unmounted and remounted this whole cabinet, resetting BlowerWheel's
+// `.spin`, the A-coil's evap glow-pulse/CoilSweat animations, and (when
+// auxHeat is on) AuxHeatKit's own glow-pulse - the identical stutter, just
+// on the air-handler cabinet instead of the furnace one. evapC/evapC2/
+// hasUV/blowerActive/blowerMotorLabel/refReversed and the resolved A-coil
+// info-key come in as explicit props instead of Canvas closures, same
+// convention as FurnaceH.
+function AirHandlerH({x,y,w,h,active,auxHeat,evapC,evapC2,hasUV,acoilInfoKey,blowerActive,blowerMotorLabel,refReversed,onEditStep,lang,vw,vh}){
+  const coilW=w*0.50, blowerW=w*0.35, auxW=w*0.15;
+  const c1=x+coilW, c2=x+coilW+blowerW;
+  return <g>
+    {/* General cabinet hover - painted first/bottommost, same reasoning
+        as FurnaceH's own. ACoilH/BlowerWheel each add their own more
+        specific hover internally, which (painted later, on top of this)
+        wins their own smaller sub-areas. */}
+    <HoverInfo x={x} y={y} w={w} h={h} rx={4} vw={vw} vh={vh}
+      title={partInfo('air_handler_cabinet',lang).title} text={partInfo('air_handler_cabinet',lang).text}
+      onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+    {/* Exterior housing stays silver in both states - see the comment on
+        FurnaceH's own border/strip above. The internal coil tubes
+        (ACoilH, embedded below) still color by evapC exactly as
+        before - only the housing exterior stopped switching color. */}
+    <rect x={x} y={y} width={w} height={h} rx="4"
+      fill={active?"#050c1a":"#090909"}
+      stroke="url(#cabinet-edge)" strokeOpacity="0.8" strokeWidth="1.5"/>
+    {/* Faint active-state tint - see FurnaceH's own comment on the
+        identical pattern for why this needs pointer-events:none (found
+        swallowing the general air_handler_cabinet hover across this
+        whole box whenever active, via a wizard-step sweep). */}
+    {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
+    <rect x={x} y={y} width={w} height={7} rx="4" fill="url(#silver)" opacity=".68"/>
+    <CabinetStripBrushing x={x} y={y} w={w}/>
+    {/* Left rivet nudged in - the standalone-AH lineset riser anchors at
+        RL_START_X=AH_X+9 (same corner), same reasoning as the attic
+        furnace's own A-coil box a few lines up. */}
+    <CabinetRivet cx={x+19} cy={y+3.5}/>
+    <CabinetRivet cx={x+w-8} cy={y+3.5}/>
+    <CabinetLatch cx={c1} cy={y+3.5} w={13}/>
+    <line x1={c1} y1={y+7} x2={c1} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+    <line x1={c2} y1={y+7} x2={c2} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
+    {Array.from({length:7},(_,i)=>(
+      <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
+        stroke={S+'.38)'} strokeWidth="3" strokeLinecap="round"/>
+    ))}
+    <rect x={x+3} y={y+8} width={coilW-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
+    <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}
+      evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey}
+      onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
+    <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(S+'.6)')} fontSize="13" fontFamily="monospace">A-COIL</text>
+    <BlowerWheel cx={c1+blowerW/2} cy={y+h*0.42} r={Math.min(blowerW*0.32,h*0.29)}
+      spd={blowerActive?1.5:0.45} active={blowerActive}
+      onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
+    <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+    <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{blowerMotorLabel}</text>
+    {/* Literally the same AuxHeatKit artwork the closet layout uses
+        below (just called with this column's own width/height, since
+        the strip is proportional, not fixed-size) - wrapped in a
+        90-degree rotation instead of a hand-rebuilt layout, so this
+        column shows the exact same bordered-strip-of-elements design
+        the closet does, just turned to fit a column that's tall
+        instead of wide. See the AuxHeatKit comment for the rotation
+        math this translate+rotate pair relies on. */}
+    <g transform={`translate(${c2+3} ${y+8+(h-14)}) rotate(-90)`}>
+      <AuxHeatKit x={0} y={0} w={h-14} h={auxW-6} auxHeat={auxHeat}/>
+    </g>
+    <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
+  </g>;
+}
+
+// Ionizer - bulb sits OUTSIDE on top of plenum, rod penetrates DOWN into
+// airstream. bulbX/bulbY = center of the bulb (outside, above plenum top);
+// rodLen = how far the rod extends down inside the plenum.
+//
+// Module-scope, not nested inside Canvas like it used to be: this remount
+// bug was worse than most of the others fixed above (see FurnaceH's own
+// module comment) because the outer <g> carries className="fadein" - a
+// one-shot .3s entrance pop (see .fadein in styles.css) that's supposed to
+// play once when the ionizer add-on first appears, not replay on every
+// hoverPart change elsewhere in the diagram. Nested, it was doing exactly
+// that: a fresh component identity every Canvas render meant a fresh DOM
+// node, so the ionizer visibly flickered (opacity dropping then rising
+// again) on nearly every mouse movement over the diagram whenever the
+// ionizer add-on was selected - the same "jump" bug EditZone's own .snap
+// entrance was flagged for, just on a different add-on. Zero closure
+// dependencies beyond its own params, so this was always trivially
+// hoistable; it only stayed nested because nothing had audited it yet.
+function Ionizer({bulbX, bulbY, rodLen}){
+  rodLen=rodLen||55;
+  const rodBot=bulbY+rodLen;
+  return <g className="fadein">
+    {/* Outer glow halo around bulb */}
+    <circle cx={bulbX} cy={bulbY} r={14}
+      fill="rgba(253,224,71,.08)" stroke="rgba(253,224,71,.2)" strokeWidth="0.6"
+      filter="url(#glow-uv)"/>
+    {/* Bulb body - larger, amber glass shape */}
+    <ellipse cx={bulbX} cy={bulbY} rx={9} ry={11}
+      fill="rgba(251,191,36,.18)" stroke="rgba(253,224,71,.75)" strokeWidth="1.5"/>
+    {/* Bulb inner glow */}
+    <ellipse cx={bulbX} cy={bulbY} rx={5.5} ry={7}
+      fill="rgba(253,224,71,.35)" stroke="none" className="glow-pulse"/>
+    {/* Filament / element inside bulb */}
+    <line x1={bulbX-3} y1={bulbY-4} x2={bulbX+3} y2={bulbY+4}
+      stroke="rgba(253,224,71,.9)" strokeWidth="1.2" strokeLinecap="round"/>
+    <line x1={bulbX+3} y1={bulbY-4} x2={bulbX-3} y2={bulbY+4}
+      stroke="rgba(253,224,71,.9)" strokeWidth="1.2" strokeLinecap="round"/>
+    {/* Mounting collar / base where rod enters plenum */}
+    <rect x={bulbX-4} y={bulbY+9} width={8} height={5} rx="1"
+      fill="rgba(180,130,20,.5)" stroke="rgba(253,224,71,.5)" strokeWidth="0.8"/>
+    {/* Rod going down into plenum */}
+    {/* Glow halo behind rod */}
+    <line x1={bulbX} y1={bulbY+14} x2={bulbX} y2={rodBot}
+      stroke="rgba(253,224,71,.2)" strokeWidth={7} strokeLinecap="round" filter="url(#glow-uv)"/>
+    {/* Rod body */}
+    <line x1={bulbX} y1={bulbY+14} x2={bulbX} y2={rodBot}
+      stroke="rgba(253,224,71,.82)" strokeWidth={2.2} strokeLinecap="round"/>
+    {/* Plasma tip at rod end */}
+    <circle cx={bulbX} cy={rodBot} r={3} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
+    <text x={bulbX+14} y={bulbY} textAnchor="start"
+      fill="rgba(253,224,71,.48)" fontSize="11" fontFamily="monospace">IONIZER</text>
+  </g>;
+}
+
+// ── DUCTWORK DETAIL KIT ─────────────────────────────────────
+// Shared by both the attic-horizontal layout's supply-duct drops and the
+// closet-upflow layout's own (visually near-identical, but independently-
+// coded) supply drops further down, so both read as the same real
+// material instead of two different flat gray boxes that happen to be
+// labeled the same. Module-scope, zero closure dependencies beyond their
+// own params (same reasoning as the cabinet/coil detail kits above) - only
+// stayed nested because nothing had audited them yet; none of these carry
+// their own animation, so the remount bug cost perf here, not a visible
+// glitch, but there's no reason to leave them unstable either.
+
+// Corrugated flex-duct jacket - the register drops off a rigid supply
+// plenum are field-run in insulated flex duct almost universally (a
+// helically-wound wire core under a silver vinyl vapor jacket), which
+// reads as an alternating light/dark ring pattern down the run - not
+// the flat solid-fill rectangle this used to be, indistinguishable
+// from a rigid metal duct. Works for either a vertical run (rings
+// horizontal) or a horizontal run (rings vertical) off the same x/y/w/h
+// box a plain <rect> duct segment already used.
+function DuctRibbing({x,y,w,h,vertical}){
+  vertical=vertical!==false;
+  const span=vertical?h:w;
+  const spacing=5.5;
+  const n=Math.max(1,Math.floor(span/spacing));
+  return <g opacity="0.6">
+    {Array.from({length:n},(_,i)=>{
+      const pos=(i+0.5)*spacing;
+      return vertical
+        ?<line key={i} x1={x+0.5} y1={y+pos} x2={x+w-0.5} y2={y+pos}
+          stroke={i%2===0?"rgba(225,230,238,.28)":"rgba(0,0,0,.32)"} strokeWidth="1"/>
+        :<line key={i} x1={x+pos} y1={y+0.5} x2={x+pos} y2={y+h-0.5}
+          stroke={i%2===0?"rgba(225,230,238,.28)":"rgba(0,0,0,.32)"} strokeWidth="1"/>;
+    })}
+    {/* Long highlight seam down one side - the jacket's own sheen
+        catching light along its length, breaking up the ring pattern
+        so it still reads as one continuous tube rather than a stack of
+        washers. */}
+    {vertical
+      ?<line x1={x+w*0.22} y1={y+1} x2={x+w*0.22} y2={y+h-1} stroke="rgba(255,255,255,.14)" strokeWidth="1"/>
+      :<line x1={x+1} y1={y+h*0.22} x2={x+w-1} y2={y+h*0.22} stroke="rgba(255,255,255,.14)" strokeWidth="1"/>}
+  </g>;
+}
+
+// Same ring texture as DuctRibbing, but for a duct segment that isn't
+// axis-aligned (the 45°-elbow drop's diagonal leg) - ticks are laid
+// out along the segment's own direction instead of assuming
+// horizontal/vertical.
+function DuctRibbingPath({x1,y1,x2,y2,width}){
+  const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1;
+  const ux=dx/len, uy=dy/len, px=-uy, py=ux;
+  const spacing=5.5;
+  const n=Math.max(1,Math.floor(len/spacing));
+  return <g opacity="0.6">
+    {Array.from({length:n},(_,i)=>{
+      const t=(i+0.5)*spacing;
+      const cx=x1+ux*t, cy=y1+uy*t;
+      return <line key={i} x1={cx-px*width/2} y1={cy-py*width/2} x2={cx+px*width/2} y2={cy+py*width/2}
+        stroke={i%2===0?"rgba(225,230,238,.26)":"rgba(0,0,0,.3)"} strokeWidth="1"/>;
+    })}
+  </g>;
+}
+
+// Clamp collar - a metal draw-band cinching the flex jacket onto a
+// sheet-metal starter collar/boot, the connection detail every flex-
+// duct run actually has at both ends instead of the jacket just
+// stopping in mid-air.
+function DuctClamp({x,y,w,h,vertical}){
+  vertical=vertical!==false;
+  return vertical
+    ?<rect x={x-1} y={y} width={w+2} height="3.5" rx="1" fill="rgba(180,184,192,.55)" stroke="rgba(20,20,24,.5)" strokeWidth="0.5"/>
+    :<rect x={x} y={y-1} width="3.5" height={h+2} rx="1" fill="rgba(180,184,192,.55)" stroke="rgba(20,20,24,.5)" strokeWidth="0.5"/>;
+}
+
+// Supply-plenum interior surface treatment, shared by both layouts' own
+// (separately-coded, but meant to be visually identical) supply plenum
+// boxes - reads as the two materials' actual real finishes: brushed
+// galvanized sheet with folded corner flanges for metal, or a foil-
+// faced (FSK) board with taped panel seams for ductboard - instead of
+// two boxes distinguished only by a caption and a handful of near-
+// invisible hairlines.
+function PlenumMaterial({x,y,w,h,isMetal}){
+  return isMetal
+    ?<g>
+      {Array.from({length:Math.floor(h/8)},(_,i)=>(
+        <line key={i} x1={x+2} y1={y+4+i*8} x2={x+w-2} y2={y+4+i*8} stroke={W+'.05)'} strokeWidth="0.3"/>
+      ))}
+      {/* Diagonal sheen - a galvanized sheet's mill finish catching
+          light unevenly across the panel instead of a flat fill. */}
+      <path d={`M${x} ${y+h*0.12} L${x+w} ${y+h*0.5}`} stroke="rgba(255,255,255,.045)" strokeWidth={Math.max(4,h*0.16)} strokeLinecap="round"/>
+      {/* Folded S-cleat corner flanges - the real sheet-metal joint
+          every rigid plenum-to-duct transition uses, plus the rivets
+          that hold it. */}
+      {[[x+7,y+5],[x+w-7,y+5],[x+7,y+h-5],[x+w-7,y+h-5]].map(([px,py],i)=>(
+        <path key={i} d={`M${px-5} ${py} L${px+5} ${py} L${px+5} ${py+(i<2?3:-3)}`}
+          fill="none" stroke="rgba(210,214,222,.28)" strokeWidth="1"/>
+      ))}
+    </g>
+    :<g>
+      {/* Faint fiber striations (very low-density board weave). */}
+      {Array.from({length:Math.floor(h/10)},(_,i)=>(
+        <line key={i} x1={x+3} y1={y+5+i*10} x2={x+w-3} y2={y+5+i*10} stroke={G+'.07)'} strokeWidth="0.6"/>
+      ))}
+      {/* Foil-faced (FSK) sheen - the metallized facing's soft gloss,
+          as two broad diagonal highlight bands. */}
+      <path d={`M${x} ${y+h*0.08} L${x+w*0.55} ${y+h*0.68}`} stroke="rgba(224,228,238,.05)" strokeWidth={Math.max(5,h*0.24)} strokeLinecap="round"/>
+      <path d={`M${x+w*0.42} ${y+h*0.02} L${x+w} ${y+h*0.46}`} stroke="rgba(224,228,238,.04)" strokeWidth={Math.max(4,h*0.16)} strokeLinecap="round"/>
+      {/* Taped panel seams - foil tape strips over each board-to-board
+          joint, the way real ductboard sections are actually sealed. */}
+      {[x+w*0.32,x+w*0.68].map((sx,i)=>(
+        <g key={i}>
+          <rect x={sx-4.5} y={y+2} width={9} height={h-4} fill="rgba(210,214,222,.045)" stroke="rgba(210,214,222,.09)" strokeWidth="0.4"/>
+          <line x1={sx} y1={y+2} x2={sx} y2={y+h-2} stroke="rgba(190,194,204,.15)" strokeWidth="0.5" strokeDasharray="1.6 1.6"/>
+        </g>
+      ))}
+    </g>;
+}
+
+// Ceiling/wall register - a beveled frame with corner screws and
+// angled diffuser blades, the way a real stamped-steel supply register
+// actually looks up close instead of a flat black slot with a few
+// straight slits. Module-scope; lang/vw/vh come in as explicit props
+// instead of Canvas closures, same convention as everything else here.
+function RegisterGrille({cx,y,w,dc,ds,label,lang,vw,vh}){
+  const h=9;
+  return <g>
+    <rect x={cx-w/2} y={y} width={w} height={h} rx="1.5" fill="rgba(0,0,0,.78)" stroke={dc} strokeWidth="1.2"/>
+    {/* Bevel highlight along the top edge - a stamped-steel frame catches
+        light along its raised lip. */}
+    <line x1={cx-w/2+2} y1={y+1} x2={cx+w/2-2} y2={y+1} stroke="rgba(255,255,255,.16)" strokeWidth="0.6"/>
+    {/* Angled diffuser blades instead of plain straight slits - real
+        supply registers use fixed slanted louvers to throw air sideways
+        rather than a flat grate. */}
+    {Array.from({length:5},(_,j)=>{
+      const lx=cx-w/2+3+j*(w-6)/4;
+      return <line key={j} x1={lx-1.4} y1={y+1.5} x2={lx+1.4} y2={y+h-1.5} stroke={dc} strokeWidth="0.9"/>;
+    })}
+    {/* Corner screws */}
+    <circle cx={cx-w/2+2.2} cy={y+2} r="0.8" fill="rgba(40,42,48,.9)" stroke={ds} strokeWidth="0.35"/>
+    <circle cx={cx+w/2-2.2} cy={y+2} r="0.8" fill="rgba(40,42,48,.9)" stroke={ds} strokeWidth="0.35"/>
+    {label&&<text x={cx} y={y+h+9} textAnchor="middle" fill={dc} fontSize="11" fontFamily="monospace">{label}</text>}
+    {/* No EditZone ever covers duct/register geometry (only the plenum
+        box itself does) so this hover never has an existing click to
+        preserve - no onClick needed. Only ever used for supply
+        registers in this file (attic/closet both), so the copy is
+        keyed accordingly regardless of the label prop's exact text.
+        group="supply_register" so every register in the build glows
+        together on hover, same as group="supply_duct" already does for
+        the duct runs feeding them - "these are all the same kind of
+        thing" applies here too. */}
+    <HoverInfo x={cx-w/2-2} y={y-2} w={w+4} h={h+13} rx={2} vw={vw} vh={vh}
+      title={partInfo('supply_register',lang).title} text={partInfo('supply_register',lang).text} group="supply_register"/>
+  </g>;
+}
+
+// Condensate pump box - small labeled rect with a fixed 80x24 default,
+// shared by both the attic and closet layouts (each still routes its own
+// dashed connector line to it, since that routing differs per layout).
+//
+// Module-scope, not nested inside Canvas like it used to be: same .fadein
+// entrance-replay bug as Ionizer above (its outer <g> carries the same
+// className="fadein"), just on the condensate-pump box instead of the
+// ionizer rod whenever a condensate pump is on the diagram. lang/vw/vh
+// come in as explicit props instead of Canvas closures.
+function CondensatePump({x,y,w=88,h=28,lang,vw,vh}){
+  return <g className="fadein">
+    <rect x={x} y={y} width={w} height={h} rx="3"
+      fill="rgba(35,137,224,.14)" stroke={B+'.58)'} strokeWidth="1.2"/>
+    <text x={x+w/2} y={y+13} textAnchor="middle"
+      fill={B+'.82)'} fontSize="12.5" fontFamily="monospace">COND. PUMP</text>
+    <text x={x+w/2} y={y+24} textAnchor="middle"
+      fill={B+'.5)'} fontSize="11" fontFamily="monospace">condensate</text>
+    {/* No EditZone covers this - free-standing hover, no onClick. */}
+    <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={vw} vh={vh}
+      title={partInfo('condensate_pump',lang).title} text={partInfo('condensate_pump',lang).text}/>
+  </g>;
+}
+
+// Dehu + ERV roof boxes - shared between attic and closet layouts. Each
+// caller computes its own dehuBX/ervBX/BY/roofY (the two layouts anchor
+// them off completely different geometry), but the box/pipe/vent
+// rendering itself was previously duplicated near-verbatim between the
+// two - this is that rendering, parameterized on just the anchor points.
+//
+// Module-scope, not nested inside Canvas like it used to be: same
+// entrance-replay bug as Ionizer/CondensatePump above, just via the
+// `.snap` bounce-in (see the `snap` prop below) instead of `.fadein` -
+// whenever a dehu/ERV box had just been added (snap=true), every
+// unrelated hoverPart change elsewhere in the diagram replayed its
+// bounce-in pop, the same "jump" EditZone's own `.snap` remount was
+// originally flagged for. lang/vw/vh come in as explicit props instead
+// of Canvas closures.
+function DehuErvBoxes({dehuBX,ervBX,BY,roofY,hasDehu,hasERV,snap,lang,vw,vh}){
+  if(!hasDehu&&!hasERV) return null;
+  const BW=80,BH=48;
+  const boxes=[];
+  if(hasERV) boxes.push('erv');
+  if(hasDehu) boxes.push('dehu');
+  return <g>{boxes.map((type,i)=>{
+    const BX=type==='dehu'?dehuBX:ervBX;
+    const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
+    const isDehu=type==='dehu';
+    const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
+    return <g key={type} className={snap?"snap":undefined} style={snap?{animationDelay:(0.32+i*0.05)+'s'}:undefined}>
+      {isDehu
+        ?<>
+          <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
+          <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
+          <rect x={r1X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+          <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
+        </>
+        :<>
+          {/* ERV -- blue IN + orange OUT through roof. Pipes stop right
+              at the roofline (roofY), not the literal top of the canvas. */}
+          <rect x={pipe1X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
+          <rect x={pipe1X-5} y={roofY-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
+          <text x={pipe1X} y={roofY-6} textAnchor="middle" fill={B+'.6)'} fontSize="12" fontFamily="monospace">IN</text>
+          <rect x={pipe2X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
+          <path d={'M'+(pipe2X-4)+' '+(roofY-2)+' L'+pipe2X+' '+(roofY-9)+' L'+(pipe2X+4)+' '+(roofY-2)} fill="rgba(249,115,22,.4)"/>
+          <text x={pipe2X} y={roofY-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="12" fontFamily="monospace">OUT</text>
+          <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+          <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
+        </>
+      }
+      <rect x={BX} y={BY} width={BW} height={BH} rx="4"
+        fill={isDehu?"#05120a":"#0a0a06"}
+        stroke={isDehu?"#22c55e":(G+'.55)')} strokeWidth="1.4"/>
+      <rect x={BX} y={BY} width={BW} height={7} rx="4"
+        fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
+      {isDehu
+        ?<>
+          <text x={BX+BW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="15.5">💧</text>
+          <text x={BX+BW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="13" fontFamily="monospace">DEHU</text>
+        </>
+        :<>
+          <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
+          <path d={'M'+(BX+BW-8)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
+          <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="14.5" fontFamily="monospace">ERV</text>
+        </>
+      }
+      {/* No EditZone ever covers dehu/erv (StepFocusRing during the
+          wizard is the only existing overlay here) - free-standing
+          hover, no onClick. */}
+      <HoverInfo x={BX} y={BY} w={BW} h={BH} rx={4} vw={vw} vh={vh}
+        title={partInfo(isDehu?'dehu_box':'erv_box',lang).title} text={partInfo(isDehu?'dehu_box':'erv_box',lang).text}/>
+    </g>;
+  })}</g>;
+}
+
+// Static gradient/filter/marker defs - zero closure dependencies (never
+// derived from wizard state), so - like the color-palette consts above -
+// there was never a reason for this to be redeclared, and its whole
+// <defs> subtree rebuilt, on every single Canvas render. Module-scope.
+const Defs=()=><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#f0d64e"/><stop offset="100%" stopColor="#ab8024"/></linearGradient>
+  <linearGradient id="silver" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#e4e7ed"/><stop offset="100%" stopColor="#8b93a3"/></linearGradient>
+  {/* Cabinet refresh pass - a diagonal light-to-dark sweep (same slate
+      hue family as S, just lightened/darkened at the ends) used for
+      the furnace/air-handler cabinet's own border stroke, so the
+      exterior reads as a beveled sheet-metal edge instead of a flat
+      gray line. A flat single color on a stroke has no way to fake a
+      bevel; a diagonal gradient stroke does. Only the border - the
+      cabinet's dark interior stays a plain cutaway view of the
+      components, unchanged. */}
+  <linearGradient id="cabinet-edge" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stopColor="#ccd2dc"/><stop offset="45%" stopColor="#8b93a3"/><stop offset="100%" stopColor="#4d5361"/>
+  </linearGradient>
+  <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#1a6cb5"/><stop offset="100%" stopColor="#2389e0"/></linearGradient>
+  <linearGradient id="red-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#b91c1c"/><stop offset="100%" stopColor="#ef4444"/></linearGradient>
+  <linearGradient id="orange-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#ea580c"/><stop offset="100%" stopColor="#f97316"/></linearGradient>
+  <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="glow-sm"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="glow-uv"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  {/* x/y/width/height widened from the SVG-filter default (-10%/120%)
+      -- that default clipped the component labels' own status-line text
+      (e.g. "ABSORBING HEAT" under A-COIL/AIR HANDLER) once their
+      font-size grew for legibility and the text started extending
+      further past the box's own bounding edges than the default
+      filter region allowed for. */}
+  <filter id="shadow" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,.55)"/></filter>
+  <marker id="arr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+    <path d="M1 1L6 4L1 7" fill="none" stroke="context-stroke" strokeWidth="1.5"/>
+  </marker>
+</defs>;
+
+// COOL/HEAT switch painted directly on the thermostat face in both
+// layouts, wired to the exact same heatMode state as the "preview how
+// your system runs" panel (ToggleUI) - same colors/behavior as its own
+// plain cool/heat buttons, just reachable right at the thermostat too so
+// flipping it and watching the rest of the diagram react doesn't require
+// hunting for the panel. Module-scope, not nested inside Canvas like it
+// used to be (same remount-churn reasoning as everything else here,
+// though this one carries no animation of its own so the bug was pure
+// waste, not a visible glitch) - heatMode/setHeatMode come in as explicit
+// props instead of Canvas closures. x/y is the top-left of the pair; w is
+// EACH button's own width, so the pair together spans 2*w+gap.
+function ThermModeButtons({x,y,w,h,gap,fontSize,heatMode,setHeatMode}){
+  const coolActive=!heatMode, heatActive=heatMode;
+  return <g className="therm-mode-btns">
+    <rect className={`therm-btn therm-btn-cool${coolActive?' active':''}`}
+      x={x} y={y} width={w} height={h} rx={h/2}
+      fill={coolActive?'rgba(35,137,224,.22)':'rgba(255,255,255,.05)'}
+      stroke={coolActive?'#5ba8f5':'rgba(255,255,255,.2)'} strokeWidth="1"
+      style={{cursor:'pointer'}} onClick={()=>setHeatMode(false)}/>
+    <text x={x+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
+      fontFamily="monospace" fontWeight="700" fontSize={fontSize}
+      fill={coolActive?'#5ba8f5':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>COOL</text>
+    <rect className={`therm-btn therm-btn-heat${heatActive?' active':''}`}
+      x={x+w+gap} y={y} width={w} height={h} rx={h/2}
+      fill={heatActive?'rgba(249,115,22,.22)':'rgba(255,255,255,.05)'}
+      stroke={heatActive?'#f97316':'rgba(255,255,255,.2)'} strokeWidth="1"
+      style={{cursor:'pointer'}} onClick={()=>setHeatMode(true)}/>
+    <text x={x+w+gap+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
+      fontFamily="monospace" fontWeight="700" fontSize={fontSize}
+      fill={heatActive?'#f97316':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>HEAT</text>
+  </g>;
+}
+
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // Shorthand for the hover-tooltip copy above, resolved to this render's
@@ -2412,53 +2922,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // of its own (it only changes how the already-drawn furnace/condenser
   // pair behaves), so it's skipped rather than forcing a ring onto
   // something else's box.
-  const MIN_FOCUS_PX=28;
-  const StepFocusRing=({x,y,w,h,stepId,rx})=>{
-    if(onEditStep||curStepId!==stepId)return null;
-    const minUnits=SVG_SCALE>0?MIN_FOCUS_PX/SVG_SCALE:0;
-    let fx=x, fy=y, fw=w, fh=h;
-    if(fw<minUnits){fx-=(minUnits-fw)/2; fw=minUnits;}
-    if(fh<minUnits){fy-=(minUnits-fh)/2; fh=minUnits;}
-    if(SVG_VW){if(fx<0)fx=0; if(fx+fw>SVG_VW)fx=Math.max(0,SVG_VW-fw);}
-    if(SVG_VH){if(fy<0)fy=0; if(fy+fh>SVG_VH)fy=Math.max(0,SVG_VH-fh);}
-    // Dashed + marching (reuses the ductwork's own .airflow keyframe, not a
-    // new one) reads as "this is what we're building next," distinct at a
-    // glance from EditZone's solid hover ring above - see .step-focus-ring
-    // in styles.css for the animation stack (glowIn/gpulse/airflow, all
-    // already defined for other parts of this diagram, none new).
-    return <rect className="step-focus-ring" x={fx-4} y={fy-4} width={fw+8} height={fh+8}
-      rx={(rx||4)+4} fill="none" filter="url(#glow-sm)"/>;
-  };
-  // COOL/HEAT switch painted directly on the thermostat face in both
-  // layouts, wired to the exact same heatMode state as the "preview how
-  // your system runs" panel (ToggleUI) - same colors/behavior as its own
-  // plain cool/heat buttons, just reachable right at the thermostat too so
-  // flipping it and watching the rest of the diagram react doesn't require
-  // hunting for the panel. Closes over heatMode/setHeatMode directly
-  // (Canvas-scoped state) rather than taking them as props, same as
-  // EditZone/StepFocusRing just above. x/y is the top-left of the pair; w
-  // is EACH button's own width, so the pair together spans 2*w+gap.
-  const ThermModeButtons=({x,y,w,h,gap,fontSize})=>{
-    const coolActive=!heatMode, heatActive=heatMode;
-    return <g className="therm-mode-btns">
-      <rect className={`therm-btn therm-btn-cool${coolActive?' active':''}`}
-        x={x} y={y} width={w} height={h} rx={h/2}
-        fill={coolActive?'rgba(35,137,224,.22)':'rgba(255,255,255,.05)'}
-        stroke={coolActive?'#5ba8f5':'rgba(255,255,255,.2)'} strokeWidth="1"
-        style={{cursor:'pointer'}} onClick={()=>setHeatMode(false)}/>
-      <text x={x+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
-        fontFamily="monospace" fontWeight="700" fontSize={fontSize}
-        fill={coolActive?'#5ba8f5':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>COOL</text>
-      <rect className={`therm-btn therm-btn-heat${heatActive?' active':''}`}
-        x={x+w+gap} y={y} width={w} height={h} rx={h/2}
-        fill={heatActive?'rgba(249,115,22,.22)':'rgba(255,255,255,.05)'}
-        stroke={heatActive?'#f97316':'rgba(255,255,255,.2)'} strokeWidth="1"
-        style={{cursor:'pointer'}} onClick={()=>setHeatMode(true)}/>
-      <text x={x+w+gap+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
-        fontFamily="monospace" fontWeight="700" fontSize={fontSize}
-        fill={heatActive?'#f97316':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>HEAT</text>
-    </g>;
-  };
+  // StepFocusRing itself now lives at module scope, above Canvas (see its
+  // own module comment for why) - every call site below just adds
+  // onEditStep/curStepId/svgScale/vw/vh explicitly, same as EditZone.
+  // ThermModeButtons now lives at module scope, above Canvas - every call
+  // site below just adds heatMode/setHeatMode explicitly.
   // Defaults the mode toggle to whichever side of the system is actually
   // relevant right now (Austin's cooling season runs roughly April-
   // October, heating season November-March) instead of always opening
@@ -2691,426 +3159,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
 
   // UVRod now lives at module scope, above Canvas - see the comment there.
 
-  // Ionizer - bulb sits OUTSIDE on top of plenum, rod penetrates DOWN into airstream
-  // bulbX/bulbY = center of the bulb (outside, above plenum top)
-  // rodLen = how far the rod extends down inside the plenum
-  function Ionizer({bulbX, bulbY, rodLen}){
-    rodLen=rodLen||55;
-    const rodBot=bulbY+rodLen;
-    return <g className="fadein">
-      {/* Outer glow halo around bulb */}
-      <circle cx={bulbX} cy={bulbY} r={14}
-        fill="rgba(253,224,71,.08)" stroke="rgba(253,224,71,.2)" strokeWidth="0.6"
-        filter="url(#glow-uv)"/>
-      {/* Bulb body - larger, amber glass shape */}
-      <ellipse cx={bulbX} cy={bulbY} rx={9} ry={11}
-        fill="rgba(251,191,36,.18)" stroke="rgba(253,224,71,.75)" strokeWidth="1.5"/>
-      {/* Bulb inner glow */}
-      <ellipse cx={bulbX} cy={bulbY} rx={5.5} ry={7}
-        fill="rgba(253,224,71,.35)" stroke="none" className="glow-pulse"/>
-      {/* Filament / element inside bulb */}
-      <line x1={bulbX-3} y1={bulbY-4} x2={bulbX+3} y2={bulbY+4}
-        stroke="rgba(253,224,71,.9)" strokeWidth="1.2" strokeLinecap="round"/>
-      <line x1={bulbX+3} y1={bulbY-4} x2={bulbX-3} y2={bulbY+4}
-        stroke="rgba(253,224,71,.9)" strokeWidth="1.2" strokeLinecap="round"/>
-      {/* Mounting collar / base where rod enters plenum */}
-      <rect x={bulbX-4} y={bulbY+9} width={8} height={5} rx="1"
-        fill="rgba(180,130,20,.5)" stroke="rgba(253,224,71,.5)" strokeWidth="0.8"/>
-      {/* Rod going down into plenum */}
-      {/* Glow halo behind rod */}
-      <line x1={bulbX} y1={bulbY+14} x2={bulbX} y2={rodBot}
-        stroke="rgba(253,224,71,.2)" strokeWidth={7} strokeLinecap="round" filter="url(#glow-uv)"/>
-      {/* Rod body */}
-      <line x1={bulbX} y1={bulbY+14} x2={bulbX} y2={rodBot}
-        stroke="rgba(253,224,71,.82)" strokeWidth={2.2} strokeLinecap="round"/>
-      {/* Plasma tip at rod end */}
-      <circle cx={bulbX} cy={rodBot} r={3} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
-      <text x={bulbX+14} y={bulbY} textAnchor="start"
-        fill="rgba(253,224,71,.48)" fontSize="11" fontFamily="monospace">IONIZER</text>
-    </g>;
-  }
-
-  // CoilTube/CoilSweat/ACoilH/ACoilV now live at module scope, above Canvas.
-
-  // CabinetRivet/CabinetLatch/CabinetPlate/CabinetStripBrushing now live
-  // at module scope, above Canvas.
-
-  // ── DUCTWORK DETAIL KIT ──────────────────────────────────────
-  // Shared by both the attic-horizontal layout's supply-duct drops and
-  // the closet-upflow layout's own (visually near-identical, but
-  // independently-coded) supply drops further down, so both read as the
-  // same real material instead of two different flat gray boxes that
-  // happen to be labeled the same.
-
-  // Corrugated flex-duct jacket - the register drops off a rigid supply
-  // plenum are field-run in insulated flex duct almost universally (a
-  // helically-wound wire core under a silver vinyl vapor jacket), which
-  // reads as an alternating light/dark ring pattern down the run - not
-  // the flat solid-fill rectangle this used to be, indistinguishable
-  // from a rigid metal duct. Works for either a vertical run (rings
-  // horizontal) or a horizontal run (rings vertical) off the same x/y/w/h
-  // box a plain <rect> duct segment already used.
-  function DuctRibbing({x,y,w,h,vertical}){
-    vertical=vertical!==false;
-    const span=vertical?h:w;
-    const spacing=5.5;
-    const n=Math.max(1,Math.floor(span/spacing));
-    return <g opacity="0.6">
-      {Array.from({length:n},(_,i)=>{
-        const pos=(i+0.5)*spacing;
-        return vertical
-          ?<line key={i} x1={x+0.5} y1={y+pos} x2={x+w-0.5} y2={y+pos}
-            stroke={i%2===0?"rgba(225,230,238,.28)":"rgba(0,0,0,.32)"} strokeWidth="1"/>
-          :<line key={i} x1={x+pos} y1={y+0.5} x2={x+pos} y2={y+h-0.5}
-            stroke={i%2===0?"rgba(225,230,238,.28)":"rgba(0,0,0,.32)"} strokeWidth="1"/>;
-      })}
-      {/* Long highlight seam down one side - the jacket's own sheen
-          catching light along its length, breaking up the ring pattern
-          so it still reads as one continuous tube rather than a stack of
-          washers. */}
-      {vertical
-        ?<line x1={x+w*0.22} y1={y+1} x2={x+w*0.22} y2={y+h-1} stroke="rgba(255,255,255,.14)" strokeWidth="1"/>
-        :<line x1={x+1} y1={y+h*0.22} x2={x+w-1} y2={y+h*0.22} stroke="rgba(255,255,255,.14)" strokeWidth="1"/>}
-    </g>;
-  }
-
-  // Same ring texture as DuctRibbing, but for a duct segment that isn't
-  // axis-aligned (the 45°-elbow drop's diagonal leg) - ticks are laid
-  // out along the segment's own direction instead of assuming
-  // horizontal/vertical.
-  function DuctRibbingPath({x1,y1,x2,y2,width}){
-    const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1;
-    const ux=dx/len, uy=dy/len, px=-uy, py=ux;
-    const spacing=5.5;
-    const n=Math.max(1,Math.floor(len/spacing));
-    return <g opacity="0.6">
-      {Array.from({length:n},(_,i)=>{
-        const t=(i+0.5)*spacing;
-        const cx=x1+ux*t, cy=y1+uy*t;
-        return <line key={i} x1={cx-px*width/2} y1={cy-py*width/2} x2={cx+px*width/2} y2={cy+py*width/2}
-          stroke={i%2===0?"rgba(225,230,238,.26)":"rgba(0,0,0,.3)"} strokeWidth="1"/>;
-      })}
-    </g>;
-  }
-
-  // Clamp collar - a metal draw-band cinching the flex jacket onto a
-  // sheet-metal starter collar/boot, the connection detail every flex-
-  // duct run actually has at both ends instead of the jacket just
-  // stopping in mid-air.
-  function DuctClamp({x,y,w,h,vertical}){
-    vertical=vertical!==false;
-    return vertical
-      ?<rect x={x-1} y={y} width={w+2} height="3.5" rx="1" fill="rgba(180,184,192,.55)" stroke="rgba(20,20,24,.5)" strokeWidth="0.5"/>
-      :<rect x={x} y={y-1} width="3.5" height={h+2} rx="1" fill="rgba(180,184,192,.55)" stroke="rgba(20,20,24,.5)" strokeWidth="0.5"/>;
-  }
-
-  // Supply-plenum interior surface treatment, shared by both layouts' own
-  // (separately-coded, but meant to be visually identical) supply plenum
-  // boxes - reads as the two materials' actual real finishes: brushed
-  // galvanized sheet with folded corner flanges for metal, or a foil-
-  // faced (FSK) board with taped panel seams for ductboard - instead of
-  // two boxes distinguished only by a caption and a handful of near-
-  // invisible hairlines.
-  function PlenumMaterial({x,y,w,h,isMetal}){
-    return isMetal
-      ?<g>
-        {Array.from({length:Math.floor(h/8)},(_,i)=>(
-          <line key={i} x1={x+2} y1={y+4+i*8} x2={x+w-2} y2={y+4+i*8} stroke={W+'.05)'} strokeWidth="0.3"/>
-        ))}
-        {/* Diagonal sheen - a galvanized sheet's mill finish catching
-            light unevenly across the panel instead of a flat fill. */}
-        <path d={`M${x} ${y+h*0.12} L${x+w} ${y+h*0.5}`} stroke="rgba(255,255,255,.045)" strokeWidth={Math.max(4,h*0.16)} strokeLinecap="round"/>
-        {/* Folded S-cleat corner flanges - the real sheet-metal joint
-            every rigid plenum-to-duct transition uses, plus the rivets
-            that hold it. */}
-        {[[x+7,y+5],[x+w-7,y+5],[x+7,y+h-5],[x+w-7,y+h-5]].map(([px,py],i)=>(
-          <path key={i} d={`M${px-5} ${py} L${px+5} ${py} L${px+5} ${py+(i<2?3:-3)}`}
-            fill="none" stroke="rgba(210,214,222,.28)" strokeWidth="1"/>
-        ))}
-      </g>
-      :<g>
-        {/* Faint fiber striations (very low-density board weave). */}
-        {Array.from({length:Math.floor(h/10)},(_,i)=>(
-          <line key={i} x1={x+3} y1={y+5+i*10} x2={x+w-3} y2={y+5+i*10} stroke={G+'.07)'} strokeWidth="0.6"/>
-        ))}
-        {/* Foil-faced (FSK) sheen - the metallized facing's soft gloss,
-            as two broad diagonal highlight bands. */}
-        <path d={`M${x} ${y+h*0.08} L${x+w*0.55} ${y+h*0.68}`} stroke="rgba(224,228,238,.05)" strokeWidth={Math.max(5,h*0.24)} strokeLinecap="round"/>
-        <path d={`M${x+w*0.42} ${y+h*0.02} L${x+w} ${y+h*0.46}`} stroke="rgba(224,228,238,.04)" strokeWidth={Math.max(4,h*0.16)} strokeLinecap="round"/>
-        {/* Taped panel seams - foil tape strips over each board-to-board
-            joint, the way real ductboard sections are actually sealed. */}
-        {[x+w*0.32,x+w*0.68].map((sx,i)=>(
-          <g key={i}>
-            <rect x={sx-4.5} y={y+2} width={9} height={h-4} fill="rgba(210,214,222,.045)" stroke="rgba(210,214,222,.09)" strokeWidth="0.4"/>
-            <line x1={sx} y1={y+2} x2={sx} y2={y+h-2} stroke="rgba(190,194,204,.15)" strokeWidth="0.5" strokeDasharray="1.6 1.6"/>
-          </g>
-        ))}
-      </g>;
-  }
-
-  // Ceiling/wall register - a beveled frame with corner screws and
-  // angled diffuser blades, the way a real stamped-steel supply register
-  // actually looks up close instead of a flat black slot with a few
-  // straight slits.
-  function RegisterGrille({cx,y,w,dc,ds,label}){
-    const h=9;
-    return <g>
-      <rect x={cx-w/2} y={y} width={w} height={h} rx="1.5" fill="rgba(0,0,0,.78)" stroke={dc} strokeWidth="1.2"/>
-      {/* Bevel highlight along the top edge - a stamped-steel frame catches
-          light along its raised lip. */}
-      <line x1={cx-w/2+2} y1={y+1} x2={cx+w/2-2} y2={y+1} stroke="rgba(255,255,255,.16)" strokeWidth="0.6"/>
-      {/* Angled diffuser blades instead of plain straight slits - real
-          supply registers use fixed slanted louvers to throw air sideways
-          rather than a flat grate. */}
-      {Array.from({length:5},(_,j)=>{
-        const lx=cx-w/2+3+j*(w-6)/4;
-        return <line key={j} x1={lx-1.4} y1={y+1.5} x2={lx+1.4} y2={y+h-1.5} stroke={dc} strokeWidth="0.9"/>;
-      })}
-      {/* Corner screws */}
-      <circle cx={cx-w/2+2.2} cy={y+2} r="0.8" fill="rgba(40,42,48,.9)" stroke={ds} strokeWidth="0.35"/>
-      <circle cx={cx+w/2-2.2} cy={y+2} r="0.8" fill="rgba(40,42,48,.9)" stroke={ds} strokeWidth="0.35"/>
-      {label&&<text x={cx} y={y+h+9} textAnchor="middle" fill={dc} fontSize="11" fontFamily="monospace">{label}</text>}
-      {/* No EditZone ever covers duct/register geometry (only the plenum
-          box itself does) so this hover never has an existing click to
-          preserve - no onClick needed. Only ever used for supply
-          registers in this file (attic/closet both), so the copy is
-          keyed accordingly regardless of the label prop's exact text.
-          group="supply_register" so every register in the build glows
-          together on hover, same as group="supply_duct" already does for
-          the duct runs feeding them - "these are all the same kind of
-          thing" applies here too. */}
-      <HoverInfo x={cx-w/2-2} y={y-2} w={w+4} h={h+13} rx={2} vw={SVG_VW} vh={SVG_VH}
-        title={T('supply_register').title} text={T('supply_register').text} group="supply_register"/>
-    </g>;
-  }
-
-  // FurnaceH now lives at module scope, above Canvas.
-
-  // Air handler horizontal - blower LEFT | A-coil RIGHT
-  // Air handler splits into three labeled sections, sized by real
-  // proportion (A-coil 50% / blower 35% / aux heat kit 15%) and ordered by
-  // airflow: A-coil is always closest to the return plenum (the left edge
-  // here, where return/filtration feed in), then blower, then the aux heat
-  // kit downstream of the blower discharge - matching where a real heat
-  // strip kit sits in the supply plenum. Present on every air-handler
-  // build regardless of efficiency tier: the low-ambient mid tier is rated
-  // to keep the compressor running well below where this kicks in for the
-  // other two tiers, so the kit is still physically installed there as
-  // backup, it just almost never glows. Glows alongside the compressor
-  // whenever the heat pump alone can't hold the setpoint and aux/emergency
-  // heat kicks in (auxHeat).
-  function AirHandlerH({x,y,w,h,active,auxHeat}){
-    const coilW=w*0.50, blowerW=w*0.35, auxW=w*0.15;
-    const c1=x+coilW, c2=x+coilW+blowerW;
-    return <g>
-      {/* General cabinet hover - painted first/bottommost, same reasoning
-          as FurnaceH's own. ACoilH/BlowerWheel each add their own more
-          specific hover internally, which (painted later, on top of this)
-          wins their own smaller sub-areas. */}
-      <HoverInfo x={x} y={y} w={w} h={h} rx={4} vw={SVG_VW} vh={SVG_VH}
-        title={T('air_handler_cabinet').title} text={T('air_handler_cabinet').text}
-        onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
-      {/* Exterior housing stays silver in both states - see the comment on
-          FurnaceH's own border/strip above. The internal coil tubes
-          (ACoilH, embedded below) still color by evapC exactly as
-          before - only the housing exterior stopped switching color. */}
-      <rect x={x} y={y} width={w} height={h} rx="4"
-        fill={active?"#050c1a":"#090909"}
-        stroke="url(#cabinet-edge)" strokeOpacity="0.8" strokeWidth="1.5"/>
-      {/* Faint active-state tint - see FurnaceH's own comment on the
-          identical pattern for why this needs pointer-events:none (found
-          swallowing the general air_handler_cabinet hover across this
-          whole box whenever active, via a wizard-step sweep). */}
-      {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
-      <rect x={x} y={y} width={w} height={7} rx="4" fill="url(#silver)" opacity=".68"/>
-      <CabinetStripBrushing x={x} y={y} w={w}/>
-      {/* Left rivet nudged in - the standalone-AH lineset riser anchors at
-          RL_START_X=AH_X+9 (same corner), same reasoning as the attic
-          furnace's own A-coil box a few lines up. */}
-      <CabinetRivet cx={x+19} cy={y+3.5}/>
-      <CabinetRivet cx={x+w-8} cy={y+3.5}/>
-      <CabinetLatch cx={c1} cy={y+3.5} w={13}/>
-      <line x1={c1} y1={y+7} x2={c1} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-      <line x1={c2} y1={y+7} x2={c2} y2={y+h} stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-      {Array.from({length:7},(_,i)=>(
-        <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
-          stroke={S+'.38)'} strokeWidth="3" strokeLinecap="round"/>
-      ))}
-      <rect x={x+3} y={y+8} width={coilW-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
-      <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}
-        evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey()}
-        onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
-      <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(S+'.6)')} fontSize="13" fontFamily="monospace">A-COIL</text>
-      <BlowerWheel cx={c1+blowerW/2} cy={y+h*0.42} r={Math.min(blowerW*0.32,h*0.29)}
-        spd={blowerActive?1.5:0.45} active={blowerActive}
-        onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
-      <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
-      <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
-      {/* Literally the same AuxHeatKit artwork the closet layout uses
-          below (just called with this column's own width/height, since
-          the strip is proportional, not fixed-size) - wrapped in a
-          90-degree rotation instead of a hand-rebuilt layout, so this
-          column shows the exact same bordered-strip-of-elements design
-          the closet does, just turned to fit a column that's tall
-          instead of wide. See the AuxHeatKit comment for the rotation
-          math this translate+rotate pair relies on. */}
-      <g transform={`translate(${c2+3} ${y+8+(h-14)}) rotate(-90)`}>
-        <AuxHeatKit x={0} y={0} w={h-14} h={auxW-6} auxHeat={auxHeat}/>
-      </g>
-      <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
-
-    </g>;
-  }
-
-  // Aux heat kit - a bordered strip of heat-strip elements with a
-  // caption label. Drawn once in its natural wide-short orientation
-  // (matching how the closet/vertical air handler has room to show it -
-  // the column there is wide), and reused as-is for the attic/horizontal
-  // air handler by wrapping it in a 90-degree rotation instead of
-  // re-deriving a different layout for that column - so both layouts
-  // show literally the same artwork, just turned to fit whichever
-  // column is actually the narrow one there.
-  function AuxHeatKit({x,y,w,h,auxHeat,segCount}){
-    segCount=segCount||4;
-    const rectY=y, rectH=h*0.62;
-    const rectX=x+w*0.03, rectW=w*0.94;
-    const segGap=rectW*0.04;
-    const segW=(rectW-segGap*(segCount+1))/segCount;
-    const segH=rectH*0.6, segY=rectY+rectH*0.2;
-    return <g>
-      <rect x={rectX} y={rectY} width={rectW} height={rectH} rx="2"
-        fill={auxHeat?"rgba(120,20,10,.16)":"rgba(10,10,14,.5)"}
-        stroke={auxHeat?"rgba(249,115,22,.6)":(S+'.2)')} strokeWidth="0.8"/>
-      {Array.from({length:segCount},(_,i)=>{
-        const bx=rectX+segGap+i*(segW+segGap);
-        return <g key={i}>
-          <rect x={bx} y={segY} width={Math.max(1,segW)} height={Math.max(1,segH)} rx="1"
-            fill={auxHeat?"#1a0805":"#0a0a0f"} stroke={auxHeat?"rgba(249,115,22,.4)":"rgba(48,20,5,.2)"} strokeWidth="0.5"/>
-          {auxHeat&&<ellipse cx={bx+segW/2} cy={segY+segH/2} rx={segW/2} ry={Math.min(3,segH/2)}
-            fill="rgba(249,115,22,.6)" className="glow-pulse" style={{animationDelay:i*0.1+'s'}}/>}
-        </g>;
-      })}
-      <text x={x+w/2} y={y+h*0.92} textAnchor="middle"
-        fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize={Math.min(12,h*0.22)} fontFamily="monospace">AUX HEAT KIT</text>
-    </g>;
-  }
-
-  // CapFan/Condenser now live at module scope, above Canvas.
-
-  // rnd/OutsideZone now live at module scope, above Canvas - see the
-  // comment there for why.
-
-
-  // Condensate pump box - small labeled rect with a fixed 80x24 default,
-  // shared by both the attic and closet layouts (each still routes its own
-  // dashed connector line to it, since that routing differs per layout).
-  function CondensatePump({x,y,w=88,h=28}){
-    return <g className="fadein">
-      <rect x={x} y={y} width={w} height={h} rx="3"
-        fill="rgba(35,137,224,.14)" stroke={B+'.58)'} strokeWidth="1.2"/>
-      <text x={x+w/2} y={y+13} textAnchor="middle"
-        fill={B+'.82)'} fontSize="12.5" fontFamily="monospace">COND. PUMP</text>
-      <text x={x+w/2} y={y+24} textAnchor="middle"
-        fill={B+'.5)'} fontSize="11" fontFamily="monospace">condensate</text>
-      {/* No EditZone covers this - free-standing hover, no onClick. */}
-      <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={SVG_VW} vh={SVG_VH}
-        title={T('condensate_pump').title} text={T('condensate_pump').text}/>
-    </g>;
-  }
-
-  // Dehu + ERV roof boxes - shared between attic and closet layouts. Each
-  // caller computes its own dehuBX/ervBX/BY/roofY (the two layouts anchor
-  // them off completely different geometry), but the box/pipe/vent
-  // rendering itself was previously duplicated near-verbatim between the
-  // two - this is that rendering, parameterized on just the anchor points.
-  function DehuErvBoxes({dehuBX,ervBX,BY,roofY,hasDehu,hasERV,snap}){
-    if(!hasDehu&&!hasERV) return null;
-    const BW=80,BH=48;
-    const boxes=[];
-    if(hasERV) boxes.push('erv');
-    if(hasDehu) boxes.push('dehu');
-    return <g>{boxes.map((type,i)=>{
-      const BX=type==='dehu'?dehuBX:ervBX;
-      const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
-      const isDehu=type==='dehu';
-      const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
-      return <g key={type} className={snap?"snap":undefined} style={snap?{animationDelay:(0.32+i*0.05)+'s'}:undefined}>
-        {isDehu
-          ?<>
-            <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
-            <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke="#22c55e" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"/>
-            <rect x={r1X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
-            <rect x={r2X-3} y={roofY-4} width="7" height="5" rx="1" fill="rgba(34,197,94,.3)" stroke="#22c55e" strokeWidth="0.7"/>
-          </>
-          :<>
-            {/* ERV -- blue IN + orange OUT through roof. Pipes stop right
-                at the roofline (roofY), not the literal top of the canvas. */}
-            <rect x={pipe1X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
-            <rect x={pipe1X-5} y={roofY-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
-            <text x={pipe1X} y={roofY-6} textAnchor="middle" fill={B+'.6)'} fontSize="12" fontFamily="monospace">IN</text>
-            <rect x={pipe2X-2} y={roofY} width={5} height={Math.max(0,BY-roofY)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
-            <path d={'M'+(pipe2X-4)+' '+(roofY-2)+' L'+pipe2X+' '+(roofY-9)+' L'+(pipe2X+4)+' '+(roofY-2)} fill="rgba(249,115,22,.4)"/>
-            <text x={pipe2X} y={roofY-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="12" fontFamily="monospace">OUT</text>
-            <line x1={r1X} y1={roofY} x2={r1X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-            <line x1={r2X} y1={roofY} x2={r2X} y2={BY} stroke={G+'.4)'} strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-          </>
-        }
-        <rect x={BX} y={BY} width={BW} height={BH} rx="4"
-          fill={isDehu?"#05120a":"#0a0a06"}
-          stroke={isDehu?"#22c55e":(G+'.55)')} strokeWidth="1.4"/>
-        <rect x={BX} y={BY} width={BW} height={7} rx="4"
-          fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
-        {isDehu
-          ?<>
-            <text x={BX+BW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="15.5">💧</text>
-            <text x={BX+BW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="13" fontFamily="monospace">DEHU</text>
-          </>
-          :<>
-            <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
-            <path d={'M'+(BX+BW-8)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
-            <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="14.5" fontFamily="monospace">ERV</text>
-          </>
-        }
-        {/* No EditZone ever covers dehu/erv (StepFocusRing during the
-            wizard is the only existing overlay here) - free-standing
-            hover, no onClick. */}
-        <HoverInfo x={BX} y={BY} w={BW} h={BH} rx={4} vw={SVG_VW} vh={SVG_VH}
-          title={T(isDehu?'dehu_box':'erv_box').title} text={T(isDehu?'dehu_box':'erv_box').text}/>
-      </g>;
-    })}</g>;
-  }
-
-  const Defs=()=><defs>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#f0d64e"/><stop offset="100%" stopColor="#ab8024"/></linearGradient>
-    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#e4e7ed"/><stop offset="100%" stopColor="#8b93a3"/></linearGradient>
-    {/* Cabinet refresh pass - a diagonal light-to-dark sweep (same slate
-        hue family as S, just lightened/darkened at the ends) used for
-        the furnace/air-handler cabinet's own border stroke, so the
-        exterior reads as a beveled sheet-metal edge instead of a flat
-        gray line. A flat single color on a stroke has no way to fake a
-        bevel; a diagonal gradient stroke does. Only the border - the
-        cabinet's dark interior stays a plain cutaway view of the
-        components, unchanged. */}
-    <linearGradient id="cabinet-edge" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stopColor="#ccd2dc"/><stop offset="45%" stopColor="#8b93a3"/><stop offset="100%" stopColor="#4d5361"/>
-    </linearGradient>
-    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#1a6cb5"/><stop offset="100%" stopColor="#2389e0"/></linearGradient>
-    <linearGradient id="red-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#b91c1c"/><stop offset="100%" stopColor="#ef4444"/></linearGradient>
-    <linearGradient id="orange-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#ea580c"/><stop offset="100%" stopColor="#f97316"/></linearGradient>
-    <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="glow-sm"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="glow-uv"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    {/* x/y/width/height widened from the SVG-filter default (-10%/120%)
-        -- that default clipped the component labels' own status-line text
-        (e.g. "ABSORBING HEAT" under A-COIL/AIR HANDLER) once their
-        font-size grew for legibility and the text started extending
-        further past the box's own bounding edges than the default
-        filter region allowed for. */}
-    <filter id="shadow" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,.55)"/></filter>
-    <marker id="arr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
-      <path d="M1 1L6 4L1 7" fill="none" stroke="context-stroke" strokeWidth="1.5"/>
-    </marker>
-  </defs>;
+  // Ionizer/DuctRibbing/DuctRibbingPath/DuctClamp/PlenumMaterial/
+  // RegisterGrille/CondensatePump/DehuErvBoxes/Defs all now live at
+  // module scope, above Canvas - see Ionizer's own module comment for
+  // why (the same remount bug as everything else moved up there, worse
+  // for Ionizer/CondensatePump/DehuErvBoxes since each carries a one-shot
+  // entrance animation that used to replay on every unrelated hover).
 
   // frameBox-derived breakpoint for ToggleUI's compact-vs-full layout - see
   // the big comment on ToggleUI (module scope, above Canvas) for why the
@@ -3695,7 +3749,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
 
           {/* Air handler */}
           {hasCoil&&!hasFurnace&&<g className="snap" key={'ah'+a.cond_tier} filter="url(#shadow)">
-            <AirHandlerH x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} active={evapActive} auxHeat={auxHeatActive}/>
+            <AirHandlerH x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} active={evapActive} auxHeat={auxHeatActive}
+              evapC={evapC} evapC2={evapC2} hasUV={hasUV} acoilInfoKey={acoilInfoKey()}
+              blowerActive={blowerActive} blowerMotorLabel={BLOWER_MOTOR} refReversed={refReversed}
+              onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
             {/* Label above the unit, same as A-COIL - keeps the space below
                 clear for the condensate drain/pump instead of crowding it */}
             <text x={AH_X+AH_W/2} y={UNIT_Y-16} textAnchor="middle"
@@ -3793,7 +3850,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               const GW=DW+10;
               const pBot=SUP_PLEN_Y+SUP_PLEN_H;
               const FAN=36;
-              const grille=cx=><RegisterGrille cx={cx} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>;
+              const grille=cx=><RegisterGrille cx={cx} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY" lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
               // Airflow arrow down the center of a duct stem - same idea as
               // the supply plenum's own internal arrows just above, so flow
               // reads continuously from plenum through the duct to the
@@ -4063,7 +4120,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 lands on the button, not the done-screen's edit-zone overlay
                 underneath it - see EditZone's own onClick above. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
-              <ThermModeButtons x={0} y={btnY} w={30} h={15} gap={4} fontSize={8.5}/>
+              <ThermModeButtons x={0} y={btnY} w={30} h={15} gap={4} fontSize={8.5} heatMode={heatMode} setHeatMode={setHeatMode}/>
             </g>
           </g>;
           })()}
@@ -4099,7 +4156,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // ERV: far left of return plenum
             const ervBX=Math.max(8, RET_X-BW+80);
             return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} BY={UNIT_Y-48-14} roofY={EAVE_Y+14}
-              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')}/>;
+              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
+              lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
           })()}
 
           {/* Condensate drain - dashed blue line below coil, pump box if selected */}
@@ -4114,7 +4172,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 return <>
                   <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={pY}
                     stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="3 2"/>
-                  <CondensatePump x={pX} y={pY} w={pW} h={pH}/>
+                  <CondensatePump x={pX} y={pY} w={pW} h={pH} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
                   {/* No EditZone covers this - free-standing hover, no onClick. */}
                   <HoverInfo x={coilCX-6} y={drainTopY-4} w={12} h={pY-drainTopY+8} rx={3}
                     vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}/>
@@ -4167,36 +4225,36 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
 
           {/* ── CURRENT-STEP SPOTLIGHT - see StepFocusRing's own comment
                above for what this is and why only these steps get one. ── */}
-          <StepFocusRing stepId="indoor_type"
+          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="indoor_type"
             x={(hasFurnace?FURN_X:AH_X)-4} y={UNIT_Y-2} rx={6}
             w={(hasFurnace?ACOIL_X+ACOIL_W-FURN_X:AH_W)+8} h={UNIT_H+4}/>
-          <StepFocusRing stepId="insulation"
+          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="insulation"
             x={(hasFurnace?FURN_X:AH_X)-4} y={UNIT_Y-2} rx={6}
             w={(hasFurnace?ACOIL_X+ACOIL_W-FURN_X:AH_W)+8} h={UNIT_H+4}/>
           {/* SUP_PLEN_W is 0 before plenum is answered (see its own
               definition above) - a nominal 180 stand-in width just for
               this ghost ring, never touching the real plenum box's own
               width once it actually renders. */}
-          <StepFocusRing stepId="plenum"
+          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="plenum"
             x={SUP_X-2} y={SUP_PLEN_Y-2} w={(SUP_PLEN_W||180)+4} h={SUP_PLEN_H+4} rx={5}/>
-          {hasCond&&<StepFocusRing stepId="cond_tier"
+          {hasCond&&<StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="cond_tier"
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
-          <StepFocusRing stepId="thermostat"
+          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="thermostat"
             x={THERM_TX-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
           {/* APR_W is 0 only if the (effectively always-on, see hasAprilaire's
               own default) filtration cabinet is somehow off - 32 stand-in
               width matches its real one exactly, so this never looks
               different from the real cabinet's own footprint. */}
-          <StepFocusRing stepId="purif"
+          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="purif"
             x={APR_X-2} y={UNIT_Y-2} w={(APR_W||32)+4} h={UNIT_H+4} rx={4}/>
           {/* x mirrors DehuErvBoxes' own dehuBX formula below exactly (a
               furnace-tuned +44 offset doesn't clear the AIR HANDLER title,
               which sits centered above the cabinet unlike FURNACE's own
               title below it - see that call site's comment) so this ghost
               preview lands in the same spot the real box will. */}
-          <StepFocusRing stepId="dehu"
+          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu"
             x={hasFurnace?FURN_X+44:AH_X+AH_W-80-8} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
-          <StepFocusRing stepId="extras"
+          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="extras"
             x={Math.max(8,RET_X)} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
           {/* Single always-topmost hover tooltip - see the module comment
               on HoverCtx/HoverInfo for why this has to be the very last
@@ -4589,7 +4647,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <HoverInfo x={leftDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
                   vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
                   ringPath={`M${UNIT_X-3} ${exitY+DW/2} L${leftDropX+DW/2} ${exitY+DW/2} L${leftDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
-                <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
+                <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY" lang={lang} vw={SVG_VW} vh={SVG_VH}/>
 
                 {/* ── RIGHT DUCT ── */}
                 {/* Horizontal run from plenum right face outward */}
@@ -4607,7 +4665,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <HoverInfo x={rightDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
                   vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
                   ringPath={`M${UNIT_X+PLEN_W+3} ${exitY+DW/2} L${rightDropX+DW/2} ${exitY+DW/2} L${rightDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
-                <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
+                <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY" lang={lang} vw={SVG_VW} vh={SVG_VH}/>
               </>;
             })()}
           </g>}
@@ -5078,7 +5136,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <circle cx={pt3X} cy={pt3Y} r={3} fill={B+'.4)'} stroke={B+'.6)'} strokeWidth="0.8"/>
               </>}
               {hasPump&&<>
-                <CondensatePump x={pumpX} y={pumpY} w={88} h={pumpH}/>
+                <CondensatePump x={pumpX} y={pumpY} w={88} h={pumpH} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
                 <line x1={pt3X} y1={pt3Y} x2={pumpX+88} y2={pumpY+pumpH/2}
                   stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="4 3"/>
               </>}
@@ -5234,7 +5292,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             {/* Painted after EditZone (topmost in paint order) so a click
                 lands on the button, not the done-screen's edit-zone overlay
                 underneath it - see EditZone's own onClick above. */}
-            <ThermModeButtons x={TX} y={btnY} w={36} h={17} gap={4} fontSize={9.5}/>
+            <ThermModeButtons x={TX} y={btnY} w={36} h={17} gap={4} fontSize={9.5} heatMode={heatMode} setHeatMode={setHeatMode}/>
           </g>;
           })()}
 
@@ -5258,7 +5316,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const dehuX=rW-BW-34;
             const ervX=24; // ERV slightly right
             return <DehuErvBoxes dehuBX={dehuX} ervBX={ervX} BY={rEave+42} roofY={rEave+4}
-              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap/>;
+              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
+              lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
           })()}
 
           {/* ── CURRENT-STEP SPOTLIGHT - see StepFocusRing's own comment
@@ -5276,24 +5335,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const focusPlenAbove=PLEN_ABOVE||130, focusPlenBelow=PLEN_BELOW||57;
             const focusPlenTop=DECK_Y-focusPlenAbove, focusPlenTotal=focusPlenAbove+focusPlenBelow;
             return <>
-              <StepFocusRing stepId="indoor_type" x={UNIT_X-4} y={ACOIL_Y-2} rx={6}
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="indoor_type" x={UNIT_X-4} y={ACOIL_Y-2} rx={6}
                 w={UNIT_W+8} h={(hasFurnace?FURN_Y+FURN_H-ACOIL_Y:ACOIL_H)+4}/>
-              <StepFocusRing stepId="insulation" x={UNIT_X-4} y={ACOIL_Y-2} rx={6}
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="insulation" x={UNIT_X-4} y={ACOIL_Y-2} rx={6}
                 w={UNIT_W+8} h={(hasFurnace?FURN_Y+FURN_H-ACOIL_Y:ACOIL_H)+4}/>
-              <StepFocusRing stepId="plenum"
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="plenum"
                 x={UNIT_X-2} y={focusPlenTop-2} w={PLEN_W+4} h={focusPlenTotal+4} rx={5}/>
-              {hasCond&&<StepFocusRing stepId="cond_tier"
+              {hasCond&&<StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="cond_tier"
                 x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
-              <StepFocusRing stepId="thermostat"
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="thermostat"
                 x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-40}
                 y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40} w={82} h={116}/>
               {/* APR_H is 0 only if the (effectively always-on) filtration
                   cabinet is somehow off - 28 stand-in matches its real
                   height exactly, see the attic layout's own APR_W comment. */}
-              <StepFocusRing stepId="purif"
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="purif"
                 x={UNIT_X-2} y={APR_Y-2} w={UNIT_W+4} h={(APR_H||28)+4} rx={4}/>
-              <StepFocusRing stepId="dehu" x={rW-80-34} y={rEave+42} w={80} h={48} rx={4}/>
-              <StepFocusRing stepId="extras" x={24} y={rEave+42} w={80} h={48} rx={4}/>
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu" x={rW-80-34} y={rEave+42} w={80} h={48} rx={4}/>
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="extras" x={24} y={rEave+42} w={80} h={48} rx={4}/>
             </>;
           })()}
           {/* Single always-topmost hover tooltip - see the module comment
