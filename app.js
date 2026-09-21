@@ -4008,7 +4008,7 @@
     const acoilInfoKey = () => !heatMode ? "acoil" : hpLockedOut ? "acoil_aux_lockout" : refReversed ? "acoil_heat_reject" : "acoil_heat_idle";
     const auxHeatActive = !hasFurnace && heatMode && heatSubMode === "aux";
     const blowerActive = !heatMode || furnaceActive || evapActive || auxHeatActive;
-    const thermostatTemp = !heatMode ? hasDehu ? 76 : 74 : (isDualFuel || !hasFurnace) && heatSubMode === "hp" ? 70 : 67;
+    const thermostatTemp = !heatMode ? hasDehu ? 76 : 74 : (isDualFuel || !hasFurnace) && heatSubMode === "hp" ? 68 : 67;
     const returnTemp = thermostatTemp;
     const supplySplit = !heatMode ? 20 : refReversed ? 25 : 45;
     const supplyTemp = !heatMode ? thermostatTemp - supplySplit : thermostatTemp + supplySplit;
@@ -6561,9 +6561,9 @@
         "text",
         {
           className: "phase-color",
-          x: UNIT_X + UNIT_W / 2 + 34,
-          y: CHASE_Y + 22,
-          textAnchor: "middle",
+          x: UNIT_X - 28 + 10,
+          y: CHASE_Y + 18,
+          textAnchor: "start",
           fill: heatMode ? "#2389e0" : "#f97316",
           fontSize: "14",
           fontWeight: "700",

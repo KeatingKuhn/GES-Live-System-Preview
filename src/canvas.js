@@ -3306,7 +3306,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // takeover) at 32°F. Same split for a heat-pump-only air handler as for
   // dual fuel; a straight-cool system (furnace-only heating, no heat pump
   // at all) has no "efficient" state to show, so it always reads 67°.
-  const thermostatTemp=!heatMode?(hasDehu?76:74):(((isDualFuel||!hasFurnace)&&heatSubMode==='hp')?70:67);
+  const thermostatTemp=!heatMode?(hasDehu?76:74):(((isDualFuel||!hasFurnace)&&heatSubMode==='hp')?68:67);
   // Return-air temp reads as whatever the room currently is (the same
   // thermostatTemp reading above) - supply air runs a real design split
   // off of that, colder in cool mode, warmer in any heat mode. Each split
@@ -5537,10 +5537,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             </g>
             {/* Return-air temp - room-temp reading, opposite heat/cool
                 coloring from supply on purpose, same reasoning as this
-                chase's own airflow arrow just above. Sits near the
-                chase's top, off to the side of the arrow's own centered
-                column so the arrowhead never paints through it. */}
-            <text className="phase-color" x={UNIT_X+UNIT_W/2+34} y={CHASE_Y+22} textAnchor="middle"
+                chase's own airflow arrow just above. Pinned to the
+                chase box's own top-left corner - off to the side of the
+                arrow's centered column so the arrowhead never paints
+                through it, and out of the way regardless of how tall
+                the chase ends up (CHASE_Y varies with the unit stack). */}
+            <text className="phase-color" x={UNIT_X-28+10} y={CHASE_Y+18} textAnchor="start"
               fill={heatMode?'#2389e0':'#f97316'} fontSize="14" fontWeight="700" fontFamily="monospace">
               {returnTemp}°
             </text>
