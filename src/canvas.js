@@ -3899,7 +3899,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // sits well in toward the ridge, where the sloped roof is
               // much higher up (smaller y) than that.
               const flueX=FURN_X+FURN_W*0.7;
-              const flueRoofY=roofY(flueX)+14;
+              // No +14 pad here - FurnaceH's own pipeTop=roofY-12 already
+              // pokes the cap 12px above whatever roofY value it's given,
+              // so this needs to be the TRUE roof surface, not a value
+              // already offset below it (that left the cap ending 2px
+              // BELOW the real roofline - reading as terminating inside
+              // the attic instead of poking through above it).
+              const flueRoofY=roofY(flueX);
               return <FurnaceH x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} active={furnaceActive} roofY={flueRoofY}
                 onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}
                 blowerActive={blowerActive} is90={is90} isComm={isComm} blowerMotorLabel={BLOWER_MOTOR}/>;
@@ -4480,9 +4486,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // EAVE_Y+14 (fine for the dehu, over near the ridge-ish middle
             // of the run where the lineset isn't) would put the ERV's IN/OUT
             // roof stubs right on top of those two pipes here. Using the
-            // real roof height at the ERV's own X, plus enough clearance to
-            // clear both lineset lines and their glow, keeps the two apart.
-            const ervRoofY=roofY(ervBX+ervW/2)+RL_ROOF_GAP+36;
+            // real roof height at the ERV's own X, plus just enough
+            // clearance to duck under the lineset's own foam-sleeve width
+            // (its widest element there, ~12px centered on roofY+RL_ROOF_
+            // GAP), keeps the two apart without stranding the ERV stub
+            // needlessly deep in the open attic above it - it still reads
+            // as reaching up toward the roofline, not stopping mid-air.
+            const ervRoofY=roofY(ervBX+ervW/2)+RL_ROOF_GAP+8;
             return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} ervW={ervW} BY={UNIT_Y-48-14} roofY={EAVE_Y+14} ervRoofY={ervRoofY}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
@@ -4585,31 +4595,33 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             })()}
           </g>}
 
-          {/* Insulation roofline label (SPRAY FOAM - SEALED ATTIC / FIBERGLASS
-              INSULATION) - painted here, on top of everything else, rather
-              than back with its own bubbles/batting texture near the roof
-              deck fill above. Centered on RIDGE_X, which usually sits right
-              over the furnace's flue pipe (also roughly centered in the
-              equipment run) - drawn this early, the flue's opaque PVC/B-VENT
-              pipe and cap painted afterward covered the middle of the label
-              outright, and the rafter guide lines/insulation bubbles
-              underneath added more clutter on top of that. Moving just the
-              label (not the bubbles/batting, which still read fine sitting
-              under the equipment) to the very end of the render, after the
-              furnace/coil/condenser are all painted, keeps it legible
-              regardless of where the flue lands. */}
+          {/* Insulation label (SPRAY FOAM - SEALED ATTIC / FIBERGLASS
+              INSULATION) - moved off the ridge (RIDGE_X/RIDGE_Y+24 used to
+              sit right in the densest part of the insulation bubble/
+              batting texture that traces the roofline itself, reading as
+              barely legible against it) to the open attic space above the
+              return plenum/thermostat column on the left instead, well
+              clear of both the roofline and the equipment row below it.
+              Still painted this late (after furnace/coil/condenser) so
+              nothing else paints over it here either. */}
           {a.insulation&&<g>
-            <text x={RIDGE_X} y={RIDGE_Y+24} textAnchor="middle"
-              fill={isSpray?"rgba(232,236,246,.5)":"rgba(255,182,193,.55)"} fontSize="12" fontFamily="monospace">
+            <text x={RET_X+RET_PLEN_W/2} y={UNIT_Y-16} textAnchor="middle"
+              fill={isSpray?"rgba(232,236,246,.6)":"rgba(255,182,193,.6)"} fontSize="12" fontFamily="monospace">
               {isSpray?"SPRAY FOAM - SEALED ATTIC":"FIBERGLASS INSULATION"}
             </text>
             {/* No EditZone covers this - free-standing hover, no onClick. */}
-            <HoverInfo x={RIDGE_X-70} y={RIDGE_Y+12} w={140} h={18} rx={3}
+            <HoverInfo x={RET_X+RET_PLEN_W/2-70} y={UNIT_Y-28} w={140} h={18} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
           </g>}
 
-          {/* LIVE SYSTEM PREVIEW label */}
-          {loc&&<text x={12} y={EAVE_Y-4} fill={G+'.22)'} fontSize="11" fontFamily="monospace" letterSpacing=".18em">LIVE SYSTEM PREVIEW</text>}
+          {/* LIVE SYSTEM PREVIEW label - moved off the eave line itself
+              (used to sit at EAVE_Y-4, right where the dark roof wedge's
+              own left vertex touches down, reading as faint/washed-out
+              against it even before accounting for its own low 22%
+              opacity) up into the clear sky band above the roof entirely,
+              and bolded so it reads as an actual heading instead of a
+              barely-there watermark. */}
+          {loc&&<text x={12} y={20} fill={G+'.85)'} fontSize="12" fontWeight="700" fontFamily="monospace" letterSpacing=".18em">LIVE SYSTEM PREVIEW</text>}
 
           {/* Empty state */}
           {!loc&&<g>
@@ -4796,7 +4808,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     const DEHU_ERV_RRISE=Math.round(Math.min(DEHU_ERV_RW/2*(3/12),60));
     const DEHU_ERV_REAVE=DEHU_ERV_RRISE+12;
     const DEHU_ERV_BY=DEHU_ERV_REAVE+42;
-    const DEHU_ERV_ROOFY=DEHU_ERV_REAVE+4;
+    // -12 pokes the ERV's roof stub 12px above the roofline, matching the
+    // flue's own convention (see its comment) - the old +4 put it 4px
+    // below/inside instead. No lineset-avoidance conflict here (unlike
+    // the attic layout's ERV) since the closet's refrigerant line stubs
+    // run at a fixed height tied to ACOIL_Y, nowhere near this roofline.
+    const DEHU_ERV_ROOFY=DEHU_ERV_REAVE-12;
     const DEHU_ERV_BH=48;
     const DEHU_ERV_BW=80;
     // Main supply ducts' own drop columns + register-grille half-width
@@ -5367,7 +5384,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 const roofYAtX=HORIZ_X<=rMid
                   ?rEave-(HORIZ_X/rMid)*(rEave-rRidge)
                   :rRidge+((HORIZ_X-rMid)/(rW-rMid))*(rEave-rRidge);
-                return roofYAtX+14;
+                // -12 pokes the pipe's top 12px ABOVE the true roof
+                // surface (matching the attic layout's own flue) - the
+                // old +14 put it 14px BELOW the roofline instead, reading
+                // as if the vent terminated inside the attic rather than
+                // poking through the roof at all.
+                return roofYAtX-12;
               })();
               const ELBOW_R=8; // elbow radius
               // Purely decorative (no hover/click of its own), and unlike
@@ -5576,15 +5598,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const chaseBottomY=VH-20;
             const pumpH=28;
             const pumpY=chaseBottomY-pumpH-6;
-            // Sits just outside the return chase's own right edge instead
-            // of centered inside it - the chase box already carries its
-            // own airflow arrow, return-air temp, and "2x4 RETURN AIR
-            // CHASE" label all sharing that same footprint, so dropping an
-            // 88-wide pump box on top of them read as genuinely cramped.
-            // The refrigerant line stubs run through this same horizontal
-            // band but much higher up (near ACOIL_Y, not down here by
-            // chaseBottomY), so there's no collision moving it out here.
-            const pumpX=UNIT_X+UNIT_W+28+10;
+            // Back to centered inside the chase (per direct feedback) -
+            // moving the return-air temp up to the chase's own top-left
+            // corner (see its own comment below) already frees up enough
+            // room down here for the pump without needing to move it
+            // outside the box too.
+            const pumpX=UNIT_X-28+Math.round((UNIT_W+56)*0.5)-28;
             // Step 3: 45° left-down into chase
             const pt2Y=hasPump?pumpY-offset:chaseBottomY-offset;
             const pt2X=pt1X;
@@ -5625,7 +5644,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               </>}
               {hasPump&&<>
                 <CondensatePump x={pumpX} y={pumpY} w={88} h={pumpH} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
-                <line x1={pt3X} y1={pt3Y} x2={pumpX} y2={pumpY+pumpH/2}
+                <line x1={pt3X} y1={pt3Y} x2={pumpX+88} y2={pumpY+pumpH/2}
                   stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="4 3"/>
               </>}
             </>;

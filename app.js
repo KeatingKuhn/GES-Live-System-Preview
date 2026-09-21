@@ -4463,7 +4463,7 @@
         }
       )), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "fu" + a.stage + a.furnace_eff, filter: "url(#shadow)" }, (() => {
         const flueX = FURN_X + FURN_W * 0.7;
-        const flueRoofY = roofY(flueX) + 14;
+        const flueRoofY = roofY(flueX);
         return /* @__PURE__ */ React.createElement(
           FurnaceH,
           {
@@ -5187,7 +5187,7 @@
         const ervSlotR = EXT_WALL_X - 10;
         const ervW = Math.max(52, Math.min(BW, ervSlotR - ervSlotL));
         const ervBX = Math.max(ervSlotL, ervSlotR - ervW);
-        const ervRoofY = roofY(ervBX + ervW / 2) + RL_ROOF_GAP + 36;
+        const ervRoofY = roofY(ervBX + ervW / 2) + RL_ROOF_GAP + 8;
         return /* @__PURE__ */ React.createElement(
           DehuErvBoxes,
           {
@@ -5335,10 +5335,10 @@
       })()), a.insulation && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
         "text",
         {
-          x: RIDGE_X,
-          y: RIDGE_Y + 24,
+          x: RET_X + RET_PLEN_W / 2,
+          y: UNIT_Y - 16,
           textAnchor: "middle",
-          fill: isSpray ? "rgba(232,236,246,.5)" : "rgba(255,182,193,.55)",
+          fill: isSpray ? "rgba(232,236,246,.6)" : "rgba(255,182,193,.6)",
           fontSize: "12",
           fontFamily: "monospace"
         },
@@ -5346,8 +5346,8 @@
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
-          x: RIDGE_X - 70,
-          y: RIDGE_Y + 12,
+          x: RET_X + RET_PLEN_W / 2 - 70,
+          y: UNIT_Y - 28,
           w: 140,
           h: 18,
           rx: 3,
@@ -5356,7 +5356,7 @@
           title: T("insulation").title,
           text: T("insulation").text
         }
-      )), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: EAVE_Y - 4, fill: G + ".22)", fontSize: "11", fontFamily: "monospace", letterSpacing: ".18em" }, "LIVE SYSTEM PREVIEW"), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, "Choose your location to begin building"), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, "Components assemble here in real time \u2192")), /* @__PURE__ */ React.createElement(
+      )), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: 20, fill: G + ".85)", fontSize: "12", fontWeight: "700", fontFamily: "monospace", letterSpacing: ".18em" }, "LIVE SYSTEM PREVIEW"), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, "Choose your location to begin building"), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, "Components assemble here in real time \u2192")), /* @__PURE__ */ React.createElement(
         StepFocusRing,
         {
           onEditStep,
@@ -5536,7 +5536,7 @@
       const DEHU_ERV_RRISE = Math.round(Math.min(DEHU_ERV_RW / 2 * (3 / 12), 60));
       const DEHU_ERV_REAVE = DEHU_ERV_RRISE + 12;
       const DEHU_ERV_BY = DEHU_ERV_REAVE + 42;
-      const DEHU_ERV_ROOFY = DEHU_ERV_REAVE + 4;
+      const DEHU_ERV_ROOFY = DEHU_ERV_REAVE - 12;
       const DEHU_ERV_BH = 48;
       const DEHU_ERV_BW = 80;
       const MD_DW = 13, MD_GRILLE_HALF = (13 + 10) / 2;
@@ -6314,7 +6314,7 @@
           const rRise = Math.min(rW / 2 * (3 / 12), 60);
           const rEave = rRise + 12, rRidge = 8, rMid = rW / 2;
           const roofYAtX = HORIZ_X <= rMid ? rEave - HORIZ_X / rMid * (rEave - rRidge) : rRidge + (HORIZ_X - rMid) / (rW - rMid) * (rEave - rRidge);
-          return roofYAtX + 14;
+          return roofYAtX - 12;
         })();
         const ELBOW_R = 8;
         return /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
@@ -6605,7 +6605,7 @@
         const chaseBottomY = VH - 20;
         const pumpH = 28;
         const pumpY = chaseBottomY - pumpH - 6;
-        const pumpX = UNIT_X + UNIT_W + 28 + 10;
+        const pumpX = UNIT_X - 28 + Math.round((UNIT_W + 56) * 0.5) - 28;
         const pt2Y = hasPump ? pumpY - offset : chaseBottomY - offset;
         const pt2X = pt1X;
         const pt3X = pt2X - offset;
@@ -6678,7 +6678,7 @@
           {
             x1: pt3X,
             y1: pt3Y,
-            x2: pumpX,
+            x2: pumpX + 88,
             y2: pumpY + pumpH / 2,
             stroke: B + ".4)",
             strokeWidth: "1.5",
