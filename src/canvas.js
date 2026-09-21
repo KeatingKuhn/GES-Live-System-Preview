@@ -1041,6 +1041,19 @@ const PART_INFO={
     es:{title:'DUCTO DE SUMINISTRO DEL DESHUMIDIFICADOR',text:"Envía el aire deshumidificado al plenum de suministro, donde se mezcla y llega a cada habitación por el mismo sistema de ductos."}},
   backdraft_damper:{en:{title:'BACKDRAFT DAMPER',text:"A one-way flap on the dehumidifier's supply duct that keeps the blower's much stronger airflow from pushing air backward through the dehumidifier when it isn't running."},
     es:{title:'COMPUERTA DE CONTRATIRO',text:"Una válvula de un solo sentido en el ducto de suministro del deshumidificador, que evita que el flujo de aire, mucho más fuerte, del soplador empuje el aire hacia atrás a través del deshumidificador cuando no está funcionando."}},
+  // Closet layout's dehu ducts are a different, independent design from
+  // the attic's own dehu_return_duct/dehu_supply_duct (which tap the
+  // SAME return/supply plenum the rest of the system uses, hence that
+  // one's backdraft damper) - this stack's return and supply plenums sit
+  // at opposite ends of a tall vertical column with nothing nearby at
+  // both, so this dehu gets its own fully separate return grille and
+  // supply register, stubbed straight into the drywall nearby rather
+  // than tied into the main trunk at all. No damper needed here - there's
+  // no shared blower airflow to guard against on an independent run.
+  dehu_dedicated_return:{en:{title:'DEDICATED RETURN',text:"This dehumidifier pulls from its own return grille, built into the drywall nearby - a separate air path from the rest of the system, not shared with the main return."},
+    es:{title:'RETORNO DEDICADO',text:"Este deshumidificador jala aire de su propia rejilla de retorno, integrada en el tablaroca cercano - un camino de aire separado del resto del sistema, no compartido con el retorno principal."}},
+  dehu_dedicated_supply:{en:{title:'DEDICATED SUPPLY',text:"Feeds dehumidified air straight into its own register in the drywall nearby, instead of tying into the main supply trunk."},
+    es:{title:'SUMINISTRO DEDICADO',text:"Envía el aire deshumidificado directamente a su propia rejilla en el tablaroca cercano, en lugar de conectarse al tronco de suministro principal."}},
   lineset:{en:{title:'LINE SET',text:"The two insulated copper lines carrying refrigerant between the indoor coil and the outdoor condenser."},
     es:{title:'LÍNEAS DE REFRIGERANTE',text:"Las dos líneas de cobre aisladas que transportan refrigerante entre el serpentín interior y el condensador exterior."}},
   condensate_drain:{en:{title:'CONDENSATE DRAIN',text:"Carries the water that condenses off the coil safely out of the house, the same way a window A/C drips outside."},
@@ -5535,6 +5548,56 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             return <DehuErvBoxes dehuBX={dehuX} ervBX={ervX} BY={rEave+42} roofY={rEave+4}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
+          })()}
+
+          {/* Dehu's own dedicated return + supply - closet layout. A
+              different design from the attic layout's own dehu ducts
+              (which tap the SAME return/supply plenum the rest of the
+              system uses): this stack's return chase sits down near the
+              floor and its supply plenum up near the roofline, with
+              nothing genuinely close to both - rather than one duct
+              making a long haul down the equipment's own margin, this one
+              is fully independent, stubbed straight into the drywall
+              nearby on its own dedicated grilles instead of tying into
+              the main trunk at all. Short, simple, and honestly how a lot
+              of these actually get installed. No backdraft damper here -
+              there's no shared blower airflow on an independent run to
+              guard against. */}
+          {hasDehu&&hasCoil&&(()=>{
+            const rW=hasCond?HOUSE_W:VW-8;
+            const rRise=Math.round(Math.min(rW/2*(3/12),60));
+            const rEave=rRise+12;
+            const BW=80,BH=48;
+            const dehuX=rW-BW-34;
+            const BY=rEave+42;
+            const RC='rgba(255,182,193,';
+            const stubY=DECK_Y-8; // just above the ceiling line - reads as punching through into the drywall below
+            const retX=dehuX+14, supX=dehuX+BW-14;
+            const retD=`M${retX} ${BY+BH} L${retX} ${stubY}`;
+            const supD=`M${supX} ${BY+BH} L${supX} ${stubY}`;
+            // Small flanged collar where each stub disappears into the
+            // ceiling drywall - same "duct terminates into the structure"
+            // language as the ERV's own roof-penetration collars above.
+            const cap=(x,color)=>(
+              <>
+                <rect x={x-6} y={stubY-3} width="12" height="6" rx="1.5" fill={color+'.3)'} stroke={color+'.6)'} strokeWidth="0.8"/>
+                <line x1={x-9} y1={stubY+3} x2={x+9} y2={stubY+3} stroke={color+'.4)'} strokeWidth="1" strokeDasharray="1.5 1.5"/>
+              </>
+            );
+            return <g className="snap" style={{animationDelay:'0.4s'}}>
+              <path d={retD} fill="none" stroke={RC+'.14)'} strokeWidth="8" strokeLinecap="round"/>
+              <path d={retD} fill="none" stroke={RC+'.75)'} strokeWidth="1.4" strokeDasharray="3.5 2.2"/>
+              {cap(retX,RC)}
+              <path d={supD} fill="none" stroke={G+'.13)'} strokeWidth="8" strokeLinecap="round"/>
+              <path d={supD} fill="none" stroke={G+'.65)'} strokeWidth="1.4" strokeDasharray="3.5 2.2"/>
+              {cap(supX,G)}
+              <HoverInfo x={retX-9} y={BY+BH-4} w={18} h={stubY-(BY+BH)+13} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('dehu_dedicated_return').title} text={T('dehu_dedicated_return').text}
+                ringPath={retD} ringStrokeWidth={10}/>
+              <HoverInfo x={supX-9} y={BY+BH-4} w={18} h={stubY-(BY+BH)+13} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('dehu_dedicated_supply').title} text={T('dehu_dedicated_supply').text}
+                ringPath={supD} ringStrokeWidth={10}/>
+            </g>;
           })()}
 
           {/* ── CURRENT-STEP SPOTLIGHT - see StepFocusRing's own comment

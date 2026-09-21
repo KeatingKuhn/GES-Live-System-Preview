@@ -1663,6 +1663,23 @@
       en: { title: "BACKDRAFT DAMPER", text: "A one-way flap on the dehumidifier's supply duct that keeps the blower's much stronger airflow from pushing air backward through the dehumidifier when it isn't running." },
       es: { title: "COMPUERTA DE CONTRATIRO", text: "Una v\xE1lvula de un solo sentido en el ducto de suministro del deshumidificador, que evita que el flujo de aire, mucho m\xE1s fuerte, del soplador empuje el aire hacia atr\xE1s a trav\xE9s del deshumidificador cuando no est\xE1 funcionando." }
     },
+    // Closet layout's dehu ducts are a different, independent design from
+    // the attic's own dehu_return_duct/dehu_supply_duct (which tap the
+    // SAME return/supply plenum the rest of the system uses, hence that
+    // one's backdraft damper) - this stack's return and supply plenums sit
+    // at opposite ends of a tall vertical column with nothing nearby at
+    // both, so this dehu gets its own fully separate return grille and
+    // supply register, stubbed straight into the drywall nearby rather
+    // than tied into the main trunk at all. No damper needed here - there's
+    // no shared blower airflow to guard against on an independent run.
+    dehu_dedicated_return: {
+      en: { title: "DEDICATED RETURN", text: "This dehumidifier pulls from its own return grille, built into the drywall nearby - a separate air path from the rest of the system, not shared with the main return." },
+      es: { title: "RETORNO DEDICADO", text: "Este deshumidificador jala aire de su propia rejilla de retorno, integrada en el tablaroca cercano - un camino de aire separado del resto del sistema, no compartido con el retorno principal." }
+    },
+    dehu_dedicated_supply: {
+      en: { title: "DEDICATED SUPPLY", text: "Feeds dehumidified air straight into its own register in the drywall nearby, instead of tying into the main supply trunk." },
+      es: { title: "SUMINISTRO DEDICADO", text: "Env\xEDa el aire deshumidificado directamente a su propia rejilla en el tablaroca cercano, en lugar de conectarse al tronco de suministro principal." }
+    },
     lineset: {
       en: { title: "LINE SET", text: "The two insulated copper lines carrying refrigerant between the indoor coil and the outdoor condenser." },
       es: { title: "L\xCDNEAS DE REFRIGERANTE", text: "Las dos l\xEDneas de cobre aisladas que transportan refrigerante entre el serpent\xEDn interior y el condensador exterior." }
@@ -6869,6 +6886,50 @@
             vh: SVG_VH
           }
         );
+      })(), hasDehu && hasCoil && (() => {
+        const rW = hasCond ? HOUSE_W : VW - 8;
+        const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));
+        const rEave = rRise + 12;
+        const BW = 80, BH = 48;
+        const dehuX = rW - BW - 34;
+        const BY = rEave + 42;
+        const RC = "rgba(255,182,193,";
+        const stubY = DECK_Y - 8;
+        const retX = dehuX + 14, supX = dehuX + BW - 14;
+        const retD = `M${retX} ${BY + BH} L${retX} ${stubY}`;
+        const supD = `M${supX} ${BY + BH} L${supX} ${stubY}`;
+        const cap = (x, color) => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x - 6, y: stubY - 3, width: "12", height: "6", rx: "1.5", fill: color + ".3)", stroke: color + ".6)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: x - 9, y1: stubY + 3, x2: x + 9, y2: stubY + 3, stroke: color + ".4)", strokeWidth: "1", strokeDasharray: "1.5 1.5" }));
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".14)", strokeWidth: "8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".75)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(retX, RC), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".13)", strokeWidth: "8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".65)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(supX, G), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: retX - 9,
+            y: BY + BH - 4,
+            w: 18,
+            h: stubY - (BY + BH) + 13,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("dehu_dedicated_return").title,
+            text: T("dehu_dedicated_return").text,
+            ringPath: retD,
+            ringStrokeWidth: 10
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: supX - 9,
+            y: BY + BH - 4,
+            w: 18,
+            h: stubY - (BY + BH) + 13,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("dehu_dedicated_supply").title,
+            text: T("dehu_dedicated_supply").text,
+            ringPath: supD,
+            ringStrokeWidth: 10
+          }
+        ));
       })(), (() => {
         const rW = hasCond ? HOUSE_W : VW - 8;
         const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));
