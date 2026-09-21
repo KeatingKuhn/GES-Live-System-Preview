@@ -81,6 +81,11 @@
    never a mouse/touch click, so this restores that without adding a ring
    around every option card someone taps or clicks. */
 button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
+/* Standard visually-hidden-but-announced pattern - used for the wizard's
+   step-change live region (see the aria-live div in app.js). Kept off
+   screen without display:none/visibility:hidden, either of which would
+   also hide it from assistive tech and defeat the point. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 /* html/body get a definite height (not just min-height) and body is the
    positioning context, so the app shell below can use position:absolute
    instead of position:fixed. Fixed positioning inside an iframe is a
@@ -322,6 +327,32 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 @keyframes glowIn{from{opacity:0}to{opacity:.5}}
 @keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
 .line-pulse{animation:gpulse 2.2s ease-in-out infinite;pointer-events:none}
+/* prefers-reduced-motion - the diagram runs several purely-decorative,
+   NEVER-ending loops (a fan literally spinning forever, a refrigerant
+   line's opacity pulsing forever, a duct's dashed flow arrow marching
+   forever, rain/snow endlessly falling, the "rotate your phone" icon
+   endlessly swiveling) with no way to turn them off and nothing lost by
+   removing them - none of them carry information a static version
+   doesn't already show (the diagram's own labels/arrows/colors say what's
+   flowing where regardless). Sustained, repeating motion like this is
+   exactly what prefers-reduced-motion exists to let someone opt out of
+   (vestibular triggers), unlike the app's short (<1s) one-shot mount
+   transitions elsewhere (fadein/snap/splashRise/etc.), which are left
+   alone - scoped to the loops actually named in the a11y pass, not a
+   blanket motion strip. Rain/snow are hidden outright rather than frozen
+   mid-frame (animation:none would otherwise freeze them at whatever
+   opacity/position their current animation cycle happened to be at,
+   often 0% opacity - i.e. invisible anyway - or a half-fallen drop stuck
+   mid-air, neither of which reads as intentional). glow-pulse/
+   step-focus-ring keep their one-shot fade-IN (glowIn) but drop the
+   infinite pulse after it, so an "active" part still visibly lights up,
+   just without the endless breathing. */
+@media (prefers-reduced-motion:reduce){
+  .spin,.airflow,.line-pulse,.rotate-prompt-icon{animation:none!important}
+  .rain-drop,.rain-splash,.snow-flake{display:none!important}
+  .glow-pulse{animation:glowIn .22s ease-out both!important}
+  .step-focus-ring{animation:glowIn .3s ease-out both!important}
+}
 /* Done-screen diagram is clickable - hover reveals which piece each
    component maps back to, so "edit this" doesn't require finding it in a list.
    The box-level ring this used to draw on hover (.edit-zone-ring) was
@@ -431,7 +462,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    hover state, so hover-only left phone/tablet users with no way at all to
    reach this panel's content; desktop keeps the exact no-click hover
    behavior it had before. */
-.info-btn{width:var(--info-btn-size);height:var(--info-btn-size);flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
+/* transition is scoped to the properties :hover actually changes (border-
+   color/color/background) rather than `all` - `all` also caught the
+   button:focus-visible outline this button picks up from the global rule
+   above, so Tab-ing onto it faded the focus ring in from 0 over the same
+   .15s instead of showing it immediately, reading as no focus indicator at
+   all for the first ~100ms a keyboard user landed here. Named properties
+   leave the focus outline to snap in instantly, like every other control,
+   while keeping the hover fade unchanged. */
+.info-btn{width:var(--info-btn-size);height:var(--info-btn-size);flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s}
 .info-btn:hover{border-color:var(--gl);color:var(--gl);background:rgba(215,183,64,.18)}
 /* Info panel open/close - was a plain showInfo&&<div> conditional mount,
    so it snapped open and vanished instantly on close with no transition
@@ -516,7 +555,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .opt-compact .opt-label{margin-bottom:0;line-height:1.15;font-size:var(--fs-opt-compact-label)}
 .opt-compact .opt-desc{line-height:1.25;font-size:var(--fs-opt-compact-desc)}
 .opt-badge{display:inline-block;background:var(--gh);color:var(--bk);font-size:var(--fs-opt-badge);font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;margin-left:6px;vertical-align:middle}
-.opt-check{width:21px;height:21px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;margin-top:2px;transition:all .15s}
+.opt-check{width:21px;height:21px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;margin-top:2px;transition:border-color .15s,background .15s,color .15s}
 .opt.sel .opt-check{border-color:var(--gl);background:var(--gm);color:var(--bk)}
 /* A single-select step's indicator gets the "radio" class in the JSX
    (mirrors .attic-chk.radio on the attic layout) but nothing here ever
@@ -791,7 +830,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .trust-line strong{color:rgba(215,183,64,.75);font-weight:600}
 .trust-dot{color:rgba(255,255,255,.2)}
 .splash-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
-.splash-card{width:360px;padding:28px 32px;background:rgba(215,183,64,.04);border:1px solid rgba(215,183,64,.15);cursor:pointer;transition:all .18s;display:flex;justify-content:center}
+/* Named transition properties (background/border-color/transform), not
+   `all` - see the .info-btn comment above for why: this card is also a
+   [tabindex] focus-visible target (role="button"), and `all` delayed its
+   focus outline in over the same .18s as the hover fade, instead of
+   showing it the instant Tab lands here. */
+.splash-card{width:360px;padding:28px 32px;background:rgba(215,183,64,.04);border:1px solid rgba(215,183,64,.15);cursor:pointer;transition:background .18s,border-color .18s,transform .18s;display:flex;justify-content:center}
 .splash-card:hover{background:rgba(215,183,64,.09);border-color:rgba(215,183,64,.4);transform:translateY(-2px)}
 /* First interactive control on the whole page, and clicking it kicks off
    a .5s screen fade (.splash-screen.out above) with nothing else marking
@@ -837,7 +881,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .attic-info{width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:8px 18px;display:flex;flex-direction:column;gap:4px;overflow:hidden;justify-content:center}
 .attic-scroll{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:stretch;gap:8px;padding:8px 12px;scrollbar-width:none}
 .attic-scroll::-webkit-scrollbar{display:none}
-.attic-opt{flex:1;min-width:130px;max-width:280px;background:var(--surf);border:1px solid var(--border);cursor:pointer;padding:9px 12px;text-align:center;display:flex;flex-direction:column;gap:2px;transition:all .14s;outline:none;-webkit-appearance:none;position:relative;overflow:hidden}
+/* Named transition properties (border-color/background), not `all` - same
+   focus-outline-delay reasoning as .info-btn/.splash-card above. */
+.attic-opt{flex:1;min-width:130px;max-width:280px;background:var(--surf);border:1px solid var(--border);cursor:pointer;padding:9px 12px;text-align:center;display:flex;flex-direction:column;gap:2px;transition:border-color .14s,background .14s;outline:none;-webkit-appearance:none;position:relative;overflow:hidden}
 .attic-opt:hover{border-color:rgba(215,183,64,.3);background:#1a1a1a}
 .attic-opt.sel{border-color:var(--gl);background:rgba(240,214,78,.05);animation:selectPop .32s cubic-bezier(.34,1.56,.64,1),selectFlash .55s ease-out}
 .attic-opt.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gh)}
