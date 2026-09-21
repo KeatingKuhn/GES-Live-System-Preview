@@ -3384,10 +3384,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
     ));
   }
-  function CondenserFan({ cx, cy, r, active, fast, onEditStep, lang, vw, vh }) {
+  function CondenserFan({ cx, cy, r, active, speedMode, onEditStep, lang, vw, vh }) {
     const bladeFill = active ? "#ccd3e0" : "#565c68";
     const rim = active ? "#7fb8ff" : "rgba(70,76,90,.6)";
-    const spinDuration = useLerpedNumber(fast ? 0.45 : 0.8);
+    const spinDuration = useLerpedNumber(speedMode === "cool" ? 0.3 : speedMode === "hp" ? 0.5 : 0.8);
     return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 3, fill: "rgba(0,0,0,.55)", stroke: "rgba(60,65,78,.7)", strokeWidth: "1.2" }), active && /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 1, fill: "none", stroke: rim, strokeWidth: "1", opacity: "0.55", filter: "url(#glow-sm)" }), /* @__PURE__ */ React.createElement("g", { className: active ? "spin" : void 0, style: active ? { transformBox: "view-box", transformOrigin: cx + "px " + cy + "px", animationDuration: spinDuration + "s" } : {} }, Array.from({ length: 3 }, (_, i) => {
       const ang = i * (Math.PI * 2 / 3);
       const sweep = 1.4;
@@ -3841,7 +3841,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
     ));
   }
-  function Condenser({ x, y, w, h, active, tierKey, condC, refReversed, line1C, line2C, fanFast, onEditStep, lang, vw, vh }) {
+  function Condenser({ x, y, w, h, active, tierKey, condC, refReversed, line1C, line2C, fanSpeedMode, onEditStep, lang, vw, vh }) {
     const isMini = tierKey === "mid_ge15";
     const isBig = tierKey === "high_ge18";
     const isFed = tierKey === "fedmin";
@@ -4170,7 +4170,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           cy: fCY,
           r: fR,
           active,
-          fast: fanFast,
+          speedMode: fanSpeedMode,
           onEditStep,
           lang,
           vw,
@@ -5438,9 +5438,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const FURN_W = hasFurnace ? Math.round(196 * SCALE) : 0;
       const ACOIL_W = hasFurnace ? Math.round(108 * SCALE) : 0;
       const AH_W = !hasFurnace ? Math.round(296 * SCALE) : 0;
-      let SUP_PLEN_W = hasPlenum && a.plenum !== "none" ? 256 : a.plenum === "none" ? 140 : 0;
+      let SUP_PLEN_W = hasPlenum && a.plenum !== "none" ? 300 : a.plenum === "none" ? 140 : 0;
       const SUP_PLEN_H = UNIT_H;
-      const totalW = RET_PLEN_W + (APR_W ? APR_W + 2 : 0) + FURN_W + (hasFurnace ? ACOIL_W + 4 : AH_W) + SUP_PLEN_W;
+      const totalW = RET_PLEN_W + (APR_W ? APR_W + 2 : 0) + FURN_W + (hasFurnace ? ACOIL_W + 4 : AH_W) + (hasPlenum && a.plenum !== "none" ? 256 : a.plenum === "none" ? 140 : 0);
       const MARGIN_L = Math.max(20, Math.round((HOUSE_W - totalW) / 2));
       const RET_X = MARGIN_L;
       const THERM_IN_MARGIN = MARGIN_L >= 70;
@@ -6092,7 +6092,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "11.5",
             fontFamily: "monospace"
           },
-          "4\u20136 FT SUPPLY"
+          "4\u20138 FT SUPPLY"
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -6350,7 +6350,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               refReversed,
               line1C,
               line2C,
-              fanFast: !heatMode || isMildHp,
+              fanSpeedMode: !heatMode ? "cool" : isMildHp ? "hp" : "off",
               onEditStep,
               lang,
               vw: SVG_VW,
@@ -6593,10 +6593,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
         const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
-        const ervSlotL = SUP_X + SUP_PLEN_W + 14;
-        const ervSlotR = EXT_WALL_X - 10;
-        const ervW = Math.max(52, Math.min(BW, ervSlotR - ervSlotL));
-        const ervBX = Math.max(ervSlotL, ervSlotR - ervW);
+        const ervW = BW;
+        const ervBX = Math.max(8, RET_X);
         const ervRoofY = roofY(ervBX + ervW / 2);
         return /* @__PURE__ */ React.createElement(
           DehuErvBoxes,
@@ -6774,9 +6772,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           ));
         }
       })()), a.insulation && (() => {
-        const insulCX = isSpray ? RET_X + RET_PLEN_W / 2 : HOUSE_W / 2, insulY = isSpray ? UNIT_Y - 16 : VH - 10;
+        const insulCX = isSpray ? SUP_X + SUP_PLEN_W * 0.35 : HOUSE_W / 2, insulY = isSpray ? UNIT_Y - 16 : VH - 10;
         let insulL = insulCX - 70, insulR = insulCX + 70;
-        if (isSpray && hasDehu) insulR = Math.min(insulR, RET_X + RET_PLEN_W - 14 - 6);
+        if (isSpray && hasDehu) insulR = Math.min(insulR, SUP_X + Math.round(SUP_PLEN_W * 0.75) - 30);
         return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -8247,7 +8245,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               refReversed,
               line1C,
               line2C,
-              fanFast: !heatMode || isMildHp,
+              fanSpeedMode: !heatMode ? "cool" : isMildHp ? "hp" : "off",
               onEditStep,
               lang,
               vw: SVG_VW,

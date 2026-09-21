@@ -1503,7 +1503,7 @@ function BlowerWheel({cx,cy,r,spd,active,onEditStep,lang,vw,vh}){
 // hoverPart change" reason as BlowerWheel just above - this fan spins
 // via the same CSS `.spin` class, so it had the exact same confirmed
 // rotation-reset stutter every time the diagram's hover state changed.
-function CondenserFan({cx,cy,r,active,fast,onEditStep,lang,vw,vh}){
+function CondenserFan({cx,cy,r,active,speedMode,onEditStep,lang,vw,vh}){
   // Real axial blades are a filled, tapered scimitar shape - wide at the
   // hub, sweeping out to a near-point tip - not a uniform-width stroked
   // line. A thick round-capped stroke (the old approach) has no taper
@@ -1514,11 +1514,17 @@ function CondenserFan({cx,cy,r,active,fast,onEditStep,lang,vw,vh}){
   const bladeFill=active?'#ccd3e0':'#565c68';
   const rim=active?'#7fb8ff':'rgba(70,76,90,.6)';
   // RPM (expressed as seconds-per-revolution, so lower = faster) eases
-  // between the fast/slow targets over the same ~2.5s mode-toggle window
-  // as everything else, instead of the motor instantly jump-cutting
-  // speed - see useLerpedNumber's own comment for why this can't just be
-  // a CSS transition on animation-duration the way colors are.
-  const spinDuration=useLerpedNumber(fast?0.45:0.8);
+  // between the cool/hp/off targets over the same ~2.5s mode-toggle
+  // window as everything else, instead of the motor instantly jump-
+  // cutting speed - see useLerpedNumber's own comment for why this can't
+  // just be a CSS transition on animation-duration the way colors are.
+  // Per direct feedback that cool and heat-pump mode looked identical
+  // (both used to share one "fast" duration, reading as maybe 60% speed
+  // in both) - cool mode is now genuinely full speed and heat pump a
+  // visibly slower ~60% of that RPM, matching how a real modulating
+  // condenser fan actually runs harder on a hot cooling day than on a
+  // mild heat-pump heating one.
+  const spinDuration=useLerpedNumber(speedMode==='cool'?0.3:speedMode==='hp'?0.5:0.8);
   return <g>
     <circle cx={cx} cy={cy} r={r+3} fill="rgba(0,0,0,.55)" stroke="rgba(60,65,78,.7)" strokeWidth="1.2"/>
     {active&&<circle cx={cx} cy={cy} r={r+1} fill="none" stroke={rim} strokeWidth="1" opacity="0.55" filter="url(#glow-sm)"/>}
@@ -1974,7 +1980,7 @@ function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount,ringColor,onEditSt
 // isMildHp - both Canvas-only state) come in as explicit props instead
 // of Canvas closures, same convention as everywhere else in this file
 // that made this move.
-function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanFast,onEditStep,lang,vw,vh}){
+function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanSpeedMode,onEditStep,lang,vw,vh}){
   const isMini=tierKey==='mid_ge15';
   const isBig=tierKey==='high_ge18';
   const isFed=tierKey==='fedmin';
@@ -2191,11 +2197,17 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanFa
             ))}
           </g>
           <circle cx={fCX} cy={fCY} r={fR+8} fill="none" stroke="rgba(160,164,172,.5)" strokeWidth="2.5"/>
-          {/* Real condenser fans ramp up with load - faster at 95° (cool,
-              full compressor load) and 60° (mild heat-pump load) than at
-              32°, where either the compressor is standby (dual-fuel
-              furnace mode) or running its slower low-ambient stage. */}
-          <CondenserFan cx={fCX} cy={fCY} r={fR} active={active} fast={fanFast}
+          {/* Real condenser fans ramp up with load - full speed at 95°
+              (cool, full compressor load against the biggest indoor/
+              outdoor delta this diagram shows), a noticeably slower
+              modulated speed at 60° (mild heat-pump load - the compressor
+              is running, just not hard), and stopped at 32° (either the
+              compressor is standby in dual-fuel furnace mode, or running
+              its slower low-ambient stage with the fan not shown spinning
+              here). Per direct feedback that cool and heat-pump mode read
+              as the same speed - they used to share one "fast" duration -
+              fanSpeedMode now picks a genuinely different RPM for each. */}
+          <CondenserFan cx={fCX} cy={fCY} r={fR} active={active} speedMode={fanSpeedMode}
             onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
         </>;
       })()}
@@ -3474,7 +3486,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     const FURN_W=hasFurnace?Math.round(196*SCALE):0;
     const ACOIL_W=hasFurnace?Math.round(108*SCALE):0;
     const AH_W=!hasFurnace?Math.round(296*SCALE):0;
-    let SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?256:a.plenum==='none'?140:0;
+    // Widened from 256 per direct feedback - the old width left a big gap
+    // of genuinely empty attic between the plenum's own right edge and the
+    // outside wall/lineset drop, worse now that the ERV (which used to sit
+    // in that gap) has moved to the far-left corner instead. Centering
+    // (below) uses the ORIGINAL 256 as its reference width, not this
+    // widened one - see that comment for why. Capped well short of a full
+    // "fill the whole gap" width - the refrigerant lineset's own vertical
+    // drop to the condenser runs right along the outside wall (EXT_WALL_X
+    // +9, see OutsideZone's own wallMidX), so a first pass at 330 actually
+    // overshot the wall itself (measured right edge past EXT_WALL_X) and
+    // ran directly into the lineset pipe. 300 leaves real clearance to
+    // both while still cutting the old gap by nearly half.
+    let SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?300:a.plenum==='none'?140:0;
     const SUP_PLEN_H=UNIT_H;
 
     // Center the equipment run in the house zone - used to pin it to a
@@ -3482,7 +3506,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // leftover width as one gap between the plenum and the outside wall.
     // Centering (same formula already used with no condenser) splits that
     // gap evenly on both sides instead.
-    const totalW=RET_PLEN_W+(APR_W?APR_W+2:0)+FURN_W+(hasFurnace?ACOIL_W+4:AH_W)+SUP_PLEN_W;
+    //
+    // Uses a fixed 256 reference for the plenum here, NOT the actual
+    // (possibly wider) SUP_PLEN_W above - MARGIN_L/RET_X anchor the left
+    // side of the whole run (return plenum, thermostat column, and now the
+    // ERV's own far-left corner spot too), so growing the plenum's real
+    // rendered width was shrinking this margin on BOTH sides symmetrically,
+    // crowding the thermostat/ERV on the left for no reason while also
+    // pushing the plenum's own right edge further right than intended on
+    // the right. Keeping the reference fixed means the extra plenum width
+    // only eats into the gap it was meant to fill (between the plenum and
+    // the wall) without disturbing anything upstream of it.
+    const totalW=RET_PLEN_W+(APR_W?APR_W+2:0)+FURN_W+(hasFurnace?ACOIL_W+4:AH_W)+(hasPlenum&&a.plenum!=='none'?256:a.plenum==='none'?140:0);
     const MARGIN_L=Math.max(20,Math.round((HOUSE_W-totalW)/2));
     const RET_X=MARGIN_L;
     // Thermostat's own dedicated column, in the margin the equipment run
@@ -4055,7 +4090,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+16} textAnchor="middle"
-                  fill={G+'.32)'} fontSize="11.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
+                  fill={G+'.32)'} fontSize="11.5" fontFamily="monospace">4–8 FT SUPPLY</text>}
                 {/* Supply-air temp reading - sits in the otherwise-empty gap
                     between the top flow arrow (28% down) and the plenum-type
                     label (center), so it never competes with either. See
@@ -4339,7 +4374,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
               active={condenserActive} tierKey={a.cond_tier}
               condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
-              fanFast={!heatMode||isMildHp} onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}/>}
+              fanSpeedMode={!heatMode?'cool':(isMildHp?'hp':'off')} onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}/>}
           {hasCond&&<EditZone stepId="cond_tier" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}>
             {condenserSubHovers(COND_X,COND_Y,COND_W,COND_H,a.cond_tier)}
@@ -4501,52 +4536,29 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // every tier/condenser state, and stays clear of the supply
             // plenum starting just past the cabinet's right edge.
             const dehuBX=hasFurnace?sysX+44:sysX+AH_W-BW-8;
-            // ERV: near the right outside wall, tucked in before the
-            // lineset's own roofline run drops down to cross it. That
-            // outdoor drop runs right along EXT_WALL_X itself (see
-            // OutsideZone's own wallMidX, just past the wall face), not
-            // just past RL_WALL_X - the old Math.max here picked whichever
-            // of "clear of the plenum" / "hug the wall" put the box
-            // further right, which on a real (non-"none") supply plenum
-            // put the box's own right edge PAST EXT_WALL_X, so the lineset's
-            // vertical run down to the condenser sliced right through the
-            // ERV box and its IN/OUT stubs instead of passing beside it.
-            // The slot between the plenum's right edge and the wall is
-            // genuinely narrower than the box's normal 80 width once a
-            // real plenum is picked (240 wide vs. "keep existing" at 130),
-            // so the box's own width now shrinks to fit whatever's
-            // actually left instead of demanding a fixed 80 no matter how
-            // little room there is - see ervW on DehuErvBoxes.
-            const ervSlotL=SUP_X+SUP_PLEN_W+14;
-            const ervSlotR=EXT_WALL_X-10;
-            const ervW=Math.max(52,Math.min(BW,ervSlotR-ervSlotL));
-            const ervBX=Math.max(ervSlotL,ervSlotR-ervW);
-            // The ERV now hangs right under where the rerouted lineset's own
-            // roofline run passes overhead on its way to the wall - a flat
-            // EAVE_Y+14 (fine for the dehu, over near the ridge-ish middle
-            // of the run where the lineset isn't) would put the ERV's IN/OUT
-            // roof stubs right on top of those two pipes here. A prior fix
-            // tried ducking the whole IN/OUT cap BELOW the lineset instead
-            // (roofY(x)+RL_ROOF_GAP+8, i.e. only 8px past the lineset's own
-            // centerline offset) - short of the ~20px needed to actually
-            // clear the lineset's own foam-sleeve glow, so the cap still sat
-            // right on top of it, AND (since the cap itself is anchored
-            // below the true roof surface, not above it) the ERV stopped
-            // reading as a roof penetration at all - it terminated inside
-            // the attic instead of poking through, the same "hanging in
-            // mid-air" bug already fixed once for the flue's own roof
-            // penetration elsewhere in this file. Anchoring ry to the real,
-            // per-X roof surface directly (no added offset) fixes both at
-            // once: the cap now pokes a few px above the true roof, same as
-            // every other roof penetration, which - since the lineset hangs
-            // RL_ROOF_GAP(14)px below that same roof surface - automatically
-            // lands the cap on the opposite side of the roofline from the
-            // lineset with room to spare, instead of collapsing the two
-            // toward the same Y. Only the thin vertical feed pipe still
-            // crosses the lineset's line once on its way up from the box,
-            // same as any two thin duct/lineset runs crossing elsewhere in
-            // this diagram - not the illegible label-on-top-of-pipe overlap
-            // the offset version produced.
+            // ERV: far-left corner of the attic, above the return plenum/
+            // thermostat column - genuinely on its own there, clear of
+            // everything else in the equipment run. Used to hang near the
+            // right outside wall instead, tucked into the slot between the
+            // supply plenum and the wall - but that's exactly where the
+            // rerouted refrigerant lineset's own roofline run drops down
+            // to cross to the condenser, so the two kept crowding each
+            // other (red/blue lineset running right past the ERV's own
+            // IN/OUT stubs) however tightly the slot was measured. This
+            // spot was already the wizard's own ghost preview position for
+            // this step (see the stepId="extras" StepFocusRing below,
+            // x={Math.max(8,RET_X)}) - the real box just never matched it.
+            // Full 80-wide box now, no shrinking needed - there's no tight
+            // slot to fit into over here.
+            const ervW=BW;
+            const ervBX=Math.max(8,RET_X);
+            // Uses the real per-X roof surface (not a flat approximation
+            // like the dehu hang-kit's own roofY below, which only needs a
+            // reasonable strap-mounting height, not an actual penetration
+            // point) so the roof cap genuinely pokes through the correct
+            // spot on the pitched roof above this now-far-left position,
+            // same pattern as the flue's and closet ERV's own roof stubs
+            // elsewhere in this file.
             const ervRoofY=roofY(ervBX+ervW/2);
             return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} ervW={ervW} BY={UNIT_Y-48-14} roofY={EAVE_Y+14} ervRoofY={ervRoofY}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
@@ -4683,32 +4695,33 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               barely legible against it). The two variants get different
               spots per direct feedback, matching how each is physically
               installed: spray foam seals the ROOF underside, so it sits
-              above the return plenum/thermostat column (open attic space,
+              above the equipment run's right side (open attic space,
               still clear of the roofline); fiberglass instead blankets
               the ATTIC FLOOR above the living space, so it sits on the
               same baseline as the LIVING SPACE watermark below, centered
               rather than left-aligned like that label. Still painted this
               late (after furnace/coil/condenser) so nothing else paints
-              over it here either. */}
+              over it here either.
+
+              Spray foam used to sit above the return plenum/thermostat
+              column on the LEFT - moved to the right, above the supply
+              plenum, because the ERV now hangs in that exact left corner
+              (see its own comment at the attic ERV's call site) and the
+              two were landing right on top of each other. */}
           {a.insulation&&(()=>{
-            const insulCX=isSpray?RET_X+RET_PLEN_W/2:HOUSE_W/2, insulY=isSpray?UNIT_Y-16:VH-10;
+            // 0.35 (not 0.5/center) keeps this clear of the dehu supply
+            // duct's own vertical leg, which lands at SUP_X+0.75*
+            // SUP_PLEN_W when a dehumidifier is on the build (see that
+            // duct's own comment above) - centering would put this
+            // label's ±70 box right on top of it.
+            const insulCX=isSpray?SUP_X+SUP_PLEN_W*0.35:HOUSE_W/2, insulY=isSpray?UNIT_Y-16:VH-10;
             let insulL=insulCX-70, insulR=insulCX+70;
-            // Spray foam's copy of this label sits up in the open attic
-            // near the return plenum, whose right edge (RET_X+RET_PLEN_W)
-            // is also where the dehu return duct's own vertical leg lands
-            // when a dehumidifier is on the build (see that duct's own
-            // HoverInfo above) - this label paints AFTER (on top of) that
-            // duct, so its full ±70 reach used to swallow a few px of the
-            // duct's own hit-box right where the real dashed line runs,
-            // not just open air beside it (found via a grid-sweep hover
-            // audit: hovering the actual duct line showed this label's
-            // tooltip instead). Clamped clear of that leg instead of
-            // widening the duct's own box - the label's real text is much
-            // narrower than 140px, so losing a little of its right-hand
-            // margin here never crowds the text itself. Fiberglass's own
-            // copy sits down by the floor, nowhere near the dehu run, so
-            // it's untouched.
-            if(isSpray&&hasDehu)insulR=Math.min(insulR,RET_X+RET_PLEN_W-14-6);
+            // Same dehu-duct clearance as above, expressed as a hard clamp
+            // for the narrower a.plenum==='none' width (140), where 0.35
+            // alone isn't quite enough margin. Fiberglass's own copy sits
+            // down by the floor, nowhere near the dehu run, so it's
+            // untouched.
+            if(isSpray&&hasDehu)insulR=Math.min(insulR,SUP_X+Math.round(SUP_PLEN_W*0.75)-30);
             return <g>
               {/* pointerEvents:none - a plain <text> is still hit-tested
                   by its own painted glyph area by default (same "wide
@@ -5872,7 +5885,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
               active={condenserActive} tierKey={a.cond_tier}
               condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
-              fanFast={!heatMode||isMildHp} onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}/>}
+              fanSpeedMode={!heatMode?'cool':(isMildHp?'hp':'off')} onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}/>}
           {hasCond&&<EditZone stepId="cond_tier" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}>
             {condenserSubHovers(COND_X,COND_Y,COND_W,COND_H,a.cond_tier)}
