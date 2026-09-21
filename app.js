@@ -1211,7 +1211,7 @@
     })()), /* @__PURE__ */ React.createElement(
       "text",
       {
-        x: wallX + zoneW - 8,
+        x: wallX + zoneW - 30,
         y: condY - 9,
         textAnchor: "end",
         fill: active ? condC : G2 + ".55)",
@@ -1219,6 +1219,17 @@
         fontFamily: "monospace"
       },
       active ? "CONDENSER \xB7 ACTIVE" : "CONDENSER \xB7 STANDBY"
+    ), active && /* @__PURE__ */ React.createElement(
+      "text",
+      {
+        x: wallX + zoneW - 30,
+        y: condY + 6,
+        textAnchor: "end",
+        fill: refReversed ? "rgba(35,137,224,.5)" : "rgba(239,68,68,.5)",
+        fontSize: "12",
+        fontFamily: "monospace"
+      },
+      refReversed ? "ABSORBING HEAT" : "RELEASING HEAT"
     ), /* @__PURE__ */ React.createElement(
       "text",
       {
@@ -5116,7 +5127,7 @@
         const supTgtX = SUP_X + Math.round(SUP_PLEN_W * 0.75);
         const retD = `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
         const supD = `M${dehuBX + BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
-        const dampX = (dehuBX + BW + supTgtX) / 2;
+        const dampX = Math.max(dehuBX + BW + 15, supTgtX - 30);
         return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".14)", strokeWidth: DW2 + 4, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".75)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {

@@ -549,10 +549,20 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         return <path d={d} fill="rgba(240,246,255,.85)" stroke="rgba(255,255,255,.25)" strokeWidth="0.6"/>;
       })()}
     </g>
-    <text x={wallX+zoneW-8} y={condY-9} textAnchor="end"
+    <text x={wallX+zoneW-30} y={condY-9} textAnchor="end"
       fill={active?condC:(G+'.55)')} fontSize="13" fontFamily="monospace">
       {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
     </text>
+    {/* Mirrors the indoor coil's own ABSORBING/REJECTING HEAT status
+        line - the outdoor coil is always doing the opposite of whatever
+        the indoor coil is doing: normal cooling, indoor absorbs heat
+        from the house and this releases it outside; reversed (heat pump
+        heating), indoor rejects heat into the house and this is the one
+        absorbing it from the outside air instead. */}
+    {active&&<text x={wallX+zoneW-30} y={condY+6} textAnchor="end"
+      fill={refReversed?'rgba(35,137,224,.5)':'rgba(239,68,68,.5)'} fontSize="12" fontFamily="monospace">
+      {refReversed?"ABSORBING HEAT":"RELEASING HEAT"}
+    </text>}
 
     {/* OUTSIDE label */}
     <text x={wallX+zoneW/2} y={12} textAnchor="middle"
@@ -4350,7 +4360,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const supTgtX=SUP_X+Math.round(SUP_PLEN_W*0.75);
             const retD=`M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
             const supD=`M${dehuBX+BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
-            const dampX=(dehuBX+BW+supTgtX)/2;
+            // Biased toward the plenum end of the run rather than sitting
+            // at its midpoint - the midpoint landed close enough to the
+            // dehu box's own end of the run to read as crowding the
+            // ionizer's UV rod (which sits further left on the plenum,
+            // near SUP_X) even though the duct itself clears it with room
+            // to spare.
+            const dampX=Math.max(dehuBX+BW+15,supTgtX-30);
             return <g className="snap" style={{animationDelay:'0.4s'}}>
               <path d={retD} fill="none" stroke={RC+'.14)'} strokeWidth={DW2+4} strokeLinejoin="round" strokeLinecap="round"/>
               <path d={retD} fill="none" stroke={RC+'.75)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
