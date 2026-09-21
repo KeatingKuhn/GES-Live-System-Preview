@@ -1589,8 +1589,8 @@
       es: { title: "PLENUM DE SUMINISTRO", text: "Donde el aire acondicionado sale de su unidad interior y se distribuye hacia los ductos que alimentan cada habitaci\xF3n." }
     },
     supply_register: {
-      en: { title: "SUPPLY REGISTER", text: "Where conditioned air actually enters the room, at the end of a duct run off the supply plenum." },
-      es: { title: "REJILLA DE SUMINISTRO", text: "Donde el aire acondicionado realmente entra a la habitaci\xF3n, al final de un ducto que sale del plenum de suministro." }
+      en: { title: "SUPPLY REGISTER", text: "Where conditioned air enters the room. Behind it, hidden in the drywall, sits the supply boot - the actual duct-to-register connection, and one of the most important seals in the whole system. A poorly sealed boot leaks conditioned air and can pull attic air straight in." },
+      es: { title: "REJILLA DE SUMINISTRO", text: "Donde el aire acondicionado entra a la habitaci\xF3n. Detr\xE1s, oculta en la pared, est\xE1 la bota de suministro - la conexi\xF3n real entre el ducto y la rejilla, y uno de los sellos m\xE1s importantes de todo el sistema. Una bota mal sellada deja escapar aire acondicionado y puede dejar entrar aire del \xE1tico." }
     },
     supply_duct: {
       en: { title: "SUPPLY DUCT", text: "Insulated flex duct carrying conditioned air from the supply plenum down to this room's register." },
@@ -1603,6 +1603,14 @@
     return_grille: {
       en: { title: "RETURN GRILLE", text: "Where room air is pulled back into the ductwork, on its way to the filter and the indoor unit." },
       es: { title: "REJILLA DE RETORNO", text: "Donde el aire de la habitaci\xF3n es jalado de vuelta hacia los ductos, camino al filtro y a la unidad interior." }
+    },
+    // Closet layout's return path is a framed stud/joist cavity, not a
+    // separate metal duct with its own grille - a distinct thing from
+    // return_grille above, which is a real grille (used only by the attic
+    // layout's own return duct trunk).
+    return_chase: {
+      en: { title: "RETURN AIR CHASE", text: "A framed 2x4 stud/joist cavity used as the return-air path back to the unit, instead of a separate metal return duct - common in closet installs where space is tight." },
+      es: { title: "CONDUCTO DE RETORNO 2\xD74", text: "Una cavidad enmarcada entre postes/vigas de 2x4 que sirve como camino de aire de retorno hacia la unidad, en lugar de un ducto met\xE1lico independiente - com\xFAn en instalaciones de cl\xF3set donde el espacio es reducido." }
     },
     return_duct: {
       en: { title: "RETURN DUCT", text: "Carries room air from the return grille back up to the return plenum and filter, on its way to be reconditioned." },
@@ -3769,7 +3777,8 @@
           vw: SVG_VW,
           vh: SVG_VH,
           title: T("supply_register").title,
-          text: T("supply_register").text
+          text: T("supply_register").text,
+          group: "supply_register"
         }
       ));
     }
@@ -6383,14 +6392,14 @@
         HoverInfo,
         {
           x: UNIT_X - 28,
-          y: VH - 40,
+          y: CHASE_Y,
           w: UNIT_W + 56,
-          h: 30,
+          h: VH - CHASE_Y,
           rx: 3,
           vw: SVG_VW,
           vh: SVG_VH,
-          title: T("return_grille").title,
-          text: T("return_grille").text
+          title: T("return_chase").title,
+          text: T("return_chase").text
         }
       )), hasCoil && (() => {
         const hasPump = Array.isArray(a.extras) && a.extras.includes("condensate");

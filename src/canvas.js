@@ -999,14 +999,20 @@ const PART_INFO={
     es:{title:'PROTECTOR DE SOBREVOLTAJE',text:"Protege la electrónica del condensador de rayos y picos de energía - un solo rayo cercano puede destruir un compresor."}},
   supply_plenum:{en:{title:'SUPPLY PLENUM',text:"Where conditioned air leaves your indoor unit and splits off into the ductwork that feeds every room."},
     es:{title:'PLENUM DE SUMINISTRO',text:"Donde el aire acondicionado sale de su unidad interior y se distribuye hacia los ductos que alimentan cada habitación."}},
-  supply_register:{en:{title:'SUPPLY REGISTER',text:"Where conditioned air actually enters the room, at the end of a duct run off the supply plenum."},
-    es:{title:'REJILLA DE SUMINISTRO',text:"Donde el aire acondicionado realmente entra a la habitación, al final de un ducto que sale del plenum de suministro."}},
+  supply_register:{en:{title:'SUPPLY REGISTER',text:"Where conditioned air enters the room. Behind it, hidden in the drywall, sits the supply boot - the actual duct-to-register connection, and one of the most important seals in the whole system. A poorly sealed boot leaks conditioned air and can pull attic air straight in."},
+    es:{title:'REJILLA DE SUMINISTRO',text:"Donde el aire acondicionado entra a la habitación. Detrás, oculta en la pared, está la bota de suministro - la conexión real entre el ducto y la rejilla, y uno de los sellos más importantes de todo el sistema. Una bota mal sellada deja escapar aire acondicionado y puede dejar entrar aire del ático."}},
   supply_duct:{en:{title:'SUPPLY DUCT',text:"Insulated flex duct carrying conditioned air from the supply plenum down to this room's register."},
     es:{title:'DUCTO DE SUMINISTRO',text:"Ducto flexible aislado que lleva el aire acondicionado desde el plenum de suministro hasta la rejilla de esta habitación."}},
   return_plenum:{en:{title:'RETURN PLENUM',text:"Pulls room air back into the system so it can be filtered and reconditioned again."},
     es:{title:'PLENUM DE RETORNO',text:"Jala el aire de la habitación de vuelta al sistema para que pueda ser filtrado y acondicionado de nuevo."}},
   return_grille:{en:{title:'RETURN GRILLE',text:"Where room air is pulled back into the ductwork, on its way to the filter and the indoor unit."},
     es:{title:'REJILLA DE RETORNO',text:"Donde el aire de la habitación es jalado de vuelta hacia los ductos, camino al filtro y a la unidad interior."}},
+  // Closet layout's return path is a framed stud/joist cavity, not a
+  // separate metal duct with its own grille - a distinct thing from
+  // return_grille above, which is a real grille (used only by the attic
+  // layout's own return duct trunk).
+  return_chase:{en:{title:'RETURN AIR CHASE',text:"A framed 2x4 stud/joist cavity used as the return-air path back to the unit, instead of a separate metal return duct - common in closet installs where space is tight."},
+    es:{title:'CONDUCTO DE RETORNO 2×4',text:"Una cavidad enmarcada entre postes/vigas de 2x4 que sirve como camino de aire de retorno hacia la unidad, en lugar de un ducto metálico independiente - común en instalaciones de clóset donde el espacio es reducido."}},
   return_duct:{en:{title:'RETURN DUCT',text:"Carries room air from the return grille back up to the return plenum and filter, on its way to be reconditioned."},
     es:{title:'DUCTO DE RETORNO',text:"Lleva el aire de la habitación desde la rejilla de retorno hasta el plenum de retorno y el filtro, para ser acondicionado de nuevo."}},
   filtration_cabinet:{en:{title:'FILTRATION CABINET',text:"Standard on every install - traps far more dust, pollen, and allergens than a typical 1 inch filter."},
@@ -2868,9 +2874,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           box itself does) so this hover never has an existing click to
           preserve - no onClick needed. Only ever used for supply
           registers in this file (attic/closet both), so the copy is
-          keyed accordingly regardless of the label prop's exact text. */}
+          keyed accordingly regardless of the label prop's exact text.
+          group="supply_register" so every register in the build glows
+          together on hover, same as group="supply_duct" already does for
+          the duct runs feeding them - "these are all the same kind of
+          thing" applies here too. */}
       <HoverInfo x={cx-w/2-2} y={y-2} w={w+4} h={h+13} rx={2} vw={SVG_VW} vh={SVG_VH}
-        title={T('supply_register').title} text={T('supply_register').text}/>
+        title={T('supply_register').title} text={T('supply_register').text} group="supply_register"/>
     </g>;
   }
 
@@ -4985,11 +4995,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <text x={UNIT_X+UNIT_W/2} y={VH-8} textAnchor="middle"
               fill="rgba(138,98,42,.62)" fontSize="11.5" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
             {/* No EditZone covers this - free-standing hover, no onClick.
-                This chase is the closet layout's return-air path (no
-                separate return-plenum box the way the attic layout has),
-                so it doubles as that layout's return-grille equivalent. */}
-            <HoverInfo x={UNIT_X-28} y={VH-40} w={UNIT_W+56} h={30} rx={3}
-              vw={SVG_VW} vh={SVG_VH} title={T('return_grille').title} text={T('return_grille').text}/>
+                Sized to the chase's own full visual box (CHASE_Y to VH,
+                matching the outer rect drawn above) rather than just a
+                strip near the label at the bottom - it used to only cover
+                the bottom ~30px, leaving the whole upper portion of the
+                chase dead to hover. Uses its own return_chase copy
+                instead of return_grille's - this box is the framed 2x4
+                cavity itself, not an actual grille (the attic layout's
+                return_grille, used above, draws a real grille with
+                slats; this one doesn't). */}
+            <HoverInfo x={UNIT_X-28} y={CHASE_Y} w={UNIT_W+56} h={VH-CHASE_Y} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('return_chase').title} text={T('return_chase').text}/>
           </g>}
 
           {/* Condensate drain - exits right face of AH, S-curves into 2x4 chase */}
