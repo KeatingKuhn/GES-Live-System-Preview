@@ -2694,7 +2694,7 @@ function CondensatePump({x,y,w=88,h=28,lang,vw,vh}){
 // bounce-in pop, the same "jump" EditZone's own `.snap` remount was
 // originally flagged for. lang/vw/vh come in as explicit props instead
 // of Canvas closures.
-function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,hasDehu,hasERV,snap,lang,vw,vh}){
+function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,snap,lang,vw,vh}){
   if(!hasDehu&&!hasERV) return null;
   const BW=80,BH=48;
   const boxes=[];
@@ -2721,13 +2721,13 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,hasDehu,hasERV,snap,l
   return <g>{boxes.map((type,i)=>{
     const BX=type==='dehu'?dehuBX:ervBX;
     const isDehu=type==='dehu';
-    // ERV can be narrower than the dehu's fixed 80 (see ervW's own comment
-    // at its attic call site) when the wall-side slot it hangs in is too
+    // Either box can be narrower than the flat 80 (see ervW's own comment
+    // at the attic ERV's call site) when the slot it hangs in is too
     // tight for the full-size box - every position below that used to be a
-    // flat BW is now this box's own boxW instead, so a narrowed ERV still
+    // flat BW is now this box's own boxW instead, so a narrowed box still
     // centers its label/arrows/pipes correctly instead of them drifting
     // toward one edge.
-    const boxW=isDehu?BW:(ervW||BW);
+    const boxW=isDehu?(dehuW||BW):(ervW||BW);
     const pipe1X=BX+Math.round(boxW*0.28), pipe2X=BX+Math.round(boxW*0.68);
     // Hang-kit anchor X's - straight down the box centerline (0.28/0.72)
     // for the dehu, which has nothing else up there to dodge. The ERV
@@ -4631,6 +4631,47 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       `M${UNIT_X+UNIT_W} ${(LS_Y1+LS_Y2)/2} L${EXT_WALL_X+9} ${(LS_Y1+LS_Y2)/2} `+
       `L${EXT_WALL_X+9} ${COND_Y+COND_H*0.82} L${COND_X} ${COND_Y+COND_H*0.82}`;
 
+    // Dehu/ERV roofline row - hoisted once so the row itself, the dehu's
+    // own dedicated duct stubs, and the StepFocusRing highlight all agree
+    // on the same box geometry, instead of three independent inline
+    // copies of the same formula (a QA pass found exactly that drift risk
+    // here). Also where dehuX/ervX/ervW clear the main supply ducts' own
+    // drop columns (leftDropX/rightDropX, mirrored from the upflow-ducts
+    // block below) - at typical frame widths the old flat 24px/34px wall
+    // margins landed the dehu box's left edge touching (sometimes
+    // overlapping) the right supply duct's register grille, and the ERV
+    // box - boxed in between the canvas edge and the left supply duct,
+    // with nowhere to shift to - overlapped it by a real, visible amount.
+    // Same "narrow the box to fit whatever room is actually left" fix
+    // already used by the attic layout's own ERV (see its ervW comment).
+    const DEHU_ERV_RW=hasCond?HOUSE_W:VW-8;
+    const DEHU_ERV_RRISE=Math.round(Math.min(DEHU_ERV_RW/2*(3/12),60));
+    const DEHU_ERV_REAVE=DEHU_ERV_RRISE+12;
+    const DEHU_ERV_BY=DEHU_ERV_REAVE+42;
+    const DEHU_ERV_ROOFY=DEHU_ERV_REAVE+4;
+    const DEHU_ERV_BH=48;
+    const DEHU_ERV_BW=80;
+    // Main supply ducts' own drop columns + register-grille half-width
+    // (mirrors leftDropX/rightDropX/DW/GW in the upflow-ducts block
+    // below - duplicated as plain numbers rather than hoisting THAT
+    // block's own consts, since they're simple, fixed offsets off
+    // UNIT_X/PLEN_W already available up here).
+    const MD_DW=13, MD_GRILLE_HALF=(13+10)/2;
+    const MD_LEFT_X=UNIT_X-120, MD_RIGHT_X=UNIT_X+PLEN_W+120;
+    const DEHU_ERV_CLEAR=12; // real breathing room past the duct/grille edge, not just "not literally touching"
+    const ervSafeRight=MD_LEFT_X+MD_DW/2-MD_GRILLE_HALF-DEHU_ERV_CLEAR;
+    const dehuSafeLeft=MD_RIGHT_X+MD_DW/2+MD_GRILLE_HALF+DEHU_ERV_CLEAR;
+    const ervX=24; // ERV slightly right of the canvas edge
+    // 30 is a last-resort sanity floor (keeps the box from collapsing to
+    // zero/negative width on a pathologically narrow frame), not a design
+    // target - unlike the attic ERV's 52px floor, honoring a bigger floor
+    // here would just force the box back into the duct it's trying to
+    // clear.
+    const ervW=Math.max(30,Math.min(DEHU_ERV_BW,ervSafeRight-ervX));
+    const dehuRightMax=DEHU_ERV_RW-10; // stay clear of the exterior wall
+    const dehuW=Math.max(30,Math.min(DEHU_ERV_BW,dehuRightMax-dehuSafeLeft));
+    const dehuX=Math.max(dehuSafeLeft,dehuRightMax-dehuW);
+
     return(
       <HoverCtx.Provider value={setHoverPart}>
       <GroupCtx.Provider value={groupApi}>
@@ -5565,19 +5606,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             return <DehumidistatWall x={UNIT_X/2-W/2} y={midY-H/2} lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
           })()}
 
-          {/* Dehu + ERV - hang from roofline in attic zone */}
-          {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
-            const rW=hasCond?HOUSE_W:VW-8;
-            const rRise=Math.round(Math.min(rW/2*(3/12),60));
-            const rEave=rRise+12; // eave Y - bottom of roofline
-            const BW=80;
-            // Dehu anchored far RIGHT of attic, ERV anchored far LEFT - opposite sides
-            const dehuX=rW-BW-34;
-            const ervX=24; // ERV slightly right
-            return <DehuErvBoxes dehuBX={dehuX} ervBX={ervX} BY={rEave+42} roofY={rEave+4}
+          {/* Dehu + ERV - hang from roofline in attic zone. Geometry
+              (dehuX/ervX/ervW/BY/roofY) is hoisted above, shared with this
+              row's own dedicated duct stubs and StepFocusRing below. */}
+          {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&
+            <DehuErvBoxes dehuBX={dehuX} ervBX={ervX} ervW={ervW} dehuW={dehuW} BY={DEHU_ERV_BY} roofY={DEHU_ERV_ROOFY}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
-              lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
-          })()}
+              lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
 
           {/* Dehu's own dedicated return + supply - closet layout. A
               different design from the attic layout's own dehu ducts
@@ -5593,17 +5628,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               there's no shared blower airflow on an independent run to
               guard against. */}
           {hasDehu&&hasCoil&&(()=>{
-            const rW=hasCond?HOUSE_W:VW-8;
-            const rRise=Math.round(Math.min(rW/2*(3/12),60));
-            const rEave=rRise+12;
-            const BW=80,BH=48;
-            const dehuX=rW-BW-34;
-            const BY=rEave+42;
             const RC='rgba(255,182,193,';
             const stubY=DECK_Y-8; // just above the ceiling line - reads as punching through into the drywall below
-            const retX=dehuX+14, supX=dehuX+BW-14;
-            const retD=`M${retX} ${BY+BH} L${retX} ${stubY}`;
-            const supD=`M${supX} ${BY+BH} L${supX} ${stubY}`;
+            const retX=dehuX+14, supX=dehuX+dehuW-14;
+            const retD=`M${retX} ${DEHU_ERV_BY+DEHU_ERV_BH} L${retX} ${stubY}`;
+            const supD=`M${supX} ${DEHU_ERV_BY+DEHU_ERV_BH} L${supX} ${stubY}`;
             // Small flanged collar where each stub disappears into the
             // ceiling drywall - same "duct terminates into the structure"
             // language as the ERV's own roof-penetration collars above.
@@ -5620,10 +5649,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <path d={supD} fill="none" stroke={G+'.13)'} strokeWidth="8" strokeLinecap="round"/>
               <path d={supD} fill="none" stroke={G+'.65)'} strokeWidth="1.4" strokeDasharray="3.5 2.2"/>
               {cap(supX,G)}
-              <HoverInfo x={retX-9} y={BY+BH-4} w={18} h={stubY-(BY+BH)+13} rx={2}
+              <HoverInfo x={retX-9} y={DEHU_ERV_BY+DEHU_ERV_BH-4} w={18} h={stubY-(DEHU_ERV_BY+DEHU_ERV_BH)+13} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_dedicated_return').title} text={T('dehu_dedicated_return').text}
                 ringPath={retD} ringStrokeWidth={10}/>
-              <HoverInfo x={supX-9} y={BY+BH-4} w={18} h={stubY-(BY+BH)+13} rx={2}
+              <HoverInfo x={supX-9} y={DEHU_ERV_BY+DEHU_ERV_BH-4} w={18} h={stubY-(DEHU_ERV_BY+DEHU_ERV_BH)+13} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_dedicated_supply').title} text={T('dehu_dedicated_supply').text}
                 ringPath={supD} ringStrokeWidth={10}/>
             </g>;
@@ -5634,9 +5663,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                these steps get one; geometry here mirrors this layout's own
                EditZone calls above at each matching spot. ── */}
           {(()=>{
-            const rW=hasCond?HOUSE_W:VW-8;
-            const rRise=Math.round(Math.min(rW/2*(3/12),60));
-            const rEave=rRise+12;
             // PLEN_ABOVE/BELOW are both 0 before plenum is answered (see
             // their own definitions above) - nominal ductboard-sized
             // stand-ins just for this ghost ring, same reasoning as the
@@ -5660,8 +5686,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   height exactly, see the attic layout's own APR_W comment. */}
               <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="purif"
                 x={UNIT_X-2} y={APR_Y-2} w={UNIT_W+4} h={(APR_H||28)+4} rx={4}/>
-              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu" x={rW-80-34} y={rEave+42} w={80} h={48} rx={4}/>
-              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="extras" x={24} y={rEave+42} w={80} h={48} rx={4}/>
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu" x={dehuX} y={DEHU_ERV_BY} w={dehuW} h={DEHU_ERV_BH} rx={4}/>
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="extras" x={ervX} y={DEHU_ERV_BY} w={ervW} h={DEHU_ERV_BH} rx={4}/>
             </>;
           })()}
           {/* Single always-topmost hover tooltip - see the module comment
