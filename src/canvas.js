@@ -4178,9 +4178,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // stylesheet class for any property the class doesn't
               // itself animate - while .airflow's animated dashoffset
               // keyframe still drives the actual motion.
+              // QA FIX - strokeLinejoin defaulted to "miter", which on the
+              // angled ducts' own bent path (a real corner, unlike the
+              // straight duct's single unbroken segment) can spike a thin
+              // 1.6px dashed stroke into a disproportionately bright flare
+              // right at the joint whenever a dash happens to straddle it -
+              // reading as the angled ducts having a much stronger glow
+              // than the straight one, even though the dash pattern itself
+              // (pathLength-normalized, see the comment above) is
+              // genuinely identical across all three. "round" caps the
+              // join at the stroke's own width instead of amplifying it.
               const ductArrow=(d,key)=>(
                 <path key={key} d={d} pathLength="100" fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
-                  className="airflow" style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
+                  strokeLinejoin="round" className="airflow" style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
               );
               const straight=(cx,key)=>(
                 <g key={key}>
@@ -4624,8 +4634,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // true center - same "route around, not through, a box in the
             // way" idea as the closet return-chase's own pump detour.
             const hasERVHere=Array.isArray(a.extras)&&a.extras.includes('erv');
-            const retDodgeX=8+BW+14;
-            const retDodgeY=UNIT_Y-10;
+            // QA FIX - the original +14/-10 margins were numerically clear
+            // of the ERV box but only by a few px once the pipe's own
+            // outer glow (half of pipeW+6) is accounted for, reading as
+            // touching/overlapping it in practice. Widened for a real
+            // visible gap.
+            const retDodgeX=8+BW+28;
+            const retDodgeY=UNIT_Y-4;
             const retD=hasERVHere
               ?`M${dehuBX} ${midY} L${retDodgeX} ${midY} L${retDodgeX} ${retDodgeY} L${retTgtX} ${retDodgeY} L${retTgtX} ${UNIT_Y}`
               :`M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
@@ -4782,10 +4797,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // cluster on the left, short of the condenser hookup on the
             // right, above the open middle of the coil/plenum run.
             const sfX=RIDGE_X+(RL_WALL_X-RIDGE_X)*0.6;
-            // +18 past the lineset's own roofY+RL_ROOF_GAP centerline -
-            // clears its ~12px foam-sleeve width with room to spare, so
-            // the label sits just underneath the pipe, not touching it.
-            const sfY=roofY(sfX)+RL_ROOF_GAP+18;
+            // QA FIX - +18 measured to the text's own BASELINE, but SVG
+            // text glyphs extend upward from that baseline (this font's
+            // ascender is roughly 0.8x the 12px font size, ~10px) - so the
+            // glyphs' own TOP edge was only clearing the lineset's ~12px
+            // foam-sleeve width by a couple px, reading as sitting right
+            // on top of the pipe rather than underneath it. +34 gives the
+            // glyph top real breathing room below the sleeve.
+            const sfY=roofY(sfX)+RL_ROOF_GAP+34;
             return <g transform={`rotate(${roofAngleDeg} ${sfX} ${sfY})`}>
               {/* pointerEvents:none - a plain <text> is still hit-tested
                   by its own painted glyph area by default (same "wide
@@ -5282,9 +5301,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // stylesheet class for any property the class doesn't
               // itself animate - while .airflow's animated dashoffset
               // keyframe still drives the actual motion.
+              // Same strokeLinejoin="round" fix as the attic layout's own
+              // ductArrow - see its comment for why an angled duct's real
+              // bend needs this and a straight one doesn't.
               const ductArrow=(d,key)=>(
                 <path key={key} d={d} pathLength="100" fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
-                  className="airflow" style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
+                  strokeLinejoin="round" className="airflow" style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
               );
               // Vertical drop goes from exitY down to DECK_Y. Flex-duct
               // corrugation (DuctRibbing/DuctClamp - see the attic
@@ -5722,36 +5744,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
 
           {/* 2×4 return chase */}
           {hasCoil&&(()=>{
-            // Same pump-box geometry the condensate-drain block below
-            // computes for itself (kept duplicated rather than hoisted -
-            // these two blocks are separate top-level JSX expressions, and
-            // the formula is a fixed, self-contained one, not derived from
-            // anything that could drift between the two copies) - needed
-            // here so the return-airflow arrow below can detour around the
-            // pump box instead of running straight through its text.
-            const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
-            const chaseBottomY=VH-20, pumpH=28, pumpY=chaseBottomY-pumpH-6;
-            const pumpX=UNIT_X-28+Math.round((UNIT_W+56)*0.5)-28;
+            // QA FIX - the condensate pump no longer lives inside this
+            // chase at all (see the drain block's own comment below for
+            // where it went and why), so the return-airflow arrow no
+            // longer needs to dodge anything - back to the plain straight
+            // run up the chase's centerline.
             const cx=UNIT_X+UNIT_W/2;
-            // The pump (per direct client feedback, see the drain block's
-            // own comment) sits centered-ish in the chase, which used to
-            // put it directly in this arrow's straight-line path - its
-            // dashes and glow cut right across "COND. PUMP"/"condensate".
-            // Only the vertical span actually overlapping the pump box
-            // needs to dodge; above/below it the arrow still runs straight
-            // up the chase's centerline like before.
-            const dodgeX=pumpX-10;
-            // Bottom jog stays tight (+3, not the top dodge's own +10) -
-            // the gap here is a lot tighter: pump-box-bottom to the
-            // "2×4 RETURN AIR CHASE" label's own baseline is well under
-            // half the room the pump-box-top to the filtration cabinet
-            // above has to work with. A wider offset here just traded the
-            // arrow-through-pump-text collision for an arrow-through-
-            // chase-label one instead.
-            const dodgeBottomY=pumpY+pumpH+1;
-            const arrowD=hasPump
-              ?`M${cx} ${VH-20} L${cx} ${dodgeBottomY} L${dodgeX} ${dodgeBottomY} L${dodgeX} ${pumpY-10} L${cx} ${pumpY-10} L${cx} ${CHASE_Y+10}`
-              :`M${cx} ${VH-20} L${cx} ${CHASE_Y+10}`;
+            const arrowD=`M${cx} ${VH-20} L${cx} ${CHASE_Y+10}`;
             return <g className="snap" key="chase">
             <rect x={UNIT_X-28} y={CHASE_Y} width={UNIT_W+56} height={VH-CHASE_Y} rx="3"
               fill="rgba(100,75,34,.07)" stroke="rgba(138,98,42,.42)" strokeWidth="1.5"/>
@@ -5864,43 +5863,44 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               ringPath={linesetRingPath} ringStrokeWidth={16}/>
           </g>}
 
-          {/* Condensate drain - exits right face of AH, S-curves into 2x4
-              chase. Painted AFTER (so it wins hover priority over) the
-              refrigerant line stubs just above - see that block's own
-              comment for why. */}
+          {/* Condensate drain - exits right face of AH. Without a pump,
+              S-curves into the 2x4 chase (unchanged). With a pump, per
+              direct feedback runs out to the pump box sitting to the
+              RIGHT of the closet instead - the pump used to live inside
+              the chase itself, dead center in the return-airflow arrow's
+              own path, which needed an awkward multi-bend detour around
+              it (see the chase block's own history/comment above) and
+              still read as crowded. Painted AFTER (so it wins hover
+              priority over) the refrigerant line stubs just above - see
+              that block's own comment for why. */}
           {hasCoil&&(()=>{
             const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
             // Exit point: right face of AH/coil, lower portion
             const exitX=UNIT_X+UNIT_W;
             const exitY=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.85):ACOIL_Y+Math.round(ACOIL_H*0.85);
-            // Step 1: 45° right-down from unit face to outside chase
+            // Step 1: 45° right-down from unit face
             const offset=20; // how far right before turning down
             const pt1X=exitX+offset;
             const pt1Y=exitY+offset; // 45°
-            // Step 2: straight down
             const chaseBottomY=VH-20;
             const pumpH=28;
+            // No-pump case: same S-curve into the chase as always, pump
+            // case: straight down from pt1, then right into the pump box,
+            // which sits clear of the chase's own right wall
+            // (UNIT_X+UNIT_W+28) out in the open floor space beside it.
+            const pumpX=UNIT_X+UNIT_W+36;
             const pumpY=chaseBottomY-pumpH-6;
-            // Back to centered inside the chase (per direct feedback) -
-            // moving the return-air temp up to the chase's own top-left
-            // corner (see its own comment below) already frees up enough
-            // room down here for the pump without needing to move it
-            // outside the box too.
-            const pumpX=UNIT_X-28+Math.round((UNIT_W+56)*0.5)-28;
-            // Step 3: 45° left-down into chase
-            const pt2Y=hasPump?pumpY-offset:chaseBottomY-offset;
             const pt2X=pt1X;
-            const pt3X=pt2X-offset; // back left 45°
-            const pt3Y=pt2Y+offset;
-            // Same path the three <line> segments below trace (exit →
-            // 45° down-right → straight down → 45° down-left into the
-            // chase), reused as the hover ring's ringPath - the hit-rect
-            // just below is still a loose bounding box (fine for hit-
-            // testing), but this S-curve zigzags inside it, so a rect
-            // ring around that box would read as a big box floating
-            // around a thin bent line instead of hugging the actual
-            // drain run, same reasoning as the attic layout's angled
-            // supply duct elbow.
+            const pt2Y=hasPump?pumpY+pumpH/2:chaseBottomY-offset;
+            const pt3X=hasPump?pumpX:pt2X-offset;
+            const pt3Y=pt2Y;
+            // Same path the line segments below trace, reused as the
+            // hover ring's ringPath - the hit-rect just below is still a
+            // loose bounding box (fine for hit-testing), but this bent
+            // run zigzags inside it, so a rect ring around that box would
+            // read as a big box floating around a thin bent line instead
+            // of hugging the actual drain run, same reasoning as the
+            // attic layout's angled supply duct elbow.
             const drainD=`M${exitX} ${exitY} L${pt1X} ${pt1Y} L${pt2X} ${pt2Y} L${pt3X} ${pt3Y}`;
             return <>
               {/* 45° right-down from unit */}
@@ -5909,7 +5909,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               {/* Straight down */}
               <line x1={pt1X} y1={pt1Y} x2={pt2X} y2={pt2Y}
                 stroke={B+'.42)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
-              {/* 45° left into chase */}
+              {/* Into the chase (no pump) or right into the pump box */}
               <line x1={pt2X} y1={pt2Y} x2={pt3X} y2={pt3Y}
                 stroke={B+'.38)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
               {/* No EditZone covers this line run - free-standing hover, no
@@ -5917,7 +5917,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   own separate hover, so this one is sized to just the
                   drain line's own path, not the pump box past pt3X. */}
               <HoverInfo x={Math.min(exitX,pt3X)-4} y={Math.min(exitY,pt2Y)-4}
-                w={Math.max(exitX,pt1X)-Math.min(exitX,pt3X)+8} h={Math.max(pt2Y,pt3Y)-Math.min(exitY,pt2Y)+8}
+                w={Math.max(exitX,pt1X,pt3X)-Math.min(exitX,pt3X)+8} h={Math.max(pt2Y,pt3Y)-Math.min(exitY,pt2Y)+8}
                 rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
                 ringPath={drainD} ringStrokeWidth={9}/>
               {!hasPump&&<>
@@ -5925,11 +5925,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">DRAIN</text>
                 <circle cx={pt3X} cy={pt3Y} r={3} fill={B+'.4)'} stroke={B+'.6)'} strokeWidth="0.8"/>
               </>}
-              {hasPump&&<>
-                <CondensatePump x={pumpX} y={pumpY} w={88} h={pumpH} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
-                <line x1={pt3X} y1={pt3Y} x2={pumpX+88} y2={pumpY+pumpH/2}
-                  stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="4 3"/>
-              </>}
+              {hasPump&&<CondensatePump x={pumpX} y={pumpY} w={88} h={pumpH} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
             </>;
           })()}
 
@@ -6092,6 +6088,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const retX=dehuX+14, supX=dehuX+dehuW-14;
             const retD=`M${retX} ${DEHU_ERV_BY+DEHU_ERV_BH} L${retX} ${stubY}`;
             const supD=`M${supX} ${DEHU_ERV_BY+DEHU_ERV_BH} L${supX} ${stubY}`;
+            // Thickened per direct feedback - matches the attic layout's
+            // own dehu duct treatment (a solid pipe body, not just a thin
+            // dashed line with a soft glow standing in for real duct
+            // width).
+            const pipeW=11;
             // Small flanged collar where each stub disappears into the
             // ceiling drywall - same "duct terminates into the structure"
             // language as the ERV's own roof-penetration collars above.
@@ -6102,18 +6103,20 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               </>
             );
             return <g className="snap" style={{animationDelay:'0.4s'}}>
-              <path d={retD} fill="none" stroke={RC+'.14)'} strokeWidth="8" strokeLinecap="round"/>
-              <path d={retD} fill="none" stroke={RC+'.75)'} strokeWidth="1.4" strokeDasharray="3.5 2.2"/>
+              <path d={retD} fill="none" stroke={RC+'.16)'} strokeWidth={pipeW+6} strokeLinecap="round"/>
+              <path d={retD} fill="none" stroke={RC+'.4)'} strokeWidth={pipeW} strokeLinecap="round"/>
+              <path d={retD} fill="none" stroke={RC+'.8)'} strokeWidth="1.4" strokeDasharray="3.5 2.2"/>
               {cap(retX,RC)}
-              <path d={supD} fill="none" stroke={G+'.13)'} strokeWidth="8" strokeLinecap="round"/>
-              <path d={supD} fill="none" stroke={G+'.65)'} strokeWidth="1.4" strokeDasharray="3.5 2.2"/>
+              <path d={supD} fill="none" stroke={G+'.16)'} strokeWidth={pipeW+6} strokeLinecap="round"/>
+              <path d={supD} fill="none" stroke={G+'.3)'} strokeWidth={pipeW} strokeLinecap="round"/>
+              <path d={supD} fill="none" stroke={G+'.7)'} strokeWidth="1.4" strokeDasharray="3.5 2.2"/>
               {cap(supX,G)}
               <HoverInfo x={retX-9} y={DEHU_ERV_BY+DEHU_ERV_BH-4} w={18} h={stubY-(DEHU_ERV_BY+DEHU_ERV_BH)+13} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_dedicated_return').title} text={T('dehu_dedicated_return').text}
-                ringPath={retD} ringStrokeWidth={10}/>
+                ringPath={retD} ringStrokeWidth={pipeW+8}/>
               <HoverInfo x={supX-9} y={DEHU_ERV_BY+DEHU_ERV_BH-4} w={18} h={stubY-(DEHU_ERV_BY+DEHU_ERV_BH)+13} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_dedicated_supply').title} text={T('dehu_dedicated_supply').text}
-                ringPath={supD} ringStrokeWidth={10}/>
+                ringPath={supD} ringStrokeWidth={pipeW+8}/>
             </g>;
           })()}
 
@@ -6137,8 +6140,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 x={UNIT_X-2} y={focusPlenTop-2} w={PLEN_W+4} h={focusPlenTotal+4} rx={5}/>
               {hasCond&&<StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="cond_tier"
                 x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
+              {/* QA FIX - this used to drop the real thermostat's own "+38"
+                  re-center term (TX is the row's LEFT edge, not its
+                  center - the real EditZone below centers on TX+38, the
+                  face's own midpoint), landing the ghost preview a flat
+                  38px left of where the real thermostat actually renders. */}
               <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="thermostat"
-                x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-38-((isDualFuel||!hasFurnace)?96:76)/2-2}
+                x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-((isDualFuel||!hasFurnace)?96:76)/2-2}
                 y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40}
                 w={((isDualFuel||!hasFurnace)?96:76)+6} h={116}/>
               {/* APR_H is 0 only if the (effectively always-on) filtration

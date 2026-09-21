@@ -4792,6 +4792,7 @@
             fill: "none",
             stroke: (heatMode ? O : B) + ".85)",
             strokeWidth: "1.6",
+            strokeLinejoin: "round",
             className: "airflow",
             style: { strokeDashoffset: 0, strokeDasharray: "16 10" },
             markerEnd: "url(#arr)"
@@ -5236,8 +5237,8 @@
         const retTgtX = RET_X + RET_PLEN_W / 2;
         const supTgtX = SUP_X + Math.round(SUP_PLEN_W * 0.75);
         const hasERVHere = Array.isArray(a.extras) && a.extras.includes("erv");
-        const retDodgeX = 8 + BW + 14;
-        const retDodgeY = UNIT_Y - 10;
+        const retDodgeX = 8 + BW + 28;
+        const retDodgeY = UNIT_Y - 4;
         const retD = hasERVHere ? `M${dehuBX} ${midY} L${retDodgeX} ${midY} L${retDodgeX} ${retDodgeY} L${retTgtX} ${retDodgeY} L${retTgtX} ${UNIT_Y}` : `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
         const supD = `M${dehuBX + BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
         const dpad = pipeW / 2 + 4;
@@ -5448,7 +5449,7 @@
         ));
         const roofAngleDeg = Math.atan2(EAVE_Y - RIDGE_Y, HOUSE_W - RIDGE_X) * 180 / Math.PI;
         const sfX = RIDGE_X + (RL_WALL_X - RIDGE_X) * 0.6;
-        const sfY = roofY(sfX) + RL_ROOF_GAP + 18;
+        const sfY = roofY(sfX) + RL_ROOF_GAP + 34;
         return /* @__PURE__ */ React.createElement("g", { transform: `rotate(${roofAngleDeg} ${sfX} ${sfY})` }, /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -5962,6 +5963,7 @@
             fill: "none",
             stroke: (heatMode ? O : B) + ".85)",
             strokeWidth: "1.6",
+            strokeLinejoin: "round",
             className: "airflow",
             style: { strokeDashoffset: 0, strokeDasharray: "16 10" },
             markerEnd: "url(#arr)"
@@ -6619,13 +6621,8 @@
           text: T("filtration_cabinet").text
         }
       )), hasCoil && (() => {
-        const hasPump = Array.isArray(a.extras) && a.extras.includes("condensate");
-        const chaseBottomY = VH - 20, pumpH = 28, pumpY = chaseBottomY - pumpH - 6;
-        const pumpX = UNIT_X - 28 + Math.round((UNIT_W + 56) * 0.5) - 28;
         const cx = UNIT_X + UNIT_W / 2;
-        const dodgeX = pumpX - 10;
-        const dodgeBottomY = pumpY + pumpH + 1;
-        const arrowD = hasPump ? `M${cx} ${VH - 20} L${cx} ${dodgeBottomY} L${dodgeX} ${dodgeBottomY} L${dodgeX} ${pumpY - 10} L${cx} ${pumpY - 10} L${cx} ${CHASE_Y + 10}` : `M${cx} ${VH - 20} L${cx} ${CHASE_Y + 10}`;
+        const arrowD = `M${cx} ${VH - 20} L${cx} ${CHASE_Y + 10}`;
         return /* @__PURE__ */ React.createElement("g", { className: "snap", key: "chase" }, /* @__PURE__ */ React.createElement(
           "rect",
           {
@@ -6797,12 +6794,12 @@
         const pt1Y = exitY + offset;
         const chaseBottomY = VH - 20;
         const pumpH = 28;
+        const pumpX = UNIT_X + UNIT_W + 36;
         const pumpY = chaseBottomY - pumpH - 6;
-        const pumpX = UNIT_X - 28 + Math.round((UNIT_W + 56) * 0.5) - 28;
-        const pt2Y = hasPump ? pumpY - offset : chaseBottomY - offset;
         const pt2X = pt1X;
-        const pt3X = pt2X - offset;
-        const pt3Y = pt2Y + offset;
+        const pt2Y = hasPump ? pumpY + pumpH / 2 : chaseBottomY - offset;
+        const pt3X = hasPump ? pumpX : pt2X - offset;
+        const pt3Y = pt2Y;
         const drainD = `M${exitX} ${exitY} L${pt1X} ${pt1Y} L${pt2X} ${pt2Y} L${pt3X} ${pt3Y}`;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "line",
@@ -6845,7 +6842,7 @@
           {
             x: Math.min(exitX, pt3X) - 4,
             y: Math.min(exitY, pt2Y) - 4,
-            w: Math.max(exitX, pt1X) - Math.min(exitX, pt3X) + 8,
+            w: Math.max(exitX, pt1X, pt3X) - Math.min(exitX, pt3X) + 8,
             h: Math.max(pt2Y, pt3Y) - Math.min(exitY, pt2Y) + 8,
             rx: 3,
             vw: SVG_VW,
@@ -6866,18 +6863,7 @@
             fontFamily: "monospace"
           },
           "DRAIN"
-        ), /* @__PURE__ */ React.createElement("circle", { cx: pt3X, cy: pt3Y, r: 3, fill: B + ".4)", stroke: B + ".6)", strokeWidth: "0.8" })), hasPump && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(CondensatePump, { x: pumpX, y: pumpY, w: 88, h: pumpH, lang, vw: SVG_VW, vh: SVG_VH }), /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: pt3X,
-            y1: pt3Y,
-            x2: pumpX + 88,
-            y2: pumpY + pumpH / 2,
-            stroke: B + ".4)",
-            strokeWidth: "1.5",
-            strokeDasharray: "4 3"
-          }
-        )));
+        ), /* @__PURE__ */ React.createElement("circle", { cx: pt3X, cy: pt3Y, r: 3, fill: B + ".4)", stroke: B + ".6)", strokeWidth: "0.8" })), hasPump && /* @__PURE__ */ React.createElement(CondensatePump, { x: pumpX, y: pumpY, w: 88, h: pumpH, lang, vw: SVG_VW, vh: SVG_VH }));
       })(), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
@@ -7189,8 +7175,9 @@
         const retX = dehuX + 14, supX = dehuX + dehuW - 14;
         const retD = `M${retX} ${DEHU_ERV_BY + DEHU_ERV_BH} L${retX} ${stubY}`;
         const supD = `M${supX} ${DEHU_ERV_BY + DEHU_ERV_BH} L${supX} ${stubY}`;
+        const pipeW = 11;
         const cap = (x, color) => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x - 6, y: stubY - 3, width: "12", height: "6", rx: "1.5", fill: color + ".3)", stroke: color + ".6)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: x - 9, y1: stubY + 3, x2: x + 9, y2: stubY + 3, stroke: color + ".4)", strokeWidth: "1", strokeDasharray: "1.5 1.5" }));
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".14)", strokeWidth: "8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".75)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(retX, RC), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".13)", strokeWidth: "8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".65)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(supX, G), /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".16)", strokeWidth: pipeW + 6, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".4)", strokeWidth: pipeW, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".8)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(retX, RC), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".16)", strokeWidth: pipeW + 6, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".3)", strokeWidth: pipeW, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".7)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(supX, G), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: retX - 9,
@@ -7203,7 +7190,7 @@
             title: T("dehu_dedicated_return").title,
             text: T("dehu_dedicated_return").text,
             ringPath: retD,
-            ringStrokeWidth: 10
+            ringStrokeWidth: pipeW + 8
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -7218,7 +7205,7 @@
             title: T("dehu_dedicated_supply").title,
             text: T("dehu_dedicated_supply").text,
             ringPath: supD,
-            ringStrokeWidth: 10
+            ringStrokeWidth: pipeW + 8
           }
         ));
       })(), (() => {
@@ -7293,7 +7280,7 @@
             vw: SVG_VW,
             vh: SVG_VH,
             stepId: "thermostat",
-            x: UNIT_X + UNIT_W + 16 + (EXT_WALL_X - 16 - (UNIT_X + UNIT_W + 16)) / 2 - 38 - (isDualFuel || !hasFurnace ? 96 : 76) / 2 - 2,
+            x: UNIT_X + UNIT_W + 16 + (EXT_WALL_X - 16 - (UNIT_X + UNIT_W + 16)) / 2 - (isDualFuel || !hasFurnace ? 96 : 76) / 2 - 2,
             y: (hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2) - 40,
             w: (isDualFuel || !hasFurnace ? 96 : 76) + 6,
             h: 116
