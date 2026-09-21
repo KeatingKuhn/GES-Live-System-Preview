@@ -549,7 +549,20 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         return <path d={d} fill="rgba(240,246,255,.85)" stroke="rgba(255,255,255,.25)" strokeWidth="0.6"/>;
       })()}
     </g>
-    <text x={wallX+zoneW-30} y={condY-9} textAnchor="end"
+    {/* Both status lines are pinned a fixed distance ABOVE the cabinet's
+        own top edge (condY), never inside it - condY is ground-anchored
+        and COND_H varies a lot by tier (mid_ge15's front-discharge
+        cabinet is barely half high_ge18's height), so a short cabinet's
+        top edge sits much lower on screen than a tall one's. The old
+        -9/+6 pair put this second line 6px BELOW condY (i.e. deliberately
+        inside the box, against its dark cap) - fine for the tall fedmin/
+        high-eff cabinets with a deep dark cap to sit against, but on the
+        much shorter mid-tier cabinet that "inside" position landed right
+        across the box's own top border/corner, the text glyphs reading
+        as crossed out by the cabinet edge instead of labeling it. Both
+        lines now sit above condY by construction, so this holds for
+        every tier's cabinet height instead of just the taller ones. */}
+    <text x={wallX+zoneW-30} y={condY-24} textAnchor="end"
       fill={active?condC:(G+'.55)')} fontSize="13" fontFamily="monospace">
       {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
     </text>
@@ -559,7 +572,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         from the house and this releases it outside; reversed (heat pump
         heating), indoor rejects heat into the house and this is the one
         absorbing it from the outside air instead. */}
-    {active&&<text x={wallX+zoneW-30} y={condY+6} textAnchor="end"
+    {active&&<text x={wallX+zoneW-30} y={condY-9} textAnchor="end"
       fill={refReversed?'rgba(35,137,224,.5)':'rgba(239,68,68,.5)'} fontSize="12" fontFamily="monospace">
       {refReversed?"ABSORBING HEAT":"RELEASING HEAT"}
     </text>}

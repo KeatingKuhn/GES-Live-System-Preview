@@ -1212,7 +1212,7 @@
       "text",
       {
         x: wallX + zoneW - 30,
-        y: condY - 9,
+        y: condY - 24,
         textAnchor: "end",
         fill: active ? condC : G2 + ".55)",
         fontSize: "13",
@@ -1223,7 +1223,7 @@
       "text",
       {
         x: wallX + zoneW - 30,
-        y: condY + 6,
+        y: condY - 9,
         textAnchor: "end",
         fill: refReversed ? "rgba(35,137,224,.5)" : "rgba(239,68,68,.5)",
         fontSize: "12",
