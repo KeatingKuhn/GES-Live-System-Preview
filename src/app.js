@@ -762,7 +762,12 @@ function App(){
     const click = isDisabled ? null : isMulti ? ()=>toggle(cur.id,opt.v) : ()=>setA(cur.id,opt.v);
     if(isSmall){
       return <button key={opt.v} className={"attic-opt"+(isOn?" sel":"")+(isDisabled?" disabled":"")} onClick={click}>
-        <span className="attic-opt-label">{opt.label}</span>
+        {/* opt.badge (the "GES" recommended-pick pill, e.g. on the Wi-Fi
+            thermostat) used to only render in the full .opt card below -
+            a QA pass caught the compact attic card silently dropping it,
+            so the same option read as recommended in closet mode but not
+            in attic mode. Reuses .opt-badge's own styling. */}
+        <span className="attic-opt-label">{opt.label}{opt.badge&&<span className="opt-badge">GES</span>}</span>
         <span className="attic-opt-desc">{opt.desc||""}</span>
         <div className="attic-opt-foot">
           <div className={"attic-chk"+(isMulti?"":" radio")}>{isMulti&&isOn?"✓":""}{!isMulti&&isOn?<div style={{width:7,height:7,borderRadius:"50%",background:"var(--gh)"}}/>:""}</div>
@@ -1328,7 +1333,17 @@ function App(){
                     .step-hdr above - this panel had the identical
                     instant-pop-in gap since none of its content changes
                     identity between sub-steps otherwise. */}
-                return <div key={pricingSubStep} className="fadein" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
+                // no-print: this is a live, mid-flow question (radio cards,
+                // a sq-ft input, a vent-count field) - meaningless on paper,
+                // and its own dark on-screen styling was never adapted for
+                // print the way the sizing/result price card was (see the
+                // print media block in styles.css), so it rendered as
+                // stray unstyled buttons under the letterhead. Hitting
+                // Save/Print while pricing is still on the sizing sub-steps
+                // already gets the full review grid via .print-only-grid
+                // above (see its own comment) - that's the printable
+                // stand-in for whatever this in-progress panel is showing.
+                return <div key={pricingSubStep} className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
                   {/* .5 measured 3.20:1 against the panel background this
                       sits on - under the 4.5:1 minimum for this 9-10.5px
                       label. .7 clears it at 5.06:1. */}
@@ -1365,7 +1380,7 @@ function App(){
                   leadUnlocked detection effect above; auto-advances to
                   'result' the moment that flips true, so a homeowner who
                   submits the form never has to click anything in here. */}
-              {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
+              {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
                 <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
                 <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
                   {tr('Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else.','Complete el formulario breve en esta página para desbloquear los precios - continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}

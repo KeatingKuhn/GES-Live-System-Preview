@@ -984,14 +984,27 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      outgrowing what the diagram actually needs. Closet's done-screen
      canvas doesn't get this because its own diagram is tall/narrow, not
      short/wide - flex:1 there already lands close to what it needs. */
-  .done-screen.attic-mode .done-canvas-frame{flex:none;height:52vh;min-height:220px}
+  /* height:52vh alone (a flat percentage of viewport HEIGHT) ignores the
+     frame's own WIDTH - on a portrait tablet (e.g. 768x1024) that's a
+     532px-tall box for a diagram whose fixed ~2.5:1 aspect only actually
+     needs ~300px at 768px wide, so ~230px of pure dead canvas background
+     sat between the diagram and "Your System is Built" below it (confirmed
+     via getBoundingClientRect - the diagram's own content stopped well
+     short of the frame's bottom edge). A phone in landscape (e.g. 844x390,
+     the case 52vh was originally tuned for) is wide enough relative to its
+     height that 52vh already lands close to the aspect-driven height, so
+     that case is unaffected. aspect-ratio makes the frame's height track
+     its width directly - min-height keeps the old phone-portrait floor,
+     max-height keeps the old 52vh as an upper bound so a very short/wide
+     viewport can't make this taller than before. */
+  .done-screen.attic-mode .done-canvas-frame{flex:none;height:auto;aspect-ratio:2.5;max-height:52vh;min-height:220px}
 }
 
 @media(max-width:600px){
   /* Phone: smaller canvas, single-column options */
   .attic-canvas-area{height:45vh}
   .closet-canvas-area{height:45vh}
-  .done-screen.attic-mode .done-canvas-frame{height:45vh}
+  .done-screen.attic-mode .done-canvas-frame{height:auto;aspect-ratio:2.5;max-height:45vh}
   .sidebar{max-height:50vh}
   .opts .opt{min-width:100%;max-width:100%}
   .attic-opt{min-width:100%;max-width:100%}
