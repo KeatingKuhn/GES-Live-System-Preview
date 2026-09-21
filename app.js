@@ -6086,6 +6086,17 @@
         },
         "HEAT EXCH."
       ), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          x: UNIT_X + UNIT_W / 2,
+          y: FURN_Y + FURN_H / 4 + 20,
+          textAnchor: "middle",
+          fill: furnaceActive ? "rgba(249,115,22,.44)" : "rgba(255,255,255,.15)",
+          fontSize: "9.5",
+          fontFamily: "monospace"
+        },
+        furnaceActive ? "GAS HEATING ACTIVE" : "STANDBY"
+      ), /* @__PURE__ */ React.createElement(
         BlowerWheel,
         {
           cx: UNIT_X + UNIT_W / 2,

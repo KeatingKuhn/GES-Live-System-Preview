@@ -4786,6 +4786,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             ))}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H/4+6} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="12.5" fontFamily="monospace">HEAT EXCH.</text>
+            {/* GAS HEATING ACTIVE / STANDBY status line - the attic
+                layout's FurnaceH has always shown this under its FURNACE
+                label; this closet furnace never did, so a straight-cool or
+                dual-fuel-furnace-submode customer here got a "FURNACE"
+                title that turns orange but no actual text confirming gas
+                heat is on, unlike the attic diagram for the identical
+                system. There's clear room for it in the gap between this
+                HX label and the gas-manifold glow box below (FURN_H is
+                ~257px at this SCALE, plenty for both), so it lands here
+                instead of by the "FURNACE" title above the cabinet, which
+                the label's own comment already flags as too tight to
+                widen. */}
+            <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H/4+20} textAnchor="middle"
+              fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="9.5" fontFamily="monospace">
+              {furnaceActive?"GAS HEATING ACTIVE":"STANDBY"}
+            </text>
             {/* BOTTOM: blower */}
             <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.70}
               r={Math.min(UNIT_W*0.32,FURN_H*0.155)}
