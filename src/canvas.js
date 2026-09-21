@@ -4706,12 +4706,25 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             {(()=>{
               const isExisting=a.plenum==='none';
               const isMetal=a.plenum==='metal';
-              const pFill=isExisting?"rgba(38,38,52,.6)":isMetal?"#1a1c24":"#141108";
+              // isExisting's fill used to be genuinely translucent (a .6-alpha
+              // color, THEN a .7 opacity on top of that - the two compound to
+              // ~.42 effective alpha) to read as "lighter/older material" next
+              // to the solid ductboard/metal boxes. But this box sits directly
+              // over the closet's own "UTILITY CLOSET" title text (painted
+              // earlier, up at the deck line) - opaque enough on the other two
+              // materials to fully hide it, that ~.42 alpha let it ghost
+              // through right behind the plenum's own "EXISTING PLENUM"/
+              // "SUPPLY" labels, two unrelated pieces of text visually
+              // colliding in the same box. Solid-but-still-visually-distinct
+              // (dashed border + its own lighter-navy tone, no material
+              // texture) reads as "existing" just as well without the actual
+              // see-through.
+              const pFill=isExisting?"rgba(30,30,44,.97)":isMetal?"#1a1c24":"#141108";
               const pStroke=isExisting?(G+'.22)'):(G+(isMetal?'.74)':'.5)'));
               return <>
                 <rect x={UNIT_X} y={PLEN_TOP} width={PLEN_W} height={PLEN_TOTAL} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={isExisting?1:isMetal?1.7:1.4}
-                  strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.7:1}/>
+                  strokeDasharray={isExisting?"6 3":undefined}/>
                 {/* Warm/cold air pulse - same idea as the refrigerant line pulse, orange for heat, blue for cool.
                     Thick + glowing so it reads clearly against the plenum's own static material border underneath. */}
                 <rect x={UNIT_X-2} y={PLEN_TOP-2} width={PLEN_W+4} height={PLEN_TOTAL+4} rx="4"

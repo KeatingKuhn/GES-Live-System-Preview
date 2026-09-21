@@ -3433,8 +3433,8 @@
       const BX = type === "dehu" ? dehuBX : ervBX;
       const isDehu = type === "dehu";
       const boxW = isDehu ? BW : ervW || BW;
-      const r1X = BX + boxW * 0.28, r2X = BX + boxW * 0.72;
       const pipe1X = BX + Math.round(boxW * 0.28), pipe2X = BX + Math.round(boxW * 0.68);
+      const r1X = isDehu ? BX + boxW * 0.28 : BX + boxW * 0.08, r2X = isDehu ? BX + boxW * 0.72 : BX + boxW * 0.92;
       const ry = isDehu ? roofY : ervRoofY != null ? ervRoofY : roofY;
       return /* @__PURE__ */ React.createElement("g", { key: type, className: snap ? "snap" : void 0, style: snap ? { animationDelay: 0.32 + i * 0.05 + "s" } : void 0 }, isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, hangKit(r1X, ry, "#22c55e"), hangKit(r2X, ry, "#22c55e")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: B + ".3)", stroke: B + ".5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 5, y: ry - 4, width: "11", height: 5, rx: "1", fill: B + ".35)", stroke: B + ".55)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: pipe1X, y: ry - 6, textAnchor: "middle", fill: B + ".6)", fontSize: "12", fontFamily: "monospace" }, "IN"), /* @__PURE__ */ React.createElement("rect", { x: pipe2X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: "rgba(249,115,22,.3)", stroke: "rgba(249,115,22,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (pipe2X - 4) + " " + (ry - 2) + " L" + pipe2X + " " + (ry - 9) + " L" + (pipe2X + 4) + " " + (ry - 2), fill: "rgba(249,115,22,.4)" }), /* @__PURE__ */ React.createElement("text", { x: pipe2X, y: ry - 11, textAnchor: "middle", fill: "rgba(249,115,22,.6)", fontSize: "12", fontFamily: "monospace" }, "OUT"), hangKit(r1X, ry, G + ".55)"), hangKit(r2X, ry, G + ".55)")), /* @__PURE__ */ React.createElement(
         "rect",
@@ -5559,7 +5559,7 @@
       )), /* @__PURE__ */ React.createElement("text", { x: "22", y: "16", fill: W + ".14)", fontSize: "12", fontFamily: "monospace", letterSpacing: "0.8" }, "ATTIC"), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "spl" }, (() => {
         const isExisting = a.plenum === "none";
         const isMetal = a.plenum === "metal";
-        const pFill = isExisting ? "rgba(38,38,52,.6)" : isMetal ? "#1a1c24" : "#141108";
+        const pFill = isExisting ? "rgba(30,30,44,.97)" : isMetal ? "#1a1c24" : "#141108";
         const pStroke = isExisting ? G + ".22)" : G + (isMetal ? ".74)" : ".5)");
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "rect",
@@ -5572,8 +5572,7 @@
             fill: pFill,
             stroke: pStroke,
             strokeWidth: isExisting ? 1 : isMetal ? 1.7 : 1.4,
-            strokeDasharray: isExisting ? "6 3" : void 0,
-            opacity: isExisting ? 0.7 : 1
+            strokeDasharray: isExisting ? "6 3" : void 0
           }
         ), /* @__PURE__ */ React.createElement(
           "rect",
