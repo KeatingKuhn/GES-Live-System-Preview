@@ -1321,7 +1321,15 @@ function App(){
                       </button>
                       {pricingAnswers.wantDucts&&<div style={{flex:1}}>
                         <div style={{fontSize:isAtticMode?9.5:11,color:"var(--mut)",marginBottom:4}}>{tr('How many vents/registers?','¿Cuántas rejillas/registros?')}</div>
-                        <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,parseInt(e.target.value)||0)}))}
+                        {/* Clamped to the same 1-40 range the min/max attributes
+                            below advertise - type="number" doesn't enforce that
+                            range on its own (no form submit/reportValidity ever
+                            runs here), so an unclamped parse let a stray extra
+                            digit (e.g. "400" instead of "40") multiply straight
+                            into the duct-replacement line item and the headline
+                            total with no warning - a QA pass caught a typo'd
+                            vent count silently producing a 6-figure estimate. */}
+                        <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.min(40,Math.max(0,parseInt(e.target.value)||0))}))}
                           className={"pricing-input"+(isAtticMode?" compact":"")}/>
                       </div>}
                     </div>}
