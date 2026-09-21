@@ -2,7 +2,12 @@
 // Chapters turn a flat "step 4 of 9" into a story with acts - each step
 // carries which act it belongs to, and the progress bar (built below)
 // renders as named, segmented chapters instead of one anonymous sliver.
-export const CHAPTERS=['THE BASICS','THE ENGINE','COMFORT','FINAL TOUCHES'];
+// "FINAL TOUCHES" (a 4th chapter) used to exist here for the standalone
+// "extras" step (condensate pump/ERV) - dropped along with condensate
+// pump itself (direct feedback: "getting rid of it... cleans up a few
+// things"), since ERV folded into the "dehu" step below (now "Want to
+// enhance your IAQ?") leaves nothing left to put in a 4th chapter.
+export const CHAPTERS=['THE BASICS','THE ENGINE','COMFORT'];
 export const STEPS=[
   {id:'location',    q:"Where's your indoor unit?", chapter:0,
     hint:'Sets the layout of your whole system.',        optional:false},
@@ -23,10 +28,13 @@ export const STEPS=[
     hint:'Wi-Fi models save 10–15% on your bill.',            optional:false},
   {id:'purif',       q:'Any add-ons?', chapter:2,
     hint:'Filtration ships standard; add more here.',optional:true, multi:true},
-  {id:'dehu',        q:'Add a dehumidifier?', chapter:2,
-    hint:"Runs on its own; no buckets to empty.", optional:false},
-  {id:'extras',      q:'Any final add-ons?', chapter:3,
-    hint:'Condensate pump or ERV fresh-air system.', optional:true, multi:true},
+  // Merged with the old standalone "extras" step (condensate pump/ERV) -
+  // condensate pump was dropped entirely (direct feedback: "getting rid
+  // of it... cleans up a few things"), which left ERV as the only thing
+  // in that step. Folding it in here instead of keeping a step with one
+  // lonely option: same multi-select pattern as purif above.
+  {id:'dehu',        q:'Want to enhance your IAQ?', chapter:2,
+    hint:'Whole-home dehumidifier, ERV fresh-air system, or both.', optional:true, multi:true},
 ];
 
 // Auto-derive furnace_eff from insulation - never ask separately
@@ -97,12 +105,8 @@ export function getOpts(stepId, answers){
       ];
     }
     case 'dehu':return[
-      {v:'yes',label:'Yes - add it',  desc:'Sized to your square footage, runs automatically. No maintenance.'},
-      {v:'no', label:'No thanks',     desc:'Skip for now - easy to add later if humidity becomes an issue.'},
-    ];
-    case 'extras':return[
-      {v:'condensate',label:'Condensate Pump',        desc:'Needed with no gravity drain nearby. Common in closet installs.'},
-      {v:'erv',       label:'ERV (Energy Recovery)',  desc:'Fresh filtered air in, stale air out, recovering most of the energy.'},
+      {v:'dehu',label:'Whole-Home Dehumidifier', desc:'Sized to your square footage, runs automatically. No maintenance.'},
+      {v:'erv', label:'ERV (Energy Recovery)',   desc:'Fresh filtered air in, stale air out, recovering most of the energy.'},
     ];
     default:return[];
   }
@@ -124,7 +128,7 @@ export function getOpts(stepId, answers){
 // the `lang` handling in app.js) rather than a parallel English dict,
 // so there's exactly one source of truth for English and no risk of the
 // two drifting apart - only the Spanish override needs to exist here.
-export const CHAPTERS_ES=['LO BÁSICO','EL MOTOR','CONFORT','TOQUES FINALES'];
+export const CHAPTERS_ES=['LO BÁSICO','EL MOTOR','CONFORT'];
 export const STEPS_ES={
   location:   {q:'¿Dónde está su unidad interior?',      hint:'Define el diseño de todo su sistema.'},
   indoor_type:{q:'¿Qué tipo de unidad interior?',          hint:'¿Horno o manejador de aire?\nHorno = Calefacción a gas.\nManejador de aire = Todo eléctrico.'},
@@ -134,8 +138,7 @@ export const STEPS_ES={
   system_for: {q:'¿Bomba de calor o solo enfriamiento?',   hint:'La bomba de calor hace más; el A/C solo enfría.'},
   thermostat: {q:'¿Qué termostato?',                       hint:'Los modelos Wi-Fi ahorran 10–15% en su factura.'},
   purif:      {q:'¿Algún complemento?',                    hint:'La filtración viene incluida; agregue más aquí.'},
-  dehu:       {q:'¿Agregar un deshumidificador?',          hint:'Funciona solo; sin cubetas que vaciar.'},
-  extras:     {q:'¿Complementos finales?',                 hint:'Bomba de condensado o sistema de aire fresco ERV.'},
+  dehu:       {q:'¿Quiere mejorar la calidad del aire interior?', hint:'Deshumidificador para toda la casa, sistema ERV de aire fresco, o ambos.'},
 };
 export const OPTS_ES={
   location:{
@@ -181,12 +184,8 @@ export const OPTS_ES={
     high_ge18:{label:'Alta Eficiencia - 21 SEER2',  desc:'Nivel superior con tecnología Inverter.'},
   },
   dehu:{
-    yes:{label:'Sí, agregarlo', desc:'Calculado según el tamaño de su casa, funciona automáticamente. Sin mantenimiento.'},
-    no: {label:'No, gracias',   desc:'Omitir por ahora - fácil de agregar después si la humedad se vuelve un problema.'},
-  },
-  extras:{
-    condensate:{label:'Bomba de Condensado',            desc:'Necesaria cuando no hay un drenaje por gravedad cerca. Común en instalaciones de clóset.'},
-    erv:       {label:'ERV (Recuperación de Energía)',  desc:'Aire fresco filtrado entra, aire viciado sale, recuperando la mayor parte de la energía.'},
+    dehu:{label:'Deshumidificador para Toda la Casa', desc:'Calculado según el tamaño de su casa, funciona automáticamente. Sin mantenimiento.'},
+    erv: {label:'ERV (Recuperación de Energía)',       desc:'Aire fresco filtrado entra, aire viciado sale, recuperando la mayor parte de la energía.'},
   },
 };
 
@@ -230,7 +229,9 @@ export const PRICING={
   // Final add-ons. Thermostat (any tier/type) is always included with the system
   // - no separate charge, so there's no thermostat entry here either.
   // Note: new roof penetrations for the ERV need a roofer involved.
-  extras:{surge:860, condensate:882, erv:{cfm130:5222, cfm150:5877}},
+  // Condensate pump dropped entirely per direct feedback ("getting rid of
+  // it") - was `condensate:882` here.
+  extras:{surge:860, erv:{cfm130:5222, cfm150:5877}},
   // ERV size picked by home/system sq ft. Approximate - real ASHRAE 62.2 sizing
   // also factors bedroom count, which this tool doesn't ask, so this assumes a
   // typical 3-4BR home (~130 CFM covers most homes up to ~3,000 sq ft under that
@@ -467,21 +468,22 @@ export function calcEstimate(answers,pricingAnswers){
   if(purifList.includes('ionizer'))lines.push({key:'ionizer',label:'Ionizer / Plasma',price:PRICING.purif.ionizer});
   if(purifList.includes('surge'))lines.push({key:'surge',label:'Surge Protector',price:PRICING.extras.surge});
 
-  if(answers.dehu==='yes'){
+  // dehu is the merged "Want to enhance your IAQ?" step now (dehumidifier
+  // + ERV, condensate pump dropped entirely) - an array answer, same
+  // shape as purifList above, not the old Yes/No string.
+  const iaqList=Array.isArray(answers.dehu)?answers.dehu:[];
+  if(iaqList.includes('dehu')){
     const cap=dehuCapacity(picked.sqftMid);
     lines.push({key:'dehu',dehuCap:cap.replace('p',''),label:`Whole-home dehumidifier (${cap.replace('p','')}pt)`,price:PRICING.dehu[cap]});
   }
-
-  const extrasList=Array.isArray(answers.extras)?answers.extras:[];
-  if(extrasList.includes('condensate'))lines.push({key:'condensate',label:'Condensate Pump',price:PRICING.extras.condensate});
-  if(extrasList.includes('erv')){
+  if(iaqList.includes('erv')){
     const cfmKey=ervCfmKey(picked.sqftMid);
     const cfmNum=cfmKey==='cfm130'?'130':'150';
     lines.push({key:'erv',ervCfm:cfmNum,label:`ERV (${cfmNum} CFM)`,price:PRICING.extras.erv[cfmKey]});
   }
   // Return-side work (plenum, new duct, duct cleaning) stays education-only
   // (see additionalConsiderations below) with final scope confirmed at the
-  // in-home visit - unlike condensate/ERV, these don't have a self-contained
+  // in-home visit - unlike dehu/ERV, these don't have a self-contained
   // on-diagram build-out for the customer to see update live.
 
   if(pricingAnswers.wantDucts&&pricingAnswers.ventCount>0){

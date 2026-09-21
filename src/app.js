@@ -434,7 +434,7 @@ function App(){
   // for purif specifically, the enhanced filtration cabinet ships standard
   // on every install regardless (see defaultAnswers/hasAprilaire), so
   // skipping it must not wipe that default out along with the real
-  // optional picks (UV/ionizer/surge). Every other multi step (extras) has
+  // optional picks (UV/ionizer/surge). Every other multi step (dehu) has
   // no such standard-included default, so [] is still correct there.
   const skip=()=>{if(cur.multi)setA(cur.id,cur.id==='purif'?['aprilaire']:[]);goNext();};
   const restart=()=>{
@@ -568,46 +568,18 @@ function App(){
       answers.system_for?{step:"system_for",label:tr("Heat source","Fuente de calor"),
         val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - horno únicamente"),
         short:answers.system_for==="hp"?tr("Dual Fuel (HP + furnace)","Combustible Dual (BC + horno)"):tr("Straight Cool (furnace)","Solo Enfriamiento (horno)")}:null,
-      // Dehumidifier + extras merged into one "Final add-ons" row instead of
-      // two separate boxes - direct client feedback ("dehu can be added into
-      // final add-ons? ... we can shorten things dramatically in this
-      // section"). Folding them raised a real question though: each row's
-      // EDIT button jumps to ONE wizard step (jumpToStep(item.step) below),
-      // so a naive merge - one combined line of text, one EDIT button - would
-      // leave whichever of dehu/extras the button *didn't* point to with no
-      // way back in from this grid. Resolved by keeping BOTH steps directly
-      // editable: this entry carries a `parts` array (one entry per
-      // contributing step) alongside the usual flat `val`/`short` strings.
-      // The renderer below shows one EDIT button per part when there's more
-      // than one (so folding the box never costs editability), and falls
-      // back to the ordinary single-value/single-button layout - reading
-      // `parts[0].step` as `item.step` - when only one side of the merge is
-      // actually present, which is most builds. Declining the dehumidifier
-      // (answers.dehu==="no") no longer gets its own row at all: that
-      // matches how every other optional add-on here already behaves
-      // (purif/extras simply don't appear when nothing was picked), so a
-      // declined dehumidifier and a never-shown ERV now read the same way
-      // instead of one getting a special "No" callout the others don't.
-      (()=>{
-        const parts=[];
-        if(answers.dehu==="yes")parts.push({step:"dehu",
-          full:tr("Whole-home dehumidifier","Deshumidificador para toda la casa"),
-          // Shortened further per direct feedback ("Final add-ons" row
-          // needed to shrink to stop forcing a scroll in the attic
-          // panel's fixed-height review grid - see styles.css's own
-          // comment on .done-review-grid) - matches "Dehu" everywhere
-          // else in the diagram (DehuErvBoxes/DehumidistatWall captions).
-          short:tr("Dehu","Deshu")});
-        if(Array.isArray(answers.extras)&&answers.extras.length>0){
-          const items=answers.extras.map(v=>v==="condensate"
-            ?{full:tr("Condensate pump","Bomba de condensado"),short:tr("Pump","Bomba")}
-            :v==="erv"?{full:"ERV",short:"ERV"}:{full:v,short:v});
-          parts.push({step:"extras",full:items.map(x=>x.full).join(" + "),short:items.map(x=>x.short).join(" + ")});
-        }
-        if(!parts.length)return null;
-        return{step:parts[0].step,label:tr("Final add-ons","Complementos finales"),
-          val:parts.map(p=>p.full).join(" + "),short:parts.map(p=>p.short).join(" + "),parts};
-      })(),
+      // Dehu/ERV now live on one merged step (id "dehu", "Want to enhance
+      // your IAQ?") instead of a Yes/No dehumidifier question plus a
+      // separate "final add-ons" step - condensate pump was dropped
+      // entirely (direct feedback: "getting rid of it... cleans up a few
+      // things"). One step, one answer array, one ordinary review-grid
+      // row - the old `parts`-array/multi-EDIT-button machinery this used
+      // to need (to keep two separate wizard steps both editable from one
+      // merged box) is gone too, since there's only one step to jump back
+      // to now. Matches the purif row's own pattern exactly.
+      Array.isArray(answers.dehu)&&answers.dehu.length>0?{step:"dehu",label:tr("IAQ add-ons","Complementos de CAI"),
+        val:answers.dehu.map(v=>v==="dehu"?tr("Whole-home dehumidifier","Deshumidificador para toda la casa"):v==="erv"?"ERV":v).join(" + "),
+        short:answers.dehu.map(v=>v==="dehu"?tr("Dehu","Deshu"):v==="erv"?"ERV":v).join(" + ")}:null,
     ].filter(Boolean);
   },[answers,lang]);
 
@@ -632,7 +604,6 @@ function App(){
       case 'ionizer':           return 'Ionizador / Plasma';
       case 'surge':             return 'Protector de Sobrevoltaje';
       case 'dehu':              return `Deshumidificador para toda la casa (${line.dehuCap}pt)`;
-      case 'condensate':        return 'Bomba de Condensado';
       case 'erv':                return `ERV (${line.ervCfm} CFM)`;
       case 'ductReplacement':   return `Reemplazo de ductos (${line.ventCount} rejillas)`;
       case 'laborWarranty':     return 'Garantía de mano de obra de 10 años';
@@ -778,8 +749,7 @@ function App(){
     purif:"The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer clears particles, odors, and VOCs. A surge protector guards the condenser -- one lightning strike can destroy a compressor.",
     cond_tier:"The condenser is your outdoor unit. SEER2 measures cooling output per unit of electricity, so higher means lower bills. Federal Minimum meets current code at the lowest cost. Mid Efficiency is our best-value tier. High Efficiency is our top tier, with the best humidity control.",
     system_for:"With a gas furnace, you get two options. Dual fuel pairs a heat pump with the furnace -- the heat pump handles cooling and mild-weather heating, and the furnace only fires below about 35 degrees, the most efficient combo we offer. Straight cool means the AC only cools, and the furnace handles all heating.",
-    dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A dehumidifier ties into your ductwork and runs automatically, with no buckets and no upkeep from you.",
-    extras:"A condensate pump handles drainage when there's no nearby gravity drain, which is common in closet installs. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange.",
+    dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A whole-home dehumidifier ties into your ductwork and runs automatically, with no buckets and no upkeep from you. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange. Add either, both, or neither.",
   };
   // Spanish overrides for the info-panel paragraphs - same scoped-
   // translation approach as STEPS_ES/OPTS_ES in data.js (overlay, not a
@@ -795,8 +765,7 @@ function App(){
     purif:"El gabinete de filtración mejorada viene incluido de fábrica en cada instalación, capturando ya mucho más polvo, polen y alérgenos que un filtro típico de 1 pulgada. Una luz UV mantiene limpio el serpentín. Un ionizador elimina partículas, olores y COV. Un protector de sobrevoltaje protege el condensador: un solo rayo puede destruir un compresor.",
     cond_tier:"El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, así que más alto significa facturas más bajas. Mínimo Federal cumple con el código actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con el mejor control de humedad.",
     system_for:"Con un horno a gas, tiene dos opciones. Combustible Dual combina una bomba de calor con el horno: la bomba de calor se encarga del enfriamiento y la calefacción en clima templado, y el horno solo se enciende por debajo de aproximadamente 35 grados, la combinación más eficiente que ofrecemos. Solo Enfriamiento significa que el A/C solo enfría, y el horno se encarga de toda la calefacción.",
-    dehu:"La humedad de Austin hace que su hogar se sienta más caliente de lo que marca el termostato. Un deshumidificador se conecta a sus ductos y funciona automáticamente, sin cubetas ni mantenimiento de su parte.",
-    extras:"Una bomba de condensado maneja el drenaje cuando no hay un drenaje por gravedad cercano, algo común en instalaciones de clóset. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energía en el intercambio.",
+    dehu:"La humedad de Austin hace que su hogar se sienta más caliente de lo que marca el termostato. Un deshumidificador para toda la casa se conecta a sus ductos y funciona automáticamente, sin cubetas ni mantenimiento de su parte. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energía en el intercambio. Agregue cualquiera, ambos, o ninguno.",
   };
   // insulation's info text has an air-handler variant (no furnace/AFUE to
   // describe) - every other step's id maps straight to its own entry.
@@ -830,7 +799,10 @@ function App(){
     cond_tier:{fedmin:tr("Lowest upfront cost, locked in.","Menor costo inicial, asegurado."),mid_ge15:tr("Our best overall value.","Nuestro mejor valor general."),high_ge18:tr("Our quietest, most efficient tier.","Nuestro nivel más silencioso y eficiente.")},
     thermostat:{basic:tr("Reliable, no app required.","Confiable, sin necesidad de app."),wifi:tr("Control it from your phone.","Contrólelo desde su teléfono."),proprietary:tr("Built for the best diagnostics.","Diseñado para los mejores diagnósticos.")},
     system_for:{hp:tr("Efficient through Austin winters.","Eficiente durante los inviernos de Austin."),sc:tr("Furnace handles all the heating.","El horno se encarga de toda la calefacción.")},
-    dehu:{yes:tr("Added, for noticeably drier air.","Agregado, para un aire notablemente más seco."),no:tr("Skipping it, easy to add later.","Omitido por ahora, fácil de agregar después.")},
+    // dehu has no entry here - it's multi-select now (an array answer,
+    // same as purif/extras before it), and those never got a reaction
+    // line either (REACTION[cur.id][answers[cur.id]] only works for a
+    // single-value answer).
   };
   const reactionText=cur&&REACTION[cur.id]&&REACTION[cur.id][answers[cur.id]];
 
@@ -1378,48 +1350,6 @@ function App(){
                     // "short" wording where one exists (full detail is still
                     // one hover/tap away via the native title tooltip, same
                     // place attic's ellipsis-clipped cells already send it).
-                    // Multi-part cells (currently just the merged Dehumidifier+
-                    // Final-add-ons row, see the reviewItems comment above) get
-                    // one EDIT button per part instead of the usual single
-                    // chip, so folding two rows into one box never leaves one
-                    // of the two steps it covers without a way back in from
-                    // this grid. Single-part items (everything else, and the
-                    // merged row too whenever only one side of it applies)
-                    // render exactly as before.
-                    (item.parts&&item.parts.length>1)?
-                    (isAtticMode?
-                    <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
-                      <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em",marginBottom:1}}>{item.label}</span>
-                      {/* Packed to the left (gap, not space-between) rather
-                          than each part's EDIT button trailing at the far
-                          right edge of the cell - this box is often the
-                          last (odd) item in the row and spans the FULL row
-                          width via the :last-child rule in styles.css, so
-                          space-between would have stretched a two-word
-                          value and its button clear across a ~600px-wide
-                          bar, reading as a big dead gap in the middle
-                          instead of a tight label-plus-action pair. */}
-                      {item.parts.map((p,pi)=>(
-                        <div key={pi} style={{display:"flex",alignItems:"center",gap:10}}>
-                          <span className="review-val" style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={p.full}>{p.short}</span>
-                          <button className="no-print review-edit-btn" onClick={()=>jumpToStep(p.step)} style={{flexShrink:0,fontSize:"var(--fs-review-edit)",padding:"6px 5px"}}>{tr('EDIT','EDITAR')}</button>
-                        </div>
-                      ))}
-                    </div>
-                    :
-                    <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
-                      <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
-                      {/* Same left-packed reasoning as attic's branch above -
-                          this box also spans the full row width whenever
-                          it's the grid's odd trailing item. */}
-                      {item.parts.map((p,pi)=>(
-                        <div key={pi} style={{display:"flex",alignItems:"center",gap:10}}>
-                          <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.3}} title={p.full}>{p.short}</span>
-                          <button className="no-print review-edit-btn" onClick={()=>jumpToStep(p.step)} style={{flexShrink:0,fontSize:"var(--fs-review-edit-md)",padding:"6px 6px"}}>{tr('EDIT','EDITAR')}</button>
-                        </div>
-                      ))}
-                    </div>)
-                    :
                     (isAtticMode?
                     <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",position:"relative",minWidth:0}}>
                       <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
@@ -1518,15 +1448,14 @@ function App(){
                 <>
                   {/* QA FIX (attic only) - "Your System is Built" used to
                       sit in its own flex row ABOVE the grid, with no
-                      relationship to the grid's own row-height logic. The
-                      "Final add-ons" cell (Dehumidifier + extras merged,
-                      stacked as two lines when both are present - see
-                      reviewItems' own comment) can grow taller than a
-                      single-line cell, which is fine for the GRID ROW it
-                      shares with its neighbors (CSS grid rows already
-                      match their tallest cell), but read as broken next to
-                      a fixed-height header that couldn't grow with it.
-                      Passing this header in as reviewGrid's own leadCell
+                      relationship to the grid's own row-height logic. A
+                      cell with a long combined value (e.g. the "IAQ
+                      add-ons" row with both dehu and ERV picked) can grow
+                      taller than a single-line cell, which is fine for the
+                      GRID ROW it shares with its neighbors (CSS grid rows
+                      already match their tallest cell), but read as broken
+                      next to a fixed-height header that couldn't grow with
+                      it. Passing this header in as reviewGrid's own leadCell
                       makes it a real grid cell in the first row/column
                       spot, sized by the exact same logic as every other
                       cell - it only needs a single compact line either

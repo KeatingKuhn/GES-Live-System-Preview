@@ -187,11 +187,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   /* Same fix as the 2-column rule above, generalized to 5 columns: if the
      grid's item count isn't a multiple of 5, the last (partial) row's
      final item spans however many of the remaining columns are otherwise
-     left blank, instead of a dead gap. Only actually fires for a build
-     with a review-grid item count not divisible by 5 (7, 8, or 9 items -
-     purif/system_for/extras are all optional/skippable); a 10-item build
-     (this file's own zero-slack reference walkthrough) fills exactly 2
-     full rows and never matches any of these. */
+     left blank, instead of a dead gap. purif/system_for/dehu are all
+     optional/skippable, so the item count varies build to build (max 9 -
+     location/indoor_type/insulation/plenum/thermostat/purif/cond_tier/
+     system_for/dehu); this only fires when that count isn't itself a
+     multiple of 5. */
   .done-review-grid.attic-mode-grid>*:last-child:nth-child(5n+2){grid-column:span 4}
   .done-review-grid.attic-mode-grid>*:last-child:nth-child(5n+3){grid-column:span 3}
   .done-review-grid.attic-mode-grid>*:last-child:nth-child(5n+4){grid-column:span 2}

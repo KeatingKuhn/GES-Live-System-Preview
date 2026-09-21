@@ -1141,8 +1141,6 @@ const PART_INFO={
     es:{title:'LÍNEAS DE REFRIGERANTE',text:"Las dos líneas de cobre aisladas que transportan refrigerante entre el serpentín interior y el condensador exterior."}},
   condensate_drain:{en:{title:'CONDENSATE DRAIN',text:"Carries the water that condenses off the coil safely out of the house, the same way a window A/C drips outside."},
     es:{title:'DRENAJE DE CONDENSADO',text:"Lleva el agua que se condensa en el serpentín de forma segura fuera de la casa, igual que un A/C de ventana gotea al exterior."}},
-  condensate_pump:{en:{title:'CONDENSATE PUMP',text:"Pumps that condensate out when there's no nearby gravity drain to rely on - common in closet installs."},
-    es:{title:'BOMBA DE CONDENSADO',text:"Bombea el condensado hacia afuera cuando no hay un drenaje por gravedad cercano - común en instalaciones de clóset."}},
   insulation:{en:{title:'ATTIC INSULATION',text:"Keeps conditioned air at the right temperature instead of leaking it away through the attic above your ductwork."},
     es:{title:'AISLAMIENTO DEL ÁTICO',text:"Mantiene el aire acondicionado a la temperatura correcta en lugar de perderlo a través del ático sobre sus ductos."}},
 };
@@ -2735,29 +2733,6 @@ function RegisterGrille({cx,y,w,dc,ds,label,lang,vw,vh}){
   </g>;
 }
 
-// Condensate pump box - small labeled rect with a fixed 80x24 default,
-// shared by both the attic and closet layouts (each still routes its own
-// dashed connector line to it, since that routing differs per layout).
-//
-// Module-scope, not nested inside Canvas like it used to be: same .fadein
-// entrance-replay bug as Ionizer above (its outer <g> carries the same
-// className="fadein"), just on the condensate-pump box instead of the
-// ionizer rod whenever a condensate pump is on the diagram. lang/vw/vh
-// come in as explicit props instead of Canvas closures.
-function CondensatePump({x,y,w=88,h=28,lang,vw,vh}){
-  return <g className="fadein">
-    <rect x={x} y={y} width={w} height={h} rx="3"
-      fill="rgba(35,137,224,.14)" stroke={B+'.58)'} strokeWidth="1.2"/>
-    <text x={x+w/2} y={y+13} textAnchor="middle"
-      fill={B+'.82)'} fontSize="12.5" fontFamily="monospace">COND. PUMP</text>
-    <text x={x+w/2} y={y+24} textAnchor="middle"
-      fill={B+'.5)'} fontSize="11" fontFamily="monospace">condensate</text>
-    {/* No EditZone covers this - free-standing hover, no onClick. */}
-    <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={vw} vh={vh}
-      title={partInfo('condensate_pump',lang).title} text={partInfo('condensate_pump',lang).text}/>
-  </g>;
-}
-
 // Dehu + ERV roof boxes - shared between attic and closet layouts. Each
 // caller computes its own dehuBX/ervBX/BY/roofY (the two layouts anchor
 // them off completely different geometry), but the box/pipe/vent
@@ -2765,7 +2740,7 @@ function CondensatePump({x,y,w=88,h=28,lang,vw,vh}){
 // two - this is that rendering, parameterized on just the anchor points.
 //
 // Module-scope, not nested inside Canvas like it used to be: same
-// entrance-replay bug as Ionizer/CondensatePump above, just via the
+// entrance-replay bug as Ionizer above, just via the
 // `.snap` bounce-in (see the `snap` prop below) instead of `.fadein` -
 // whenever a dehu/ERV box had just been added (snap=true), every
 // unrelated hoverPart change elsewhere in the diagram replayed its
@@ -3329,7 +3304,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   const hasUV=Array.isArray(a.purif)&&a.purif.includes('uv');
   const hasIonizer=Array.isArray(a.purif)&&a.purif.includes('ionizer');
   const hasAprilaire=Array.isArray(a.purif)&&a.purif.includes('aprilaire');
-  const hasDehu=a.dehu==='yes';
+  // dehu is the merged "Want to enhance your IAQ?" step now (dehumidifier
+  // + ERV, condensate pump dropped entirely) - an array answer, same
+  // shape as a.purif, not the old Yes/No string or the old separate
+  // a.extras array ERV used to live in.
+  const hasDehu=Array.isArray(a.dehu)&&a.dehu.includes('dehu');
+  const hasERV=Array.isArray(a.dehu)&&a.dehu.includes('erv');
   const isSurge=Array.isArray(a.purif)&&a.purif.includes('surge');
   const is90=a.furnace_eff==='e90';
   const isSpray=a.insulation==='spray';
@@ -3465,10 +3445,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // UVRod now lives at module scope, above Canvas - see the comment there.
 
   // Ionizer/DuctRibbing/DuctRibbingPath/DuctClamp/PlenumMaterial/
-  // RegisterGrille/CondensatePump/DehuErvBoxes/Defs all now live at
+  // RegisterGrille/DehuErvBoxes/Defs all now live at
   // module scope, above Canvas - see Ionizer's own module comment for
   // why (the same remount bug as everything else moved up there, worse
-  // for Ionizer/CondensatePump/DehuErvBoxes since each carries a one-shot
+  // for Ionizer/DehuErvBoxes since each carries a one-shot
   // entrance animation that used to replay on every unrelated hover).
 
   // frameBox-derived breakpoint for ToggleUI's compact-vs-full layout - see
@@ -4617,7 +4597,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               dehu where it already was, centered over the equipment, lets
               its own dedicated return/supply ducts (drawn just below)
               reach both plenums without crossing the whole attic. */}
-          {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&(()=>{
+          {(hasDehu||hasERV)&&(()=>{
             const sysX=hasFurnace?FURN_X:AH_X;
             const BW=80;
             // Dehu: left of furnace center (clear of flue which is on right
@@ -4646,7 +4626,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // other (red/blue lineset running right past the ERV's own
             // IN/OUT stubs) however tightly the slot was measured. This
             // spot was already the wizard's own ghost preview position for
-            // this step (see the stepId="extras" StepFocusRing below,
+            // this step (see the stepId="dehu" StepFocusRing below,
             // x={Math.max(8,RET_X)}) - the real box just never matched it.
             // Full 80-wide box now, no shrinking needed - there's no tight
             // slot to fit into over here. Bumped a bit past the standard
@@ -4681,7 +4661,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // over-reach.
             const ervRoofY=roofY(ervBX+ervW*0.08);
             return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} ervW={ervW} BY={UNIT_Y-48-14} roofY={EAVE_Y+14} ervRoofY={ervRoofY}
-              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
+              hasDehu={hasDehu} hasERV={hasERV} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
           })()}
 
@@ -4824,34 +4804,25 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             </g>;
           })()}
 
-          {/* Condensate drain - dashed blue line below coil, pump box if selected */}
+          {/* Condensate drain - dashed blue line below coil. Used to
+              optionally end in a condensate pump box (a.extras included
+              'condensate') - dropped entirely per direct feedback
+              ("getting rid of it... adds a complexity I don't want to
+              deal with anymore"), so this is just the plain drain line
+              now, unconditionally. */}
           {hasCoil&&<g key="attic-drain">
             {(()=>{
-              const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
               const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.60);
               const drainTopY=UNIT_Y+UNIT_H+4;
-              if(hasPump){
-                const pW=88, pH=28;
-                const pX=coilCX-pW/2, pY=drainTopY+28;
-                return <>
-                  <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={pY}
-                    stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="3 2"/>
-                  <CondensatePump x={pX} y={pY} w={pW} h={pH} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
-                  {/* No EditZone covers this - free-standing hover, no onClick. */}
-                  <HoverInfo x={coilCX-6} y={drainTopY-4} w={12} h={pY-drainTopY+8} rx={3}
-                    vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}/>
-                </>;
-              } else {
-                return <>
-                  <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={DECK_Y+20}
-                    stroke={B+'.35)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
-                  <text x={coilCX+7} y={DECK_Y+14} textAnchor="start"
-                    fill={B+'.35)'} fontSize="12" fontFamily="monospace">DRAIN</text>
-                  {/* No EditZone covers this - free-standing hover, no onClick. */}
-                  <HoverInfo x={coilCX-6} y={drainTopY-4} w={80} h={DECK_Y+20-drainTopY+8} rx={3}
-                    vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}/>
-                </>;
-              }
+              return <>
+                <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={DECK_Y+20}
+                  stroke={B+'.35)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
+                <text x={coilCX+7} y={DECK_Y+14} textAnchor="start"
+                  fill={B+'.35)'} fontSize="12" fontFamily="monospace">DRAIN</text>
+                {/* No EditZone covers this - free-standing hover, no onClick. */}
+                <HoverInfo x={coilCX-6} y={drainTopY-4} w={80} h={DECK_Y+20-drainTopY+8} rx={3}
+                  vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}/>
+              </>;
             })()}
           </g>}
 
@@ -4985,10 +4956,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               furnace-tuned +44 offset doesn't clear the AIR HANDLER title,
               which sits centered above the cabinet unlike FURNACE's own
               title below it - see that call site's comment) so this ghost
-              preview lands in the same spot the real box will. */}
+              preview lands in the same spot the real box will. Both boxes
+              target stepId="dehu" now - dehu and ERV are one merged
+              multi-select step ("Want to enhance your IAQ?"), not two
+              separate wizard steps. */}
           <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu"
             x={hasFurnace?FURN_X+30:AH_X+AH_W-80-8} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
-          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="extras"
+          <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu"
             x={8} y={UNIT_Y-48-14} w={96} h={48} rx={4}/>
           {/* Single always-topmost hover tooltip - see the module comment
               on HoverCtx/HoverInfo for why this has to be the very last
@@ -5982,18 +5956,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               ringPath={linesetRingPath} ringStrokeWidth={16}/>
           </g>}
 
-          {/* Condensate drain - exits right face of AH. Without a pump,
-              S-curves into the 2x4 chase (unchanged). With a pump, per
-              direct feedback runs out to the pump box sitting to the
-              RIGHT of the closet instead - the pump used to live inside
-              the chase itself, dead center in the return-airflow arrow's
-              own path, which needed an awkward multi-bend detour around
-              it (see the chase block's own history/comment above) and
-              still read as crowded. Painted AFTER (so it wins hover
+          {/* Condensate drain - exits right face of AH, S-curves into the
+              2x4 chase. Used to optionally run out to a pump box instead
+              (a.extras included 'condensate') - dropped entirely per
+              direct feedback ("getting rid of it... adds a complexity I
+              don't want to deal with anymore"), so this is just the S-
+              curve now, unconditionally. Painted AFTER (so it wins hover
               priority over) the refrigerant line stubs just above - see
               that block's own comment for why. */}
           {hasCoil&&(()=>{
-            const hasPump=Array.isArray(a.extras)&&a.extras.includes('condensate');
             // Exit point: right face of AH/coil, lower portion
             const exitX=UNIT_X+UNIT_W;
             const exitY=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.85):ACOIL_Y+Math.round(ACOIL_H*0.85);
@@ -6002,16 +5973,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const pt1X=exitX+offset;
             const pt1Y=exitY+offset; // 45°
             const chaseBottomY=VH-20;
-            const pumpH=28;
-            // No-pump case: same S-curve into the chase as always, pump
-            // case: straight down from pt1, then right into the pump box,
-            // which sits clear of the chase's own right wall
-            // (UNIT_X+UNIT_W+28) out in the open floor space beside it.
-            const pumpX=UNIT_X+UNIT_W+36;
-            const pumpY=chaseBottomY-pumpH-6;
             const pt2X=pt1X;
-            const pt2Y=hasPump?pumpY+pumpH/2:chaseBottomY-offset;
-            const pt3X=hasPump?pumpX:pt2X-offset;
+            const pt2Y=chaseBottomY-offset;
+            const pt3X=pt2X-offset;
             const pt3Y=pt2Y;
             // Same path the line segments below trace, reused as the
             // hover ring's ringPath - the hit-rect just below is still a
@@ -6028,23 +5992,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               {/* Straight down */}
               <line x1={pt1X} y1={pt1Y} x2={pt2X} y2={pt2Y}
                 stroke={B+'.42)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
-              {/* Into the chase (no pump) or right into the pump box */}
+              {/* Into the chase */}
               <line x1={pt2X} y1={pt2Y} x2={pt3X} y2={pt3Y}
                 stroke={B+'.38)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
               {/* No EditZone covers this line run - free-standing hover, no
-                  onClick. CondensatePump (when present) already has its
-                  own separate hover, so this one is sized to just the
-                  drain line's own path, not the pump box past pt3X. */}
+                  onClick. */}
               <HoverInfo x={Math.min(exitX,pt3X)-4} y={Math.min(exitY,pt2Y)-4}
                 w={Math.max(exitX,pt1X,pt3X)-Math.min(exitX,pt3X)+8} h={Math.max(pt2Y,pt3Y)-Math.min(exitY,pt2Y)+8}
                 rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
                 ringPath={drainD} ringStrokeWidth={9}/>
-              {!hasPump&&<>
-                <text x={pt1X+5} y={pt1Y+12} textAnchor="start"
-                  fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">DRAIN</text>
-                <circle cx={pt3X} cy={pt3Y} r={3} fill={B+'.4)'} stroke={B+'.6)'} strokeWidth="0.8"/>
-              </>}
-              {hasPump&&<CondensatePump x={pumpX} y={pumpY} w={88} h={pumpH} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
+              <text x={pt1X+5} y={pt1Y+12} textAnchor="start"
+                fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">DRAIN</text>
+              <circle cx={pt3X} cy={pt3Y} r={3} fill={B+'.4)'} stroke={B+'.6)'} strokeWidth="0.8"/>
             </>;
           })()}
 
@@ -6158,9 +6117,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {/* Dehu + ERV - hang from roofline in attic zone. Geometry
               (dehuX/ervX/ervW/BY/roofY) is hoisted above, shared with this
               row's own dedicated duct stubs and StepFocusRing below. */}
-          {(hasDehu||Array.isArray(a.extras)&&a.extras.includes('erv'))&&
+          {(hasDehu||hasERV)&&
             <DehuErvBoxes dehuBX={dehuX} ervBX={ervX} ervW={ervW} dehuW={dehuW} BY={DEHU_ERV_BY} roofY={DEHU_ERV_ROOFY}
-              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
+              hasDehu={hasDehu} hasERV={hasERV} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
 
           {/* Dehu's own dedicated return + supply - closet layout. A
@@ -6248,7 +6207,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="purif"
                 x={UNIT_X-2} y={APR_Y-2} w={UNIT_W+4} h={(APR_H||28)+4} rx={4}/>
               <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu" x={dehuX} y={DEHU_ERV_BY} w={dehuW} h={DEHU_ERV_BH} rx={4}/>
-              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="extras" x={ervX} y={DEHU_ERV_BY} w={ervW} h={DEHU_ERV_BH} rx={4}/>
+              <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu" x={ervX} y={DEHU_ERV_BY} w={ervW} h={DEHU_ERV_BH} rx={4}/>
             </>;
           })()}
           {/* Single always-topmost hover tooltip - see the module comment
