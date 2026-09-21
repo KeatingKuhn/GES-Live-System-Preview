@@ -1284,10 +1284,23 @@ function App(){
                           clipping, same as closet's cell already does,
                           and prefers the shorter `short` wording where one
                           exists rather than the full `val`. English keeps
-                          the original single-line ellipsis behavior
-                          unchanged, since it was never observed to
-                          truncate mid-word there. */}
-                      <span style={lang==='es'
+                          the original single-line on-screen ellipsis
+                          behavior unchanged, since it was never observed to
+                          truncate mid-word there for a single option - but
+                          a print QA pass found a multi-item Add-ons combo
+                          ("Enhanced Filtration Cabinet + UV Light +
+                          Ionizer + Surge Prote[ctor]") DOES overflow this
+                          narrow a cell and ellipsis-truncates mid-word, in
+                          any language. On screen that's recoverable (the
+                          title="" tooltip below still has the full text on
+                          hover) - on paper there's no hover, so the
+                          .review-val print override in styles.css forces
+                          this span to wrap instead of clip once printed,
+                          regardless of language. The className only
+                          matters for that print rule; on-screen behavior
+                          (including English's single-line clip) is
+                          unchanged. */}
+                      <span className="review-val" style={lang==='es'
                         ?{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"visible",whiteSpace:"normal"}
                         :{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}
                         title={item.val}>{lang==='es'?(item.short||item.val):item.val}</span>
@@ -1526,7 +1539,7 @@ function App(){
                 const addonsPct=100-basePct;
                 const wisetack=FINANCING_OPTIONS.find(f=>f.key==='wisetack'&&f.url);
                 const priceCard=(
-                  <div style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
+                  <div className="price-card" style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
                     {/* ── PRICE HERO — the monthly figure is the number a
                         homeowner actually budgets against day to day, so it
                         gets the dominant visual weight: its own bordered
@@ -1543,7 +1556,24 @@ function App(){
                         actually applies to. */}
                     <div className="price-hero">
                       <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
-                      <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
+                      {/* PRINT QA FIX - CountUp (canvas.js) re-animates from
+                          $0 over 900ms on every `value` change, including a
+                          checkbox toggle re-triggering it, not just the
+                          first reveal. window.print()/a PDF capture snapshots
+                          whatever the DOM happens to show at that instant -
+                          hit Save/Print while that 900ms animation is still
+                          in flight (very plausible right after checking the
+                          labor-warranty/maintenance-plan box, or right after
+                          the reveal itself) and the printed hero number is
+                          some partial mid-count value that doesn't match the
+                          itemized total below it, which was never animated.
+                          Confirmed by printing the same build state ~1s
+                          apart: the earlier capture's hero number didn't
+                          match its own line-item sum, the later one did.
+                          .price-live/.price-static (styles.css, @media
+                          print) swap to the plain final number for print
+                          only - on-screen animation is untouched. */}
+                      <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/></span><span className="price-static">{Math.round(est.display/36).toLocaleString()}</span><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
                       <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR, on approved credit.','Basado en 36 meses al 0% de interés, sujeto a aprobación de crédito.')}</div>
                       {wisetack&&<a href={wisetack.url} target="_blank" rel="noopener" className="price-hero-financing-link no-print"
                         onClick={()=>trackEvent('financing_clicked',{lender:'wisetack',source:'price_reveal'})}>
@@ -1551,7 +1581,9 @@ function App(){
                       </a>}
                     </div>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
-                    <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<CountUp value={est.display} format={n=>n.toLocaleString()}/></div>
+                    {/* Same in-flight-animation print fix as the /mo hero
+                        figure above - see its comment. */}
+                    <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CountUp value={est.display} format={n=>n.toLocaleString()}/></span><span className="price-static">{est.display.toLocaleString()}</span></div>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr(`Includes a ${answers.cond_tier==='high_ge18'?'10':'12'}-year manufacturer warranty.`,`Incluye una garantía de fábrica de ${answers.cond_tier==='high_ge18'?'10':'12'} años.`)}</div>
                     {addonLines.length>0&&<div className="price-breakdown">
                       <div className="price-breakdown-bar">
@@ -1602,7 +1634,7 @@ function App(){
                 // live diagram's own labels untranslated - see the big
                 // comment on CHAPTERS_ES in data.js.
                 const considerations=(
-                  <div style={{width:"100%",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",...(isAtticMode?{}:{marginTop:12})}}>
+                  <div className="considerations-block" style={{width:"100%",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",...(isAtticMode?{}:{marginTop:12})}}>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.75)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
                     <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>
                       <div><strong style={{color:"rgba(255,255,255,.9)"}}>Return plenum/ductwork</strong> - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should.</div>

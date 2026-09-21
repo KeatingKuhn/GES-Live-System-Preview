@@ -1160,6 +1160,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    been opened. */
 .print-only-grid{display:none}
 .print-letterhead{display:none}
+/* PRINT QA FIX - see the .price-live/.price-static comment in app.js next
+   to the CountUp hero figures: on screen the live, animated number is what
+   should show (.price-static stays hidden); only @media print below swaps
+   them, so a print/PDF taken mid-animation still shows the correct settled
+   total instead of whatever half-counted value the DOM had at that instant. */
+.price-static{display:none}
 @media print{
   html,body{height:auto!important;overflow:visible!important}
   .app-root,.done-screen,.sidebar,.done-wrap{
@@ -1251,4 +1257,33 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      entirely (see the un-fixing comment above), so nothing but page count
      depends on this being generous. */
   .done-wrap{padding-top:4px!important;padding-bottom:2px!important}
+
+  /* PRINT QA FIX - review-grid value truncation: attic's review grid
+     ellipsis-clips a single-line value (English only - Spanish already
+     wraps, see the big comment next to .review-val in app.js) to fit its
+     on-screen column width. On paper there's no hover, so the title=""
+     tooltip that saves the on-screen case can't recover the cut text - a
+     4-item Add-ons combo ("...+ Surge Prote…") was confirmed printing
+     mid-word-truncated with no way to read the full pick. Forcing a wrap
+     here (any language) costs a couple of extra printed lines on wide
+     combos, never loses content. */
+  .review-val{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+
+  /* PRINT QA FIX - page-break splits: neither of these bordered boxes had
+     any break-inside rule, so a box landing across a page boundary got
+     its border/background cut mid-box - the bottom half re-opened as what
+     reads like a second, unrelated bordered box at the top of the next
+     page (confirmed on a build with enough add-ons to push the "A Few
+     Other Things We Commonly Find" box across the page 1/2 boundary).
+     break-inside:avoid pushes a box that doesn't fit onto the next page
+     whole instead - costs some blank space at the bottom of the page
+     before it, same trade already made everywhere else in this file in
+     favor of not losing/garbling content. Also applied to each review-grid
+     cell and the price card, for the same reason on a taller build. */
+  .price-card,.considerations-block,.done-review-grid>*{break-inside:avoid}
+
+  /* PRINT QA FIX - always show the settled final price, never a mid-count
+     animation frame. See the .price-live/.price-static comment in app.js. */
+  .price-live{display:none!important}
+  .price-static{display:inline!important}
 }
