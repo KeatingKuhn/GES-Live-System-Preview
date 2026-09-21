@@ -556,10 +556,41 @@ function App(){
       answers.system_for?{step:"system_for",label:tr("Heat source","Fuente de calor"),
         val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - horno únicamente"),
         short:answers.system_for==="hp"?tr("Dual Fuel (HP + furnace)","Combustible Dual (BC + horno)"):tr("Straight Cool (furnace)","Solo Enfriamiento (horno)")}:null,
-      {step:"dehu",label:tr("Dehumidifier","Deshumidificador"),val:answers.dehu==="yes"?tr("Yes - whole-home unit","Sí - unidad para toda la casa"):answers.dehu==="no"?tr("No","No"):null},
-      Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:tr("Final add-ons","Complementos finales"),
-        val:answers.extras.map(v=>v==="condensate"?tr("Condensate pump","Bomba de condensado"):v==="erv"?"ERV":v).join(" + "),
-        short:answers.extras.map(v=>v==="condensate"?tr("Pump","Bomba"):v==="erv"?"ERV":v).join(" + ")}:null,
+      // Dehumidifier + extras merged into one "Final add-ons" row instead of
+      // two separate boxes - direct client feedback ("dehu can be added into
+      // final add-ons? ... we can shorten things dramatically in this
+      // section"). Folding them raised a real question though: each row's
+      // EDIT button jumps to ONE wizard step (jumpToStep(item.step) below),
+      // so a naive merge - one combined line of text, one EDIT button - would
+      // leave whichever of dehu/extras the button *didn't* point to with no
+      // way back in from this grid. Resolved by keeping BOTH steps directly
+      // editable: this entry carries a `parts` array (one entry per
+      // contributing step) alongside the usual flat `val`/`short` strings.
+      // The renderer below shows one EDIT button per part when there's more
+      // than one (so folding the box never costs editability), and falls
+      // back to the ordinary single-value/single-button layout - reading
+      // `parts[0].step` as `item.step` - when only one side of the merge is
+      // actually present, which is most builds. Declining the dehumidifier
+      // (answers.dehu==="no") no longer gets its own row at all: that
+      // matches how every other optional add-on here already behaves
+      // (purif/extras simply don't appear when nothing was picked), so a
+      // declined dehumidifier and a never-shown ERV now read the same way
+      // instead of one getting a special "No" callout the others don't.
+      (()=>{
+        const parts=[];
+        if(answers.dehu==="yes")parts.push({step:"dehu",
+          full:tr("Whole-home dehumidifier","Deshumidificador para toda la casa"),
+          short:tr("Dehumidifier","Deshumidificador")});
+        if(Array.isArray(answers.extras)&&answers.extras.length>0){
+          const items=answers.extras.map(v=>v==="condensate"
+            ?{full:tr("Condensate pump","Bomba de condensado"),short:tr("Pump","Bomba")}
+            :v==="erv"?{full:"ERV",short:"ERV"}:{full:v,short:v});
+          parts.push({step:"extras",full:items.map(x=>x.full).join(" + "),short:items.map(x=>x.short).join(" + ")});
+        }
+        if(!parts.length)return null;
+        return{step:parts[0].step,label:tr("Final add-ons","Complementos finales"),
+          val:parts.map(p=>p.full).join(" + "),short:parts.map(p=>p.short).join(" + "),parts};
+      })(),
     ].filter(Boolean);
   },[answers,lang]);
 
@@ -1323,37 +1354,80 @@ function App(){
                     // "short" wording where one exists (full detail is still
                     // one hover/tap away via the native title tooltip, same
                     // place attic's ellipsis-clipped cells already send it).
-                    isAtticMode?
-                    <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",position:"relative",minWidth:0}}>
+                    // Multi-part cells (currently just the merged Dehumidifier+
+                    // Final-add-ons row, see the reviewItems comment above) get
+                    // one EDIT button per part instead of the usual single
+                    // chip, so folding two rows into one box never leaves one
+                    // of the two steps it covers without a way back in from
+                    // this grid. Single-part items (everything else, and the
+                    // merged row too whenever only one side of it applies)
+                    // render exactly as before.
+                    (item.parts&&item.parts.length>1)?
+                    (isAtticMode?
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
+                      <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em",marginBottom:1}}>{item.label}</span>
+                      {/* Packed to the left (gap, not space-between) rather
+                          than each part's EDIT button trailing at the far
+                          right edge of the cell - this box is often the
+                          last (odd) item in the row and spans the FULL row
+                          width via the :last-child rule in styles.css, so
+                          space-between would have stretched a two-word
+                          value and its button clear across a ~600px-wide
+                          bar, reading as a big dead gap in the middle
+                          instead of a tight label-plus-action pair. */}
+                      {item.parts.map((p,pi)=>(
+                        <div key={pi} style={{display:"flex",alignItems:"center",gap:10}}>
+                          <span className="review-val" style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={p.full}>{p.short}</span>
+                          <button className="no-print review-edit-btn" onClick={()=>jumpToStep(p.step)} style={{flexShrink:0,fontSize:"var(--fs-review-edit)",padding:"2px 5px"}}>{tr('EDIT','EDITAR')}</button>
+                        </div>
+                      ))}
+                    </div>
+                    :
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
+                      <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
+                      {/* Same left-packed reasoning as attic's branch above -
+                          this box also spans the full row width whenever
+                          it's the grid's odd trailing item. */}
+                      {item.parts.map((p,pi)=>(
+                        <div key={pi} style={{display:"flex",alignItems:"center",gap:10}}>
+                          <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.3}} title={p.full}>{p.short}</span>
+                          <button className="no-print review-edit-btn" onClick={()=>jumpToStep(p.step)} style={{flexShrink:0,fontSize:"var(--fs-review-edit-md)",padding:"3px 6px"}}>{tr('EDIT','EDITAR')}</button>
+                        </div>
+                      ))}
+                    </div>)
+                    :
+                    (isAtticMode?
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"4px 34px 4px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",position:"relative",minWidth:0}}>
                       <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label)",letterSpacing:".03em"}}>{item.label}</span>
                       {/* Spanish text runs noticeably longer than English
                           (a QA pass caught "Combustible Dual - bomba de
                           calor + h…" truncating mid-word under the
                           English-tuned nowrap+ellipsis below) - under the
                           Spanish toggle this cell wraps instead of
-                          clipping, same as closet's cell already does,
-                          and prefers the shorter `short` wording where one
-                          exists rather than the full `val`. English keeps
-                          the original single-line on-screen ellipsis
-                          behavior unchanged, since it was never observed to
-                          truncate mid-word there for a single option - but
-                          a print QA pass found a multi-item Add-ons combo
-                          ("Enhanced Filtration Cabinet + UV Light +
-                          Ionizer + Surge Prote[ctor]") DOES overflow this
-                          narrow a cell and ellipsis-truncates mid-word, in
-                          any language. On screen that's recoverable (the
-                          title="" tooltip below still has the full text on
-                          hover) - on paper there's no hover, so the
-                          .review-val print override in styles.css forces
-                          this span to wrap instead of clip once printed,
-                          regardless of language. The className only
-                          matters for that print rule; on-screen behavior
-                          (including English's single-line clip) is
-                          unchanged. */}
+                          clipping, same as closet's cell already does.
+                          Both languages now prefer the shorter `short`
+                          wording where one exists (full detail is still one
+                          hover/tap away via the native title tooltip below) -
+                          English used to fall back to the full, un-
+                          shortened `val` here even after the wording pass
+                          added `short` fields, which meant this bar kept
+                          showing e.g. "Enhanced Filtration Cabinet +
+                          Ionizer + …" ellipsis-clipped in English even
+                          though the exact same build's Spanish row already
+                          showed the short "Filtro 5" + Ionizador + …" - the
+                          two languages were silently out of sync. On screen
+                          that's recoverable (the title="" tooltip below
+                          still has the full text on hover) - on paper
+                          there's no hover, so the .review-val print
+                          override in styles.css forces this span to wrap
+                          instead of clip once printed, regardless of
+                          language. The className only matters for that
+                          print rule; on-screen behavior (including
+                          English's single-line clip) is unchanged. */}
                       <span className="review-val" style={lang==='es'
                         ?{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"visible",whiteSpace:"normal"}
                         :{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}
-                        title={item.val}>{lang==='es'?(item.short||item.val):item.val}</span>
+                        title={item.val}>{item.short||item.val}</span>
                       <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"3px 6px"}}>{tr('EDIT','EDITAR')}</button>
                     </div>
                     :
@@ -1364,7 +1438,7 @@ function App(){
                     // of the label text. Putting EDIT in normal flow next to the
                     // value instead means it can never overlap anything: the
                     // value just wraps in whatever width is left beside it.
-                    <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(255,255,255,.04)",minWidth:0}}>
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
                       <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
                       {/* Value gets the cell's full width to wrap in (previously
                           shared the row with the EDIT button, so a value long
@@ -1372,12 +1446,24 @@ function App(){
                           "Yes - whole-home unit" - only got the button's
                           leftover ~2/3 width, wrapped to 3 short lines, and read
                           as if EDIT were sitting mid-sentence instead of
-                          alongside it). EDIT now sits on its own line
-                          bottom-right, same as it already does for every other
-                          value short enough to fit one line. */}
+                          alongside it). EDIT sits on its own line bottom-right,
+                          same as it already does for every other value short
+                          enough to fit one line - and now `marginTop:"auto"`
+                          pins it to the true bottom of the CELL, not just
+                          below whatever the value wrapped to. CSS Grid
+                          stretches every cell in a row to match its tallest
+                          neighbor by default, so a short value paired next to
+                          a long-wrapping one (e.g. "Wifi" beside "5" Filter +
+                          Ionizer + UV + Surge") used to leave its EDIT button
+                          sitting right under the short text with a dead gap
+                          below it - the two buttons landed at different
+                          heights and the row read as unbalanced. Pinning both
+                          to the bottom means every EDIT button in a row lines
+                          up on the same baseline regardless of how much either
+                          value wrapped. */}
                       <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",lineHeight:1.25,overflow:"visible",whiteSpace:"normal"}} title={item.val}>{item.short||item.val}</span>
-                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",marginTop:1}}>{tr('EDIT','EDITAR')}</button>
-                    </div>
+                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"4px 7px",marginTop:"auto"}}>{tr('EDIT','EDITAR')}</button>
+                    </div>)
                   ):null)}
                 </div>
               );

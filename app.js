@@ -7601,13 +7601,46 @@
           val: answers.system_for === "hp" ? tr("Dual Fuel - heat pump + furnace", "Combustible Dual - bomba de calor + horno") : tr("Straight cool - furnace only", "Solo enfriamiento - horno \xFAnicamente"),
           short: answers.system_for === "hp" ? tr("Dual Fuel (HP + furnace)", "Combustible Dual (BC + horno)") : tr("Straight Cool (furnace)", "Solo Enfriamiento (horno)")
         } : null,
-        { step: "dehu", label: tr("Dehumidifier", "Deshumidificador"), val: answers.dehu === "yes" ? tr("Yes - whole-home unit", "S\xED - unidad para toda la casa") : answers.dehu === "no" ? tr("No", "No") : null },
-        Array.isArray(answers.extras) && answers.extras.length > 0 ? {
-          step: "extras",
-          label: tr("Final add-ons", "Complementos finales"),
-          val: answers.extras.map((v) => v === "condensate" ? tr("Condensate pump", "Bomba de condensado") : v === "erv" ? "ERV" : v).join(" + "),
-          short: answers.extras.map((v) => v === "condensate" ? tr("Pump", "Bomba") : v === "erv" ? "ERV" : v).join(" + ")
-        } : null
+        // Dehumidifier + extras merged into one "Final add-ons" row instead of
+        // two separate boxes - direct client feedback ("dehu can be added into
+        // final add-ons? ... we can shorten things dramatically in this
+        // section"). Folding them raised a real question though: each row's
+        // EDIT button jumps to ONE wizard step (jumpToStep(item.step) below),
+        // so a naive merge - one combined line of text, one EDIT button - would
+        // leave whichever of dehu/extras the button *didn't* point to with no
+        // way back in from this grid. Resolved by keeping BOTH steps directly
+        // editable: this entry carries a `parts` array (one entry per
+        // contributing step) alongside the usual flat `val`/`short` strings.
+        // The renderer below shows one EDIT button per part when there's more
+        // than one (so folding the box never costs editability), and falls
+        // back to the ordinary single-value/single-button layout - reading
+        // `parts[0].step` as `item.step` - when only one side of the merge is
+        // actually present, which is most builds. Declining the dehumidifier
+        // (answers.dehu==="no") no longer gets its own row at all: that
+        // matches how every other optional add-on here already behaves
+        // (purif/extras simply don't appear when nothing was picked), so a
+        // declined dehumidifier and a never-shown ERV now read the same way
+        // instead of one getting a special "No" callout the others don't.
+        (() => {
+          const parts = [];
+          if (answers.dehu === "yes") parts.push({
+            step: "dehu",
+            full: tr("Whole-home dehumidifier", "Deshumidificador para toda la casa"),
+            short: tr("Dehumidifier", "Deshumidificador")
+          });
+          if (Array.isArray(answers.extras) && answers.extras.length > 0) {
+            const items = answers.extras.map((v) => v === "condensate" ? { full: tr("Condensate pump", "Bomba de condensado"), short: tr("Pump", "Bomba") } : v === "erv" ? { full: "ERV", short: "ERV" } : { full: v, short: v });
+            parts.push({ step: "extras", full: items.map((x) => x.full).join(" + "), short: items.map((x) => x.short).join(" + ") });
+          }
+          if (!parts.length) return null;
+          return {
+            step: parts[0].step,
+            label: tr("Final add-ons", "Complementos finales"),
+            val: parts.map((p) => p.full).join(" + "),
+            short: parts.map((p) => p.short).join(" + "),
+            parts
+          };
+        })()
       ].filter(Boolean);
     }, [answers, lang]);
     const trLineLabel = (line) => {
@@ -7912,14 +7945,22 @@
         // "short" wording where one exists (full detail is still
         // one hover/tap away via the native title tooltip, same
         // place attic's ellipsis-clipped cells already send it).
-        isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement(
+        // Multi-part cells (currently just the merged Dehumidifier+
+        // Final-add-ons row, see the reviewItems comment above) get
+        // one EDIT button per part instead of the usual single
+        // chip, so folding two rows into one box never leaves one
+        // of the two steps it covers without a way back in from
+        // this grid. Single-part items (everything else, and the
+        // merged row too whenever only one side of it applies)
+        // render exactly as before.
+        item.parts && item.parts.length > 1 ? isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em", marginBottom: 1 } }, item.label), item.parts.map((p, pi) => /* @__PURE__ */ React.createElement("div", { key: pi, style: { display: "flex", alignItems: "center", gap: 10 } }, /* @__PURE__ */ React.createElement("span", { className: "review-val", style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, title: p.full }, p.short), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(p.step), style: { flexShrink: 0, fontSize: "var(--fs-review-edit)", padding: "2px 5px" } }, tr("EDIT", "EDITAR"))))) : /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), item.parts.map((p, pi) => /* @__PURE__ */ React.createElement("div", { key: pi, style: { display: "flex", alignItems: "center", gap: 10 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.3 }, title: p.full }, p.short), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(p.step), style: { flexShrink: 0, fontSize: "var(--fs-review-edit-md)", padding: "3px 6px" } }, tr("EDIT", "EDITAR"))))) : isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement(
           "span",
           {
             className: "review-val",
             style: lang === "es" ? { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "visible", whiteSpace: "normal" } : { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
             title: item.val
           },
-          lang === "es" ? item.short || item.val : item.val
+          item.short || item.val
         ), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "3px 6px" } }, tr("EDIT", "EDITAR"))) : (
           // Closet's cell doesn't reserve a fixed right-hand gutter for
           // an absolutely-positioned EDIT chip (that's what attic does
@@ -7928,7 +7969,7 @@
           // of the label text. Putting EDIT in normal flow next to the
           // value instead means it can never overlap anything: the
           // value just wraps in whatever width is left beside it.
-          /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(255,255,255,.04)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "4px 7px", marginTop: 1 } }, tr("EDIT", "EDITAR")))
+          /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "4px 7px", marginTop: "auto" } }, tr("EDIT", "EDITAR")))
         )
       ) : null));
       return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid)) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: isAtticMode ? 38 : 42, height: isAtticMode ? 38 : 42, fontSize: isAtticMode ? 17 : 19, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: isAtticMode ? 17 : 19, marginBottom: 1 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-review-label-lg)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))), reviewGrid);
