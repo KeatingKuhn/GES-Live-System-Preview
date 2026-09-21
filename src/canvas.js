@@ -4146,7 +4146,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // ERV: far left of return plenum
             const ervBX=Math.max(8, RET_X-BW+80);
             return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} BY={UNIT_Y-48-14} roofY={EAVE_Y+14}
-              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')}
+              hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
           })()}
 

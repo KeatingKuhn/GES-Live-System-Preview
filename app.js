@@ -5070,6 +5070,7 @@
             roofY: EAVE_Y + 14,
             hasDehu,
             hasERV: Array.isArray(a.extras) && a.extras.includes("erv"),
+            snap: true,
             lang,
             vw: SVG_VW,
             vh: SVG_VH
