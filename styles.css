@@ -1346,14 +1346,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .done-wrap{padding-top:4px!important;padding-bottom:2px!important}
 
   /* PRINT QA FIX - review-grid value truncation: attic's review grid
-     ellipsis-clips a single-line value (English only - Spanish already
-     wraps, see the big comment next to .review-val in app.js) to fit its
-     on-screen column width. On paper there's no hover, so the title=""
-     tooltip that saves the on-screen case can't recover the cut text - a
-     4-item Add-ons combo ("...+ Surge Prote…") was confirmed printing
-     mid-word-truncated with no way to read the full pick. Forcing a wrap
-     here (any language) costs a couple of extra printed lines on wide
-     combos, never loses content. */
+     ellipsis-clips a single-line value to fit its on-screen column width.
+     On paper there's no hover, so the title="" tooltip that saves the
+     on-screen case can't recover the cut text - a 4-item Add-ons combo
+     ("...+ Surge Prote…") was confirmed printing mid-word-truncated with
+     no way to read the full pick. Forcing a wrap here (any language)
+     costs a couple of extra printed lines on wide combos, never loses
+     content. Both languages now show the same shortened wording on screen
+     too (see the big comment next to .review-val in app.js - English used
+     to silently fall back to the long, unshortened value here), so this
+     fires far less often in practice, but stays as a safety net for
+     whatever residual combo still runs long in either language. */
   .review-val{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 
   /* PRINT QA FIX - page-break splits: neither of these bordered boxes had
