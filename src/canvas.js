@@ -904,8 +904,21 @@ function HoverPanel({part,groupBoxes}){
   // Sibling boxes sharing this part's `group` (e.g. every other supply-duct
   // run) - excludes the exact box already covered by the `highlight` ring
   // below so the actively-hovered one isn't double-outlined.
+  // QA FIX - a single physical run (e.g. an angled supply duct's elbow leg
+  // + straight drop) can register as TWO separate HoverInfo hit-zones
+  // sharing the exact same group AND the exact same ringPath (so either
+  // zone's ring traces the whole pipe). The bounding-box equality check
+  // alone only excludes the literal hovered zone, so the OTHER zone on
+  // that same duct - a different x/y/w/h, but the identical ringPath -
+  // still passed through as a "sibling" and got its own dim ring drawn
+  // right on top of the already-bright one, stacking two translucent gold
+  // washes over the same pixels. That's exactly why the angled left/right
+  // ducts read brighter than the single-hit-zone straight middle one on
+  // hover, confirmed via a hover sweep. Deduping on ringPath too (when
+  // present) collapses that double-paint back to one ring per pipe.
   const siblings=(group&&groupBoxes&&groupBoxes[group])
-    ?Object.values(groupBoxes[group]).filter(b=>!(b.x===x&&b.y===y&&b.w===w&&b.h===h))
+    ?Object.values(groupBoxes[group]).filter(b=>
+        part.ringPath&&b.ringPath===part.ringPath?false:!(b.x===x&&b.y===y&&b.w===w&&b.h===h))
     :[];
   // A ring normally just traces its box's own x/y/w/h as a rect, which
   // looks right for anything actually rectangular - but a hit-box that's
@@ -950,9 +963,24 @@ function HoverPanel({part,groupBoxes}){
       stroke={bright?"rgba(215,183,64,.95)":"rgba(215,183,64,.7)"} strokeWidth={bright?2.5:2}
       filter="url(#glow-sm)" style={{pointerEvents:'none'}}/>;
   };
-  const FONT=9.3, LINE_H=12, PAD=8, PANEL_W=172, TITLE_H=19;
-  const maxChars=Math.max(10,Math.floor((PANEL_W-PAD*2)/(FONT*0.56)));
+  // QA FIX - PANEL_W used to be a flat 172 regardless of content, so a
+  // short title/text (e.g. "GAS LINE") still got the same wide box a much
+  // longer one needed - direct feedback: "the box should only be as big
+  // as the amount of text." Wrapping still happens at MAX_PANEL_W (so long
+  // copy wraps exactly as before), but the box itself then shrinks to hug
+  // whichever line - title or the longest wrapped body line - actually
+  // turned out widest, down to MIN_PANEL_W as a floor so very short copy
+  // ("IONIZER") still gets a readable minimum. Char-width factors here are
+  // the same rough per-font heuristic hiWrapText's own maxChars already
+  // used (0.56 for the sans-serif body; monospace runs a touch wider, so
+  // the title gets its own 0.62).
+  const FONT=9.3, LINE_H=12, PAD=8, TITLE_H=19;
+  const MAX_PANEL_W=172, MIN_PANEL_W=64;
+  const maxChars=Math.max(10,Math.floor((MAX_PANEL_W-PAD*2)/(FONT*0.56)));
   const lines=hiWrapText(text,maxChars);
+  const titleW=(title||'').length*10.5*0.62;
+  const bodyW=lines.reduce((m,ln)=>Math.max(m,ln.length*FONT*0.56),0);
+  const PANEL_W=Math.min(MAX_PANEL_W,Math.max(MIN_PANEL_W,Math.ceil(Math.max(titleW,bodyW))+PAD*2));
   const panelH=TITLE_H+lines.length*LINE_H+7;
   // Anchors centered above the component by default (flips below when too
   // close to the canvas top), then clamps sideways/vertically to stay
@@ -981,10 +1009,10 @@ function HoverPanel({part,groupBoxes}){
       style={{pointerEvents:'none'}}>
       <rect x={0} y={0} width={PANEL_W} height={panelH} rx="5"
         fill="#14110a" stroke="rgba(215,183,64,.55)" strokeWidth="1" filter="url(#shadow)"/>
-      <text x={PAD} y={13} fill="#d7b740" fontSize="10.5" fontFamily="monospace" fontWeight="700">{title}</text>
+      <text x={PANEL_W/2} y={13} textAnchor="middle" fill="#d7b740" fontSize="10.5" fontFamily="monospace" fontWeight="700">{title}</text>
       <line x1={PAD} y1={TITLE_H-2} x2={PANEL_W-PAD} y2={TITLE_H-2} stroke="rgba(215,183,64,.25)" strokeWidth="0.6"/>
       {lines.map((ln,i)=>(
-        <text key={i} x={PAD} y={TITLE_H+9+i*LINE_H} fill="rgba(240,242,248,.86)" fontSize={FONT} fontFamily="sans-serif">{ln}</text>
+        <text key={i} x={PANEL_W/2} y={TITLE_H+9+i*LINE_H} textAnchor="middle" fill="rgba(240,242,248,.86)" fontSize={FONT} fontFamily="sans-serif">{ln}</text>
       ))}
     </g>
   </>;
@@ -3859,6 +3887,41 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       return pts.map(([x,y],i)=>`${i===0?'M':'L'}${x} ${y}`).join(' ');
     })();
 
+    // Condensate drain route - hoisted here (shared by this branch's own
+    // two render blocks below, one indoor and one outdoor - see each
+    // one's own comment for why they're split in two) so both halves stay
+    // in sync off one set of numbers instead of two copies that could
+    // drift apart. Shaped like a real drain would actually run: low,
+    // crossing BEHIND the supply ducts near the attic floor (not up at
+    // the roofline the lineset itself travels - a drain has no reason to
+    // climb that high), over to the exterior wall, then down alongside
+    // the lineset's own wall-drop, along the ground past the condenser
+    // pad, and on into the yard - per direct feedback ("cross behind the
+    // supply ducts and run with the line-sets down the wall").
+    const drainCoilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.22);
+    const drainTopY=UNIT_Y+UNIT_H+4;
+    // Within the supply ducts' own hang band (pBot..DECK_Y, see the
+    // ductwork block's own pBot/DW/DECK_Y) rather than at their exact
+    // grille height, so the crossing reads as "behind the pipes" without
+    // touching the grilles/registers right at the floor line.
+    const drainCrossY=DECK_Y-25;
+    // Inner-right edge of the wall band, clear of the lineset's own
+    // px1/px2 (wallMidX∓3 inside OutsideZone) which cross a few px to its
+    // left - same offset convention as the closet layout's own drain.
+    const drainWallX=EXT_WALL_X+WALL_THICK-3;
+    // Ground level - mirrors OutsideZone's own groundY=zoneH-28 (zoneH
+    // is VH here), offset just above it so this run stays on the visible
+    // sky/yard fill instead of the ground rect's own opaque fill, which
+    // starts exactly at groundY (same fix, same reasoning, as the closet
+    // layout's own drain hit this first).
+    const drainGroundY=VH-28-2;
+    // Past the pad and on toward the property line - see the closet
+    // layout's own PAST_PAD comment for why this is a stylized "clearly
+    // past it" distance rather than a literal 3ft-in-scale run (which
+    // would push the pipe off the edge of the canvas at this zoom).
+    const drainPastPad=46;
+    const drainEndX=Math.min(VW-16,COND_X+COND_W+10+drainPastPad);
+
     return(
       <HoverCtx.Provider value={setHoverPart}>
       <GroupCtx.Provider value={groupApi}>
@@ -4338,6 +4401,37 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {/* This box's own HoverInfo moved below, after the lineset's -
               see that HoverInfo's own comment for why. */}
 
+          {/* Condensate drain - indoor half. Exits the coil, drops to the
+              supply ducts' own hang height, then crosses the attic to the
+              exterior wall at that same low height - painted BEFORE the
+              ductwork block right below so its 3 duct stems (opaque,
+              painted after) occlude this crossing where they overlap,
+              reading as "runs behind the ducts" per direct feedback,
+              instead of floating in front of them. The outdoor half
+              (wall-drop, along the pad, past it) is a separate block
+              after OutsideZone lower down - see that block's own comment
+              for why it's split off instead of continuing here. Route
+              itself (drainCoilCX/drainTopY/drainCrossY/drainWallX) is
+              hoisted above, alongside the lineset's own linesetRingPath,
+              so both halves share the exact same numbers. */}
+          {hasCoil&&hasCond&&<g key="attic-drain-indoor">
+            <line x1={drainCoilCX} y1={drainTopY} x2={drainCoilCX} y2={drainCrossY}
+              stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
+            <line x1={drainCoilCX} y1={drainCrossY} x2={drainWallX} y2={drainCrossY}
+              stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
+            <text x={drainCoilCX+7} y={drainTopY+14} textAnchor="start"
+              fill={B+'.4)'} fontSize="12" fontFamily="monospace">DRAIN</text>
+            {/* No EditZone covers this line run - free-standing hover, no
+                onClick. Loose bounding rect for the hit-test, ringPath
+                traces the real bent route for the visible ring, same
+                convention as every other bent-pipe hover in this file. */}
+            <HoverInfo x={Math.min(drainCoilCX,drainWallX)-6} y={drainTopY-4}
+              w={Math.abs(drainWallX-drainCoilCX)+12} h={drainCrossY-drainTopY+8} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+              ringPath={`M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY}`}
+              ringStrokeWidth={7}/>
+          </g>}
+
           {/* ── DUCTWORK - 3 supply stems off the plenum bottom, down through
                the attic floor into a drywall ceiling grille below - same
                idea as the upflow closet layout's supply ducts. The middle
@@ -4583,6 +4677,43 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}>
             {condenserSubHovers(COND_X,COND_Y,COND_W,COND_H,a.cond_tier)}
           </EditZone>}
+
+          {/* Condensate drain - outdoor half (down the wall, along the
+              ground past the condenser pad, out into the yard). Painted
+              AFTER OutsideZone (ground/pad/condenser, just above) so this
+              run draws on top of them instead of underneath the ground
+              rect's own opaque fill - the closet layout's identical drain
+              hit this same z-order issue first; see its own comment.
+              Picks up right where the indoor half (before the ductwork
+              block, up near SUP_X) left off, at drainWallX/drainCrossY. */}
+          {hasCoil&&hasCond&&(()=>{
+            const drainD2=`M${drainWallX} ${drainCrossY} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
+            return <g key="attic-drain-outdoor">
+              {/* Down the wall to ground level - crosses from the dim
+                  attic interior into the brighter outdoor sky fill
+                  partway down, so this segment (and the ground-level one
+                  below it) step UP in opacity rather than down, same
+                  contrast fix the closet layout's own drain needed. */}
+              <line x1={drainWallX} y1={drainCrossY} x2={drainWallX} y2={drainGroundY}
+                stroke={B+'.6)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
+              {/* Along the pad and past it */}
+              <line x1={drainWallX} y1={drainGroundY} x2={drainEndX} y2={drainGroundY}
+                stroke={B+'.85)'} strokeWidth="2" strokeDasharray="5 3" strokeLinecap="round"/>
+              {/* No EditZone covers this line run - free-standing hover,
+                  no onClick. */}
+              <HoverInfo x={drainWallX-6} y={drainCrossY-4}
+                w={drainEndX-drainWallX+12} h={drainGroundY-drainCrossY+8} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                ringPath={drainD2} ringStrokeWidth={9}/>
+              {/* Open terminus - a short downward drip stub + a dark
+                  discharge point, same "this is where it lets out" cue
+                  the old indoor terminus used, relocated to the actual
+                  outdoor end of the run. */}
+              <line x1={drainEndX} y1={drainGroundY} x2={drainEndX} y2={drainGroundY+5}
+                stroke={B+'.85)'} strokeWidth="2" strokeLinecap="round"/>
+              <circle cx={drainEndX} cy={drainGroundY+5} r={3} fill={B+'.7)'} stroke={B+'.95)'} strokeWidth="0.8"/>
+            </g>;
+          })()}
 
           {/* ── THERMOSTAT - its own dedicated column in the left margin
                (mounted on the interior wall, same real-world spot a
@@ -4902,44 +5033,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             </g>;
           })()}
 
-          {/* Condensate drain - dashed blue line below coil. Used to
-              optionally end in a condensate pump box (a.extras included
-              'condensate') - dropped entirely per direct feedback
-              ("getting rid of it... adds a complexity I don't want to
-              deal with anymore"), so this is just the plain drain line
-              now, unconditionally. */}
-          {hasCoil&&<g key="attic-drain">
-            {(()=>{
-              // QA FIX - the no-furnace (air handler) branch's old 0.60
-              // fraction landed inside the BLOWER section of AirHandlerH
-              // (coil occupies its left 50%, blower the next 35% - see
-              // that component's own coilW/blowerW split), reading as the
-              // drain hanging off the blower instead of the coil that
-              // actually produces the condensate. Moved to 0.22, inside
-              // the coil's own span, mirroring the furnace branch's
-              // 0.12-of-the-coil-width convention just to its left.
-              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.22);
-              const drainTopY=UNIT_Y+UNIT_H+4;
-              const drainD=`M${coilCX} ${drainTopY} L${coilCX} ${DECK_Y+20}`;
-              return <>
-                <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={DECK_Y+20}
-                  stroke={B+'.35)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
-                <text x={coilCX+7} y={DECK_Y+14} textAnchor="start"
-                  fill={B+'.35)'} fontSize="12" fontFamily="monospace">DRAIN</text>
-                {/* QA FIX - a narrowed rect alone (was 80 units wide, then
-                    20) still drew a fatter gold ring than the closet
-                    layout's own drain hover, which traces the actual line
-                    with ringPath+ringStrokeWidth instead of a plain rect
-                    ring. Matched that same treatment here: rect stays a
-                    loose hit-box (fine for hit-testing), ringPath makes the
-                    visible ring hug the 1.5px line itself. No EditZone
-                    covers this - free-standing hover, no onClick. */}
-                <HoverInfo x={coilCX-10} y={drainTopY-4} w={20} h={DECK_Y+20-drainTopY+8} rx={3}
-                  vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-                  ringPath={drainD} ringStrokeWidth={8}/>
-              </>;
-            })()}
-          </g>}
 
           {/* Air-handler (no-furnace) service disconnect - the furnace
               branch gets its own service switch below the blower (see the
@@ -6115,57 +6208,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               ringPath={linesetRingPath} ringStrokeWidth={16}/>
           </g>}
 
-          {/* Condensate drain - exits right face of AH, S-curves into the
-              2x4 chase. Used to optionally run out to a pump box instead
-              (a.extras included 'condensate') - dropped entirely per
-              direct feedback ("getting rid of it... adds a complexity I
-              don't want to deal with anymore"), so this is just the S-
-              curve now, unconditionally. Painted AFTER (so it wins hover
-              priority over) the refrigerant line stubs just above - see
-              that block's own comment for why. */}
-          {hasCoil&&(()=>{
-            // Exit point: right face of AH/coil, lower portion
-            const exitX=UNIT_X+UNIT_W;
-            const exitY=hasFurnace?ACOIL_Y+Math.round(ACOIL_H*0.85):ACOIL_Y+Math.round(ACOIL_H*0.85);
-            // Step 1: 45° right-down from unit face
-            const offset=20; // how far right before turning down
-            const pt1X=exitX+offset;
-            const pt1Y=exitY+offset; // 45°
-            const chaseBottomY=VH-20;
-            const pt2X=pt1X;
-            const pt2Y=chaseBottomY-offset;
-            const pt3X=pt2X-offset;
-            const pt3Y=pt2Y;
-            // Same path the line segments below trace, reused as the
-            // hover ring's ringPath - the hit-rect just below is still a
-            // loose bounding box (fine for hit-testing), but this bent
-            // run zigzags inside it, so a rect ring around that box would
-            // read as a big box floating around a thin bent line instead
-            // of hugging the actual drain run, same reasoning as the
-            // attic layout's angled supply duct elbow.
-            const drainD=`M${exitX} ${exitY} L${pt1X} ${pt1Y} L${pt2X} ${pt2Y} L${pt3X} ${pt3Y}`;
-            return <>
-              {/* 45° right-down from unit */}
-              <line x1={exitX} y1={exitY} x2={pt1X} y2={pt1Y}
-                stroke={B+'.45)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
-              {/* Straight down */}
-              <line x1={pt1X} y1={pt1Y} x2={pt2X} y2={pt2Y}
-                stroke={B+'.42)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
-              {/* Into the chase */}
-              <line x1={pt2X} y1={pt2Y} x2={pt3X} y2={pt3Y}
-                stroke={B+'.38)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
-              {/* No EditZone covers this line run - free-standing hover, no
-                  onClick. */}
-              <HoverInfo x={Math.min(exitX,pt3X)-4} y={Math.min(exitY,pt2Y)-4}
-                w={Math.max(exitX,pt1X,pt3X)-Math.min(exitX,pt3X)+8} h={Math.max(pt2Y,pt3Y)-Math.min(exitY,pt2Y)+8}
-                rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-                ringPath={drainD} ringStrokeWidth={9}/>
-              <text x={pt1X+5} y={pt1Y+12} textAnchor="start"
-                fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">DRAIN</text>
-              <circle cx={pt3X} cy={pt3Y} r={3} fill={B+'.4)'} stroke={B+'.6)'} strokeWidth="0.8"/>
-            </>;
-          })()}
-
           {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}
           {hasCond&&<OutsideZone
             wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH}
@@ -6184,6 +6226,95 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}>
             {condenserSubHovers(COND_X,COND_Y,COND_W,COND_H,a.cond_tier)}
           </EditZone>}
+
+          {/* Condensate drain - exits right face of AH, slopes over to the
+              exterior wall alongside the lineset's own route (same "down
+              and out through the wall" shape, offset below the lineset's
+              own LS_Y1/LS_Y2 pair so the two never visually merge), then
+              runs down the wall to ground level and along the condenser
+              pad, continuing past it into the yard - a real condensate
+              line terminates well clear of the foundation, not coiled up
+              in an indoor chase. Replaces the old S-curve-into-a-2x4-chase
+              routing per direct feedback. Gated on hasCond (not just
+              hasCoil) since there's nowhere outside to route to - and
+              nothing at COND_X/COND_Y to route toward - until the
+              condenser itself exists in the build. Painted AFTER
+              OutsideZone (ground/pad/condenser) so its own outdoor leg
+              draws on top of them instead of underneath the ground rect's
+              opaque fill - confirmed via screenshot that painting this
+              block in its old spot (before OutsideZone) hid the entire
+              outdoor run behind it. */}
+          {hasCoil&&hasCond&&(()=>{
+            // Exit point: right face of AH/coil, lower portion - dropped
+            // below LS_Y2 (the lower of the lineset's own two lines) so
+            // this run starts in its own clear band instead of overlapping
+            // the refrigerant lines it's about to run alongside.
+            const exitX=UNIT_X+UNIT_W;
+            const exitY=Math.max(LS_Y2+14,ACOIL_Y+Math.round(ACOIL_H*0.85));
+            // Wall crossing - inner edge of the wall band, clear of the
+            // lineset's own px1/px2 (wallMidX∓3, i.e. EXT_WALL_X+6/+12 -
+            // see OutsideZone's own wallMidX comment) which cross a few px
+            // to its left.
+            const wallX2=EXT_WALL_X+WALL_THICK-3;
+            const slopeY=exitY+16; // gentle downward slope crossing the wall, unlike the lineset's flat run - real drain lines need fall
+            // Ground level - mirrors OutsideZone's own groundY=zoneH-28
+            // (zoneH===VH here, see its call site above). Sits just ABOVE
+            // that line (not below) so the run stays on the visible yard
+            // background instead of the ground rect's own opaque fill,
+            // which starts exactly at groundY.
+            const groundY2=VH-28-2;
+            // Past the pad (condX-10..condX+condW+10, see OutsideZone's own
+            // CONCRETE PAD rect) and on toward the property line - real
+            // code wants a condensate line terminating a few feet clear of
+            // the foundation, not coiled up at the equipment. This diagram
+            // compresses real-world distances everywhere (DISC_ZONE, pad
+            // margins, etc. are all stylized, not to literal scale), so
+            // PAST_PAD reads as "clearly past it, into open yard" rather
+            // than a literal 3ft-in-scale run, which would push the pipe
+            // off the edge of the canvas at this zoom.
+            const PAST_PAD=46;
+            const drainEndX=Math.min(VW-16,COND_X+COND_W+10+PAST_PAD);
+            const drainD=`M${exitX} ${exitY} L${wallX2} ${slopeY} L${wallX2} ${groundY2} L${drainEndX} ${groundY2}`;
+            return <>
+              {/* Sloped run from the unit to the wall - indoors, so the
+                  same dim opacity every other indoor drain segment in this
+                  file uses reads fine against the dark house interior. */}
+              <line x1={exitX} y1={exitY} x2={wallX2} y2={slopeY}
+                stroke={B+'.45)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
+              {/* Down the wall to ground level - crosses from the dark
+                  interior into the lighter outdoor sky fill partway down,
+                  so this segment steps up in opacity rather than down. */}
+              <line x1={wallX2} y1={slopeY} x2={wallX2} y2={groundY2}
+                stroke={B+'.6)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
+              {/* Along the pad and past it - fully outdoors against the
+                  sky/yard fill (OUTSIDE_SUNNY/OVERCAST/COLD, all
+                  medium-blue-ish), where the same low opacity the indoor
+                  segments use nearly disappeared (confirmed via
+                  screenshot - a blue-on-blue-ish contrast problem, not the
+                  z-order bug this block's own comment already fixed).
+                  Bumped well up so the outdoor run actually reads. */}
+              <line x1={wallX2} y1={groundY2} x2={drainEndX} y2={groundY2}
+                stroke={B+'.85)'} strokeWidth="2" strokeDasharray="5 3" strokeLinecap="round"/>
+              {/* No EditZone covers this line run - free-standing hover, no
+                  onClick. Loose bounding rect for the actual hit-test (fine
+                  since it's just hit-testing), ringPath traces the real
+                  bent route for the visible ring, same reasoning as every
+                  other bent-pipe hover in this file. */}
+              <HoverInfo x={exitX-4} y={exitY-4}
+                w={drainEndX-exitX+8} h={groundY2-exitY+8}
+                rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                ringPath={drainD} ringStrokeWidth={9}/>
+              <text x={wallX2+6} y={slopeY-6} textAnchor="start"
+                fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">DRAIN</text>
+              {/* Open terminus - a short downward drip stub + a dark
+                  discharge point, same "this is where it lets out" cue the
+                  old indoor terminus used, relocated to the actual outdoor
+                  end of the run. */}
+              <line x1={drainEndX} y1={groundY2} x2={drainEndX} y2={groundY2+5}
+                stroke={B+'.85)'} strokeWidth="2" strokeLinecap="round"/>
+              <circle cx={drainEndX} cy={groundY2+5} r={3} fill={B+'.7)'} stroke={B+'.95)'} strokeWidth="0.8"/>
+            </>;
+          })()}
 
           {/* Thermostat - mounted on the interior wall, between the unit
               and the exterior wall it's built into - a real indoor spot,

@@ -2835,7 +2835,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   }
   function HoverPanel({ part, groupBoxes }) {
     const { x, y, w, h, rx, vw, vh, title, text, highlight, group } = part;
-    const siblings = group && groupBoxes && groupBoxes[group] ? Object.values(groupBoxes[group]).filter((b) => !(b.x === x && b.y === y && b.w === w && b.h === h)) : [];
+    const siblings = group && groupBoxes && groupBoxes[group] ? Object.values(groupBoxes[group]).filter((b) => part.ringPath && b.ringPath === part.ringPath ? false : !(b.x === x && b.y === y && b.w === w && b.h === h)) : [];
     const ring = (box, bright) => {
       if (box.ringPath) {
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
@@ -2880,9 +2880,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         }
       );
     };
-    const FONT = 9.3, LINE_H = 12, PAD = 8, PANEL_W = 172, TITLE_H = 19;
-    const maxChars = Math.max(10, Math.floor((PANEL_W - PAD * 2) / (FONT * 0.56)));
+    const FONT = 9.3, LINE_H = 12, PAD = 8, TITLE_H = 19;
+    const MAX_PANEL_W = 172, MIN_PANEL_W = 64;
+    const maxChars = Math.max(10, Math.floor((MAX_PANEL_W - PAD * 2) / (FONT * 0.56)));
     const lines = hiWrapText(text, maxChars);
+    const titleW = (title || "").length * 10.5 * 0.62;
+    const bodyW = lines.reduce((m, ln) => Math.max(m, ln.length * FONT * 0.56), 0);
+    const PANEL_W = Math.min(MAX_PANEL_W, Math.max(MIN_PANEL_W, Math.ceil(Math.max(titleW, bodyW)) + PAD * 2));
     const panelH = TITLE_H + lines.length * LINE_H + 7;
     let px = x + w / 2 - PANEL_W / 2;
     let py = y - panelH - 9;
@@ -2913,9 +2917,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           filter: "url(#shadow)"
         }
       ),
-      /* @__PURE__ */ React.createElement("text", { x: PAD, y: 13, fill: "#d7b740", fontSize: "10.5", fontFamily: "monospace", fontWeight: "700" }, title),
+      /* @__PURE__ */ React.createElement("text", { x: PANEL_W / 2, y: 13, textAnchor: "middle", fill: "#d7b740", fontSize: "10.5", fontFamily: "monospace", fontWeight: "700" }, title),
       /* @__PURE__ */ React.createElement("line", { x1: PAD, y1: TITLE_H - 2, x2: PANEL_W - PAD, y2: TITLE_H - 2, stroke: "rgba(215,183,64,.25)", strokeWidth: "0.6" }),
-      lines.map((ln, i) => /* @__PURE__ */ React.createElement("text", { key: i, x: PAD, y: TITLE_H + 9 + i * LINE_H, fill: "rgba(240,242,248,.86)", fontSize: FONT, fontFamily: "sans-serif" }, ln))
+      lines.map((ln, i) => /* @__PURE__ */ React.createElement("text", { key: i, x: PANEL_W / 2, y: TITLE_H + 9 + i * LINE_H, textAnchor: "middle", fill: "rgba(240,242,248,.86)", fontSize: FONT, fontFamily: "sans-serif" }, ln))
     ));
   }
   function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick, highlight = true, group, ringPath, ringStrokeWidth, ringBox }) {
@@ -5635,6 +5639,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         pts.push([EXT_WALL_X + 9, COND_Y + COND_H * 0.82], [COND_X, COND_Y + COND_H * 0.82]);
         return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
       })();
+      const drainCoilCX = hasFurnace ? ACOIL_X + ACOIL_W * 0.12 : AH_X + Math.round(AH_W * 0.22);
+      const drainTopY = UNIT_Y + UNIT_H + 4;
+      const drainCrossY = DECK_Y - 25;
+      const drainWallX = EXT_WALL_X + WALL_THICK - 3;
+      const drainGroundY = VH - 28 - 2;
+      const drainPastPad = 46;
+      const drainEndX = Math.min(VW - 16, COND_X + COND_W + 10 + drainPastPad);
       return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -6375,7 +6386,57 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           h: SUP_PLEN_H + 4,
           rx: 5
         }
-      ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
+      ), hasCoil && hasCond && /* @__PURE__ */ React.createElement("g", { key: "attic-drain-indoor" }, /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          x1: drainCoilCX,
+          y1: drainTopY,
+          x2: drainCoilCX,
+          y2: drainCrossY,
+          stroke: B + ".42)",
+          strokeWidth: "1.5",
+          strokeDasharray: "4 3",
+          strokeLinecap: "round"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          x1: drainCoilCX,
+          y1: drainCrossY,
+          x2: drainWallX,
+          y2: drainCrossY,
+          stroke: B + ".42)",
+          strokeWidth: "1.5",
+          strokeDasharray: "4 3",
+          strokeLinecap: "round"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          x: drainCoilCX + 7,
+          y: drainTopY + 14,
+          textAnchor: "start",
+          fill: B + ".4)",
+          fontSize: "12",
+          fontFamily: "monospace"
+        },
+        "DRAIN"
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: Math.min(drainCoilCX, drainWallX) - 6,
+          y: drainTopY - 4,
+          w: Math.abs(drainWallX - drainCoilCX) + 12,
+          h: drainCrossY - drainTopY + 8,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condensate_drain").title,
+          text: T("condensate_drain").text,
+          ringPath: `M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY}`,
+          ringStrokeWidth: 7
+        }
+      )), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
         const DW = 14;
         const DC = G + ".32)";
         const DS = G + ".18)";
@@ -6587,7 +6648,60 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 5
         },
         condenserSubHovers(COND_X, COND_Y, COND_W, COND_H, a.cond_tier)
-      ), hasTstat && (() => {
+      ), hasCoil && hasCond && (() => {
+        const drainD2 = `M${drainWallX} ${drainCrossY} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
+        return /* @__PURE__ */ React.createElement("g", { key: "attic-drain-outdoor" }, /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: drainWallX,
+            y1: drainCrossY,
+            x2: drainWallX,
+            y2: drainGroundY,
+            stroke: B + ".6)",
+            strokeWidth: "1.8",
+            strokeDasharray: "5 3",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: drainWallX,
+            y1: drainGroundY,
+            x2: drainEndX,
+            y2: drainGroundY,
+            stroke: B + ".85)",
+            strokeWidth: "2",
+            strokeDasharray: "5 3",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: drainWallX - 6,
+            y: drainCrossY - 4,
+            w: drainEndX - drainWallX + 12,
+            h: drainGroundY - drainCrossY + 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condensate_drain").title,
+            text: T("condensate_drain").text,
+            ringPath: drainD2,
+            ringStrokeWidth: 9
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: drainEndX,
+            y1: drainGroundY,
+            x2: drainEndX,
+            y2: drainGroundY + 5,
+            stroke: B + ".85)",
+            strokeWidth: "2",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement("circle", { cx: drainEndX, cy: drainGroundY + 5, r: 3, fill: B + ".7)", stroke: B + ".95)", strokeWidth: "0.8" }));
+      })(), hasTstat && (() => {
         const isProprietary = a.thermostat === "proprietary";
         const isWifi = a.thermostat === "wifi" && !isProprietary;
         const variant = thermVariant(isProprietary, isWifi);
@@ -6802,50 +6916,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             text: T("backdraft_damper").text
           }
         ));
-      })(), hasCoil && /* @__PURE__ */ React.createElement("g", { key: "attic-drain" }, (() => {
-        const coilCX = hasFurnace ? ACOIL_X + ACOIL_W * 0.12 : AH_X + Math.round(AH_W * 0.22);
-        const drainTopY = UNIT_Y + UNIT_H + 4;
-        const drainD = `M${coilCX} ${drainTopY} L${coilCX} ${DECK_Y + 20}`;
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: coilCX,
-            y1: drainTopY,
-            x2: coilCX,
-            y2: DECK_Y + 20,
-            stroke: B + ".35)",
-            strokeWidth: "1.5",
-            strokeDasharray: "4 3",
-            strokeLinecap: "round"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "text",
-          {
-            x: coilCX + 7,
-            y: DECK_Y + 14,
-            textAnchor: "start",
-            fill: B + ".35)",
-            fontSize: "12",
-            fontFamily: "monospace"
-          },
-          "DRAIN"
-        ), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: coilCX - 10,
-            y: drainTopY - 4,
-            w: 20,
-            h: DECK_Y + 20 - drainTopY + 8,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("condensate_drain").title,
-            text: T("condensate_drain").text,
-            ringPath: drainD,
-            ringStrokeWidth: 8
-          }
-        ));
-      })()), hasCoil && !hasFurnace && (() => {
+      })(), hasCoil && !hasFurnace && (() => {
         const swX = AH_X + AH_W * 0.675;
         const swTopY = UNIT_Y + UNIT_H;
         const plateW = 16, plateH = 26, plateY = swTopY + 38 + plateH / 2;
@@ -8330,82 +8401,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           ringPath: linesetRingPath,
           ringStrokeWidth: 16
         }
-      )), hasCoil && (() => {
-        const exitX = UNIT_X + UNIT_W;
-        const exitY = hasFurnace ? ACOIL_Y + Math.round(ACOIL_H * 0.85) : ACOIL_Y + Math.round(ACOIL_H * 0.85);
-        const offset = 20;
-        const pt1X = exitX + offset;
-        const pt1Y = exitY + offset;
-        const chaseBottomY = VH - 20;
-        const pt2X = pt1X;
-        const pt2Y = chaseBottomY - offset;
-        const pt3X = pt2X - offset;
-        const pt3Y = pt2Y;
-        const drainD = `M${exitX} ${exitY} L${pt1X} ${pt1Y} L${pt2X} ${pt2Y} L${pt3X} ${pt3Y}`;
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: exitX,
-            y1: exitY,
-            x2: pt1X,
-            y2: pt1Y,
-            stroke: B + ".45)",
-            strokeWidth: "1.8",
-            strokeDasharray: "5 3",
-            strokeLinecap: "round"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: pt1X,
-            y1: pt1Y,
-            x2: pt2X,
-            y2: pt2Y,
-            stroke: B + ".42)",
-            strokeWidth: "1.8",
-            strokeDasharray: "5 3",
-            strokeLinecap: "round"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: pt2X,
-            y1: pt2Y,
-            x2: pt3X,
-            y2: pt3Y,
-            stroke: B + ".38)",
-            strokeWidth: "1.8",
-            strokeDasharray: "5 3",
-            strokeLinecap: "round"
-          }
-        ), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: Math.min(exitX, pt3X) - 4,
-            y: Math.min(exitY, pt2Y) - 4,
-            w: Math.max(exitX, pt1X, pt3X) - Math.min(exitX, pt3X) + 8,
-            h: Math.max(pt2Y, pt3Y) - Math.min(exitY, pt2Y) + 8,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("condensate_drain").title,
-            text: T("condensate_drain").text,
-            ringPath: drainD,
-            ringStrokeWidth: 9
-          }
-        ), /* @__PURE__ */ React.createElement(
-          "text",
-          {
-            x: pt1X + 5,
-            y: pt1Y + 12,
-            textAnchor: "start",
-            fill: B + ".4)",
-            fontSize: "11.5",
-            fontFamily: "monospace"
-          },
-          "DRAIN"
-        ), /* @__PURE__ */ React.createElement("circle", { cx: pt3X, cy: pt3Y, r: 3, fill: B + ".4)", stroke: B + ".6)", strokeWidth: "0.8" }));
-      })(), hasCond && /* @__PURE__ */ React.createElement(
+      )), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
           wallX: EXT_WALL_X,
@@ -8469,7 +8465,90 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 5
         },
         condenserSubHovers(COND_X, COND_Y, COND_W, COND_H, a.cond_tier)
-      ), hasTstat && (() => {
+      ), hasCoil && hasCond && (() => {
+        const exitX = UNIT_X + UNIT_W;
+        const exitY = Math.max(LS_Y2 + 14, ACOIL_Y + Math.round(ACOIL_H * 0.85));
+        const wallX2 = EXT_WALL_X + WALL_THICK - 3;
+        const slopeY = exitY + 16;
+        const groundY2 = VH - 28 - 2;
+        const PAST_PAD = 46;
+        const drainEndX = Math.min(VW - 16, COND_X + COND_W + 10 + PAST_PAD);
+        const drainD = `M${exitX} ${exitY} L${wallX2} ${slopeY} L${wallX2} ${groundY2} L${drainEndX} ${groundY2}`;
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: exitX,
+            y1: exitY,
+            x2: wallX2,
+            y2: slopeY,
+            stroke: B + ".45)",
+            strokeWidth: "1.8",
+            strokeDasharray: "5 3",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: wallX2,
+            y1: slopeY,
+            x2: wallX2,
+            y2: groundY2,
+            stroke: B + ".6)",
+            strokeWidth: "1.8",
+            strokeDasharray: "5 3",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: wallX2,
+            y1: groundY2,
+            x2: drainEndX,
+            y2: groundY2,
+            stroke: B + ".85)",
+            strokeWidth: "2",
+            strokeDasharray: "5 3",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: exitX - 4,
+            y: exitY - 4,
+            w: drainEndX - exitX + 8,
+            h: groundY2 - exitY + 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condensate_drain").title,
+            text: T("condensate_drain").text,
+            ringPath: drainD,
+            ringStrokeWidth: 9
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            x: wallX2 + 6,
+            y: slopeY - 6,
+            textAnchor: "start",
+            fill: B + ".4)",
+            fontSize: "11.5",
+            fontFamily: "monospace"
+          },
+          "DRAIN"
+        ), /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: drainEndX,
+            y1: groundY2,
+            x2: drainEndX,
+            y2: groundY2 + 5,
+            stroke: B + ".85)",
+            strokeWidth: "2",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement("circle", { cx: drainEndX, cy: groundY2 + 5, r: 3, fill: B + ".7)", stroke: B + ".95)", strokeWidth: "0.8" }));
+      })(), hasTstat && (() => {
         const gapLeft = UNIT_X + UNIT_W + 16, gapRight = EXT_WALL_X - 16;
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
         const isProprietaryC = a.thermostat === "proprietary";
