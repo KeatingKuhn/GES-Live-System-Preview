@@ -420,7 +420,10 @@ export const FINANCING_OPTIONS=[
 // required WordPress-side snippet in src/app.js, right where this is
 // imported and used.
 export const GATE_CONFIG={
-  gravityFormId:9,
+  // Disabled for now (was 9) while the Gravity Form + WordPress-side
+  // relay snippet aren't live yet on the actual page - turn back on once
+  // both are in place and confirmed working.
+  gravityFormId:0,
 };
 const TIER_LABEL={fedmin:'Federal Minimum - 14 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen

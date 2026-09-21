@@ -3256,6 +3256,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     const EAVE_Y=RIDGE_RISE+14;
     const RIDGE_Y=12;
     const RIDGE_X=HOUSE_W/2;
+    // Roof deck's own surface height at any given X - the same piecewise-
+    // linear shape the roof polygon below is drawn with (down-slope from
+    // the ridge to either eave). Shared by the flue's own roof-
+    // penetration point (which used to re-derive this same formula
+    // inline) and the refrigerant lineset's roofline-hugging route
+    // further down, so both actually track the SAME roof surface.
+    const roofY=(x)=>x<=RIDGE_X
+      ?EAVE_Y-(x/RIDGE_X)*(EAVE_Y-RIDGE_Y)
+      :RIDGE_Y+((x-RIDGE_X)/(HOUSE_W-RIDGE_X))*(EAVE_Y-RIDGE_Y);
 
     const DECK_Y=VH-LIVING_SPACE;
     const ATTIC_H=DECK_Y-EAVE_Y;

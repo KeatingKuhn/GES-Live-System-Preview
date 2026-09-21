@@ -388,7 +388,10 @@
     { key: "wisetack", label: "Wisetack", url: "https://wisetack.us/#/hyhu11w/prequalify" }
   ];
   var GATE_CONFIG = {
-    gravityFormId: 9
+    // Disabled for now (was 9) while the Gravity Form + WordPress-side
+    // relay snippet aren't live yet on the actual page - turn back on once
+    // both are in place and confirmed working.
+    gravityFormId: 0
   };
   var TIER_LABEL = { fedmin: "Federal Minimum - 14 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
   function calcEstimate(answers, pricingAnswers) {
@@ -3930,6 +3933,7 @@
       const EAVE_Y = RIDGE_RISE + 14;
       const RIDGE_Y = 12;
       const RIDGE_X = HOUSE_W / 2;
+      const roofY = (x) => x <= RIDGE_X ? EAVE_Y - x / RIDGE_X * (EAVE_Y - RIDGE_Y) : RIDGE_Y + (x - RIDGE_X) / (HOUSE_W - RIDGE_X) * (EAVE_Y - RIDGE_Y);
       const DECK_Y = VH - LIVING_SPACE;
       const ATTIC_H = DECK_Y - EAVE_Y;
       const SCALE_PX = 6.2;
