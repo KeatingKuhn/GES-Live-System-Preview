@@ -1563,6 +1563,18 @@
       en: { title: "A-COIL", text: "Only active when you're cooling or when a heat pump is doing the heating - with the furnace running instead, this coil sits idle while air just passes through it." },
       es: { title: "SERPENT\xCDN EN A", text: "Solo est\xE1 activo cuando est\xE1 enfriando o cuando una bomba de calor est\xE1 calentando - con el horno funcionando en su lugar, este serpent\xEDn queda inactivo mientras el aire simplemente pasa a trav\xE9s de \xE9l." }
     },
+    // Standard-efficiency heat-pump-only (air handler) variant, once the
+    // compressor has locked out on a very cold day (hpLockedOut, aux
+    // sub-mode) - refReversed stays true in that state (see its own
+    // comment: it only checks !hasFurnace/heatMode, not lockout), so
+    // without this branch acoilInfoKey kept pointing at
+    // acoil_heat_reject's "refrigerant reverses through it" copy right
+    // over a coil the diagram itself is drawing dim/idle with an "AUX
+    // HEAT ONLY" label - the compressor's actually off here, not reversed.
+    acoil_aux_lockout: {
+      en: { title: "A-COIL", text: "The compressor's locked out at this outdoor temperature, so this coil sits idle - aux/emergency electric heat strips are carrying the entire heating load instead." },
+      es: { title: "SERPENT\xCDN EN A", text: "El compresor est\xE1 bloqueado a esta temperatura exterior, as\xED que este serpent\xEDn permanece inactivo - las resistencias el\xE9ctricas de calefacci\xF3n auxiliar/de emergencia se encargan de toda la carga de calefacci\xF3n en su lugar." }
+    },
     air_handler_cabinet: {
       en: { title: "AIR HANDLER", text: "The indoor half of a heat-pump-only system - no gas furnace here, just a blower and coil moving air for both heating and cooling." },
       es: { title: "MANEJADOR DE AIRE", text: "La mitad interior de un sistema de solo bomba de calor - sin horno de gas aqu\xED, solo un motor y un serpent\xEDn moviendo aire para calefacci\xF3n y enfriamiento." }
@@ -3925,7 +3937,7 @@
     const evapActive = !heatMode || (isDualFuel ? heatSubMode === "hp" : !hasFurnace && !hpLockedOut);
     const condenserActive = hasCond && (!heatMode || (isDualFuel ? heatSubMode === "hp" : !hasFurnace && !hpLockedOut));
     const refReversed = heatMode && (!hasFurnace || isDualFuel && heatSubMode === "hp");
-    const acoilInfoKey = () => heatMode ? refReversed ? "acoil_heat_reject" : "acoil_heat_idle" : "acoil";
+    const acoilInfoKey = () => !heatMode ? "acoil" : hpLockedOut ? "acoil_aux_lockout" : refReversed ? "acoil_heat_reject" : "acoil_heat_idle";
     const auxHeatActive = !hasFurnace && heatMode && heatSubMode === "aux";
     const blowerActive = !heatMode || furnaceActive || evapActive || auxHeatActive;
     const thermostatTemp = !heatMode ? hasDehu ? 76 : 74 : (isDualFuel || !hasFurnace) && heatSubMode === "hp" ? 70 : 67;
