@@ -1,2 +1,5 @@
 .claude/
 node_modules/
+vendor/
+qa-index.html
+.qa-tmp/
