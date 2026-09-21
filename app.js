@@ -5164,7 +5164,7 @@
                 stroke: G + ".12)",
                 strokeWidth: "0.4"
               }
-            )), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 50, textAnchor: "middle", fill: G + ".42)", fontSize: "10", fontFamily: "monospace" }, "BASIC PROGRAMMABLE"));
+            )), /* @__PURE__ */ React.createElement("text", { x: TX + 32, y: TY + 50, textAnchor: "middle", fill: G + ".42)", fontSize: "10", fontFamily: "monospace" }, "BASIC"));
           })()),
           /* @__PURE__ */ React.createElement(
             EditZone,
@@ -5236,10 +5236,7 @@
         const RC = "rgba(255,182,193,";
         const retTgtX = RET_X + RET_PLEN_W / 2;
         const supTgtX = SUP_X + Math.round(SUP_PLEN_W * 0.75);
-        const hasERVHere = Array.isArray(a.extras) && a.extras.includes("erv");
-        const retDodgeX = 8 + BW + 28;
-        const retDodgeY = UNIT_Y - 4;
-        const retD = hasERVHere ? `M${dehuBX} ${midY} L${retDodgeX} ${midY} L${retDodgeX} ${retDodgeY} L${retTgtX} ${retDodgeY} L${retTgtX} ${UNIT_Y}` : `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
+        const retD = `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
         const supD = `M${dehuBX + BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
         const dpad = pipeW / 2 + 4;
         const dampX = Math.max(dehuBX + BW + 15, supTgtX - 30);
@@ -5248,39 +5245,9 @@
         return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".16)", strokeWidth: pipeW + 6, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".4)", strokeWidth: pipeW, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".8)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: Math.min(dehuBX, retDodgeX) - 2,
+            x: Math.min(dehuBX, retTgtX) - 2,
             y: midY - dpad,
-            w: Math.abs((hasERVHere ? retDodgeX : retTgtX) - dehuBX) + 4,
-            h: dpad * 2,
-            rx: 2,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("dehu_return_duct").title,
-            text: T("dehu_return_duct").text,
-            ringPath: retD,
-            ringStrokeWidth: pipeW + 8
-          }
-        ), hasERVHere && /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: retDodgeX - dpad,
-            y: Math.min(midY, retDodgeY) - 2,
-            w: dpad * 2,
-            h: Math.abs(retDodgeY - midY) + 4,
-            rx: 2,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("dehu_return_duct").title,
-            text: T("dehu_return_duct").text,
-            ringPath: retD,
-            ringStrokeWidth: pipeW + 8
-          }
-        ), hasERVHere && /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: Math.min(retDodgeX, retTgtX) - 2,
-            y: retDodgeY - dpad,
-            w: Math.abs(retTgtX - retDodgeX) + 4,
+            w: Math.abs(retTgtX - dehuBX) + 4,
             h: dpad * 2,
             rx: 2,
             vw: SVG_VW,
@@ -5294,9 +5261,9 @@
           HoverInfo,
           {
             x: retTgtX - dpad,
-            y: Math.min(hasERVHere ? retDodgeY : midY, UNIT_Y) - 2,
+            y: Math.min(midY, UNIT_Y) - 2,
             w: dpad * 2,
-            h: Math.abs(UNIT_Y - (hasERVHere ? retDodgeY : midY)) + 4,
+            h: Math.abs(UNIT_Y - midY) + 4,
             rx: 2,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -5450,6 +5417,11 @@
         const roofAngleDeg = Math.atan2(EAVE_Y - RIDGE_Y, HOUSE_W - RIDGE_X) * 180 / Math.PI;
         const sfX = RIDGE_X + (RL_WALL_X - RIDGE_X) * 0.6;
         const sfY = roofY(sfX) + RL_ROOF_GAP + 34;
+        const sfAngleRad = roofAngleDeg * Math.PI / 180;
+        const sfCos = Math.cos(sfAngleRad), sfSin = Math.sin(sfAngleRad);
+        const sfHW = 75, sfHH = 9;
+        const sfCorners = [[-sfHW, -sfHH], [sfHW, -sfHH], [sfHW, sfHH], [-sfHW, sfHH]].map(([dx, dy]) => [sfX + dx * sfCos - dy * sfSin, sfY + dx * sfSin + dy * sfCos]);
+        const sfRingPath = `M${sfCorners[0][0]} ${sfCorners[0][1]} L${sfCorners[1][0]} ${sfCorners[1][1]} L${sfCorners[2][0]} ${sfCorners[2][1]} L${sfCorners[3][0]} ${sfCorners[3][1]} Z`;
         return /* @__PURE__ */ React.createElement("g", { transform: `rotate(${roofAngleDeg} ${sfX} ${sfY})` }, /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -5473,7 +5445,9 @@
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("insulation").title,
-            text: T("insulation").text
+            text: T("insulation").text,
+            ringPath: sfRingPath,
+            ringStrokeWidth: 4
           }
         ));
       })(), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: 20, fill: G + ".85)", fontSize: "12", fontWeight: "700", fontFamily: "monospace", letterSpacing: ".18em" }, "LIVE SYSTEM PREVIEW"), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, "Choose your location to begin building"), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, "Components assemble here in real time \u2192")), /* @__PURE__ */ React.createElement(
@@ -7992,7 +7966,7 @@
       },
       "i"
     )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" })), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
-      const reviewGrid = /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, reviewItems.map((item, i) => item && item.val ? (
+      const reviewGrid = (leadCell) => /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, leadCell, reviewItems.map((item, i) => item && item.val ? (
         // Attic's grid cells live in the fixed 200px-tall panel
         // (see .done-wrap-attic above), but unlike .opt-compact's
         // fixed-height/zero-slack panel, this one's own container
@@ -8035,7 +8009,9 @@
           /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "6px 7px", marginTop: "auto" } }, tr("EDIT", "EDITAR")))
         )
       ) : null));
-      return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid)) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: isAtticMode ? 38 : 42, height: isAtticMode ? 38 : 42, fontSize: isAtticMode ? 17 : 19, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: isAtticMode ? 17 : 19, marginBottom: 1 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-review-label-lg)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))), reviewGrid);
+      return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid(null))) : /* @__PURE__ */ React.createElement(React.Fragment, null, isAtticMode ? reviewGrid(
+        /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "rgba(255,255,255,.02)", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 20, height: 20, fontSize: 10, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: "var(--fs-review-val)", marginBottom: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, tr("Your System is Built", "Su Sistema Construido")))
+      ) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 42, height: 42, fontSize: 19, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 19, marginBottom: 1 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-review-label-lg)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))), reviewGrid(null)));
     })(), pricingFlow !== null && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", marginBottom: 12 } }, pricingFlow === "sizing" && (() => {
       const subSteps = ["sqft", "ducts"];
       const subId = subSteps[pricingSubStep];

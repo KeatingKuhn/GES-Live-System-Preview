@@ -1348,8 +1348,15 @@ function App(){
               // someone has a price in hand - the moment they're most
               // likely to want a printout - produced a page with no
               // system spec on it at all, just the collapsed line.
-              const reviewGrid=(
+              // Takes an optional leading cell (see its own call site's
+              // comment for why - attic's own "Your System is Built"
+              // header) so that cell becomes a genuine grid item sized by
+              // the SAME row-height logic as every review cell around it,
+              // instead of a separate element outside the grid entirely
+              // whose height has nothing to do with the grid's own rows.
+              const reviewGrid=(leadCell)=>(
                 <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":" closet-mode-grid")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",display:"grid"}}>
+                  {leadCell}
                   {reviewItems.map((item,i)=>item&&item.val?(
                     // Attic's grid cells live in the fixed 200px-tall panel
                     // (see .done-wrap-attic above), but unlike .opt-compact's
@@ -1500,18 +1507,43 @@ function App(){
                       exists purely so a printout taken while pricing is
                       engaged still has the full spec on it, not just the
                       one-line "system is built" header above. */}
-                  <div className="print-only-grid">{reviewGrid}</div>
+                  <div className="print-only-grid">{reviewGrid(null)}</div>
                 </>
               :
                 <>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
-                    <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:isAtticMode?38:42,height:isAtticMode?38:42,fontSize:isAtticMode?17:19,flexShrink:0}}>✓</div></div>
-                    <div>
-                      <div className="done-title" style={{fontSize:isAtticMode?17:19,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
-                      <div style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-review-label-lg)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
+                  {/* QA FIX (attic only) - "Your System is Built" used to
+                      sit in its own flex row ABOVE the grid, with no
+                      relationship to the grid's own row-height logic. The
+                      "Final add-ons" cell (Dehumidifier + extras merged,
+                      stacked as two lines when both are present - see
+                      reviewItems' own comment) can grow taller than a
+                      single-line cell, which is fine for the GRID ROW it
+                      shares with its neighbors (CSS grid rows already
+                      match their tallest cell), but read as broken next to
+                      a fixed-height header that couldn't grow with it.
+                      Passing this header in as reviewGrid's own leadCell
+                      makes it a real grid cell in the first row/column
+                      spot, sized by the exact same logic as every other
+                      cell - it only needs a single compact line either
+                      way, so there's nothing for it to overflow into
+                      regardless of how tall neighboring cells get. Closet
+                      keeps its own separate header (2-column grid, no
+                      multi-part stacking issue to solve). */}
+                  {isAtticMode?reviewGrid(
+                    <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",background:"rgba(255,255,255,.02)",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
+                      <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:20,height:20,fontSize:10,flexShrink:0}}>✓</div></div>
+                      <div className="done-title" style={{fontSize:"var(--fs-review-val)",marginBottom:0,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{tr('Your System is Built','Su Sistema Construido')}</div>
                     </div>
-                  </div>
-                  {reviewGrid}
+                  ):<>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
+                      <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:42,height:42,fontSize:19,flexShrink:0}}>✓</div></div>
+                      <div>
+                        <div className="done-title" style={{fontSize:19,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
+                        <div style={{fontSize:"var(--fs-review-label-lg)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
+                      </div>
+                    </div>
+                    {reviewGrid(null)}
+                  </>}
                 </>;
             })()}
 

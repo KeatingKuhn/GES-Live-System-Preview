@@ -4495,7 +4495,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <rect key={i} x={TX+bx} y={TY+38} width="7" height="4" rx="1"
                       fill={G+'.22)'} stroke={G+'.12)'} strokeWidth="0.4"/>
                   ))}
-                  <text x={TX+32} y={TY+50} textAnchor="middle" fill={G+'.42)'} fontSize="10" fontFamily="monospace">BASIC PROGRAMMABLE</text>
+                  {/* QA FIX - "BASIC PROGRAMMABLE" (19 chars) at this
+                      fontSize is much wider than the 64px-wide face
+                      itself, overflowing onto whatever sits beside the
+                      thermostat in the diagram instead of staying inside
+                      its own box. Shortened to "BASIC", matching the
+                      closet layout's own thermostat, which already made
+                      this exact call. */}
+                  <text x={TX+32} y={TY+50} textAnchor="middle" fill={G+'.42)'} fontSize="10" fontFamily="monospace">BASIC</text>
                 </>;
             })()}
             </g>
@@ -4633,17 +4640,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // whole dehu/ERV box row before jogging back to the plenum's
             // true center - same "route around, not through, a box in the
             // way" idea as the closet return-chase's own pump detour.
-            const hasERVHere=Array.isArray(a.extras)&&a.extras.includes('erv');
-            // QA FIX - the original +14/-10 margins were numerically clear
-            // of the ERV box but only by a few px once the pipe's own
-            // outer glow (half of pipeW+6) is accounted for, reading as
-            // touching/overlapping it in practice. Widened for a real
-            // visible gap.
-            const retDodgeX=8+BW+28;
-            const retDodgeY=UNIT_Y-4;
-            const retD=hasERVHere
-              ?`M${dehuBX} ${midY} L${retDodgeX} ${midY} L${retDodgeX} ${retDodgeY} L${retTgtX} ${retDodgeY} L${retTgtX} ${UNIT_Y}`
-              :`M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
+            // QA FIX - a prior pass added a multi-bend detour here on the
+            // assumption that the ERV (now in the far-left corner) sat in
+            // this duct's way, but retTgtX (the plenum's own center,
+            // ~RET_X+54) is already comfortably clear of the ERV's own
+            // footprint (8 to 8+BW=88) by a wide margin - the duct's
+            // horizontal run never actually needs to cross anywhere near
+            // x<88 to reach it. The detour was solving a collision that
+            // never existed, just adding unnecessary zigzag. Back to the
+            // plain 3-point path.
+            const retD=`M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
             const supD=`M${dehuBX+BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
             // Hit-testing pad, half the pipe's own outer glow width plus a
             // couple px of slop - deliberately NOT one rect spanning "the
@@ -4682,21 +4688,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <path d={retD} fill="none" stroke={RC+'.16)'} strokeWidth={pipeW+6} strokeLinejoin="round" strokeLinecap="round"/>
               <path d={retD} fill="none" stroke={RC+'.4)'} strokeWidth={pipeW} strokeLinejoin="round" strokeLinecap="round"/>
               <path d={retD} fill="none" stroke={RC+'.8)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
-              {/* Segment-hugging hit-rects tracing the actual bent path
-                  (see dpad's own comment above for why one loose bounding
-                  box isn't used) - 2 segments normally, or 3 when the ERV
-                  dodge above is active. All still show the same title/
-                  ring. */}
-              <HoverInfo x={Math.min(dehuBX,retDodgeX)-2} y={midY-dpad} w={Math.abs((hasERVHere?retDodgeX:retTgtX)-dehuBX)+4} h={dpad*2} rx={2}
+              {/* Two segment-hugging hit-rects (horizontal run, then the
+                  vertical drop into the plenum) instead of one rect
+                  spanning the whole bent path's bounding box - see dpad's
+                  own comment above for why. Both still show the same
+                  title/ring. */}
+              <HoverInfo x={Math.min(dehuBX,retTgtX)-2} y={midY-dpad} w={Math.abs(retTgtX-dehuBX)+4} h={dpad*2} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
                 ringPath={retD} ringStrokeWidth={pipeW+8}/>
-              {hasERVHere&&<HoverInfo x={retDodgeX-dpad} y={Math.min(midY,retDodgeY)-2} w={dpad*2} h={Math.abs(retDodgeY-midY)+4} rx={2}
-                vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
-                ringPath={retD} ringStrokeWidth={pipeW+8}/>}
-              {hasERVHere&&<HoverInfo x={Math.min(retDodgeX,retTgtX)-2} y={retDodgeY-dpad} w={Math.abs(retTgtX-retDodgeX)+4} h={dpad*2} rx={2}
-                vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
-                ringPath={retD} ringStrokeWidth={pipeW+8}/>}
-              <HoverInfo x={retTgtX-dpad} y={Math.min(hasERVHere?retDodgeY:midY,UNIT_Y)-2} w={dpad*2} h={Math.abs(UNIT_Y-(hasERVHere?retDodgeY:midY))+4} rx={2}
+              <HoverInfo x={retTgtX-dpad} y={Math.min(midY,UNIT_Y)-2} w={dpad*2} h={Math.abs(UNIT_Y-midY)+4} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
                 ringPath={retD} ringStrokeWidth={pipeW+8}/>
 
@@ -4805,6 +4805,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // on top of the pipe rather than underneath it. +34 gives the
             // glyph top real breathing room below the sleeve.
             const sfY=roofY(sfX)+RL_ROOF_GAP+34;
+            // QA FIX - the invisible hit-rect below sits inside this same
+            // rotated <g>, so mouse hit-testing already correctly follows
+            // the tilted label. But HoverPanel (the component that draws
+            // the visible gold ring on hover) renders separately, at the
+            // top level of the SVG, using this box's raw x/y/w/h as a
+            // plain axis-aligned rect in the OUTER, un-rotated coordinate
+            // space - it never sees this <g>'s own rotate transform. That
+            // drew a straight ring under a tilted label. Precomputing the
+            // rectangle's own 4 corners AFTER rotation (same trig the
+            // roofline/lineset paths elsewhere in this file already use)
+            // and passing them as ringPath instead makes HoverPanel trace
+            // the actually-tilted shape.
+            const sfAngleRad=roofAngleDeg*Math.PI/180;
+            const sfCos=Math.cos(sfAngleRad), sfSin=Math.sin(sfAngleRad);
+            const sfHW=75, sfHH=9;
+            const sfCorners=[[-sfHW,-sfHH],[sfHW,-sfHH],[sfHW,sfHH],[-sfHW,sfHH]]
+              .map(([dx,dy])=>[sfX+dx*sfCos-dy*sfSin, sfY+dx*sfSin+dy*sfCos]);
+            const sfRingPath=`M${sfCorners[0][0]} ${sfCorners[0][1]} L${sfCorners[1][0]} ${sfCorners[1][1]} L${sfCorners[2][0]} ${sfCorners[2][1]} L${sfCorners[3][0]} ${sfCorners[3][1]} Z`;
             return <g transform={`rotate(${roofAngleDeg} ${sfX} ${sfY})`}>
               {/* pointerEvents:none - a plain <text> is still hit-tested
                   by its own painted glyph area by default (same "wide
@@ -4815,11 +4833,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <text x={sfX} y={sfY} textAnchor="middle" style={{pointerEvents:'none'}}
                 fill="rgba(232,236,246,.6)" fontSize="12" fontFamily="monospace">SPRAY FOAM INSULATION</text>
               {/* No EditZone covers this - free-standing hover, no onClick.
-                  Rotates along with the text above (same transform on this
-                  parent <g>) so the hit area follows the tilted label
-                  instead of staying axis-aligned under it. */}
+                  ringPath (see sfRingPath's own comment above) makes the
+                  visible ring match the tilted label; the hit-rect itself
+                  still rotates correctly via this parent <g>. */}
               <HoverInfo x={sfX-75} y={sfY-12} w={150} h={18} rx={3}
-                vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
+                vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}
+                ringPath={sfRingPath} ringStrokeWidth={4}/>
             </g>;
           })()}
 
