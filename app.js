@@ -1421,10 +1421,10 @@
       gap: 5
     } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
   }
-  function DehumidistatWall({ x, y, lang, vw, vh }) {
+  function DehumidistatWall({ x, y, pct = 45, lang, vw, vh }) {
     const W2 = 44, H = 40;
     const info = partInfo("dehumidistat", lang);
-    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, "45%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT")), /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { className: "phase-color", x: W2 / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, pct, "%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT")), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x: x - 2,
@@ -4010,7 +4010,7 @@
     const blowerActive = !heatMode || furnaceActive || evapActive || auxHeatActive;
     const thermostatTemp = !heatMode ? hasDehu ? 76 : 74 : (isDualFuel || !hasFurnace) && heatSubMode === "hp" ? 70 : 67;
     const returnTemp = thermostatTemp;
-    const supplySplit = !heatMode ? 17 : refReversed ? 15 : 18;
+    const supplySplit = !heatMode ? 20 : refReversed ? 25 : 45;
     const supplyTemp = !heatMode ? thermostatTemp - supplySplit : thermostatTemp + supplySplit;
     const evapC = refReversed ? "#ef4444" : "#2389e0";
     const evapC2 = refReversed ? "#fca5a5" : "#7dd3fc";
@@ -4775,20 +4775,6 @@
           h: SUP_PLEN_H + 4,
           rx: 5
         }
-      ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: SUP_X - 2,
-          y: SUP_PLEN_Y - 2,
-          w: SUP_PLEN_W + 4,
-          h: SUP_PLEN_H + 4,
-          rx: 5,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("supply_plenum").title,
-          text: T("supply_plenum").text,
-          onClick: onEditStep ? () => onEditStep("plenum") : void 0
-        }
       ), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
         const DW = 14;
         const DC = G + ".32)";
@@ -4899,7 +4885,21 @@
             ringStrokeWidth: 16
           }
         ));
-      })()), hasCond && /* @__PURE__ */ React.createElement(
+      })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: SUP_X - 2,
+          y: SUP_PLEN_Y - 2,
+          w: SUP_PLEN_W + 4,
+          h: SUP_PLEN_H + 4,
+          rx: 5,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("supply_plenum").title,
+          text: T("supply_plenum").text,
+          onClick: onEditStep ? () => onEditStep("plenum") : void 0
+        }
+      ), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
           wallX: EXT_WALL_X,
@@ -5174,6 +5174,7 @@
         {
           x: THERM_TX + 32 * THERM_SCALE - 22,
           y: THERM_TY + THERM_H + 14,
+          pct: !heatMode ? 45 : isMildHp ? 55 : 50,
           lang,
           vw: SVG_VW,
           vh: SVG_VH
@@ -6604,7 +6605,7 @@
         const chaseBottomY = VH - 20;
         const pumpH = 28;
         const pumpY = chaseBottomY - pumpH - 6;
-        const pumpX = UNIT_X - 28 + Math.round((UNIT_W + 56) * 0.5) - 28;
+        const pumpX = UNIT_X + UNIT_W + 28 + 10;
         const pt2Y = hasPump ? pumpY - offset : chaseBottomY - offset;
         const pt2X = pt1X;
         const pt3X = pt2X - offset;
@@ -6677,7 +6678,7 @@
           {
             x1: pt3X,
             y1: pt3Y,
-            x2: pumpX + 88,
+            x2: pumpX,
             y2: pumpY + pumpH / 2,
             stroke: B + ".4)",
             strokeWidth: "1.5",
@@ -7025,7 +7026,17 @@
       })(), hasDehu && hasTstat && (() => {
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
         const W2 = 44, H = 40;
-        return /* @__PURE__ */ React.createElement(DehumidistatWall, { x: UNIT_X / 2 - W2 / 2, y: midY - H / 2, lang, vw: SVG_VW, vh: SVG_VH });
+        return /* @__PURE__ */ React.createElement(
+          DehumidistatWall,
+          {
+            x: UNIT_X / 2 - W2 / 2,
+            y: midY - H / 2,
+            pct: !heatMode ? 45 : isMildHp ? 55 : 50,
+            lang,
+            vw: SVG_VW,
+            vh: SVG_VH
+          }
+        );
       })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && /* @__PURE__ */ React.createElement(
         DehuErvBoxes,
         {

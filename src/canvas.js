@@ -782,7 +782,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
 // two don't read as the same device. x/y is its own top-left, always at a
 // fixed real-world size (not run through THERM_SCALE) since it doesn't
 // share the thermostat's margin-width-driven sizing problem.
-function DehumidistatWall({x,y,lang,vw,vh}){
+function DehumidistatWall({x,y,pct=45,lang,vw,vh}){
   const W=44,H=40;
   // Positioning transform lives on its own inner <g>, separate from the
   // "snap" entrance animation on the outer one - a CSS animation's own
@@ -798,7 +798,7 @@ function DehumidistatWall({x,y,lang,vw,vh}){
       <rect x={0} y={0} width={W} height={H} rx="4" fill="#05120a" stroke="#22c55e" strokeWidth="1.4"/>
       <rect x={0} y={0} width={W} height={6} rx="4" fill="rgba(34,197,94,.3)"/>
       <text x={W/2} y={21} textAnchor="middle" fill="#22c55e" fontSize="13">💧</text>
-      <text x={W/2} y={33} textAnchor="middle" fill="#22c55e" fontSize="9" fontFamily="monospace" fontWeight="700">45%</text>
+      <text className="phase-color" x={W/2} y={33} textAnchor="middle" fill="#22c55e" fontSize="9" fontFamily="monospace" fontWeight="700">{pct}%</text>
       <text x={W/2} y={H+9} textAnchor="middle" fill="rgba(34,197,94,.6)" fontSize="6.2" fontFamily="monospace">DEHUMIDISTAT</text>
     </g>
     {/* No EditZone ever covers this control (search confirms no
@@ -3309,13 +3309,23 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   const thermostatTemp=!heatMode?(hasDehu?76:74):(((isDualFuel||!hasFurnace)&&heatSubMode==='hp')?70:67);
   // Return-air temp reads as whatever the room currently is (the same
   // thermostatTemp reading above) - supply air runs a real design split
-  // off of that, colder in cool mode, warmer in any heat mode. The split
-  // itself varies by mode the same physical way a real system's does: a
-  // heat pump's lower-temperature refrigerant heat runs a smaller supply
-  // split than resistance/gas heat's much hotter air, both still inside
-  // a realistic 15-18F range.
+  // off of that, colder in cool mode, warmer in any heat mode. Each split
+  // is a genuine industry "normal" figure for that mode, not one number
+  // stretched across all three, so this never reads as "wrong" next to
+  // an actual post-install reading:
+  //  - Cooling: 20F is the textbook AC "20-degree rule" split (healthy
+  //    systems commonly run 15-20F; 20 is the standard target/example).
+  //  - Heat pump: ~25F is the commonly-cited average heating-mode rise
+  //    (lower-grade compressor heat than combustion, per manufacturer/
+  //    field data - typical supply air lands in the 85-95F range off a
+  //    ~70F return, vs. a furnace's much hotter output below).
+  //  - Furnace/aux: gas furnace nameplates commonly spec a 30-70F rise
+  //    range, most in the 40-50F band with the "sweet spot" toward the
+  //    middle of whatever range a given unit lists - 45F sits solidly
+  //    in that normal band, clearly hotter than heat pump output the
+  //    way a real system's would be.
   const returnTemp=thermostatTemp;
-  const supplySplit=!heatMode?17:(refReversed?15:18);
+  const supplySplit=!heatMode?20:(refReversed?25:45);
   const supplyTemp=!heatMode?thermostatTemp-supplySplit:thermostatTemp+supplySplit;
 
   // Refrigerant colors - physically correct
@@ -4090,14 +4100,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>}
           {hasPlenum&&hasCoil&&<EditZone stepId="plenum" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
             x={SUP_X-2} y={SUP_PLEN_Y-2} w={SUP_PLEN_W+4} h={SUP_PLEN_H+4} rx={5}/>}
-          {/* Same box as the EditZone just above - painted after it (on
-              top), so the onClick here forwards to the identical
-              onEditStep('plenum') call EditZone itself would already make
-              for a click landing anywhere in this box, exactly preserving
-              today's done-screen behavior. */}
-          {hasPlenum&&hasCoil&&<HoverInfo x={SUP_X-2} y={SUP_PLEN_Y-2} w={SUP_PLEN_W+4} h={SUP_PLEN_H+4} rx={5}
-            vw={SVG_VW} vh={SVG_VH} title={T('supply_plenum').title} text={T('supply_plenum').text}
-            onClick={onEditStep?()=>onEditStep('plenum'):undefined}/>}
+          {/* This box's own HoverInfo moved below, after the lineset's -
+              see that HoverInfo's own comment for why. */}
 
           {/* ── DUCTWORK - 3 supply stems off the plenum bottom, down through
                the attic floor into a drywall ceiling grille below - same
@@ -4264,6 +4268,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               </>;
             })()}
           </g>}
+          {/* Supply plenum's own hover, moved down here (after the
+              lineset's generous bounding box just above, which - per its
+              own comment - is deliberately loose since the roofline run's
+              real shape doesn't reduce to a tight rect) so it wins hover
+              priority in the strip where the two boxes actually overlap,
+              instead of the lineset's box swallowing hovers over the
+              plenum below it. Same box/copy/onClick this always had -
+              only its paint-order position changed. */}
+          {hasPlenum&&hasCoil&&<HoverInfo x={SUP_X-2} y={SUP_PLEN_Y-2} w={SUP_PLEN_W+4} h={SUP_PLEN_H+4} rx={5}
+            vw={SVG_VW} vh={SVG_VH} title={T('supply_plenum').title} text={T('supply_plenum').text}
+            onClick={onEditStep?()=>onEditStep('plenum'):undefined}/>}
 
           {/* ── OUTSIDE ZONE - exterior wall + condenser ── */}
           {hasCond&&<OutsideZone
@@ -4415,7 +4430,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               band with no room to spare below it. */}
           {hasDehu&&hasTstat&&THERM_IN_MARGIN&&<DehumidistatWall
             x={THERM_TX+32*THERM_SCALE-22} y={THERM_TY+THERM_H+14}
-            lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
+            pct={!heatMode?45:(isMildHp?55:50)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
 
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline.
               ERV now hangs near the right outside wall - the space the
@@ -5559,7 +5574,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const chaseBottomY=VH-20;
             const pumpH=28;
             const pumpY=chaseBottomY-pumpH-6;
-            const pumpX=UNIT_X-28+Math.round((UNIT_W+56)*0.5)-28;
+            // Sits just outside the return chase's own right edge instead
+            // of centered inside it - the chase box already carries its
+            // own airflow arrow, return-air temp, and "2x4 RETURN AIR
+            // CHASE" label all sharing that same footprint, so dropping an
+            // 88-wide pump box on top of them read as genuinely cramped.
+            // The refrigerant line stubs run through this same horizontal
+            // band but much higher up (near ACOIL_Y, not down here by
+            // chaseBottomY), so there's no collision moving it out here.
+            const pumpX=UNIT_X+UNIT_W+28+10;
             // Step 3: 45° left-down into chase
             const pt2Y=hasPump?pumpY-offset:chaseBottomY-offset;
             const pt2X=pt1X;
@@ -5600,7 +5623,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               </>}
               {hasPump&&<>
                 <CondensatePump x={pumpX} y={pumpY} w={88} h={pumpH} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
-                <line x1={pt3X} y1={pt3Y} x2={pumpX+88} y2={pumpY+pumpH/2}
+                <line x1={pt3X} y1={pt3Y} x2={pumpX} y2={pumpY+pumpH/2}
                   stroke={B+'.4)'} strokeWidth="1.5" strokeDasharray="4 3"/>
               </>}
             </>;
@@ -5776,7 +5799,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasDehu&&hasTstat&&(()=>{
             const midY=hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2;
             const W=44,H=40;
-            return <DehumidistatWall x={UNIT_X/2-W/2} y={midY-H/2} lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
+            return <DehumidistatWall x={UNIT_X/2-W/2} y={midY-H/2}
+              pct={!heatMode?45:(isMildHp?55:50)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
           })()}
 
           {/* Dehu + ERV - hang from roofline in attic zone. Geometry
