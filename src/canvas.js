@@ -4525,14 +4525,29 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // roofline run passes overhead on its way to the wall - a flat
             // EAVE_Y+14 (fine for the dehu, over near the ridge-ish middle
             // of the run where the lineset isn't) would put the ERV's IN/OUT
-            // roof stubs right on top of those two pipes here. Using the
-            // real roof height at the ERV's own X, plus just enough
-            // clearance to duck under the lineset's own foam-sleeve width
-            // (its widest element there, ~12px centered on roofY+RL_ROOF_
-            // GAP), keeps the two apart without stranding the ERV stub
-            // needlessly deep in the open attic above it - it still reads
-            // as reaching up toward the roofline, not stopping mid-air.
-            const ervRoofY=roofY(ervBX+ervW/2)+RL_ROOF_GAP+8;
+            // roof stubs right on top of those two pipes here. A prior fix
+            // tried ducking the whole IN/OUT cap BELOW the lineset instead
+            // (roofY(x)+RL_ROOF_GAP+8, i.e. only 8px past the lineset's own
+            // centerline offset) - short of the ~20px needed to actually
+            // clear the lineset's own foam-sleeve glow, so the cap still sat
+            // right on top of it, AND (since the cap itself is anchored
+            // below the true roof surface, not above it) the ERV stopped
+            // reading as a roof penetration at all - it terminated inside
+            // the attic instead of poking through, the same "hanging in
+            // mid-air" bug already fixed once for the flue's own roof
+            // penetration elsewhere in this file. Anchoring ry to the real,
+            // per-X roof surface directly (no added offset) fixes both at
+            // once: the cap now pokes a few px above the true roof, same as
+            // every other roof penetration, which - since the lineset hangs
+            // RL_ROOF_GAP(14)px below that same roof surface - automatically
+            // lands the cap on the opposite side of the roofline from the
+            // lineset with room to spare, instead of collapsing the two
+            // toward the same Y. Only the thin vertical feed pipe still
+            // crosses the lineset's line once on its way up from the box,
+            // same as any two thin duct/lineset runs crossing elsewhere in
+            // this diagram - not the illegible label-on-top-of-pipe overlap
+            // the offset version produced.
+            const ervRoofY=roofY(ervBX+ervW/2);
             return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} ervW={ervW} BY={UNIT_Y-48-14} roofY={EAVE_Y+14} ervRoofY={ervRoofY}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
@@ -4571,6 +4586,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const supTgtX=SUP_X+Math.round(SUP_PLEN_W*0.75);
             const retD=`M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
             const supD=`M${dehuBX+BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
+            // Hit-testing pad, half the stroke+glow width (DW2+4=8) plus a
+            // couple px of slop - deliberately NOT one rect spanning "the
+            // whole bounding box of the bent path" (what this used to be):
+            // an L-shaped run's bounding box is a full RECTANGLE spanning
+            // corner-to-corner, so for a run that jogs sideways then drops
+            // down through the equipment row, that rectangle swallowed the
+            // top slice of every cabinet the run passed over (RETURN
+            // PLENUM/FILTRATION/HEAT EXCHANGER/BLOWER/A-COIL/SUPPLY PLENUM
+            // all had their own top edge shadowed by this one duct's
+            // hit-box) - exactly the "hover zone too loose, swallows a
+            // neighbor" bug this file has been bitten by before (the angled
+            // main supply-duct runs above already learned this lesson - see
+            // their own "two boxes tracing the actual bent run" comment).
+            // Two thin rects, one per straight segment, hug the actual
+            // drawn stroke instead.
+            const dpad=6;
             // Biased toward the plenum end of the run rather than sitting
             // at its midpoint - the midpoint landed close enough to the
             // dehu box's own end of the run to read as crowding the
@@ -4581,7 +4612,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             return <g className="snap" style={{animationDelay:'0.4s'}}>
               <path d={retD} fill="none" stroke={RC+'.14)'} strokeWidth={DW2+4} strokeLinejoin="round" strokeLinecap="round"/>
               <path d={retD} fill="none" stroke={RC+'.75)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
-              <HoverInfo x={Math.min(dehuBX,retTgtX)-4} y={Math.min(midY,UNIT_Y)-4} w={Math.abs(retTgtX-dehuBX)+8} h={Math.abs(UNIT_Y-midY)+8} rx={2}
+              {/* Two segment-hugging hit-rects (horizontal run, then the
+                  vertical drop into the plenum) instead of one rect spanning
+                  the whole bent path's bounding box - see dpad's own comment
+                  above for why. Both still show the same title/ring. */}
+              <HoverInfo x={Math.min(dehuBX,retTgtX)-2} y={midY-dpad} w={Math.abs(retTgtX-dehuBX)+4} h={dpad*2} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
+                ringPath={retD} ringStrokeWidth={DW2+8}/>
+              <HoverInfo x={retTgtX-dpad} y={Math.min(midY,UNIT_Y)-2} w={dpad*2} h={Math.abs(UNIT_Y-midY)+4} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_return_duct').title} text={T('dehu_return_duct').text}
                 ringPath={retD} ringStrokeWidth={DW2+8}/>
 
@@ -4596,7 +4634,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <line x1={-5} y1={-4} x2={4} y2={4} stroke={G+'.8)'} strokeWidth="1.5" strokeLinecap="round"/>
                 <circle cx={-5} cy={-4} r="1" fill={G+'.85)'}/>
               </g>
-              <HoverInfo x={Math.min(dehuBX+BW,supTgtX)-4} y={Math.min(midY,SUP_PLEN_Y)-4} w={Math.abs(supTgtX-dehuBX-BW)+8} h={Math.abs(SUP_PLEN_Y-midY)+8} rx={2}
+              <HoverInfo x={Math.min(dehuBX+BW,supTgtX)-2} y={midY-dpad} w={Math.abs(supTgtX-dehuBX-BW)+4} h={dpad*2} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('dehu_supply_duct').title} text={T('dehu_supply_duct').text}
+                ringPath={supD} ringStrokeWidth={DW2+8}/>
+              <HoverInfo x={supTgtX-dpad} y={Math.min(midY,SUP_PLEN_Y)-2} w={dpad*2} h={Math.abs(SUP_PLEN_Y-midY)+4} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('dehu_supply_duct').title} text={T('dehu_supply_duct').text}
                 ringPath={supD} ringStrokeWidth={DW2+8}/>
               <HoverInfo x={dampX-8} y={midY-6} w={16} h={12} rx={2} vw={SVG_VW} vh={SVG_VH}

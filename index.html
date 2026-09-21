@@ -6594,7 +6594,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const ervSlotR = EXT_WALL_X - 10;
         const ervW = Math.max(52, Math.min(BW, ervSlotR - ervSlotL));
         const ervBX = Math.max(ervSlotL, ervSlotR - ervW);
-        const ervRoofY = roofY(ervBX + ervW / 2) + RL_ROOF_GAP + 8;
+        const ervRoofY = roofY(ervBX + ervW / 2);
         return /* @__PURE__ */ React.createElement(
           DehuErvBoxes,
           {
@@ -6623,14 +6623,30 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const supTgtX = SUP_X + Math.round(SUP_PLEN_W * 0.75);
         const retD = `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
         const supD = `M${dehuBX + BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
+        const dpad = 6;
         const dampX = Math.max(dehuBX + BW + 15, supTgtX - 30);
         return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".14)", strokeWidth: DW2 + 4, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".75)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: Math.min(dehuBX, retTgtX) - 4,
-            y: Math.min(midY, UNIT_Y) - 4,
-            w: Math.abs(retTgtX - dehuBX) + 8,
-            h: Math.abs(UNIT_Y - midY) + 8,
+            x: Math.min(dehuBX, retTgtX) - 2,
+            y: midY - dpad,
+            w: Math.abs(retTgtX - dehuBX) + 4,
+            h: dpad * 2,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("dehu_return_duct").title,
+            text: T("dehu_return_duct").text,
+            ringPath: retD,
+            ringStrokeWidth: DW2 + 8
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: retTgtX - dpad,
+            y: Math.min(midY, UNIT_Y) - 2,
+            w: dpad * 2,
+            h: Math.abs(UNIT_Y - midY) + 4,
             rx: 2,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -6642,10 +6658,25 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         ), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".13)", strokeWidth: DW2 + 4, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".65)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement("g", { transform: `translate(${dampX} ${midY})` }, /* @__PURE__ */ React.createElement("rect", { x: -8, y: -6, width: 16, height: 12, rx: "2", fill: "#151515", stroke: G + ".6)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("line", { x1: -5, y1: -4, x2: 4, y2: 4, stroke: G + ".8)", strokeWidth: "1.5", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: -5, cy: -4, r: "1", fill: G + ".85)" })), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: Math.min(dehuBX + BW, supTgtX) - 4,
-            y: Math.min(midY, SUP_PLEN_Y) - 4,
-            w: Math.abs(supTgtX - dehuBX - BW) + 8,
-            h: Math.abs(SUP_PLEN_Y - midY) + 8,
+            x: Math.min(dehuBX + BW, supTgtX) - 2,
+            y: midY - dpad,
+            w: Math.abs(supTgtX - dehuBX - BW) + 4,
+            h: dpad * 2,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("dehu_supply_duct").title,
+            text: T("dehu_supply_duct").text,
+            ringPath: supD,
+            ringStrokeWidth: DW2 + 8
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: supTgtX - dpad,
+            y: Math.min(midY, SUP_PLEN_Y) - 2,
+            w: dpad * 2,
+            h: Math.abs(SUP_PLEN_Y - midY) + 4,
             rx: 2,
             vw: SVG_VW,
             vh: SVG_VH,
