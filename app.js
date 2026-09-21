@@ -7729,7 +7729,7 @@
           min: "1",
           max: "40",
           value: pricingAnswers.ventCount || "",
-          onChange: (e) => setPricingAnswers((p) => ({ ...p, ventCount: Math.max(0, parseInt(e.target.value) || 0) })),
+          onChange: (e) => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(40, Math.max(0, parseInt(e.target.value) || 0)) })),
           className: "pricing-input" + (isAtticMode ? " compact" : "")
         }
       ))));
