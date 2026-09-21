@@ -3413,7 +3413,7 @@
       }
     ));
   }
-  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, hasDehu, hasERV, snap, lang, vw, vh }) {
+  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, ervW, hasDehu, hasERV, snap, lang, vw, vh }) {
     if (!hasDehu && !hasERV) return null;
     const BW = 80, BH = 48;
     const boxes = [];
@@ -3431,16 +3431,17 @@
     ), /* @__PURE__ */ React.createElement("circle", { cx: x - 3.2, cy: ry - 5.5, r: "0.8", fill: stroke }), /* @__PURE__ */ React.createElement("circle", { cx: x + 3.2, cy: ry - 5.5, r: "0.8", fill: stroke }), /* @__PURE__ */ React.createElement("line", { x1: x, y1: ry - 1, x2: x, y2: BY + 2, stroke, strokeWidth: "1.3", strokeDasharray: "1.2 2.2" }), /* @__PURE__ */ React.createElement("path", { d: `M${x - 3} ${BY + 2} Q${x} ${BY - 2} ${x + 3} ${BY + 2}`, fill: "none", stroke, strokeWidth: "1.2" }));
     return /* @__PURE__ */ React.createElement("g", null, boxes.map((type, i) => {
       const BX = type === "dehu" ? dehuBX : ervBX;
-      const r1X = BX + BW * 0.28, r2X = BX + BW * 0.72;
       const isDehu = type === "dehu";
-      const pipe1X = BX + Math.round(BW * 0.28), pipe2X = BX + Math.round(BW * 0.68);
+      const boxW = isDehu ? BW : ervW || BW;
+      const r1X = BX + boxW * 0.28, r2X = BX + boxW * 0.72;
+      const pipe1X = BX + Math.round(boxW * 0.28), pipe2X = BX + Math.round(boxW * 0.68);
       const ry = isDehu ? roofY : ervRoofY != null ? ervRoofY : roofY;
       return /* @__PURE__ */ React.createElement("g", { key: type, className: snap ? "snap" : void 0, style: snap ? { animationDelay: 0.32 + i * 0.05 + "s" } : void 0 }, isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, hangKit(r1X, ry, "#22c55e"), hangKit(r2X, ry, "#22c55e")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: B + ".3)", stroke: B + ".5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 5, y: ry - 4, width: "11", height: 5, rx: "1", fill: B + ".35)", stroke: B + ".55)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: pipe1X, y: ry - 6, textAnchor: "middle", fill: B + ".6)", fontSize: "12", fontFamily: "monospace" }, "IN"), /* @__PURE__ */ React.createElement("rect", { x: pipe2X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: "rgba(249,115,22,.3)", stroke: "rgba(249,115,22,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (pipe2X - 4) + " " + (ry - 2) + " L" + pipe2X + " " + (ry - 9) + " L" + (pipe2X + 4) + " " + (ry - 2), fill: "rgba(249,115,22,.4)" }), /* @__PURE__ */ React.createElement("text", { x: pipe2X, y: ry - 11, textAnchor: "middle", fill: "rgba(249,115,22,.6)", fontSize: "12", fontFamily: "monospace" }, "OUT"), hangKit(r1X, ry, G + ".55)"), hangKit(r2X, ry, G + ".55)")), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: BX,
           y: BY,
-          width: BW,
+          width: boxW,
           height: BH,
           rx: "4",
           fill: isDehu ? "#05120a" : "#0a0a06",
@@ -3452,18 +3453,18 @@
         {
           x: BX,
           y: BY,
-          width: BW,
+          width: boxW,
           height: 7,
           rx: "4",
           fill: isDehu ? "rgba(34,197,94,.3)" : G + ".25)",
           stroke: "none"
         }
-      ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH / 2 - 1, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH / 2 + 12, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace" }, "DEHU")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + BW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + BW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + BW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + BW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: "14.5", fontFamily: "monospace" }, "ERV")), /* @__PURE__ */ React.createElement(
+      ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH / 2 - 1, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH / 2 + 12, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace" }, "DEHU")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + boxW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + boxW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + boxW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: boxW < 70 ? "12.5" : "14.5", fontFamily: "monospace" }, "ERV")), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
           x: BX,
           y: BY,
-          w: BW,
+          w: boxW,
           h: BH,
           rx: 4,
           vw,
@@ -5065,13 +5066,17 @@
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
         const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
-        const ervBX = Math.max(SUP_X + SUP_PLEN_W + 20, RL_WALL_X - BW - 24);
-        const ervRoofY = roofY(ervBX + BW / 2) + RL_ROOF_GAP + 36;
+        const ervSlotL = SUP_X + SUP_PLEN_W + 14;
+        const ervSlotR = EXT_WALL_X - 10;
+        const ervW = Math.max(52, Math.min(BW, ervSlotR - ervSlotL));
+        const ervBX = Math.max(ervSlotL, ervSlotR - ervW);
+        const ervRoofY = roofY(ervBX + ervW / 2) + RL_ROOF_GAP + 36;
         return /* @__PURE__ */ React.createElement(
           DehuErvBoxes,
           {
             dehuBX,
             ervBX,
+            ervW,
             BY: UNIT_Y - 48 - 14,
             roofY: EAVE_Y + 14,
             ervRoofY,

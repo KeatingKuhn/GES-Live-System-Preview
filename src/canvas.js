@@ -2658,7 +2658,7 @@ function CondensatePump({x,y,w=88,h=28,lang,vw,vh}){
 // bounce-in pop, the same "jump" EditZone's own `.snap` remount was
 // originally flagged for. lang/vw/vh come in as explicit props instead
 // of Canvas closures.
-function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,hasDehu,hasERV,snap,lang,vw,vh}){
+function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,hasDehu,hasERV,snap,lang,vw,vh}){
   if(!hasDehu&&!hasERV) return null;
   const BW=80,BH=48;
   const boxes=[];
@@ -2684,9 +2684,16 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,hasDehu,hasERV,snap,lang,v
   );
   return <g>{boxes.map((type,i)=>{
     const BX=type==='dehu'?dehuBX:ervBX;
-    const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
     const isDehu=type==='dehu';
-    const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
+    // ERV can be narrower than the dehu's fixed 80 (see ervW's own comment
+    // at its attic call site) when the wall-side slot it hangs in is too
+    // tight for the full-size box - every position below that used to be a
+    // flat BW is now this box's own boxW instead, so a narrowed ERV still
+    // centers its label/arrows/pipes correctly instead of them drifting
+    // toward one edge.
+    const boxW=isDehu?BW:(ervW||BW);
+    const r1X=BX+boxW*0.28, r2X=BX+boxW*0.72;
+    const pipe1X=BX+Math.round(boxW*0.28), pipe2X=BX+Math.round(boxW*0.68);
     // ERV defaults to the same shared roofY as the dehu (closet call
     // site never passes ervRoofY, and there the two boxes are far
     // enough apart that a shared flat roofline reads fine) - the attic
@@ -2714,26 +2721,26 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,hasDehu,hasERV,snap,lang,v
           {hangKit(r2X,ry,G+'.55)')}
         </>
       }
-      <rect x={BX} y={BY} width={BW} height={BH} rx="4"
+      <rect x={BX} y={BY} width={boxW} height={BH} rx="4"
         fill={isDehu?"#05120a":"#0a0a06"}
         stroke={isDehu?"#22c55e":(G+'.55)')} strokeWidth="1.4"/>
-      <rect x={BX} y={BY} width={BW} height={7} rx="4"
+      <rect x={BX} y={BY} width={boxW} height={7} rx="4"
         fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
       {isDehu
         ?<>
-          <text x={BX+BW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="15.5">💧</text>
-          <text x={BX+BW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="13" fontFamily="monospace">DEHU</text>
+          <text x={BX+boxW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="15.5">💧</text>
+          <text x={BX+boxW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="13" fontFamily="monospace">DEHU</text>
         </>
         :<>
-          <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+BW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
-          <path d={'M'+(BX+BW-8)+' '+(BY+BH*0.64)+' L'+(BX+BW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
-          <text x={BX+BW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize="14.5" fontFamily="monospace">ERV</text>
+          <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+boxW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
+          <path d={'M'+(BX+boxW-8)+' '+(BY+BH*0.64)+' L'+(BX+boxW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
+          <text x={BX+boxW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize={boxW<70?"12.5":"14.5"} fontFamily="monospace">ERV</text>
         </>
       }
       {/* No EditZone ever covers dehu/erv (StepFocusRing during the
           wizard is the only existing overlay here) - free-standing
           hover, no onClick. */}
-      <HoverInfo x={BX} y={BY} w={BW} h={BH} rx={4} vw={vw} vh={vh}
+      <HoverInfo x={BX} y={BY} w={boxW} h={BH} rx={4} vw={vw} vh={vh}
         title={partInfo(isDehu?'dehu_box':'erv_box',lang).title} text={partInfo(isDehu?'dehu_box':'erv_box',lang).text}/>
     </g>;
   })}</g>;
@@ -4253,11 +4260,25 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // plenum starting just past the cabinet's right edge.
             const dehuBX=hasFurnace?sysX+44:sysX+AH_W-BW-8;
             // ERV: near the right outside wall, tucked in before the
-            // lineset's own roofline run drops down to cross it (RL_WALL_X)
-            // - the Math.max floor is only there for a narrow canvas where
-            // the supply plenum runs long enough to reach that far right
-            // itself.
-            const ervBX=Math.max(SUP_X+SUP_PLEN_W+20, RL_WALL_X-BW-24);
+            // lineset's own roofline run drops down to cross it. That
+            // outdoor drop runs right along EXT_WALL_X itself (see
+            // OutsideZone's own wallMidX, just past the wall face), not
+            // just past RL_WALL_X - the old Math.max here picked whichever
+            // of "clear of the plenum" / "hug the wall" put the box
+            // further right, which on a real (non-"none") supply plenum
+            // put the box's own right edge PAST EXT_WALL_X, so the lineset's
+            // vertical run down to the condenser sliced right through the
+            // ERV box and its IN/OUT stubs instead of passing beside it.
+            // The slot between the plenum's right edge and the wall is
+            // genuinely narrower than the box's normal 80 width once a
+            // real plenum is picked (240 wide vs. "keep existing" at 130),
+            // so the box's own width now shrinks to fit whatever's
+            // actually left instead of demanding a fixed 80 no matter how
+            // little room there is - see ervW on DehuErvBoxes.
+            const ervSlotL=SUP_X+SUP_PLEN_W+14;
+            const ervSlotR=EXT_WALL_X-10;
+            const ervW=Math.max(52,Math.min(BW,ervSlotR-ervSlotL));
+            const ervBX=Math.max(ervSlotL,ervSlotR-ervW);
             // The ERV now hangs right under where the rerouted lineset's own
             // roofline run passes overhead on its way to the wall - a flat
             // EAVE_Y+14 (fine for the dehu, over near the ridge-ish middle
@@ -4265,8 +4286,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // roof stubs right on top of those two pipes here. Using the
             // real roof height at the ERV's own X, plus enough clearance to
             // clear both lineset lines and their glow, keeps the two apart.
-            const ervRoofY=roofY(ervBX+BW/2)+RL_ROOF_GAP+36;
-            return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} BY={UNIT_Y-48-14} roofY={EAVE_Y+14} ervRoofY={ervRoofY}
+            const ervRoofY=roofY(ervBX+ervW/2)+RL_ROOF_GAP+36;
+            return <DehuErvBoxes dehuBX={dehuBX} ervBX={ervBX} ervW={ervW} BY={UNIT_Y-48-14} roofY={EAVE_Y+14} ervRoofY={ervRoofY}
               hasDehu={hasDehu} hasERV={Array.isArray(a.extras)&&a.extras.includes('erv')} snap
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
           })()}
