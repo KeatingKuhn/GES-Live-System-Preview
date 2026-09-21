@@ -1,2 +1,4 @@
 .claude/
 node_modules/
+vendor/
+_qa_*.html
