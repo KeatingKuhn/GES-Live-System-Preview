@@ -17,11 +17,15 @@ Everything else in this repo (`src/`, `package.json`, `app.js`,
 `styles.css`) is source and build tooling, not something WordPress needs:
 
 - Edit the real source in `src/data.js`, `src/canvas.js`, `src/app.js`,
-  and `src/index.template.html`.
-- Run `npm run build` to compile it all into the root `index.html` -
-  esbuild bundles `src/app.js` into `app.js`, then `scripts/build-html.js`
-  inlines `app.js` and `styles.css` directly into `index.html` from the
-  template.
-- Never hand-edit the root `index.html`, `app.js`, or `styles.css` -
-  they're all build output and get overwritten on the next `npm run
-  build`.
+  and `src/index.template.html`. The root `styles.css` is also real,
+  hand-edited source - there's no `src/` copy of it, so edit it directly.
+- Run `npm install` once (installs esbuild), then `npm run build` to
+  compile it all into the root `index.html` - esbuild bundles
+  `src/app.js` into `app.js`, then `scripts/build-html.js` reads that
+  `app.js` and the root `styles.css` and inlines both directly into
+  `index.html` from the template. The build is deterministic: running it
+  twice with no source changes produces a byte-identical `index.html`.
+- Never hand-edit the root `index.html` or `app.js` - both are build
+  output and get overwritten on the next `npm run build`. (`styles.css`
+  is the one root-level file that's the opposite: it's never written by
+  the build, only read, so it's safe - and correct - to edit by hand.)
