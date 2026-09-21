@@ -539,6 +539,28 @@ function App(){
   React.useEffect(()=>{
     document.querySelector('.attic-bar-body')?.scrollTo(0,0);
   },[stepIdx]);
+  // Same nested-scroll problem as .attic-bar-body above, but on the closet
+  // wizard's own .sidebar - found during mobile QA on a landscape phone
+  // (e.g. 844x390). A step whose options overflow the sidebar's available
+  // height (routine once the canvas + sticky .step-hdr + .nav-row eat most
+  // of a short viewport) needs scrolling to reach Next; advancing to the
+  // next step never reset that scroll position, and since the DOM node
+  // itself isn't remounted between steps (only its key'd children are),
+  // the browser just clamps the stale scrollTop into the new step's
+  // (often shorter) scroll range instead of resetting to 0. The new
+  // step's own top options then render already scrolled out from under
+  // the sticky header - on a step with a 3-card row, confirmed via
+  // getBoundingClientRect the entire first card's box (not just a sliver)
+  // landed inside the sticky header's own footprint, fully hidden behind
+  // its opaque background - reachable only by scrolling back UP, the
+  // opposite of the "scroll down to proceed" pattern every other step
+  // trains for. Scoped to .closet-layout so this can't ever grab the
+  // done-screen's own (same-classed, but unrelated) .sidebar instead -
+  // matches the identical scoping this file already uses for that one
+  // a few lines down.
+  React.useEffect(()=>{
+    document.querySelector('.closet-layout .sidebar')?.scrollTo(0,0);
+  },[stepIdx]);
   // Same nested-scroll problem as .attic-bar-body above, on the done
   // screen's own panel: .sidebar (attic mode's fixed 200px band) and
   // .done-wrap inside it (overflowY:auto in every layout) both scroll
