@@ -3441,7 +3441,7 @@
       }
     ));
   }
-  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, ervW, hasDehu, hasERV, snap, lang, vw, vh }) {
+  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, ervW, dehuW, hasDehu, hasERV, snap, lang, vw, vh }) {
     if (!hasDehu && !hasERV) return null;
     const BW = 80, BH = 48;
     const boxes = [];
@@ -3460,7 +3460,7 @@
     return /* @__PURE__ */ React.createElement("g", null, boxes.map((type, i) => {
       const BX = type === "dehu" ? dehuBX : ervBX;
       const isDehu = type === "dehu";
-      const boxW = isDehu ? BW : ervW || BW;
+      const boxW = isDehu ? dehuW || BW : ervW || BW;
       const pipe1X = BX + Math.round(boxW * 0.28), pipe2X = BX + Math.round(boxW * 0.68);
       const r1X = isDehu ? BX + boxW * 0.28 : BX + boxW * 0.08, r2X = isDehu ? BX + boxW * 0.72 : BX + boxW * 0.92;
       const ry = isDehu ? roofY : ervRoofY != null ? ervRoofY : roofY;
@@ -5443,6 +5443,23 @@
       const GROUND_Y = VH - 40;
       const COND_Y = GROUND_Y - COND_H;
       const linesetRingPath = `M${UNIT_X + UNIT_W} ${(LS_Y1 + LS_Y2) / 2} L${EXT_WALL_X + 9} ${(LS_Y1 + LS_Y2) / 2} L${EXT_WALL_X + 9} ${COND_Y + COND_H * 0.82} L${COND_X} ${COND_Y + COND_H * 0.82}`;
+      const DEHU_ERV_RW = hasCond ? HOUSE_W : VW - 8;
+      const DEHU_ERV_RRISE = Math.round(Math.min(DEHU_ERV_RW / 2 * (3 / 12), 60));
+      const DEHU_ERV_REAVE = DEHU_ERV_RRISE + 12;
+      const DEHU_ERV_BY = DEHU_ERV_REAVE + 42;
+      const DEHU_ERV_ROOFY = DEHU_ERV_REAVE + 4;
+      const DEHU_ERV_BH = 48;
+      const DEHU_ERV_BW = 80;
+      const MD_DW = 13, MD_GRILLE_HALF = (13 + 10) / 2;
+      const MD_LEFT_X = UNIT_X - 120, MD_RIGHT_X = UNIT_X + PLEN_W + 120;
+      const DEHU_ERV_CLEAR = 12;
+      const ervSafeRight = MD_LEFT_X + MD_DW / 2 - MD_GRILLE_HALF - DEHU_ERV_CLEAR;
+      const dehuSafeLeft = MD_RIGHT_X + MD_DW / 2 + MD_GRILLE_HALF + DEHU_ERV_CLEAR;
+      const ervX = 24;
+      const ervW = Math.max(30, Math.min(DEHU_ERV_BW, ervSafeRight - ervX));
+      const dehuRightMax = DEHU_ERV_RW - 10;
+      const dehuW = Math.max(30, Math.min(DEHU_ERV_BW, dehuRightMax - dehuSafeLeft));
+      const dehuX = Math.max(dehuSafeLeft, dehuRightMax - dehuW);
       return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -6875,48 +6892,36 @@
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
         const W2 = 44, H = 40;
         return /* @__PURE__ */ React.createElement(DehumidistatWall, { x: UNIT_X / 2 - W2 / 2, y: midY - H / 2, lang, vw: SVG_VW, vh: SVG_VH });
-      })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
-        const rW = hasCond ? HOUSE_W : VW - 8;
-        const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));
-        const rEave = rRise + 12;
-        const BW = 80;
-        const dehuX = rW - BW - 34;
-        const ervX = 24;
-        return /* @__PURE__ */ React.createElement(
-          DehuErvBoxes,
-          {
-            dehuBX: dehuX,
-            ervBX: ervX,
-            BY: rEave + 42,
-            roofY: rEave + 4,
-            hasDehu,
-            hasERV: Array.isArray(a.extras) && a.extras.includes("erv"),
-            snap: true,
-            lang,
-            vw: SVG_VW,
-            vh: SVG_VH
-          }
-        );
-      })(), hasDehu && hasCoil && (() => {
-        const rW = hasCond ? HOUSE_W : VW - 8;
-        const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));
-        const rEave = rRise + 12;
-        const BW = 80, BH = 48;
-        const dehuX = rW - BW - 34;
-        const BY = rEave + 42;
+      })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && /* @__PURE__ */ React.createElement(
+        DehuErvBoxes,
+        {
+          dehuBX: dehuX,
+          ervBX: ervX,
+          ervW,
+          dehuW,
+          BY: DEHU_ERV_BY,
+          roofY: DEHU_ERV_ROOFY,
+          hasDehu,
+          hasERV: Array.isArray(a.extras) && a.extras.includes("erv"),
+          snap: true,
+          lang,
+          vw: SVG_VW,
+          vh: SVG_VH
+        }
+      ), hasDehu && hasCoil && (() => {
         const RC = "rgba(255,182,193,";
         const stubY = DECK_Y - 8;
-        const retX = dehuX + 14, supX = dehuX + BW - 14;
-        const retD = `M${retX} ${BY + BH} L${retX} ${stubY}`;
-        const supD = `M${supX} ${BY + BH} L${supX} ${stubY}`;
+        const retX = dehuX + 14, supX = dehuX + dehuW - 14;
+        const retD = `M${retX} ${DEHU_ERV_BY + DEHU_ERV_BH} L${retX} ${stubY}`;
+        const supD = `M${supX} ${DEHU_ERV_BY + DEHU_ERV_BH} L${supX} ${stubY}`;
         const cap = (x, color) => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x - 6, y: stubY - 3, width: "12", height: "6", rx: "1.5", fill: color + ".3)", stroke: color + ".6)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: x - 9, y1: stubY + 3, x2: x + 9, y2: stubY + 3, stroke: color + ".4)", strokeWidth: "1", strokeDasharray: "1.5 1.5" }));
         return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".14)", strokeWidth: "8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".75)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(retX, RC), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".13)", strokeWidth: "8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".65)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(supX, G), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: retX - 9,
-            y: BY + BH - 4,
+            y: DEHU_ERV_BY + DEHU_ERV_BH - 4,
             w: 18,
-            h: stubY - (BY + BH) + 13,
+            h: stubY - (DEHU_ERV_BY + DEHU_ERV_BH) + 13,
             rx: 2,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -6929,9 +6934,9 @@
           HoverInfo,
           {
             x: supX - 9,
-            y: BY + BH - 4,
+            y: DEHU_ERV_BY + DEHU_ERV_BH - 4,
             w: 18,
-            h: stubY - (BY + BH) + 13,
+            h: stubY - (DEHU_ERV_BY + DEHU_ERV_BH) + 13,
             rx: 2,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -6942,9 +6947,6 @@
           }
         ));
       })(), (() => {
-        const rW = hasCond ? HOUSE_W : VW - 8;
-        const rRise = Math.round(Math.min(rW / 2 * (3 / 12), 60));
-        const rEave = rRise + 12;
         const focusPlenAbove = PLEN_ABOVE || 130, focusPlenBelow = PLEN_BELOW || 57;
         const focusPlenTop = DECK_Y - focusPlenAbove, focusPlenTotal = focusPlenAbove + focusPlenBelow;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
@@ -7036,7 +7038,7 @@
             h: (APR_H || 28) + 4,
             rx: 4
           }
-        ), /* @__PURE__ */ React.createElement(StepFocusRing, { onEditStep, curStepId, svgScale: SVG_SCALE, vw: SVG_VW, vh: SVG_VH, stepId: "dehu", x: rW - 80 - 34, y: rEave + 42, w: 80, h: 48, rx: 4 }), /* @__PURE__ */ React.createElement(StepFocusRing, { onEditStep, curStepId, svgScale: SVG_SCALE, vw: SVG_VW, vh: SVG_VH, stepId: "extras", x: 24, y: rEave + 42, w: 80, h: 48, rx: 4 }));
+        ), /* @__PURE__ */ React.createElement(StepFocusRing, { onEditStep, curStepId, svgScale: SVG_SCALE, vw: SVG_VW, vh: SVG_VH, stepId: "dehu", x: dehuX, y: DEHU_ERV_BY, w: dehuW, h: DEHU_ERV_BH, rx: 4 }), /* @__PURE__ */ React.createElement(StepFocusRing, { onEditStep, curStepId, svgScale: SVG_SCALE, vw: SVG_VW, vh: SVG_VH, stepId: "extras", x: ervX, y: DEHU_ERV_BY, w: ervW, h: DEHU_ERV_BH, rx: 4 }));
       })(), hoverPart && /* @__PURE__ */ React.createElement(HoverPanel, { part: hoverPart, groupBoxes })))));
     }
     return null;
