@@ -960,7 +960,26 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      apply fixes that without changing the real 2-column wizard grid it
      was written for. */
   .opts .opt{flex:1;min-width:calc(50% - 6px);max-width:100%}
-  .nav-row{position:sticky;bottom:0}
+  /* Un-stuck, not re-affirmed sticky: a sticky .step-hdr up top plus a
+     sticky .nav-row down here both pinned inside the same height-capped
+     .sidebar is exactly the collision the max-height:430px block below
+     already diagnoses in detail (see its own comment on .nav-row) and
+     fixes with this identical position:static - but that fix only ever
+     fired on a short/landscape viewport. On an ordinary tall portrait
+     phone (iPhone-class, ~390x844) the canvas above still claims 52vh
+     (see .closet-canvas-area a few lines up), and a step with enough
+     content - cond_tier's three detailed tier cards plus its own intro
+     line, measured here - still taller than what's left for .sidebar.
+     Verified: with the old `position:sticky;bottom:0` here, the third
+     tier card's own real layout position sat directly under the sticky
+     Back/Skip/Next bar's opaque background - invisible, and a tap there
+     landed on Next (disabled or not) instead of the card, on a totally
+     mainstream phone size, not just the 430px edge case. Same fix, same
+     reasoning, just not width-gated away from the phones it was written
+     for: static here lets .nav-row flow to its natural spot right after
+     the last option, same "scroll to the end to find Next" pattern the
+     430px block already calls the expected mobile one. */
+  .nav-row{position:static}
 
   /* Done screen - stack canvas above the review panel on narrow viewports
      regardless of layout. Matches the ".done-screen.attic-mode/.closet-mode"

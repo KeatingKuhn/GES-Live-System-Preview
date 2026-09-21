@@ -2674,9 +2674,20 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,hasDehu,hasERV,snap,lang,v
   );
   return <g>{boxes.map((type,i)=>{
     const BX=type==='dehu'?dehuBX:ervBX;
-    const r1X=BX+BW*0.28, r2X=BX+BW*0.72;
     const isDehu=type==='dehu';
     const pipe1X=BX+Math.round(BW*0.28), pipe2X=BX+Math.round(BW*0.68);
+    // Hang-kit anchor X's - straight down the box centerline (0.28/0.72)
+    // for the dehu, which has nothing else up there to dodge. The ERV
+    // can't reuse that same pair: its own IN/OUT roof stubs already run
+    // through very nearly that exact X (pipe1X/pipe2X above, computed off
+    // the same 0.28/0.68 split), so hanging the bracket+strap there landed
+    // it stacked right on top of the pipe cap/arrowhead and "IN"/"OUT"
+    // labels - a strap that's supposed to read as separate mounting
+    // hardware instead read as noise fused into the ductwork art. Flanking
+    // the box's outer thirds (0.08/0.92) keeps both brackets clear of
+    // both pipes with room to spare, while still landing on the box's own
+    // top lip like the dehu's pair does.
+    const r1X=isDehu?BX+BW*0.28:BX+BW*0.08, r2X=isDehu?BX+BW*0.72:BX+BW*0.92;
     // ERV defaults to the same shared roofY as the dehu (closet call
     // site never passes ervRoofY, and there the two boxes are far
     // enough apart that a shared flat roofline reads fine) - the attic
@@ -4656,12 +4667,25 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             {(()=>{
               const isExisting=a.plenum==='none';
               const isMetal=a.plenum==='metal';
-              const pFill=isExisting?"rgba(38,38,52,.6)":isMetal?"#1a1c24":"#141108";
+              // isExisting's fill used to be genuinely translucent (a .6-alpha
+              // color, THEN a .7 opacity on top of that - the two compound to
+              // ~.42 effective alpha) to read as "lighter/older material" next
+              // to the solid ductboard/metal boxes. But this box sits directly
+              // over the closet's own "UTILITY CLOSET" title text (painted
+              // earlier, up at the deck line) - opaque enough on the other two
+              // materials to fully hide it, that ~.42 alpha let it ghost
+              // through right behind the plenum's own "EXISTING PLENUM"/
+              // "SUPPLY" labels, two unrelated pieces of text visually
+              // colliding in the same box. Solid-but-still-visually-distinct
+              // (dashed border + its own lighter-navy tone, no material
+              // texture) reads as "existing" just as well without the actual
+              // see-through.
+              const pFill=isExisting?"rgba(30,30,44,.97)":isMetal?"#1a1c24":"#141108";
               const pStroke=isExisting?(G+'.22)'):(G+(isMetal?'.74)':'.5)'));
               return <>
                 <rect x={UNIT_X} y={PLEN_TOP} width={PLEN_W} height={PLEN_TOTAL} rx="3"
                   fill={pFill} stroke={pStroke} strokeWidth={isExisting?1:isMetal?1.7:1.4}
-                  strokeDasharray={isExisting?"6 3":undefined} opacity={isExisting?0.7:1}/>
+                  strokeDasharray={isExisting?"6 3":undefined}/>
                 {/* Warm/cold air pulse - same idea as the refrigerant line pulse, orange for heat, blue for cool.
                     Thick + glowing so it reads clearly against the plenum's own static material border underneath. */}
                 <rect x={UNIT_X-2} y={PLEN_TOP-2} width={PLEN_W+4} height={PLEN_TOTAL+4} rx="4"
