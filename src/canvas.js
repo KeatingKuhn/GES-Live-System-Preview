@@ -3038,12 +3038,13 @@ function thermVariant(isProprietary,isWifi){return isProprietary?'proprietary':i
 // 0.58 - measured to just fit the attic layout's own left-margin column
 // (a Furnace build's own column is ~74 local units wide regardless of
 // plenum/tier/heat-type choice, Air Handler's ~80) without touching the
-// return plenum beside it. Bumped 50% per direct feedback ("can barely
-// read either of them") - legibility wins over that old fit constraint,
-// so this now DOES run a little past the column's old edge into the
-// return plenum's own open left margin; see THERM_SCALE's own comment
-// (attic) for how that's handled.
-const THERM_TARGET_SCALE=0.87;
+// return plenum beside it. Bumped 50% (0.58->0.87), then another 25% on
+// top of that (0.87->1.09) across two rounds of direct feedback -
+// legibility wins over that old fit constraint, so this now DOES run
+// well past the column's old edge into the return plenum's own open
+// left margin; see THERM_SCALE's/THERM_TX's own comments (attic) for
+// how that's handled.
+const THERM_TARGET_SCALE=1.09;
 
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
@@ -3675,15 +3676,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // so the thermostat reads as sitting beside the system, not under it,
     // and never has any bearing on how tall the living-space band needs
     // to be.
+    // Re-centered per direct feedback ("still more room to move down...
+    // and slightly to the right closer to the return duct... center it
+    // in that void down and to the right") - this used to be centered on
+    // the equipment ROW itself (UNIT_Y/UNIT_H). At this enlarged size the
+    // full content (THERM_H) is genuinely taller than the open strip
+    // below the equipment (measured: UNIT_Y+UNIT_H to DECK_Y is only
+    // ~110 units, THERM_H is ~130 at THERM_TARGET_SCALE=1.09) - pinning
+    // the BOTTOM a fixed clearance above DECK_Y (where the floor band's
+    // RETURN/GAS labels live) instead of centering in that too-small gap
+    // is what actually matters: it guarantees no overlap with THOSE (the
+    // real "closer to the return duct" register down there), even though
+    // the top of the thermostat still reaches a little back up past
+    // UNIT_Y+UNIT_H into the same open-above-the-return-plenum's-own-
+    // content space the equipment row's left margin already had. +26
+    // (not a flat 8) nudges it right, off the house wall.
     const THERM_TX=THERM_IN_MARGIN
-      ?Math.round(8-THERM_CONTENT_L*THERM_SCALE)
+      ?Math.round(26-THERM_CONTENT_L*THERM_SCALE)
       :RET_X+RET_PLEN_W+8;
-    // +18 shifts it down slightly off dead-center per direct feedback
-    // ("give it more space to breathe") - the dehumidistat that used to
-    // sit directly below this (see its own call site, now relocated next
-    // to the DEHU box instead) no longer constrains how far down this can
-    // sit, so there's genuine open room below to shift into.
-    const THERM_TY=THERM_IN_MARGIN?Math.round(UNIT_Y+(UNIT_H-THERM_H)/2)+18:DECK_Y+12;
+    const THERM_TY=THERM_IN_MARGIN
+      ?Math.round(DECK_Y-14-THERM_H)
+      :DECK_Y+12;
     // Hover/focus-ring boxes below (hoverPart, EditZone, StepFocusRing) key
     // off THERM_TX/THERM_W, which describe the FACE's own origin+width
     // (unchanged at nominal 76, centered on local x=38) - the button row,

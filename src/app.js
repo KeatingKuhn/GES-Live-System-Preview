@@ -592,7 +592,12 @@ function App(){
         const parts=[];
         if(answers.dehu==="yes")parts.push({step:"dehu",
           full:tr("Whole-home dehumidifier","Deshumidificador para toda la casa"),
-          short:tr("Dehumidifier","Deshumidificador")});
+          // Shortened further per direct feedback ("Final add-ons" row
+          // needed to shrink to stop forcing a scroll in the attic
+          // panel's fixed-height review grid - see styles.css's own
+          // comment on .done-review-grid) - matches "Dehu" everywhere
+          // else in the diagram (DehuErvBoxes/DehumidistatWall captions).
+          short:tr("Dehu","Deshu")});
         if(Array.isArray(answers.extras)&&answers.extras.length>0){
           const items=answers.extras.map(v=>v==="condensate"
             ?{full:tr("Condensate pump","Bomba de condensado"),short:tr("Pump","Bomba")}

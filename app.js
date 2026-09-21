@@ -387,10 +387,12 @@
     { key: "wisetack", label: "Financing", labelEs: "Financiamiento", url: "https://wisetack.us/#/hyhu11w/prequalify" }
   ];
   var GATE_CONFIG = {
-    // Disabled for now (was 9) while the Gravity Form + WordPress-side
-    // relay snippet aren't live yet on the actual page - turn back on once
-    // both are in place and confirmed working.
-    gravityFormId: 0
+    // Live - the Gravity Form (ID 9) is placed directly below this
+    // widget's iframe on the WordPress page, same domain (same-origin),
+    // so the jQuery gform_confirmation_loaded detection path applies with
+    // no extra relay snippet needed - see the gate detection logic in
+    // src/app.js, right where this is imported and used.
+    gravityFormId: 9
   };
   var TIER_LABEL = { fedmin: "Federal Minimum - 14 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
   function calcEstimate(answers, pricingAnswers) {
@@ -3708,7 +3710,7 @@
   function thermVariant(isProprietary, isWifi) {
     return isProprietary ? "proprietary" : isWifi ? "wifi" : "basic";
   }
-  var THERM_TARGET_SCALE = 0.87;
+  var THERM_TARGET_SCALE = 1.09;
   function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
     const T = (key) => partInfo(key, lang);
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
@@ -4166,8 +4168,8 @@
       const THERM_BTN_N = isDualFuel || !hasFurnace ? 3 : 2;
       const THERM_ROW_W = THERM_BTN_N === 3 ? 96 : 76;
       const THERM_W = THERM_ROW_W * THERM_SCALE, THERM_H = 120 * THERM_SCALE;
-      const THERM_TX = THERM_IN_MARGIN ? Math.round(8 - THERM_CONTENT_L * THERM_SCALE) : RET_X + RET_PLEN_W + 8;
-      const THERM_TY = THERM_IN_MARGIN ? Math.round(UNIT_Y + (UNIT_H - THERM_H) / 2) + 18 : DECK_Y + 12;
+      const THERM_TX = THERM_IN_MARGIN ? Math.round(26 - THERM_CONTENT_L * THERM_SCALE) : RET_X + RET_PLEN_W + 8;
+      const THERM_TY = THERM_IN_MARGIN ? Math.round(DECK_Y - 14 - THERM_H) : DECK_Y + 12;
       const THERM_ROW_X = THERM_TX + (38 - THERM_ROW_W / 2) * THERM_SCALE;
       const APR_X = RET_X + RET_PLEN_W + (APR_W ? 2 : 0);
       const UNIT_X = APR_X + APR_W + (APR_W ? 2 : 0);
@@ -7539,7 +7541,12 @@
           if (answers.dehu === "yes") parts.push({
             step: "dehu",
             full: tr("Whole-home dehumidifier", "Deshumidificador para toda la casa"),
-            short: tr("Dehumidifier", "Deshumidificador")
+            // Shortened further per direct feedback ("Final add-ons" row
+            // needed to shrink to stop forcing a scroll in the attic
+            // panel's fixed-height review grid - see styles.css's own
+            // comment on .done-review-grid) - matches "Dehu" everywhere
+            // else in the diagram (DehuErvBoxes/DehumidistatWall captions).
+            short: tr("Dehu", "Deshu")
           });
           if (Array.isArray(answers.extras) && answers.extras.length > 0) {
             const items = answers.extras.map((v) => v === "condensate" ? { full: tr("Condensate pump", "Bomba de condensado"), short: tr("Pump", "Bomba") } : v === "erv" ? { full: "ERV", short: "ERV" } : { full: v, short: v });
