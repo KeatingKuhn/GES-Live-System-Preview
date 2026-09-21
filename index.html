@@ -6594,7 +6594,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const BW = 80;
         const dehuBX = hasFurnace ? sysX + 44 : sysX + AH_W - BW - 8;
         const ervW = BW;
-        const ervBX = Math.max(8, RET_X);
+        const ervBX = 8;
         const ervRoofY = roofY(ervBX + ervW / 2);
         return /* @__PURE__ */ React.createElement(
           DehuErvBoxes,
@@ -6623,7 +6623,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const retTgtX = RET_X + RET_PLEN_W / 2;
         const supTgtX = SUP_X + Math.round(SUP_PLEN_W * 0.75);
         const hasERVHere = Array.isArray(a.extras) && a.extras.includes("erv");
-        const retDodgeX = Math.max(8, RET_X) + BW + 14;
+        const retDodgeX = 8 + BW + 14;
         const retDodgeY = UNIT_Y - 10;
         const retD = hasERVHere ? `M${dehuBX} ${midY} L${retDodgeX} ${midY} L${retDodgeX} ${retDodgeY} L${retTgtX} ${retDodgeY} L${retTgtX} ${UNIT_Y}` : `M${dehuBX} ${midY} L${retTgtX} ${midY} L${retTgtX} ${UNIT_Y}`;
         const supD = `M${dehuBX + BW} ${midY} L${supTgtX} ${midY} L${supTgtX} ${SUP_PLEN_Y}`;
@@ -6807,27 +6807,53 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           ));
         }
       })()), a.insulation && (() => {
-        const insulCX = isSpray ? SUP_X + SUP_PLEN_W * 0.35 : HOUSE_W / 2, insulY = isSpray ? UNIT_Y - 16 : VH - 10;
-        let insulL = insulCX - 70, insulR = insulCX + 70;
-        if (isSpray && hasDehu) insulR = Math.min(insulR, SUP_X + Math.round(SUP_PLEN_W * 0.75) - 30);
-        return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+        if (!isSpray) return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
           "text",
           {
-            x: insulCX,
-            y: insulY,
+            x: HOUSE_W / 2,
+            y: VH - 10,
             textAnchor: "middle",
             style: { pointerEvents: "none" },
-            fill: isSpray ? "rgba(232,236,246,.6)" : "rgba(255,182,193,.6)",
+            fill: "rgba(255,182,193,.6)",
             fontSize: "12",
             fontFamily: "monospace"
           },
-          isSpray ? "SPRAY FOAM - SEALED ATTIC" : "FIBERGLASS INSULATION"
+          "FIBERGLASS INSULATION"
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: insulL,
-            y: insulY - 12,
-            w: Math.max(20, insulR - insulL),
+            x: HOUSE_W / 2 - 70,
+            y: VH - 10 - 12,
+            w: 140,
+            h: 18,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("insulation").title,
+            text: T("insulation").text
+          }
+        ));
+        const roofAngleDeg = Math.atan2(EAVE_Y - RIDGE_Y, HOUSE_W - RIDGE_X) * 180 / Math.PI;
+        const sfX = RIDGE_X + (RL_WALL_X - RIDGE_X) * 0.6;
+        const sfY = roofY(sfX) + RL_ROOF_GAP + 18;
+        return /* @__PURE__ */ React.createElement("g", { transform: `rotate(${roofAngleDeg} ${sfX} ${sfY})` }, /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            x: sfX,
+            y: sfY,
+            textAnchor: "middle",
+            style: { pointerEvents: "none" },
+            fill: "rgba(232,236,246,.6)",
+            fontSize: "12",
+            fontFamily: "monospace"
+          },
+          "SPRAY FOAM INSULATION"
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: sfX - 75,
+            y: sfY - 12,
+            w: 150,
             h: 18,
             rx: 3,
             vw: SVG_VW,
@@ -6949,7 +6975,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           vw: SVG_VW,
           vh: SVG_VH,
           stepId: "extras",
-          x: Math.max(8, RET_X),
+          x: 8,
           y: UNIT_Y - 48 - 14,
           w: 80,
           h: 48,

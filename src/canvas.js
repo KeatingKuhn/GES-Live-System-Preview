@@ -4551,7 +4551,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // Full 80-wide box now, no shrinking needed - there's no tight
             // slot to fit into over here.
             const ervW=BW;
-            const ervBX=Math.max(8,RET_X);
+            // Scooted flush against the left wall (was Math.max(8,RET_X),
+            // which - since RET_X/MARGIN_L is always >=20 - actually never
+            // hit the 8 floor and left the box sitting further right than
+            // intended) per direct feedback that there was still room to
+            // push it further left.
+            const ervBX=8;
             // Uses the real per-X roof surface (not a flat approximation
             // like the dehu hang-kit's own roofY below, which only needs a
             // reasonable strap-mounting height, not an actual penetration
@@ -4619,7 +4624,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // true center - same "route around, not through, a box in the
             // way" idea as the closet return-chase's own pump detour.
             const hasERVHere=Array.isArray(a.extras)&&a.extras.includes('erv');
-            const retDodgeX=Math.max(8,RET_X)+BW+14;
+            const retDodgeX=8+BW+14;
             const retDodgeY=UNIT_Y-10;
             const retD=hasERVHere
               ?`M${dehuBX} ${midY} L${retDodgeX} ${midY} L${retDodgeX} ${retDodgeY} L${retTgtX} ${retDodgeY} L${retTgtX} ${UNIT_Y}`
@@ -4750,42 +4755,51 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               late (after furnace/coil/condenser) so nothing else paints
               over it here either.
 
-              Spray foam used to sit above the return plenum/thermostat
-              column on the LEFT - moved to the right, above the supply
-              plenum, because the ERV now hangs in that exact left corner
-              (see its own comment at the attic ERV's call site) and the
-              two were landing right on top of each other. */}
+              Spray foam used to sit above the supply plenum, in the open
+              triangle of attic air below the ridge - readable, but still
+              "in the room" rather than genuinely out of the way. Per
+              direct feedback it now runs right along the roofline itself,
+              tucked under the rerouted refrigerant lineset's own diagonal
+              run down to the wall (the two used to also collide back when
+              this label sat above the return plenum, before the ERV moved
+              into that spot - see the ERV's own call site comment), tilted
+              to match the roof's own pitch so it reads as painted along
+              the underside of the deck rather than floating at an angle
+              against it. */}
           {a.insulation&&(()=>{
-            // 0.35 (not 0.5/center) keeps this clear of the dehu supply
-            // duct's own vertical leg, which lands at SUP_X+0.75*
-            // SUP_PLEN_W when a dehumidifier is on the build (see that
-            // duct's own comment above) - centering would put this
-            // label's ±70 box right on top of it.
-            const insulCX=isSpray?SUP_X+SUP_PLEN_W*0.35:HOUSE_W/2, insulY=isSpray?UNIT_Y-16:VH-10;
-            let insulL=insulCX-70, insulR=insulCX+70;
-            // Same dehu-duct clearance as above, expressed as a hard clamp
-            // for the narrower a.plenum==='none' width (140), where 0.35
-            // alone isn't quite enough margin. Fiberglass's own copy sits
-            // down by the floor, nowhere near the dehu run, so it's
-            // untouched.
-            if(isSpray&&hasDehu)insulR=Math.min(insulR,SUP_X+Math.round(SUP_PLEN_W*0.75)-30);
-            return <g>
+            if(!isSpray)return <g>
+              <text x={HOUSE_W/2} y={VH-10} textAnchor="middle" style={{pointerEvents:'none'}}
+                fill="rgba(255,182,193,.6)" fontSize="12" fontFamily="monospace">FIBERGLASS INSULATION</text>
+              <HoverInfo x={HOUSE_W/2-70} y={VH-10-12} w={140} h={18} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
+            </g>;
+            // Right-descending half of the roof (ridge to the outside
+            // wall) - same slope roofY's own right branch computes, used
+            // here to tilt the label to match it exactly rather than
+            // guessing a fixed angle.
+            const roofAngleDeg=Math.atan2(EAVE_Y-RIDGE_Y,HOUSE_W-RIDGE_X)*180/Math.PI;
+            // 0.6 of the way from ridge to wall - past the dehu/ERV
+            // cluster on the left, short of the condenser hookup on the
+            // right, above the open middle of the coil/plenum run.
+            const sfX=RIDGE_X+(RL_WALL_X-RIDGE_X)*0.6;
+            // +18 past the lineset's own roofY+RL_ROOF_GAP centerline -
+            // clears its ~12px foam-sleeve width with room to spare, so
+            // the label sits just underneath the pipe, not touching it.
+            const sfY=roofY(sfX)+RL_ROOF_GAP+18;
+            return <g transform={`rotate(${roofAngleDeg} ${sfX} ${sfY})`}>
               {/* pointerEvents:none - a plain <text> is still hit-tested
                   by its own painted glyph area by default (same "wide
                   decorative shape silently swallows a hover zone
                   underneath" bug already fixed for the flue pipe/active-
                   cabinet tint elsewhere in this file - see their own
-                  comments). Clamping the HoverInfo rect just above wasn't
-                  enough on its own: this text's own glyphs (untouched by
-                  that clamp) still sat on top of the dehu return duct's
-                  own vertical leg and kept swallowing it, confirmed via
-                  the same grid-sweep hover audit. */}
-              <text x={insulCX} y={insulY} textAnchor="middle" style={{pointerEvents:'none'}}
-                fill={isSpray?"rgba(232,236,246,.6)":"rgba(255,182,193,.6)"} fontSize="12" fontFamily="monospace">
-                {isSpray?"SPRAY FOAM - SEALED ATTIC":"FIBERGLASS INSULATION"}
-              </text>
-              {/* No EditZone covers this - free-standing hover, no onClick. */}
-              <HoverInfo x={insulL} y={insulY-12} w={Math.max(20,insulR-insulL)} h={18} rx={3}
+                  comments). */}
+              <text x={sfX} y={sfY} textAnchor="middle" style={{pointerEvents:'none'}}
+                fill="rgba(232,236,246,.6)" fontSize="12" fontFamily="monospace">SPRAY FOAM INSULATION</text>
+              {/* No EditZone covers this - free-standing hover, no onClick.
+                  Rotates along with the text above (same transform on this
+                  parent <g>) so the hit area follows the tilted label
+                  instead of staying axis-aligned under it. */}
+              <HoverInfo x={sfX-75} y={sfY-12} w={150} h={18} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
             </g>;
           })()}
@@ -4837,7 +4851,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="dehu"
             x={hasFurnace?FURN_X+44:AH_X+AH_W-80-8} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
           <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="extras"
-            x={Math.max(8,RET_X)} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
+            x={8} y={UNIT_Y-48-14} w={80} h={48} rx={4}/>
           {/* Single always-topmost hover tooltip - see the module comment
               on HoverCtx/HoverInfo for why this has to be the very last
               thing painted in the whole <svg> rather than living next to
