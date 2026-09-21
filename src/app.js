@@ -83,6 +83,24 @@ function App(){
   // snaps straight back to done, only pausing on a step the edit actually
   // invalidated (e.g. a thermostat pick that no longer fits the new tier).
   const [quickEdit,setQuickEdit]=useState(false);
+  // Snapshot of `answers` taken the instant a quick-edit begins (see
+  // jumpToStep below) - restored by cancelQuickEdit if the homeowner backs
+  // out via the banner's own "Cancel, back to build" link (or by backing
+  // past the one step being edited, which the comment on that goBack
+  // branch says is meant to behave identically). Every option pick applies
+  // to `answers` immediately on click, everywhere in this app - there's no
+  // separate "confirm" step - so without this, "Cancel" didn't actually
+  // cancel anything: it silently kept whatever had just been clicked and
+  // only backed out of quick-edit NAVIGATION, the same as Save & Return
+  // would have, just without walking through any steps it invalidated. A
+  // ref (not state) since it's write-once-per-edit/read-once-on-cancel and
+  // never drives a render itself.
+  const quickEditSnapshotRef=useRef(null);
+  const cancelQuickEdit=useCallback(()=>{
+    if(quickEditSnapshotRef.current)setAnswers(quickEditSnapshotRef.current);
+    quickEditSnapshotRef.current=null;
+    setQuickEdit(false);setDone(true);
+  },[]);
   // Post-build pricing: null=not asked, 'sizing'=sub-questions,
   // 'leadgate'=waiting on the contact form, 'result'=estimate shown
   const [pricingFlow,setPricingFlow]=useState(null);
@@ -195,12 +213,23 @@ function App(){
   // an inert picture that only ever changes through the grid below it.
   const jumpToStep=useCallback(id=>{
     const i=activeSteps.findIndex(s=>s.id===id);
-    if(i>=0){trackEvent('quick_edit_used',{step_id:id});setDone(false);setStepIdx(i);setQuickEdit(true);}
-  },[activeSteps]);
+    if(i>=0){trackEvent('quick_edit_used',{step_id:id});quickEditSnapshotRef.current=answers;setDone(false);setStepIdx(i);setQuickEdit(true);}
+  },[activeSteps,answers]);
   // Splash-card pick - the real start of the funnel. Landing on the splash
   // screen doesn't itself mean engagement (a bounced visitor never fires
   // this), but committing to a location does.
-  const pickLocation=loc=>{trackEvent('wizard_started',{location:loc});setA("location",loc);setStepIdx(1);};
+  // Also resets the pricing flow (mirroring restart()'s own reset of the
+  // same three pieces of state) - reaching the splash screen isn't only
+  // possible via restart()'s "Start Over" button, it's also reachable by
+  // walking the wizard's own Back button out past step 1 (goBack's
+  // location-clearing branch above) after having gotten partway or all the
+  // way through a PREVIOUS build's pricing flow. Without this, that old
+  // pricingFlow/pricingSubStep/pricingAnswers state survived untouched
+  // into the brand-new build that follows - its own done screen skipped
+  // straight to the previous build's stale price/result panel (or a
+  // mid-sizing sub-step) instead of the ordinary review grid with a
+  // fresh "Get Pricing" button, the first time it was reached.
+  const pickLocation=loc=>{trackEvent('wizard_started',{location:loc});setA("location",loc);setStepIdx(1);setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});};
   const sel=id=>answers[id];
   const msel=id=>Array.isArray(answers[id])?answers[id]:[];
   const setA=(k,v)=>setAnswers(p=>{
@@ -269,7 +298,7 @@ function App(){
     if(quickEdit){
       let i=stepIdx+1;
       while(i<activeSteps.length&&stepSatisfied(activeSteps[i]))i++;
-      if(i>=activeSteps.length){setQuickEdit(false);setDone(true);scrollTop();trackBuildCompleted(answers);}
+      if(i>=activeSteps.length){quickEditSnapshotRef.current=null;setQuickEdit(false);setDone(true);scrollTop();trackBuildCompleted(answers);}
       else{setStepIdx(i);scrollTop();}
       return;
     }
@@ -297,7 +326,7 @@ function App(){
         // non-quick-edit case. Cancels out of quick-edit back to the done
         // screen instead, exactly like the quickedit-banner's own
         // "Cancel, back to build" link.
-        if(quickEdit){setQuickEdit(false);setDone(true);scrollTop();return;}
+        if(quickEdit){cancelQuickEdit();scrollTop();return;}
         // clearSavedBuild() alongside clearing location: the autosave
         // effect below only writes while answers.location is truthy (so a
         // fresh page load with no pick yet never persists "nothing"),
@@ -950,7 +979,7 @@ function App(){
         <div className="attic-bar">
           {quickEdit&&<div className="quickedit-banner fadein">
             <span>✎ {tr('Editing this answer only','Editando solo esta respuesta')}</span>
-            <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ {tr('Cancel, back to build','Cancelar, volver a la construcción')}</button>
+            <button onClick={cancelQuickEdit}>‹ {tr('Cancel, back to build','Cancelar, volver a la construcción')}</button>
           </div>}
           {/* .attic-bar-top/.attic-info-collapse are rendered AFTER
               .attic-bar-body below (still visually on top - see the
@@ -1024,7 +1053,7 @@ function App(){
         <div className="sidebar">
           {quickEdit&&<div className="quickedit-banner fadein">
             <span>✎ {tr('Editing this answer only','Editando solo esta respuesta')}</span>
-            <button onClick={()=>{setQuickEdit(false);setDone(true);}}>‹ {tr('Cancel, back to build','Cancelar, volver a la construcción')}</button>
+            <button onClick={cancelQuickEdit}>‹ {tr('Cancel, back to build','Cancelar, volver a la construcción')}</button>
           </div>}
           {/* A key derived from stepIdx forces a remount on every step
               change so the existing .fadein utility (already used for

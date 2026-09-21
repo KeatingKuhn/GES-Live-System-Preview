@@ -7109,6 +7109,13 @@
       return () => clearTimeout(t);
     }, [done]);
     const [quickEdit, setQuickEdit] = useState2(false);
+    const quickEditSnapshotRef = useRef2(null);
+    const cancelQuickEdit = useCallback2(() => {
+      if (quickEditSnapshotRef.current) setAnswers(quickEditSnapshotRef.current);
+      quickEditSnapshotRef.current = null;
+      setQuickEdit(false);
+      setDone(true);
+    }, []);
     const [pricingFlow, setPricingFlow] = useState2(null);
     const [pricingSubStep, setPricingSubStep] = useState2(0);
     const [pricingAnswers, setPricingAnswers] = useState2({});
@@ -7193,15 +7200,19 @@
       const i = activeSteps.findIndex((s) => s.id === id);
       if (i >= 0) {
         trackEvent("quick_edit_used", { step_id: id });
+        quickEditSnapshotRef.current = answers;
         setDone(false);
         setStepIdx(i);
         setQuickEdit(true);
       }
-    }, [activeSteps]);
+    }, [activeSteps, answers]);
     const pickLocation = (loc2) => {
       trackEvent("wizard_started", { location: loc2 });
       setA("location", loc2);
       setStepIdx(1);
+      setPricingFlow(null);
+      setPricingSubStep(0);
+      setPricingAnswers({});
     };
     const sel = (id) => answers[id];
     const msel = (id) => Array.isArray(answers[id]) ? answers[id] : [];
@@ -7242,6 +7253,7 @@
         let i = stepIdx + 1;
         while (i < activeSteps.length && stepSatisfied(activeSteps[i])) i++;
         if (i >= activeSteps.length) {
+          quickEditSnapshotRef.current = null;
           setQuickEdit(false);
           setDone(true);
           scrollTop();
@@ -7267,8 +7279,7 @@
         const next = stepIdx - 1;
         if (next === 0) {
           if (quickEdit) {
-            setQuickEdit(false);
-            setDone(true);
+            cancelQuickEdit();
             scrollTop();
             return;
           }
@@ -7612,10 +7623,7 @@
         style: { animationDelay: ".3s", fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
       },
       lang === "es" ? "EN" : "ES"
-    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su sistema se guarda autom\xE1ticamente mientras avanza."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
-      setQuickEdit(false);
-      setDone(true);
-    } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, stepCountText), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, stepCountText && " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
+    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su sistema se guarda autom\xE1ticamente mientras avanza."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, stepCountText), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, stepCountText && " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
@@ -7631,10 +7639,7 @@
         }
       },
       "i"
-    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
-      setQuickEdit(false);
-      setDone(true);
-    } }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), stepCountText && ` ${stepCountText}`), infoText && /* @__PURE__ */ React.createElement(
+    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), stepCountText && ` ${stepCountText}`), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
