@@ -3368,7 +3368,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     const FURN_W=hasFurnace?Math.round(196*SCALE):0;
     const ACOIL_W=hasFurnace?Math.round(108*SCALE):0;
     const AH_W=!hasFurnace?Math.round(296*SCALE):0;
-    let SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?240:a.plenum==='none'?130:0;
+    let SUP_PLEN_W=hasPlenum&&a.plenum!=='none'?256:a.plenum==='none'?140:0;
     const SUP_PLEN_H=UNIT_H;
 
     // Center the equipment run in the house zone - used to pin it to a
