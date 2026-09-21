@@ -3806,9 +3806,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                       no onClick. Painted before the grille below so its own
                       more specific hover (RegisterGrille's built-in one)
                       wins the small strip where the two overlap near the
-                      deck line. */}
+                      deck line. ringPath (this run's own straight
+                      centerline) instead of the default rect ring, same
+                      reasoning as the angled/left/right duct runs' own -
+                      otherwise this one straight run looked visually
+                      different (a boxed rect ring) next to the others'
+                      traced glow-line rings. */}
                   <HoverInfo x={cx-DW/2-2} y={pBot} w={DW+4} h={Math.max(0,DECK_Y-pBot)} rx={2}
-                    vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
+                    vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
+                    ringPath={`M${cx} ${pBot} L${cx} ${DECK_Y}`} ringStrokeWidth={DW+8}/>
                   {grille(cx)}
                 </g>
               );
@@ -4560,11 +4566,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     than one rect spanning the whole L that would swallow
                     the plenum/unit sitting beside it. Painted before the
                     grille below so its own more specific hover wins the
-                    small overlap near the deck line. */}
+                    small overlap near the deck line. Both share the same
+                    ringPath (this run's own centerline, same `d` the
+                    ductArrow above already traces) so the ring reads as
+                    one traced line the same way the attic layout's angled
+                    duct/lineset rings do, instead of a plain rect box -
+                    keeps every supply duct in both layouts visually
+                    consistent with each other. */}
                 <HoverInfo x={leftDropX-2} y={exitY-2} w={UNIT_X-leftDropX+2} h={DW+4} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
+                  ringPath={`M${UNIT_X-3} ${exitY+DW/2} L${leftDropX+DW/2} ${exitY+DW/2} L${leftDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
                 <HoverInfo x={leftDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
+                  ringPath={`M${UNIT_X-3} ${exitY+DW/2} L${leftDropX+DW/2} ${exitY+DW/2} L${leftDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
                 <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
 
                 {/* ── RIGHT DUCT ── */}
@@ -4578,9 +4592,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <DuctClamp x={rightDropX} y={DECK_Y-5} w={DW} vertical/>
                 {ductArrow(`M${UNIT_X+PLEN_W+3},${exitY+DW/2} L${rightDropX+DW/2},${exitY+DW/2} L${rightDropX+DW/2},${DECK_Y-4}`,'ra')}
                 <HoverInfo x={UNIT_X+PLEN_W} y={exitY-2} w={rightDropX-(UNIT_X+PLEN_W)+DW+2} h={DW+4} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
+                  ringPath={`M${UNIT_X+PLEN_W+3} ${exitY+DW/2} L${rightDropX+DW/2} ${exitY+DW/2} L${rightDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
                 <HoverInfo x={rightDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
+                  ringPath={`M${UNIT_X+PLEN_W+3} ${exitY+DW/2} L${rightDropX+DW/2} ${exitY+DW/2} L${rightDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
                 <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY"/>
               </>;
             })()}

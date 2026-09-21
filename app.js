@@ -4739,7 +4739,9 @@
             vh: SVG_VH,
             title: T("supply_duct").title,
             text: T("supply_duct").text,
-            group: "supply_duct"
+            group: "supply_duct",
+            ringPath: `M${cx} ${pBot} L${cx} ${DECK_Y}`,
+            ringStrokeWidth: DW + 8
           }
         ), grille(cx));
         const angled = (topX, dir, key) => {
@@ -5684,7 +5686,9 @@
             vh: SVG_VH,
             title: T("supply_duct").title,
             text: T("supply_duct").text,
-            group: "supply_duct"
+            group: "supply_duct",
+            ringPath: `M${UNIT_X - 3} ${exitY + DW / 2} L${leftDropX + DW / 2} ${exitY + DW / 2} L${leftDropX + DW / 2} ${DECK_Y - 4}`,
+            ringStrokeWidth: DW + 8
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5698,7 +5702,9 @@
             vh: SVG_VH,
             title: T("supply_duct").title,
             text: T("supply_duct").text,
-            group: "supply_duct"
+            group: "supply_duct",
+            ringPath: `M${UNIT_X - 3} ${exitY + DW / 2} L${leftDropX + DW / 2} ${exitY + DW / 2} L${leftDropX + DW / 2} ${DECK_Y - 4}`,
+            ringStrokeWidth: DW + 8
           }
         ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: leftDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W, y: exitY, width: rightDropX - (UNIT_X + PLEN_W) + DW, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: UNIT_X + PLEN_W, y: exitY, w: rightDropX - (UNIT_X + PLEN_W) + DW, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: rightDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: rightDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X + PLEN_W + 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: rightDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X + PLEN_W + 3},${exitY + DW / 2} L${rightDropX + DW / 2},${exitY + DW / 2} L${rightDropX + DW / 2},${DECK_Y - 4}`, "ra"), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5712,7 +5718,9 @@
             vh: SVG_VH,
             title: T("supply_duct").title,
             text: T("supply_duct").text,
-            group: "supply_duct"
+            group: "supply_duct",
+            ringPath: `M${UNIT_X + PLEN_W + 3} ${exitY + DW / 2} L${rightDropX + DW / 2} ${exitY + DW / 2} L${rightDropX + DW / 2} ${DECK_Y - 4}`,
+            ringStrokeWidth: DW + 8
           }
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5726,7 +5734,9 @@
             vh: SVG_VH,
             title: T("supply_duct").title,
             text: T("supply_duct").text,
-            group: "supply_duct"
+            group: "supply_duct",
+            ringPath: `M${UNIT_X + PLEN_W + 3} ${exitY + DW / 2} L${rightDropX + DW / 2} ${exitY + DW / 2} L${rightDropX + DW / 2} ${DECK_Y - 4}`,
+            ringStrokeWidth: DW + 8
           }
         ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: rightDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY" }));
       })()), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac-c" + a.cond_tier, style: { animationDelay: ".07s" } }, (() => {
