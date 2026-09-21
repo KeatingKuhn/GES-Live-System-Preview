@@ -505,16 +505,23 @@ function App(){
       {step:"plenum",label:tr("Plenum","Plenum"),val:answers.plenum==="ductboard"?tr("New ductboard plenum","Nuevo plenum de ductboard"):answers.plenum==="metal"?tr("New sheet metal plenum","Nuevo plenum de lámina metálica"):answers.plenum==="none"?tr("Keep existing plenum","Conservar el plenum actual"):null},
       {step:"thermostat",label:tr("Thermostat","Termostato"),
         val:answers.thermostat==="wifi"?tr("Wi-Fi smart thermostat","Termostato inteligente Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating Thermostat","Termostato comunicante"):null,
-        short:answers.thermostat==="wifi"?tr("Wi-Fi smart t-stat","Wi-Fi inteligente"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating t-stat","Comunicante"):null},
+        short:answers.thermostat==="wifi"?tr("Wifi","Wifi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating","Comunicante"):null},
       Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:tr("Add-ons","Complementos"),
         val:answers.purif.map(v=>v==="aprilaire"?tr("Enhanced Filtration Cabinet","Gabinete de filtración mejorada"):v==="uv"?tr("UV Light","Luz UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge protector","Protector de sobrevoltaje"):v).join(" + "),
-        short:answers.purif.map(v=>v==="aprilaire"?tr("Filtration Cabinet","Gabinete de filtración"):v==="uv"?tr("UV Light","Luz UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge Protector","Protector de sobrevoltaje"):v).join(" + ")}:null,
+        // Aggressively shortened vs. val above - by the review grid, the
+        // wizard's own step copy and the gold section header have already
+        // explained what each of these is, so the grid itself just needs
+        // to name it, not describe it (direct feedback: the long strings
+        // were wrapping the review-grid boxes awkwardly).
+        short:answers.purif.map(v=>v==="aprilaire"?tr('5" Filter','Filtro 5"'):v==="uv"?tr("UV","UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge","Sobrevoltaje"):v).join(" + ")}:null,
       {step:"cond_tier",label:tr("Efficiency","Eficiencia"),val:answers.cond_tier==="fedmin"?tr("Federal Minimum - 14 SEER2","Mínimo Federal - 14 SEER2"):answers.cond_tier==="mid_ge15"?tr("Mid Efficiency - 18 SEER2","Eficiencia Media - 18 SEER2"):answers.cond_tier==="high_ge18"?tr("High Efficiency - 21 SEER2","Alta Eficiencia - 21 SEER2"):null},
       answers.system_for?{step:"system_for",label:tr("Heat source","Fuente de calor"),
         val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - horno únicamente"),
         short:answers.system_for==="hp"?tr("Dual Fuel (HP + furnace)","Combustible Dual (BC + horno)"):tr("Straight Cool (furnace)","Solo Enfriamiento (horno)")}:null,
       {step:"dehu",label:tr("Dehumidifier","Deshumidificador"),val:answers.dehu==="yes"?tr("Yes - whole-home unit","Sí - unidad para toda la casa"):answers.dehu==="no"?tr("No","No"):null},
-      Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:tr("Final add-ons","Complementos finales"),val:answers.extras.map(v=>v==="condensate"?tr("Condensate pump","Bomba de condensado"):v==="erv"?"ERV":v).join(" + ")}:null,
+      Array.isArray(answers.extras)&&answers.extras.length>0?{step:"extras",label:tr("Final add-ons","Complementos finales"),
+        val:answers.extras.map(v=>v==="condensate"?tr("Condensate pump","Bomba de condensado"):v==="erv"?"ERV":v).join(" + "),
+        short:answers.extras.map(v=>v==="condensate"?tr("Pump","Bomba"):v==="erv"?"ERV":v).join(" + ")}:null,
     ].filter(Boolean);
   },[answers,lang]);
 

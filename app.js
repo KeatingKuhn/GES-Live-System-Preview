@@ -4873,9 +4873,9 @@
           HoverInfo,
           {
             x: RL_START_X - 7,
-            y: Math.min(roofY(RIDGE_X) + RL_ROOF_GAP, ry1) - 6,
-            w: RL_WALL_X - RL_START_X + 14,
-            h: Math.max(ry1, ry2) - Math.min(roofY(RIDGE_X) + RL_ROOF_GAP, ry1) + 12,
+            y: Math.min(roofY(RL_START_X) + RL_ROOF_GAP, ry1) - 6,
+            w: 20,
+            h: Math.max(ry1, ry2) - Math.min(roofY(RL_START_X) + RL_ROOF_GAP, ry1) + 12,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -4884,7 +4884,30 @@
             ringPath: linesetRingPath,
             ringStrokeWidth: 16
           }
-        ));
+        ), [
+          ...Array.from({ length: 8 }, (_, i) => [RL_START_X + (RIDGE_X - RL_START_X) * i / 8, RL_START_X + (RIDGE_X - RL_START_X) * (i + 1) / 8]),
+          ...Array.from({ length: 8 }, (_, i) => [RIDGE_X + (RL_WALL_X - RIDGE_X) * i / 8, RIDGE_X + (RL_WALL_X - RIDGE_X) * (i + 1) / 8])
+        ].map(([x0, x1], i) => {
+          const y0 = roofY(x0) + RL_ROOF_GAP, y1 = roofY(x1) + RL_ROOF_GAP;
+          const top = Math.min(y0, y1) - 6, bot = Math.max(y0, y1) + 10;
+          return /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              key: "rl-seg" + i,
+              x: x0 - 4,
+              y: top,
+              w: x1 - x0 + 8,
+              h: bot - top,
+              rx: 3,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("lineset").title,
+              text: T("lineset").text,
+              ringPath: linesetRingPath,
+              ringStrokeWidth: 16
+            }
+          );
+        }));
       })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -5335,8 +5358,8 @@
       })()), a.insulation && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
         "text",
         {
-          x: RET_X + RET_PLEN_W / 2,
-          y: UNIT_Y - 16,
+          x: isSpray ? RET_X + RET_PLEN_W / 2 : HOUSE_W / 2,
+          y: isSpray ? UNIT_Y - 16 : VH - 10,
           textAnchor: "middle",
           fill: isSpray ? "rgba(232,236,246,.6)" : "rgba(255,182,193,.6)",
           fontSize: "12",
@@ -5346,8 +5369,8 @@
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
-          x: RET_X + RET_PLEN_W / 2 - 70,
-          y: UNIT_Y - 28,
+          x: (isSpray ? RET_X + RET_PLEN_W / 2 : HOUSE_W / 2) - 70,
+          y: (isSpray ? UNIT_Y - 16 : VH - 10) - 12,
           w: 140,
           h: 18,
           rx: 3,
@@ -7517,13 +7540,18 @@
           step: "thermostat",
           label: tr("Thermostat", "Termostato"),
           val: answers.thermostat === "wifi" ? tr("Wi-Fi smart thermostat", "Termostato inteligente Wi-Fi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Communicating Thermostat", "Termostato comunicante") : null,
-          short: answers.thermostat === "wifi" ? tr("Wi-Fi smart t-stat", "Wi-Fi inteligente") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Communicating t-stat", "Comunicante") : null
+          short: answers.thermostat === "wifi" ? tr("Wifi", "Wifi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Communicating", "Comunicante") : null
         },
         Array.isArray(answers.purif) && answers.purif.length > 0 ? {
           step: "purif",
           label: tr("Add-ons", "Complementos"),
           val: answers.purif.map((v) => v === "aprilaire" ? tr("Enhanced Filtration Cabinet", "Gabinete de filtraci\xF3n mejorada") : v === "uv" ? tr("UV Light", "Luz UV") : v === "ionizer" ? tr("Ionizer", "Ionizador") : v === "surge" ? tr("Surge protector", "Protector de sobrevoltaje") : v).join(" + "),
-          short: answers.purif.map((v) => v === "aprilaire" ? tr("Filtration Cabinet", "Gabinete de filtraci\xF3n") : v === "uv" ? tr("UV Light", "Luz UV") : v === "ionizer" ? tr("Ionizer", "Ionizador") : v === "surge" ? tr("Surge Protector", "Protector de sobrevoltaje") : v).join(" + ")
+          // Aggressively shortened vs. val above - by the review grid, the
+          // wizard's own step copy and the gold section header have already
+          // explained what each of these is, so the grid itself just needs
+          // to name it, not describe it (direct feedback: the long strings
+          // were wrapping the review-grid boxes awkwardly).
+          short: answers.purif.map((v) => v === "aprilaire" ? tr('5" Filter', 'Filtro 5"') : v === "uv" ? tr("UV", "UV") : v === "ionizer" ? tr("Ionizer", "Ionizador") : v === "surge" ? tr("Surge", "Sobrevoltaje") : v).join(" + ")
         } : null,
         { step: "cond_tier", label: tr("Efficiency", "Eficiencia"), val: answers.cond_tier === "fedmin" ? tr("Federal Minimum - 14 SEER2", "M\xEDnimo Federal - 14 SEER2") : answers.cond_tier === "mid_ge15" ? tr("Mid Efficiency - 18 SEER2", "Eficiencia Media - 18 SEER2") : answers.cond_tier === "high_ge18" ? tr("High Efficiency - 21 SEER2", "Alta Eficiencia - 21 SEER2") : null },
         answers.system_for ? {
@@ -7533,7 +7561,12 @@
           short: answers.system_for === "hp" ? tr("Dual Fuel (HP + furnace)", "Combustible Dual (BC + horno)") : tr("Straight Cool (furnace)", "Solo Enfriamiento (horno)")
         } : null,
         { step: "dehu", label: tr("Dehumidifier", "Deshumidificador"), val: answers.dehu === "yes" ? tr("Yes - whole-home unit", "S\xED - unidad para toda la casa") : answers.dehu === "no" ? tr("No", "No") : null },
-        Array.isArray(answers.extras) && answers.extras.length > 0 ? { step: "extras", label: tr("Final add-ons", "Complementos finales"), val: answers.extras.map((v) => v === "condensate" ? tr("Condensate pump", "Bomba de condensado") : v === "erv" ? "ERV" : v).join(" + ") } : null
+        Array.isArray(answers.extras) && answers.extras.length > 0 ? {
+          step: "extras",
+          label: tr("Final add-ons", "Complementos finales"),
+          val: answers.extras.map((v) => v === "condensate" ? tr("Condensate pump", "Bomba de condensado") : v === "erv" ? "ERV" : v).join(" + "),
+          short: answers.extras.map((v) => v === "condensate" ? tr("Pump", "Bomba") : v === "erv" ? "ERV" : v).join(" + ")
+        } : null
       ].filter(Boolean);
     }, [answers, lang]);
     const trLineLabel = (line) => {

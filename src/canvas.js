@@ -4259,18 +4259,58 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 {/* No EditZone covers this indoor run - free-standing
                     hover, no onClick. OutsideZone's own lineset hover
                     covers the outside portion of this same run
-                    separately. One generous bounding box (the run's own
-                    up-to-the-ridge-and-back-down shape doesn't reduce to
-                    a couple of tight rects the way the old flat run did)
-                    - fine for hit-testing since the ringPath already
-                    traces the actual route precisely for the visible
-                    ring; anything painted later in this same layout
-                    (the ridge cap's own hover, the ERV) still wins its
-                    own smaller area on top of this. */}
-                <HoverInfo x={RL_START_X-7} y={Math.min(roofY(RIDGE_X)+RL_ROOF_GAP,ry1)-6}
-                  w={RL_WALL_X-RL_START_X+14} h={Math.max(ry1,ry2)-Math.min(roofY(RIDGE_X)+RL_ROOF_GAP,ry1)+12} rx={3}
+                    separately. Used to be ONE bounding box spanning the
+                    riser's full ry1/ry2-to-roof height across the run's
+                    ENTIRE width (coil to wall) - correct for the narrow
+                    riser itself, but for the rest of that width the pipe
+                    actually stays up near the roofline the whole way, so
+                    that box's lower two-thirds was empty open attic space
+                    (right where the supply plenum/thermostat column sits)
+                    that still read as "hovering the lineset" - direct
+                    feedback confirmed this, twice (a first, more modest
+                    tightening still left the box's bottom edge open-attic
+                    deep enough to cover the space above the plenum, since
+                    a single rect can't hug a diagonal without spanning
+                    its full rise somewhere). Split into three tight boxes
+                    instead, same idea as the angled supply duct's own
+                    split hover elsewhere in this file: the narrow riser
+                    itself (full height, tight width - doesn't reach the
+                    plenum's own X range, which starts well right of the
+                    coil), then the roofline run split AGAIN at the ridge
+                    into its own left/right diagonal halves, each boxed
+                    tightly to just its own rise (a smaller X-span means a
+                    smaller forced Y-span) instead of one box stretched
+                    across the whole coil-to-wall width. All three still
+                    share the same ringPath (the run's own real
+                    centerline) so the visible ring always traces the
+                    true route regardless of which box the cursor is
+                    actually in. */}
+                <HoverInfo x={RL_START_X-7} y={Math.min(roofY(RL_START_X)+RL_ROOF_GAP,ry1)-6}
+                  w={20} h={Math.max(ry1,ry2)-Math.min(roofY(RL_START_X)+RL_ROOF_GAP,ry1)+12} rx={3}
                   vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
                   ringPath={linesetRingPath} ringStrokeWidth={16}/>
+                {/* Roofline run, RL_START_X to RL_WALL_X - a SINGLE box per
+                    side of the ridge still forced a real ~88-unit rise
+                    over that whole span (the ridge-to-wall slope's actual
+                    rise, unavoidable for one rect spanning that much
+                    width), which - once rendered at this canvas's actual
+                    on-screen scale - was still a tall enough strip to
+                    reach the open attic space above the plenum (even a
+                    first 4-way split per side still left one thin sliver
+                    reaching that space). Chopped into 8 narrower sub-
+                    segments per side instead: an eighth of the X-span
+                    forces only an eighth of the rise, so each one stays
+                    genuinely tight against the line no matter how
+                    shallow or steep the overall pitch is. */}
+                {[...Array.from({length:8},(_,i)=>[RL_START_X+(RIDGE_X-RL_START_X)*i/8,RL_START_X+(RIDGE_X-RL_START_X)*(i+1)/8]),
+                  ...Array.from({length:8},(_,i)=>[RIDGE_X+(RL_WALL_X-RIDGE_X)*i/8,RIDGE_X+(RL_WALL_X-RIDGE_X)*(i+1)/8])
+                ].map(([x0,x1],i)=>{
+                  const y0=roofY(x0)+RL_ROOF_GAP, y1=roofY(x1)+RL_ROOF_GAP;
+                  const top=Math.min(y0,y1)-6, bot=Math.max(y0,y1)+10;
+                  return <HoverInfo key={'rl-seg'+i} x={x0-4} y={top} w={x1-x0+8} h={bot-top} rx={3}
+                    vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
+                    ringPath={linesetRingPath} ringStrokeWidth={16}/>;
+                })}
               </>;
             })()}
           </g>}
@@ -4599,18 +4639,23 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               INSULATION) - moved off the ridge (RIDGE_X/RIDGE_Y+24 used to
               sit right in the densest part of the insulation bubble/
               batting texture that traces the roofline itself, reading as
-              barely legible against it) to the open attic space above the
-              return plenum/thermostat column on the left instead, well
-              clear of both the roofline and the equipment row below it.
-              Still painted this late (after furnace/coil/condenser) so
-              nothing else paints over it here either. */}
+              barely legible against it). The two variants get different
+              spots per direct feedback, matching how each is physically
+              installed: spray foam seals the ROOF underside, so it sits
+              above the return plenum/thermostat column (open attic space,
+              still clear of the roofline); fiberglass instead blankets
+              the ATTIC FLOOR above the living space, so it sits on the
+              same baseline as the LIVING SPACE watermark below, centered
+              rather than left-aligned like that label. Still painted this
+              late (after furnace/coil/condenser) so nothing else paints
+              over it here either. */}
           {a.insulation&&<g>
-            <text x={RET_X+RET_PLEN_W/2} y={UNIT_Y-16} textAnchor="middle"
+            <text x={isSpray?RET_X+RET_PLEN_W/2:HOUSE_W/2} y={isSpray?UNIT_Y-16:VH-10} textAnchor="middle"
               fill={isSpray?"rgba(232,236,246,.6)":"rgba(255,182,193,.6)"} fontSize="12" fontFamily="monospace">
               {isSpray?"SPRAY FOAM - SEALED ATTIC":"FIBERGLASS INSULATION"}
             </text>
             {/* No EditZone covers this - free-standing hover, no onClick. */}
-            <HoverInfo x={RET_X+RET_PLEN_W/2-70} y={UNIT_Y-28} w={140} h={18} rx={3}
+            <HoverInfo x={(isSpray?RET_X+RET_PLEN_W/2:HOUSE_W/2)-70} y={(isSpray?UNIT_Y-16:VH-10)-12} w={140} h={18} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
           </g>}
 

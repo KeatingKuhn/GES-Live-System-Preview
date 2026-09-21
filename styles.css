@@ -804,7 +804,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    everything) since a partial/translucent prompt would just be more
    clutter on top of the exact crowding it exists to solve. */
 .rotate-prompt{display:none}
-@media(orientation:portrait) and (max-width:700px){
+/* (pointer:coarse) is what actually scopes this to touch devices - the
+   CSS orientation feature is computed purely from the viewport's own
+   width-vs-height ratio, with no idea whether that viewport belongs to a
+   phone or a resized desktop window, so a desktop browser shrunk taller
+   than wide (a real, easy-to-hit case - direct feedback caught it)
+   satisfied orientation:portrait + max-width:700px just as well as an
+   actual phone did and popped this up over ordinary desktop use. Coarse-
+   pointer (a finger, not a mouse) is true on phones/tablets and false on
+   every desktop browser regardless of window size, rotate prompt or not. */
+@media(orientation:portrait) and (max-width:700px) and (pointer:coarse){
   .rotate-prompt{display:flex;position:fixed;inset:0;z-index:100;
     flex-direction:column;align-items:center;justify-content:center;gap:14px;
     background:var(--bk);padding:32px;text-align:center}
