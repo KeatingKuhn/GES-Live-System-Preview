@@ -782,8 +782,14 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
 // two don't read as the same device. x/y is its own top-left, always at a
 // fixed real-world size (not run through THERM_SCALE) since it doesn't
 // share the thermostat's margin-width-driven sizing problem.
-function DehumidistatWall({x,y,pct=45,lang,vw,vh}){
-  const W=44,H=40;
+function DehumidistatWall({x,y,pct=45,lang,vw,vh,scale=1}){
+  // QA FIX - was a near-square 44x40 with the droplet stacked ABOVE the
+  // percentage, both tiny enough at typical zoom to be genuinely hard to
+  // read ("can barely read either of them"). Widened into an actual
+  // rectangle with the droplet and percentage side by side in one row
+  // instead, freeing up real width for a bigger percentage readout than
+  // the old stacked layout had room for.
+  const W=60,H=30;
   // Positioning transform lives on its own inner <g>, separate from the
   // "snap" entrance animation on the outer one - a CSS animation's own
   // transform (even just at its rest/"to" keyframe) overrides an SVG
@@ -791,14 +797,18 @@ function DehumidistatWall({x,y,pct=45,lang,vw,vh}){
   // with it, so combining them on one <g> silently drops the translate
   // and leaves this rendering at the SVG's local origin instead of x/y.
   // Same two-<g> split the thermostat's own outer g.snap/inner positioned-g
-  // already uses just above, for the same reason.
+  // already uses just above, for the same reason. scale (default 1) lives
+  // on this same inner transform, right after the translate - only the
+  // closet layout's call site passes a non-1 value (that copy was too
+  // small to read; the attic layout's copy stayed default size, see its
+  // own call site's comment).
   const info=partInfo('dehumidistat',lang);
   return <g className="snap" style={{animationDelay:'.32s'}}>
-    <g transform={`translate(${x} ${y})`}>
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
       <rect x={0} y={0} width={W} height={H} rx="4" fill="#05120a" stroke="#22c55e" strokeWidth="1.4"/>
       <rect x={0} y={0} width={W} height={6} rx="4" fill="rgba(34,197,94,.3)"/>
-      <text x={W/2} y={21} textAnchor="middle" fill="#22c55e" fontSize="13">💧</text>
-      <text className="phase-color" x={W/2} y={33} textAnchor="middle" fill="#22c55e" fontSize="9" fontFamily="monospace" fontWeight="700">{pct}%</text>
+      <text x={W*0.32} y={H/2+5} textAnchor="middle" fill="#22c55e" fontSize="15">💧</text>
+      <text className="phase-color" x={W*0.68} y={H/2+5} textAnchor="middle" fill="#22c55e" fontSize="13" fontFamily="monospace" fontWeight="700">{pct}%</text>
       <text x={W/2} y={H+9} textAnchor="middle" fill="rgba(34,197,94,.6)" fontSize="6.2" fontFamily="monospace">DEHUMIDISTAT</text>
     </g>
     {/* No EditZone ever covers this control (search confirms no
@@ -812,8 +822,9 @@ function DehumidistatWall({x,y,pct=45,lang,vw,vh}){
         corner instead of over this component (the bug that shipped with
         `highlight` defaulting on - previously invisible since nothing
         rendered a ring off the tooltip's own equally-mispositioned
-        anchor). */}
-    <HoverInfo x={x-2} y={y-2} w={W+4} h={H+18} rx={4} vw={vw} vh={vh}
+        anchor). Scaled the same as the shapes above so the ring still
+        wraps the box at any scale. */}
+    <HoverInfo x={x-2} y={y-2} w={W*scale+4} h={(H+18)*scale} rx={4} vw={vw} vh={vh}
       title={info.title} text={info.text}/>
   </g>;
 }
@@ -2842,9 +2853,12 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,
       <rect x={BX} y={BY} width={boxW} height={7} rx="4"
         fill={isDehu?"rgba(34,197,94,.3)":(G+'.25)')} stroke="none"/>
       {isDehu
+        // QA FIX - droplet moved from stacked ABOVE "DEHU" to sitting to
+        // its RIGHT, one row, per direct feedback (matches the
+        // DehumidistatWall's own droplet-and-reading layout change above).
         ?<>
-          <text x={BX+boxW/2} y={BY+BH/2-1} textAnchor="middle" fill="#22c55e" fontSize="15.5">💧</text>
-          <text x={BX+boxW/2} y={BY+BH/2+12} textAnchor="middle" fill="#22c55e" fontSize="13" fontFamily="monospace">DEHU</text>
+          <text x={BX+boxW/2-13} y={BY+BH/2+5} textAnchor="middle" fill="#22c55e" fontSize="14" fontFamily="monospace">DEHU</text>
+          <text x={BX+boxW/2+17} y={BY+BH/2+6} textAnchor="middle" fill="#22c55e" fontSize="15.5">💧</text>
         </>
         :<>
           <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+boxW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
@@ -3020,18 +3034,16 @@ const THERM_CAP_TEXT={proprietary:'COMM',wifi:'WIFI',basic:'BASIC'};
 const THERM_CAP_FILL_A={proprietary:'.45)',wifi:'.45)',basic:'.38)'};
 const THERM_CAP_SIZE={proprietary:'11.5',wifi:'11.5',basic:'11'};
 function thermVariant(isProprietary,isWifi){return isProprietary?'proprietary':isWifi?'wifi':'basic';}
-// Both layouts render their thermostat at this exact same scale - see
-// THERM_SCALE's own comment (attic) for the measurement behind the
-// number. Measured directly (via the rendered SVG, not guessed): a
-// Furnace-based attic build's own left-margin column is ~74 local units
-// wide regardless of plenum/tier/heat-type choice (Air Handler's own
-// column measures ~80) - that column, not anything about the closet
-// layout, is the real ceiling on how big either thermostat can be while
-// still matching. Closet had genuine spare room (its own thermostat used
-// to render close to full local size), so IT scales down to meet this
-// ceiling instead of attic trying and failing to reach closet's old,
-// larger size.
-const THERM_TARGET_SCALE=0.58;
+// Both layouts render their thermostat at this exact same scale. Was
+// 0.58 - measured to just fit the attic layout's own left-margin column
+// (a Furnace build's own column is ~74 local units wide regardless of
+// plenum/tier/heat-type choice, Air Handler's ~80) without touching the
+// return plenum beside it. Bumped 50% per direct feedback ("can barely
+// read either of them") - legibility wins over that old fit constraint,
+// so this now DOES run a little past the column's old edge into the
+// return plenum's own open left margin; see THERM_SCALE's own comment
+// (attic) for how that's handled.
+const THERM_TARGET_SCALE=0.87;
 
 // ─── CANVAS ─────────────────────────────────────────────────────
 export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
@@ -3634,17 +3646,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // No UNIT_H-based height cap here (there used to be one, pegging the
     // thermostat to roughly the equipment cabinet's own real-world
     // height) - the open margin column has comfortably more vertical
-    // room than this needs, so width (MARGIN_L, below) is the only real
-    // constraint. Capped at THERM_TARGET_SCALE (see its own comment) -
-    // MEASURED, not assumed: a Furnace build's own MARGIN_L lands at
-    // ~74 regardless of plenum/tier/heat-type choice (Air Handler's at
-    // ~80), so (MARGIN_L-16)/THERM_CONTENT_W already equals ~0.58-0.64
-    // in practice - this basically always hits the target exactly (or
-    // with a little room to spare for Air Handler) rather than actually
-    // reaching 1. The closet layout scales to this SAME target (see its
-    // own call site) so the two stay identical instead of attic quietly
-    // rendering smaller.
-    const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.5,Math.min(THERM_TARGET_SCALE,(MARGIN_L-16)/THERM_CONTENT_W)):0.5;
+    // room than this needs. Targets THERM_TARGET_SCALE directly now (was
+    // capped at min(TARGET_SCALE,(MARGIN_L-16)/CONTENT_W) - a genuine
+    // margin-fit calculation back when the target was small enough to
+    // fit inside it) - per direct feedback the size itself matters more
+    // than staying inside that old column, so this now legitimately runs
+    // past MARGIN_L into the return plenum's own open left margin rather
+    // than shrinking back down to fit. The closet layout scales to this
+    // SAME target (see its own call site) so the two stay identical.
+    const THERM_SCALE=THERM_IN_MARGIN?THERM_TARGET_SCALE:0.5;
     // A heat-pump-only or dual-fuel system needs a 3rd thermostat button
     // (COOL/HP/FURN or COOL/HP/AUX, matching ToggleUI's own preview) -
     // same 96/76 row widths the closet layout's own thermostat uses, so
@@ -3668,7 +3678,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     const THERM_TX=THERM_IN_MARGIN
       ?Math.round(8-THERM_CONTENT_L*THERM_SCALE)
       :RET_X+RET_PLEN_W+8;
-    const THERM_TY=THERM_IN_MARGIN?Math.round(UNIT_Y+(UNIT_H-THERM_H)/2):DECK_Y+12;
+    // +18 shifts it down slightly off dead-center per direct feedback
+    // ("give it more space to breathe") - the dehumidistat that used to
+    // sit directly below this (see its own call site, now relocated next
+    // to the DEHU box instead) no longer constrains how far down this can
+    // sit, so there's genuine open room below to shift into.
+    const THERM_TY=THERM_IN_MARGIN?Math.round(UNIT_Y+(UNIT_H-THERM_H)/2)+18:DECK_Y+12;
     // Hover/focus-ring boxes below (hoverPart, EditZone, StepFocusRing) key
     // off THERM_TX/THERM_W, which describe the FACE's own origin+width
     // (unchanged at nominal 76, centered on local x=38) - the button row,
@@ -4555,17 +4570,31 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>;
           })()}
 
-          {/* Dehumidistat - below the thermostat, in the same left-margin
-              column (its own dedicated space, per THERM_IN_MARGIN's own
-              comment above) - the ~110-unit gap between the equipment row
-              and DECK_Y comfortably fits it under the thermostat's own
-              footprint without touching LIVING_SPACE. Skipped in the
-              narrow-margin fallback (THERM_IN_MARGIN false), where the
-              thermostat itself is already squeezed into the living-space
-              band with no room to spare below it. */}
-          {hasDehu&&hasTstat&&THERM_IN_MARGIN&&<DehumidistatWall
-            x={THERM_TX+32*THERM_SCALE-22} y={THERM_TY+THERM_H+14}
-            pct={!heatMode?45:(isMildHp?55:50)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
+          {/* Dehumidistat - moved adjacent to the DEHU equipment box itself
+              (slightly up and to its left) per direct feedback, instead of
+              stacked under the thermostat - both are green-outlined, so
+              sitting next to each other reads as "these two are related"
+              at a glance, and it frees up the thermostat's own vertical
+              footprint to grow into (see THERM_TY/THERM_TARGET_SCALE
+              above). Same dehuBX/BY the DEHU+ERV block below computes -
+              hoisted up here since this paints earlier in the tree; kept
+              as literal re-derivations (not shared variables) since
+              they're each still genuinely conditional on hasFurnace alone,
+              same pattern already used elsewhere in this file for
+              positions needed by more than one block. Stays default scale
+              (1) here - only the closet layout's copy sizes up (see its
+              own comment) since this position was never the cramped one. */}
+          {hasDehu&&hasTstat&&(()=>{
+            const sysX2=hasFurnace?FURN_X:AH_X;
+            const dehuBX2=hasFurnace?sysX2+30:sysX2+AH_W-80-8;
+            const dehuBY2=UNIT_Y-48-14;
+            // -28 (not just -8) clears the dehu's own dedicated return
+            // duct, which crosses this exact stretch of open attic air at
+            // a fixed midY=UNIT_Y-35 (see that duct block's own comment) -
+            // -8 sat the caption text right on top of that pink duct line.
+            return <DehumidistatWall x={dehuBX2-70} y={dehuBY2-28}
+              pct={!heatMode?45:(isMildHp?55:50)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
+          })()}
 
                     {/* Dehu + ERV -- small compact boxes side by side, hanging from roofline.
               ERV now hangs near the right outside wall - the space the
@@ -6100,11 +6129,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {/* Dehumidistat - left side of the unit, mirroring the
               thermostat's own real breathing room on the right (see the
               thermostat block's own comment) - the same open floor space
-              exists on both sides of the unit stack here. */}
+              exists on both sides of the unit stack here. Sized up 50%
+              (DEHUMIDISTAT_SCALE_C) per direct feedback - this layout's
+              copy was hard to read at its old default size, unlike the
+              attic layout's own copy (which stayed default size - see its
+              own comment). */}
           {hasDehu&&hasTstat&&(()=>{
             const midY=hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2;
-            const W=44,H=40;
-            return <DehumidistatWall x={UNIT_X/2-W/2} y={midY-H/2}
+            const DEHUMIDISTAT_SCALE_C=1.5;
+            const W=60*DEHUMIDISTAT_SCALE_C,H=30*DEHUMIDISTAT_SCALE_C;
+            return <DehumidistatWall x={UNIT_X/2-W/2} y={midY-H/2} scale={DEHUMIDISTAT_SCALE_C}
               pct={!heatMode?45:(isMildHp?55:50)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
           })()}
 

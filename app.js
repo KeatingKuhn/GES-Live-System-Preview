@@ -1421,16 +1421,16 @@
       gap: 5
     } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
   }
-  function DehumidistatWall({ x, y, pct = 45, lang, vw, vh }) {
-    const W2 = 44, H = 40;
+  function DehumidistatWall({ x, y, pct = 45, lang, vw, vh, scale = 1 }) {
+    const W2 = 60, H = 30;
     const info = partInfo("dehumidistat", lang);
-    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: 21, textAnchor: "middle", fill: "#22c55e", fontSize: "13" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { className: "phase-color", x: W2 / 2, y: 33, textAnchor: "middle", fill: "#22c55e", fontSize: "9", fontFamily: "monospace", fontWeight: "700" }, pct, "%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT")), /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y}) scale(${scale})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 * 0.32, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "15" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { className: "phase-color", x: W2 * 0.68, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace", fontWeight: "700" }, pct, "%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT")), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x: x - 2,
         y: y - 2,
-        w: W2 + 4,
-        h: H + 18,
+        w: W2 * scale + 4,
+        h: (H + 18) * scale,
         rx: 4,
         vw,
         vh,
@@ -3523,7 +3523,7 @@
           fill: isDehu ? "rgba(34,197,94,.3)" : G + ".25)",
           stroke: "none"
         }
-      ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH / 2 - 1, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH / 2 + 12, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace" }, "DEHU")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + boxW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + boxW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + boxW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: boxW < 70 ? "12.5" : "14.5", fontFamily: "monospace" }, "ERV")), /* @__PURE__ */ React.createElement(
+      ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2 - 13, y: BY + BH / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "14", fontFamily: "monospace" }, "DEHU"), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2 + 17, y: BY + BH / 2 + 6, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + boxW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + boxW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + boxW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: boxW < 70 ? "12.5" : "14.5", fontFamily: "monospace" }, "ERV")), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
           x: BX,
@@ -3708,7 +3708,7 @@
   function thermVariant(isProprietary, isWifi) {
     return isProprietary ? "proprietary" : isWifi ? "wifi" : "basic";
   }
-  var THERM_TARGET_SCALE = 0.58;
+  var THERM_TARGET_SCALE = 0.87;
   function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
     const T = (key) => partInfo(key, lang);
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
@@ -4162,12 +4162,12 @@
       const RET_X = MARGIN_L;
       const THERM_IN_MARGIN = MARGIN_L >= 70;
       const THERM_CONTENT_W = 100, THERM_CONTENT_L = -12;
-      const THERM_SCALE = THERM_IN_MARGIN ? Math.max(0.5, Math.min(THERM_TARGET_SCALE, (MARGIN_L - 16) / THERM_CONTENT_W)) : 0.5;
+      const THERM_SCALE = THERM_IN_MARGIN ? THERM_TARGET_SCALE : 0.5;
       const THERM_BTN_N = isDualFuel || !hasFurnace ? 3 : 2;
       const THERM_ROW_W = THERM_BTN_N === 3 ? 96 : 76;
       const THERM_W = THERM_ROW_W * THERM_SCALE, THERM_H = 120 * THERM_SCALE;
       const THERM_TX = THERM_IN_MARGIN ? Math.round(8 - THERM_CONTENT_L * THERM_SCALE) : RET_X + RET_PLEN_W + 8;
-      const THERM_TY = THERM_IN_MARGIN ? Math.round(UNIT_Y + (UNIT_H - THERM_H) / 2) : DECK_Y + 12;
+      const THERM_TY = THERM_IN_MARGIN ? Math.round(UNIT_Y + (UNIT_H - THERM_H) / 2) + 18 : DECK_Y + 12;
       const THERM_ROW_X = THERM_TX + (38 - THERM_ROW_W / 2) * THERM_SCALE;
       const APR_X = RET_X + RET_PLEN_W + (APR_W ? 2 : 0);
       const UNIT_X = APR_X + APR_W + (APR_W ? 2 : 0);
@@ -5177,17 +5177,22 @@
             THERM_CAP_TEXT[variant]
           ))
         );
-      })(), hasDehu && hasTstat && THERM_IN_MARGIN && /* @__PURE__ */ React.createElement(
-        DehumidistatWall,
-        {
-          x: THERM_TX + 32 * THERM_SCALE - 22,
-          y: THERM_TY + THERM_H + 14,
-          pct: !heatMode ? 45 : isMildHp ? 55 : 50,
-          lang,
-          vw: SVG_VW,
-          vh: SVG_VH
-        }
-      ), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
+      })(), hasDehu && hasTstat && (() => {
+        const sysX2 = hasFurnace ? FURN_X : AH_X;
+        const dehuBX2 = hasFurnace ? sysX2 + 30 : sysX2 + AH_W - 80 - 8;
+        const dehuBY2 = UNIT_Y - 48 - 14;
+        return /* @__PURE__ */ React.createElement(
+          DehumidistatWall,
+          {
+            x: dehuBX2 - 70,
+            y: dehuBY2 - 28,
+            pct: !heatMode ? 45 : isMildHp ? 55 : 50,
+            lang,
+            vw: SVG_VW,
+            vh: SVG_VH
+          }
+        );
+      })(), (hasDehu || Array.isArray(a.extras) && a.extras.includes("erv")) && (() => {
         const sysX = hasFurnace ? FURN_X : AH_X;
         const BW = 80;
         const dehuBX = hasFurnace ? sysX + 30 : sysX + AH_W - BW - 8;
@@ -6984,12 +6989,14 @@
         );
       })(), hasDehu && hasTstat && (() => {
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
-        const W2 = 44, H = 40;
+        const DEHUMIDISTAT_SCALE_C = 1.5;
+        const W2 = 60 * DEHUMIDISTAT_SCALE_C, H = 30 * DEHUMIDISTAT_SCALE_C;
         return /* @__PURE__ */ React.createElement(
           DehumidistatWall,
           {
             x: UNIT_X / 2 - W2 / 2,
             y: midY - H / 2,
+            scale: DEHUMIDISTAT_SCALE_C,
             pct: !heatMode ? 45 : isMildHp ? 55 : 50,
             lang,
             vw: SVG_VW,
