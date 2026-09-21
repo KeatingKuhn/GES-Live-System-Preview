@@ -1399,8 +1399,22 @@ function App(){
                   if(pricingSubStep>0)setPricingSubStep(s=>s-1);
                   else setPricingFlow(null);
                 };
+                // Half-ton sizes (1.5/2.5/3.5) are a Federal Minimum-only
+                // catalog option - Mid/High Efficiency only stock full
+                // tons. Cards for a size the tier doesn't offer used to
+                // still be pickable and just silently billed at the
+                // nearest whole ton instead, with nothing on screen
+                // showing that substitution happened. Filtering the list
+                // itself means there's no longer a card to silently
+                // substitute - what you can pick is what gets billed.
+                const tonnageOptions=answers.cond_tier==='fedmin'?TONNAGE_OPTIONS:TONNAGE_OPTIONS.filter(o=>Number.isInteger(o.tons));
                 const canSubNext=
-                  subId==='sqft'?!!pricingAnswers.tonnageChoice:
+                  // Checked against the CURRENT tonnageOptions, not just
+                  // "any value is set" - a half-ton pick made before a
+                  // quick-edit bumped the tier to Mid/High no longer has a
+                  // matching card (none shows as selected), so it
+                  // shouldn't silently count as answered either.
+                  subId==='sqft'?tonnageOptions.some(o=>o.v===pricingAnswers.tonnageChoice):
                   subId==='ducts'?(pricingAnswers.wantDucts===false||(pricingAnswers.wantDucts===true&&pricingAnswers.ventCount>0)):
                   true;
                 // Attic mode's panel is a short, very wide bar (not the tall
@@ -1424,7 +1438,7 @@ function App(){
                         value={pricingAnswers.sqftInput||''}
                         onChange={e=>{
                           const val=e.target.value;
-                          const rec=nearestTonnageOption(parseInt(val)||0);
+                          const rec=nearestTonnageOption(parseInt(val)||0,tonnageOptions);
                           setPricingAnswers(p=>({...p, sqftInput:val, ...(rec?{tonnageChoice:rec.v}:{})}));
                         }}
                         className={"pricing-input"+(isAtticMode?" compact":"")}/>
@@ -1436,9 +1450,9 @@ function App(){
                   <div style={{flex:1,minWidth:0}}>
                     {subId==='sqft'&&(()=>{
                       const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
-                      const recommended=nearestTonnageOption(sqftNum);
-                      return <div className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?"repeat(7,1fr)":"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
-                        {TONNAGE_OPTIONS.map(o=>(
+                      const recommended=nearestTonnageOption(sqftNum,tonnageOptions);
+                      return <div className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?`repeat(${tonnageOptions.length},1fr)`:"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
+                        {tonnageOptions.map(o=>(
                           <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
                             <div className="opt-inner"><div className="opt-body">
                               <span className="opt-label">{tr(o.label,o.labelEs)}{recommended&&recommended.v===o.v&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
@@ -1596,17 +1610,28 @@ function App(){
                           print) swap to the plain final number for print
                           only - on-screen animation is untouched. */}
                       <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/></span><span className="price-static">{Math.round(est.display/36).toLocaleString()}</span><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
-                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR, on approved credit.','Basado en 36 meses al 0% de interés, sujeto a aprobación de crédito.')}</div>
+                      {/* This 36mo/0% figure is a real Wells Fargo program,
+                          but not a self-serve one - GES has to send the
+                          customer a direct application link personally, so
+                          it can't just sit here captioned as if clicking
+                          the Wisetack link right below gets you this same
+                          offer (Wisetack's own terms are separate and not
+                          guaranteed to match). Caption now names Wells
+                          Fargo and points to asking GES directly; the
+                          Wisetack link is worded as a distinct, separate
+                          "or" option instead of implying it's the source
+                          of the number above it. */}
+                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR through Wells Fargo - ask your comfort advisor, subject to approved credit.','Basado en 36 meses al 0% de interés a través de Wells Fargo - pregunte a su asesor, sujeto a aprobación de crédito.')}</div>
                       {wisetack&&<a href={wisetack.url} target="_blank" rel="noopener" className="price-hero-financing-link no-print"
                         onClick={()=>trackEvent('financing_clicked',{lender:'wisetack',source:'price_reveal'})}>
-                        {tr('→ See if you prequalify with Wisetack','→ Vea si precalifica con Wisetack')}
+                        {tr('→ Or prequalify online with Wisetack','→ O precalifique en línea con Wisetack')}
                       </a>}
                     </div>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
                     {/* Same in-flight-animation print fix as the /mo hero
                         figure above - see its comment. */}
                     <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CountUp value={est.display} format={n=>n.toLocaleString()}/></span><span className="price-static">{est.display.toLocaleString()}</span></div>
-                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr(`Includes a ${answers.cond_tier==='high_ge18'?'10':'12'}-year manufacturer warranty.`,`Incluye una garantía de fábrica de ${answers.cond_tier==='high_ge18'?'10':'12'} años.`)}</div>
+                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr('Includes a 10-year manufacturer warranty.','Incluye una garantía de fábrica de 10 años.')}</div>
                     {addonLines.length>0&&<div className="price-breakdown">
                       <div className="price-breakdown-bar">
                         <div className="price-breakdown-seg base" style={{width:basePct+"%"}}/>

@@ -1220,7 +1220,24 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     transform:none!important;
   }
   .print-only-grid{display:block!important}
-  .splash-screen,.attic-layout,.closet-layout,.canvas-frame{display:none!important}
+  /* .done-canvas-frame (the finished diagram) used to be swept up by a
+     blanket .canvas-frame rule here too - it carries that class alongside
+     its own (see its className in app.js) since it reuses the same grid-
+     background styling as the two WIZARD-step canvases this rule is
+     actually meant to hide (.attic-canvas-area/.closet-canvas-area,
+     neither ever visible on the done screen print starts from anyway).
+     Targeting those two by their own class instead of the shared one
+     lets the done-screen's diagram print - a comfort advisor sitting
+     with a customer, printed diagram in hand, pointing at the actual
+     parts while explaining them, is a real use case worth the extra
+     page it costs. */
+  .splash-screen,.attic-layout,.closet-layout,.attic-canvas-area,.closet-canvas-area{display:none!important}
+  /* Printed on its own page ahead of the review grid/price - a full-
+     width diagram and a dense text page don't share real estate well,
+     and forcing them onto the same page would just squeeze both. Kept
+     at its own aspect ratio (not stretched to fill the page) so the
+     equipment layout still reads correctly instead of distorting. */
+  .done-canvas-frame{display:block!important;width:100%!important;height:auto!important;aspect-ratio:2.5;max-height:80vh;page-break-after:always;margin-bottom:8px;border:1px solid #999}
   /* .prog-chapters (the gold segmented step-progress bar) sits at the App
      root, position:absolute, outside every element this block already
      hides - so it was never caught by those rules and printed as a stray
@@ -1233,6 +1250,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .sidebar{border:none!important}
   .done-wrap{animation:none!important}
   .btn-back,.btn-next,.btn-skip,.info-btn,.done-restart,.no-print{display:none!important}
+  /* Floats as an absolute overlay pinned to the diagram's own top-left
+     corner (see its style in app.js) - harmless on screen since it sits
+     on top of open sky/attic space there, but now that the diagram
+     actually prints (see .done-canvas-frame above) it would overlap real
+     equipment art instead. Everything it says (system built, selections
+     below) is already on the page via the letterhead/review grid, so
+     it's dropped for print rather than repositioned. */
+  .done-header-desktop-only{display:none!important}
   body,.done-wrap,.sidebar{color:#000!important;background:#fff!important}
   .done-wrap *{color:#000!important;border-color:#999!important}
   .done-title,.opt-label{color:#000!important}

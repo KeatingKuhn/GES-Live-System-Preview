@@ -257,11 +257,10 @@ export const PRICING={
   // never a calculated number. Proprietary zone board + zone sensors +
   // proprietary dampers, cost varies too much per home to estimate here.
   zoning:'custom_visit_required',
-  // Every system already ships with its manufacturer warranty (12 years
-  // on Federal Minimum/Mid Efficiency, 10 on High Efficiency - see the
-  // tier descriptions in getOpts). This is the optional EXTENDED labor
-  // warranty, offered as a flat add-on at the end of pricing rather than
-  // its own wizard question.
+  // Every system already ships with a 10-year manufacturer warranty,
+  // flat across all tiers. This is the optional EXTENDED labor warranty,
+  // offered as a flat add-on at the end of pricing rather than its own
+  // wizard question.
   laborWarranty10yr:1750,
   maintenancePlanAnnual:177,
 };
@@ -287,10 +286,14 @@ export const TONNAGE_OPTIONS=[
 ];
 // Optional light-touch nudge: typing a sq ft doesn't lock anything in, it just
 // suggests the closest tonnage option so the pick steers toward accuracy
-// instead of a guess - still fully overridable by clicking any card.
-export function nearestTonnageOption(sqft){
+// instead of a guess - still fully overridable by clicking any card. Takes
+// an optional narrowed list (the sizing screen passes only the half-ton-free
+// set for Mid/High Efficiency, which don't stock those sizes - see its own
+// tonnageOptions comment) so the suggestion never points at a size that
+// wouldn't even be offered as a card.
+export function nearestTonnageOption(sqft,options=TONNAGE_OPTIONS){
   if(!sqft||sqft<=0)return null;
-  return TONNAGE_OPTIONS.reduce((best,o)=>Math.abs(o.sqftMid-sqft)<Math.abs(best.sqftMid-sqft)?o:best);
+  return options.reduce((best,o)=>Math.abs(o.sqftMid-sqft)<Math.abs(best.sqftMid-sqft)?o:best);
 }
 // Picks the closest tonnage this tier/system-type actually offers (fedmin has
 // half-tons, mid/high don't) - ties round up toward the larger, safer size.
