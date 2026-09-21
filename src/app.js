@@ -370,7 +370,14 @@ function App(){
   // Translated question/hint for the current step, falling back to the
   // English STEPS content when no Spanish override exists for that id.
   const curQ=cur?(lang==='es'&&STEPS_ES[cur.id]?STEPS_ES[cur.id].q:cur.q):"";
-  const curHint=cur?(lang==='es'&&STEPS_ES[cur.id]?STEPS_ES[cur.id].hint:cur.hint):"";
+  // insulation's own base hint mentions furnace efficiency ("if you have
+  // one") - true and harmless for a furnace build, but an air-handler
+  // build has no furnace at all, so it shouldn't come up even
+  // conditionally worded. Same air-handler carve-out as infoTextId/
+  // insulation_ah and REACTION.insulation above.
+  const curHint=cur?(cur.id==='insulation'&&answers.indoor_type!=='furnace'
+    ?tr("Determines your attic's construction and your system's efficiency.","Determina la construcción de su ático y la eficiencia de su sistema.")
+    :(lang==='es'&&STEPS_ES[cur.id]?STEPS_ES[cur.id].hint:cur.hint)):"";
   // "location" is stepIdx 0 and deliberately left out of every step count
   // elsewhere (chapterCounts above, totalSteps itself) - normally that's
   // moot, since location only ever renders as the splash screen, which has

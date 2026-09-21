@@ -7195,7 +7195,7 @@
       });
     }, [cur, answers, lang]);
     const curQ = cur ? lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].q : cur.q : "";
-    const curHint = cur ? lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].hint : cur.hint : "";
+    const curHint = cur ? cur.id === "insulation" && answers.indoor_type !== "furnace" ? tr("Determines your attic's construction and your system's efficiency.", "Determina la construcci\xF3n de su \xE1tico y la eficiencia de su sistema.") : lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].hint : cur.hint : "";
     const stepCountText = cur && cur.id !== "location" ? tr("STEP", "PASO") + " " + stepIdx + (totalKnown ? " " + tr("OF", "DE") + " " + totalSteps : "") : "";
     const chapterNames = lang === "es" ? CHAPTERS_ES : CHAPTERS;
     const reviewItems = useMemo2(() => {
