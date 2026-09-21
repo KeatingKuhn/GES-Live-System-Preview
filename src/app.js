@@ -147,6 +147,44 @@ function App(){
   const topRef=useRef(null);
   const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
 
+  // Half-ton sizes (1.5/2.5/3.5) are a Federal Minimum-only catalog option -
+  // Mid/High Efficiency only stock full tons (see the sizing sub-step's own
+  // tonnageOptions, which mirrors this exactly - hoisted here so the guard
+  // effect right below can share the identical rule instead of drifting
+  // from a second copy of it).
+  const tonnageOptionsForTier=useMemo(()=>
+    answers.cond_tier==='fedmin'?TONNAGE_OPTIONS:TONNAGE_OPTIONS.filter(o=>Number.isInteger(o.tons))
+  ,[answers.cond_tier]);
+  // Quick-edit guard: a tonnage already picked at the OLD tier can be a
+  // half-ton size Mid/High Efficiency doesn't stock. The sizing sub-step
+  // itself already refuses to treat that as "answered" (canSubNext checks
+  // against the CURRENT tonnageOptions), but that protection only fires if
+  // the customer is actually standing on the sizing sub-step when the tier
+  // changes. Reaching the tier question is also possible directly from the
+  // PRICE REVEAL screen itself - clicking the condenser (or any other
+  // edit-zone) in the live diagram calls jumpToStep, which (unlike
+  // pickLocation/restart) never touches pricingFlow/pricingAnswers, since
+  // most quick-edits have nothing to do with pricing and shouldn't discard
+  // an already-confirmed sqft/ducts answer over an unrelated tweak (e.g.
+  // swapping the thermostat or an add-on). Editing the tier is different:
+  // calcEstimate's nearestTonnage() always finds SOME price to show even
+  // when the picked size doesn't exist for the new tier - it silently
+  // rounds to the closest one the tier actually stocks - so returning
+  // straight to a 'result' screen after a tier quick-edit rendered a price
+  // for a size the customer never actually confirmed, with nothing on
+  // screen saying that substitution happened. This effect is the same
+  // invariant as canSubNext, just re-checked the moment the tier itself
+  // changes (from ANY path, not only the sizing sub-step): if the current
+  // pick no longer has a matching card, send them back to sizing step 0 to
+  // explicitly re-confirm a real size instead of quietly billing the
+  // nearest one.
+  React.useEffect(()=>{
+    if(!pricingAnswers.tonnageChoice)return;
+    if(tonnageOptionsForTier.some(o=>o.v===pricingAnswers.tonnageChoice))return;
+    setPricingFlow(f=>f==='sizing'||f==='result'?'sizing':f);
+    setPricingSubStep(0);
+  },[tonnageOptionsForTier,pricingAnswers.tonnageChoice]);
+
   // ─── LANGUAGE TOGGLE (EN/ES) ────────────────────────────────
   // Scoped translation - see the big comment on CHAPTERS_ES/STEPS_ES/
   // OPTS_ES in data.js for exactly what is and isn't covered. tr(en,es)
@@ -1397,7 +1435,10 @@ function App(){
                 // showing that substitution happened. Filtering the list
                 // itself means there's no longer a card to silently
                 // substitute - what you can pick is what gets billed.
-                const tonnageOptions=answers.cond_tier==='fedmin'?TONNAGE_OPTIONS:TONNAGE_OPTIONS.filter(o=>Number.isInteger(o.tons));
+                // (Hoisted to component level as tonnageOptionsForTier so
+                // the quick-edit guard effect above shares this exact same
+                // rule instead of a second copy of it.)
+                const tonnageOptions=tonnageOptionsForTier;
                 const canSubNext=
                   // Checked against the CURRENT tonnageOptions, not just
                   // "any value is set" - a half-ton pick made before a

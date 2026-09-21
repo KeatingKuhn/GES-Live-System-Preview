@@ -7334,6 +7334,16 @@
     const [pricingAnswers, setPricingAnswers] = useState2({});
     const topRef = useRef2(null);
     const scrollTop = useCallback2(() => setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50), []);
+    const tonnageOptionsForTier = useMemo2(
+      () => answers.cond_tier === "fedmin" ? TONNAGE_OPTIONS : TONNAGE_OPTIONS.filter((o) => Number.isInteger(o.tons)),
+      [answers.cond_tier]
+    );
+    React.useEffect(() => {
+      if (!pricingAnswers.tonnageChoice) return;
+      if (tonnageOptionsForTier.some((o) => o.v === pricingAnswers.tonnageChoice)) return;
+      setPricingFlow((f) => f === "sizing" || f === "result" ? "sizing" : f);
+      setPricingSubStep(0);
+    }, [tonnageOptionsForTier, pricingAnswers.tonnageChoice]);
     const [lang, setLang] = useState2(() => {
       try {
         return localStorage.getItem("gesLang_v1") === "es" ? "es" : "en";
@@ -7937,7 +7947,7 @@
         if (pricingSubStep > 0) setPricingSubStep((s) => s - 1);
         else setPricingFlow(null);
       };
-      const tonnageOptions = answers.cond_tier === "fedmin" ? TONNAGE_OPTIONS : TONNAGE_OPTIONS.filter((o) => Number.isInteger(o.tons));
+      const tonnageOptions = tonnageOptionsForTier;
       const canSubNext = (
         // Checked against the CURRENT tonnageOptions, not just
         // "any value is set" - a half-ton pick made before a
