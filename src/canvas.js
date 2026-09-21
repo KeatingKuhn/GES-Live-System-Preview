@@ -29,6 +29,40 @@ function rnd(seed){
   return x-Math.floor(x);
 }
 
+// Eases a numeric target toward its new value over `duration`ms instead of
+// snapping - used for the condenser fan's RPM (CondenserFan below) so a
+// mode toggle's speed change reads as spooling up/down rather than an
+// instant jump-cut. Kept generic (any number, not just fan speed) and
+// self-contained: continuing mid-transition when the target changes again
+// starts from wherever the eased value currently sits, not from the old
+// target, so a quick double-toggle never stutters back to a stale start
+// point. Deliberately NOT used for colors (those already ease for free via
+// the .phase-color CSS transition on the `fill`/`stroke` attribute itself,
+// no rAF/re-render needed) - this hook is only for values, like animation-
+// duration, that CSS can't interpolate on its own.
+function useLerpedNumber(target,duration=2500){
+  const [display,setDisplay]=useState(target);
+  const displayRef=useRef(target);
+  const rafRef=useRef(null);
+  React.useEffect(()=>{
+    if(target===displayRef.current)return;
+    const from=displayRef.current;
+    const start=performance.now();
+    cancelAnimationFrame(rafRef.current);
+    const tick=(now)=>{
+      const t=Math.min(1,(now-start)/duration);
+      const eased=1-Math.pow(1-t,3);
+      const next=from+(target-from)*eased;
+      displayRef.current=next;
+      setDisplay(next);
+      if(t<1)rafRef.current=requestAnimationFrame(tick);
+    };
+    rafRef.current=requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(rafRef.current);
+  },[target,duration]);
+  return display;
+}
+
 // Exterior outside zone - side view of wall + condenser on pad
 // wallX = x position of the wall face
 // condenserEl = the already-built <Condenser/> element (Condenser itself
@@ -204,15 +238,30 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
          that actually fall the full height of the zone with a gentle
          side-to-side sway, instead of a flat grid barely jittering in
          place. ── */}
-    <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity .8s ease'}}>
-      {/* Snow cloud, same slot/shape family as the rain cloud below -
-           without it the falling flakes had no visible source and read
-           as a starfield instead of weather. Paler/flatter than the
-           rain cloud so the two precipitation states stay distinct at
-           a glance. */}
-      <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#aab4c2"/>
-      <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#bcc5d1"/>
-      <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#aab4c2"/>
+    <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity 2.5s ease'}}>
+      {/* Snowflake icon, same slot/anchor point as the sun (cool mode)
+          and cloud (mild-HP mode) just below - 6 spokes with a small
+          V-branch near each tip, the classic snowflake silhouette,
+          reads unambiguously as "cold" at a glance the way the sun
+          reads as "hot" - a plain cloud shape here didn't distinguish
+          cold-snap from the mild-HP overcast state below it. */}
+      {(()=>{
+        const sx=wallX+zoneW*0.25, sy=zoneH*0.075+18;
+        return <g stroke="#cfe0f5" strokeWidth="1.6" strokeLinecap="round" fill="none">
+          {Array.from({length:6},(_,i)=>{
+            const ang=i*Math.PI/3;
+            const ux=Math.cos(ang), uy=Math.sin(ang);
+            const px=-uy, py=ux;
+            const bx=sx+ux*9, by=sy+uy*9;
+            return <g key={i}>
+              <line x1={sx+ux*3} y1={sy+uy*3} x2={sx+ux*13} y2={sy+uy*13}/>
+              <line x1={bx} y1={by} x2={bx+ux*3+px*3} y2={by+uy*3+py*3}/>
+              <line x1={bx} y1={by} x2={bx+ux*3-px*3} y2={by+uy*3-py*3}/>
+            </g>;
+          })}
+          <circle cx={sx} cy={sy} r="1.6" fill="#cfe0f5" stroke="none"/>
+        </g>;
+      })()}
       {snowField}
     </g>
 
@@ -225,7 +274,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
          height rather than a fixed pixel value, so it clears the
          "OUTSIDE" label above it in both layouts. Fades in/out instead
          of popping, same as the snow above. ── */}
-    <g style={{opacity:!heatMode?1:0,transition:'opacity .8s ease'}}>
+    <g style={{opacity:!heatMode?1:0,transition:'opacity 2.5s ease'}}>
       <circle cx={wallX+zoneW*0.25} cy={zoneH*0.075+18} r="9" fill="#ffd76b"/>
       {Array.from({length:8},(_,i)=>{
         const ang=i*Math.PI/4;
@@ -247,7 +296,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
          wind-driven sheet of rain rather than a static grid of identical
          ticks. A faint wet sheen and a few splash flashes along the
          ground sell "it's actually landing down here" too. ── */}
-    <g style={{opacity:(heatMode&&isMildHp)?1:0,transition:'opacity .8s ease'}}>
+    <g style={{opacity:(heatMode&&isMildHp)?1:0,transition:'opacity 2.5s ease'}}>
       <ellipse cx={wallX+zoneW*0.25-9} cy={zoneH*0.075+20} rx="10" ry="7" fill="#8a94a3"/>
       <ellipse cx={wallX+zoneW*0.25+4} cy={zoneH*0.075+15} rx="12" ry="8.5" fill="#9aa3b0"/>
       <ellipse cx={wallX+zoneW*0.25+17} cy={zoneH*0.075+20} rx="9" ry="6.5" fill="#8a94a3"/>
@@ -536,7 +585,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
     {/* Snow drift along the condenser's top edge, same cold-snap mode and
         uneven-pile language as the ground blanket, so a real dusting on
         the outdoor unit itself sells the season along with the ground. */}
-    <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity .8s ease'}}>
+    <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity 2.5s ease'}}>
       {(()=>{
         const segs=6;
         let d=`M${condX} ${condY}`;
@@ -562,7 +611,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         as crossed out by the cabinet edge instead of labeling it. Both
         lines now sit above condY by construction, so this holds for
         every tier's cabinet height instead of just the taller ones. */}
-    <text x={wallX+zoneW-30} y={condY-24} textAnchor="end"
+    <text className="phase-color" x={wallX+zoneW-30} y={condY-24} textAnchor="end"
       fill={active?condC:(G+'.55)')} fontSize="13" fontFamily="monospace">
       {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
     </text>
@@ -572,7 +621,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         from the house and this releases it outside; reversed (heat pump
         heating), indoor rejects heat into the house and this is the one
         absorbing it from the outside air instead. */}
-    {active&&<text x={wallX+zoneW-30} y={condY-9} textAnchor="end"
+    {active&&<text className="phase-color" x={wallX+zoneW-30} y={condY-9} textAnchor="end"
       fill={refReversed?'rgba(35,137,224,.5)':'rgba(239,68,68,.5)'} fontSize="12" fontFamily="monospace">
       {refReversed?"ABSORBING HEAT":"RELEASING HEAT"}
     </text>}
@@ -1464,6 +1513,12 @@ function CondenserFan({cx,cy,r,active,fast,onEditStep,lang,vw,vh}){
   // rim when spinning for a cleaner, more high-tech look.
   const bladeFill=active?'#ccd3e0':'#565c68';
   const rim=active?'#7fb8ff':'rgba(70,76,90,.6)';
+  // RPM (expressed as seconds-per-revolution, so lower = faster) eases
+  // between the fast/slow targets over the same ~2.5s mode-toggle window
+  // as everything else, instead of the motor instantly jump-cutting
+  // speed - see useLerpedNumber's own comment for why this can't just be
+  // a CSS transition on animation-duration the way colors are.
+  const spinDuration=useLerpedNumber(fast?0.45:0.8);
   return <g>
     <circle cx={cx} cy={cy} r={r+3} fill="rgba(0,0,0,.55)" stroke="rgba(60,65,78,.7)" strokeWidth="1.2"/>
     {active&&<circle cx={cx} cy={cy} r={r+1} fill="none" stroke={rim} strokeWidth="1" opacity="0.55" filter="url(#glow-sm)"/>}
@@ -1478,7 +1533,7 @@ function CondenserFan({cx,cy,r,active,fast,onEditStep,lang,vw,vh}){
         transformBox:'view-box' + an explicit px origin rotates around
         the actual hub coordinate instead, regardless of the blades'
         bounding box. */}
-    <g className={active?"spin":undefined} style={active?{transformBox:'view-box',transformOrigin:cx+'px '+cy+'px',animationDuration:(fast?'0.45s':'0.8s')}:{}}>
+    <g className={active?"spin":undefined} style={active?{transformBox:'view-box',transformOrigin:cx+'px '+cy+'px',animationDuration:spinDuration+'s'}:{}}>
       {/* Broad sickle blades - widened per a reference photo of a real
           3-blade condenser fan, where the blades themselves (not gaps)
           cover most of the disc, maybe ~60% blade / ~40% visible gap,
@@ -1650,8 +1705,8 @@ function ACoilV({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
         that compute the external lineset's Y from the same fractions
         always land exactly here, even if the coil's size/position
         changes. */}
-    <rect x={x+w-6} y={y+h*0.80-3} width={16} height={6} rx="1.5" fill={active?(evapC+'2a'):'rgba(22,22,44,.7)'} stroke={evapC} strokeWidth="0.9"/>
-    <rect x={x+w-6} y={y+h*0.88-3} width={16} height={6} rx="1.5" fill={active?(evapC2+'2a'):'rgba(22,22,44,.7)'} stroke={evapC2} strokeWidth="0.9"/>
+    <rect className="phase-color" x={x+w-6} y={y+h*0.80-3} width={16} height={6} rx="1.5" fill={active?(evapC+'2a'):'rgba(22,22,44,.7)'} stroke={evapC} strokeWidth="0.9"/>
+    <rect className="phase-color" x={x+w-6} y={y+h*0.88-3} width={16} height={6} rx="1.5" fill={active?(evapC2+'2a'):'rgba(22,22,44,.7)'} stroke={evapC2} strokeWidth="0.9"/>
     {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
         reasoning as BlowerWheel's own hover above. */}
     <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={vw} vh={vh}
@@ -2086,7 +2141,7 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanFa
           high-eff passes already got) - kept between the two on the
           gray scale: cooler/dimmer than fed-min's plainer light gray,
           lighter than high-eff's darker richer tone. */}
-      <rect x={x} y={y} width={w} height={h} rx={6}
+      <rect className="phase-color" x={x} y={y} width={w} height={h} rx={6}
         fill={active?(refReversed?"#a5aab4":"#bec2c8"):"#b5b9bf"}
         stroke={active?cc:"rgba(120,124,132,.8)"} strokeWidth={active?1.8:1.4}/>
       {/* Discharge grille top - stays black/dark, a real grille slot,
@@ -2209,7 +2264,7 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanFa
           flatter rx=5) and the cap picked up the same domed-highlight +
           screw-ring treatment fed-min's reference pass added, for
           visual consistency between the two tiers' cap designs. */}
-      <rect x={x} y={y} width={w} height={h} rx={10}
+      <rect className="phase-color" x={x} y={y} width={w} height={h} rx={10}
         fill={active?(refReversed?"#767c8e":"#8c9096"):"#82868c"}
         stroke={active?cc:"rgba(100,104,112,.85)"} strokeWidth={active?1.8:1.4}/>
       {/* Slim corner posts -- narrower than the old chamfer strips, a
@@ -2301,7 +2356,7 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanFa
           identical pattern for why this needs pointer-events:none (found
           swallowing the general condenser_cabinet hover across this
           whole tier's box whenever active, via a wizard-step sweep). */}
-      {active&&<rect x={x} y={y} width={w} height={h} rx={10}
+      {active&&<rect className="phase-color" x={x} y={y} width={w} height={h} rx={10}
         fill={refReversed?"rgba(35,137,224,.04)":"rgba(239,68,68,.03)"} stroke="none" style={{pointerEvents:'none'}}/>}
       <rect x={x} y={y+h-6} width={w} height={6} rx={2}
         fill="#14151a" stroke="rgba(20,22,28,.8)" strokeWidth="0.7"/>
@@ -2410,7 +2465,7 @@ function AirHandlerH({x,y,w,h,active,auxHeat,evapC,evapC2,hasUV,acoilInfoKey,blo
         identical pattern for why this needs pointer-events:none (found
         swallowing the general air_handler_cabinet hover across this
         whole box whenever active, via a wizard-step sweep). */}
-    {active&&<rect x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
+    {active&&<rect className="phase-color" x={x} y={y} width={w} height={h} rx="4" fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
     <rect x={x} y={y} width={w} height={7} rx="4" fill="url(#silver)" opacity=".68"/>
     <CabinetStripBrushing x={x} y={y} w={w}/>
     {/* Left rivet nudged in - the standalone-AH lineset riser anchors at
@@ -2830,36 +2885,54 @@ const Defs=()=><defs>
   </marker>
 </defs>;
 
-// COOL/HEAT switch painted directly on the thermostat face in both
-// layouts, wired to the exact same heatMode state as the "preview how
-// your system runs" panel (ToggleUI) - same colors/behavior as its own
-// plain cool/heat buttons, just reachable right at the thermostat too so
-// flipping it and watching the rest of the diagram react doesn't require
-// hunting for the panel. Module-scope, not nested inside Canvas like it
-// used to be (same remount-churn reasoning as everything else here,
-// though this one carries no animation of its own so the bug was pure
-// waste, not a visible glitch) - heatMode/setHeatMode come in as explicit
-// props instead of Canvas closures. x/y is the top-left of the pair; w is
-// EACH button's own width, so the pair together spans 2*w+gap.
-function ThermModeButtons({x,y,w,h,gap,fontSize,heatMode,setHeatMode}){
-  const coolActive=!heatMode, heatActive=heatMode;
+// Builds the thermostat's own mode-button row to match however many modes
+// the "preview how your system runs" panel (ToggleUI) offers THIS system -
+// 3 for anything with its own separate heat-pump/backup-heat sub-mode
+// (dual fuel's HEAT PUMP+FURNACE, or a heat-pump-only air handler's HEAT
+// PUMP+AUX HEAT), 2 for a plain straight-cool furnace (COOL/HEAT only).
+// Mirrors ToggleUI's own isDualFuel/!hasFurnace branching exactly so the
+// two never fall out of sync again. Labels stay short (HP/AUX, not the
+// panel's full "HEAT PUMP"/"AUX HEAT") since these paint at a fraction of
+// the panel's size.
+function thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode){
+  const cool={key:'cool',label:'COOL',active:!heatMode,color:'#5ba8f5',onClick:()=>setHeatMode(false)};
+  if(isDualFuel)return[cool,
+    {key:'hp',label:'HP',active:heatMode&&heatSubMode==='hp',color:'#f97316',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+    {key:'furnace',label:'FURN',active:heatMode&&heatSubMode==='furnace',color:'#f97316',onClick:()=>{setHeatMode(true);setHeatSubMode('furnace');}}];
+  if(!hasFurnace)return[cool,
+    {key:'hp',label:'HP',active:heatMode&&heatSubMode==='hp',color:'#f97316',onClick:()=>{setHeatMode(true);setHeatSubMode('hp');}},
+    {key:'aux',label:'AUX',active:heatMode&&heatSubMode==='aux',color:'#f97316',onClick:()=>{setHeatMode(true);setHeatSubMode('aux');}}];
+  return[cool,{key:'heat',label:'HEAT',active:heatMode,color:'#f97316',onClick:()=>setHeatMode(true)}];
+}
+
+// COOL/HEAT(/HP/AUX) switch painted directly on the thermostat face in
+// both layouts, wired to the exact same heatMode/heatSubMode state as
+// ToggleUI - same colors/behavior, just reachable right at the thermostat
+// too so flipping it and watching the rest of the diagram react doesn't
+// require hunting for the panel. Module-scope, not nested inside Canvas
+// like it used to be (same remount-churn reasoning as everything else
+// here). `modes` is thermModes()'s own output; the row is centered on cx
+// and spans totalW total (individual button width = (totalW-gap*(n-1))/n)
+// so callers can grow the row for a 3rd button without touching the
+// thermostat face's own hardcoded coordinates.
+function ThermModeButtons({modes,cx,y,totalW,gap,h,fontSize}){
+  const n=modes.length;
+  const bw=(totalW-gap*(n-1))/n;
+  const startX=cx-totalW/2;
   return <g className="therm-mode-btns">
-    <rect className={`therm-btn therm-btn-cool${coolActive?' active':''}`}
-      x={x} y={y} width={w} height={h} rx={h/2}
-      fill={coolActive?'rgba(35,137,224,.22)':'rgba(255,255,255,.05)'}
-      stroke={coolActive?'#5ba8f5':'rgba(255,255,255,.2)'} strokeWidth="1"
-      style={{cursor:'pointer'}} onClick={()=>setHeatMode(false)}/>
-    <text x={x+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
-      fontFamily="monospace" fontWeight="700" fontSize={fontSize}
-      fill={coolActive?'#5ba8f5':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>COOL</text>
-    <rect className={`therm-btn therm-btn-heat${heatActive?' active':''}`}
-      x={x+w+gap} y={y} width={w} height={h} rx={h/2}
-      fill={heatActive?'rgba(249,115,22,.22)':'rgba(255,255,255,.05)'}
-      stroke={heatActive?'#f97316':'rgba(255,255,255,.2)'} strokeWidth="1"
-      style={{cursor:'pointer'}} onClick={()=>setHeatMode(true)}/>
-    <text x={x+w+gap+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
-      fontFamily="monospace" fontWeight="700" fontSize={fontSize}
-      fill={heatActive?'#f97316':'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>HEAT</text>
+    {modes.map((m,i)=>{
+      const bx=startX+i*(bw+gap);
+      return <React.Fragment key={m.key}>
+        <rect className={`therm-btn therm-btn-${m.key}${m.active?' active':''} phase-color`}
+          x={bx} y={y} width={bw} height={h} rx={h/2}
+          fill={m.active?(m.key==='cool'?'rgba(35,137,224,.22)':'rgba(249,115,22,.22)'):'rgba(255,255,255,.05)'}
+          stroke={m.active?m.color:'rgba(255,255,255,.2)'} strokeWidth="1"
+          style={{cursor:'pointer'}} onClick={m.onClick}/>
+        <text className="phase-color" x={bx+bw/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
+          fontFamily="monospace" fontWeight="700" fontSize={fontSize}
+          fill={m.active?m.color:'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>{m.label}</text>
+      </React.Fragment>;
+    })}
   </g>;
 }
 
@@ -3430,7 +3503,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // further on a narrower margin than that.
     const THERM_MAX_SCALE=(UNIT_H-10)/96;
     const THERM_SCALE=THERM_IN_MARGIN?Math.max(0.65,Math.min(THERM_MAX_SCALE,(MARGIN_L-16)/THERM_CONTENT_W)):0.65;
-    const THERM_W=64*THERM_SCALE, THERM_H=96*THERM_SCALE;
+    // A heat-pump-only or dual-fuel system needs a 3rd thermostat button
+    // (COOL/HP/FURN or COOL/HP/AUX, matching ToggleUI's own preview) - the
+    // row grows to 84 (still well inside the 116-wide CONTENT_W/CONTENT_L
+    // bounds above, which already account for overflow past the nominal
+    // 64-wide box) instead of squeezing a 3rd label into the same 64.
+    // Only the button ROW widens - the face itself (rects/circles/captions
+    // below) keeps its original 64-wide coordinates untouched.
+    const THERM_BTN_N=(isDualFuel||!hasFurnace)?3:2;
+    const THERM_ROW_W=THERM_BTN_N===3?84:64;
+    const THERM_W=THERM_ROW_W*THERM_SCALE, THERM_H=96*THERM_SCALE;
     // TX/TY here are the <g transform="translate(...)"> origin, not a
     // bounding-box corner - the thermostat markup below still draws at
     // local 0-based coordinates (TX=0,TY=0 there) exactly as it always
@@ -3445,6 +3527,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       ?Math.round(8-THERM_CONTENT_L*THERM_SCALE)
       :RET_X+RET_PLEN_W+8;
     const THERM_TY=THERM_IN_MARGIN?Math.round(UNIT_Y+(UNIT_H-THERM_H)/2):DECK_Y+12;
+    // Hover/focus-ring boxes below (hoverPart, EditZone, StepFocusRing) key
+    // off THERM_TX/THERM_W, which describe the FACE's own origin+width
+    // (unchanged at nominal 64) - the button row, when widened to 84 for a
+    // 3rd button, is centered under the face (local x=-10..74) rather than
+    // flush with its left edge, so those boxes need this same leftward
+    // nudge to still fully surround the row instead of clipping its left
+    // side. Zero for the unwidened 2-button case (32-64/2=0).
+    const THERM_ROW_X=THERM_TX+(32-THERM_ROW_W/2)*THERM_SCALE;
     // Return plenum stays directly against the filter rack/furnace - the
     // thermostat lives off to the left in its own margin column instead,
     // so it never gets inserted into this chain and pushes this adjacency
@@ -3570,7 +3660,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                sun/cloud/snow rendered inside OutsideZone itself. See
                OUTSIDE_* constants above for the palette reasoning. */}
           {hasCond&&<rect x={EXT_WALL_X} y="0" width={OUTSIDE_W} height={VH}
-            style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
+            style={{fill:outsideFill,transition:'fill 2.5s ease'}}/>}
 
           {/* Sky above the roofline, house side - the real sky doesn't stop
               at the house wall and pick back up over the condenser pad;
@@ -3588,16 +3678,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               splitting the two zones even though both sides use the
               identical outsideFill color. */}
           {hasCond&&<rect x="0" y="0" width={HOUSE_W+2} height={EAVE_Y}
-            style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
+            style={{fill:outsideFill,transition:'fill 2.5s ease'}}/>}
 
           {/* Attic interior (above deck, inside house) - subtly tinted by
               the same mode metaphor as the outside zone, see intFill above. */}
           <rect x="0" y={EAVE_Y} width={HOUSE_W} height={DECK_Y-EAVE_Y}
-            style={{fill:intFill('attic'),transition:'fill .8s ease'}}/>
+            style={{fill:intFill('attic'),transition:'fill 2.5s ease'}}/>
 
           {/* Living space below deck */}
           <rect x="0" y={DECK_Y} width={HOUSE_W} height={VH-DECK_Y}
-            style={{fill:intFill('living'),transition:'fill .8s ease'}}/>
+            style={{fill:intFill('living'),transition:'fill 2.5s ease'}}/>
 
           {/* ── LOW-PITCH ROOF - shallow, full house width ── */}
           {/* Left slope: eave (left edge) → ridge */}
@@ -3841,7 +3931,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 {/* Faint active-state tint - see FurnaceH's own comment
                     on the identical pattern for why this needs
                     pointer-events:none. */}
-                {active&&<rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={UNIT_H} rx="4"
+                {active&&<rect className="phase-color" x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={UNIT_H} rx="4"
                   fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
                 <rect x={ACOIL_X} y={UNIT_Y} width={ACOIL_W} height={7} rx="4"
                   fill="url(#silver)" opacity=".65"/>
@@ -3882,7 +3972,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     widths, and doesn't touch the "A-COIL" title above,
                     which is short enough to already clear the pipe at
                     dead center. */}
-                <text x={ACOIL_X+ACOIL_W/2+6} y={UNIT_Y-5} textAnchor="middle"
+                <text className="phase-color" x={ACOIL_X+ACOIL_W/2+6} y={UNIT_Y-5} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="10" fontFamily="monospace">
                   {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
                 </text>
@@ -3898,9 +3988,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
             {/* Label above the unit, same as A-COIL - keeps the space below
                 clear for the condensate drain/pump instead of crowding it */}
-            <text x={AH_X+AH_W/2} y={UNIT_Y-16} textAnchor="middle"
+            <text className="phase-color" x={AH_X+AH_W/2} y={UNIT_Y-16} textAnchor="middle"
               fill={evapActive?evapC:(S+'.65)')} fontSize="13.5" fontFamily="monospace">AIR HANDLER</text>
-            <text x={AH_X+AH_W/2} y={UNIT_Y-5} textAnchor="middle"
+            <text className="phase-color" x={AH_X+AH_W/2} y={UNIT_Y-5} textAnchor="middle"
               fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):(auxHeatActive?'rgba(249,115,22,.65)':'rgba(255,255,255,.14)')} fontSize="12" fontFamily="monospace">
               {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
             </text>
@@ -4001,9 +4091,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // thin dashed line (no glow underlay) since these stems are
               // only 14px wide - the bold treatment used elsewhere would
               // overwhelm a duct this narrow.
+              // pathLength normalizes stroke-dasharray to a 0-100 scale
+              // regardless of the path's real pixel length - without it,
+              // the fixed-pixel "10 6" dash pattern from .airflow's own
+              // CSS tiles a different number of times across a short
+              // straight drop vs a longer angled run, so a shorter duct
+              // visibly shows fewer dash segments (reads as "dimmer") even
+              // though all of them share identical color/opacity/speed.
+              // The inline strokeDasharray here (in the same normalized
+              // 0-100 space pathLength sets up) overrides .airflow's own
+              // pixel-based dasharray - inline style wins over a
+              // stylesheet class for any property the class doesn't
+              // itself animate - while .airflow's animated dashoffset
+              // keyframe still drives the actual motion.
               const ductArrow=(d,key)=>(
-                <path key={key} d={d} fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
-                  strokeDasharray="5 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+                <path key={key} d={d} pathLength="100" fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
+                  className="airflow" style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
               );
               const straight=(cx,key)=>(
                 <g key={key}>
@@ -4185,11 +4288,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               ?<>{thermostatTemp-2}°-{thermostatTemp+2}°</>
               :<>{thermostatTemp}°</>;
             return <g className="snap therm-hover-zone" key="tstat" style={{animationDelay:'.26s'}}
-              onMouseEnter={()=>setHoverPart({x:THERM_TX,y:THERM_TY,w:THERM_W,h:THERM_H,
+              onMouseEnter={()=>setHoverPart({x:THERM_ROW_X,y:THERM_TY,w:THERM_W,h:THERM_H,
                 vw:SVG_VW,vh:SVG_VH,title:T('thermostat_general').title,text:T('thermostat_general').text,highlight:true})}
               onMouseLeave={()=>setHoverPart(null)}>
             {/* Invisible hover target, sized in outer canvas space like
-                EditZone's own hit-rect just below (same THERM_TX/TY/W/H
+                EditZone's own hit-rect just below (same THERM_ROW_X/TY/W/H
                 origin). pointer-events:all so a fully transparent fill
                 still registers the hover. The general-info mouseenter/
                 mouseleave pair live on the OUTER g instead of this rect -
@@ -4199,7 +4302,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 hover target for most of this box, so a handler on this
                 rect alone would miss most hovers; React's enter/leave
                 events bubble to this ancestor. */}
-            <rect x={THERM_TX-2} y={THERM_TY-2} width={THERM_W+4}
+            <rect x={THERM_ROW_X-2} y={THERM_TY-2} width={THERM_W+4}
               height={THERM_H+4}
               fill="transparent" style={{pointerEvents:'all'}}/>
             {/* General "what is this" thermostat tooltip - purely additive:
@@ -4262,12 +4365,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             })()}
             </g>
             <EditZone stepId="thermostat" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
-              x={THERM_TX-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
+              x={THERM_ROW_X-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
             {/* Painted after EditZone (topmost in paint order) so a click
                 lands on the button, not the done-screen's edit-zone overlay
                 underneath it - see EditZone's own onClick above. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
-              <ThermModeButtons x={0} y={btnY} w={30} h={15} gap={4} fontSize={8.5} heatMode={heatMode} setHeatMode={setHeatMode}/>
+              <ThermModeButtons modes={thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode)}
+                cx={32} y={btnY} totalW={THERM_ROW_W} gap={4} h={15} fontSize={THERM_BTN_N===3?7.5:8.5}/>
             </g>
           </g>;
           })()}
@@ -4486,7 +4590,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasCond&&<StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="cond_tier"
             x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
           <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="thermostat"
-            x={THERM_TX-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
+            x={THERM_ROW_X-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
           {/* APR_W is 0 only if the (effectively always-on, see hasAprilaire's
               own default) filtration cabinet is somehow off - 32 stand-in
               width matches its real one exactly, so this never looks
@@ -4683,10 +4787,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {/* Outside zone - brightest sunny, dimmer overcast, darkest cold,
               same as the attic layout's outside zone (OUTSIDE_* above). */}
           {hasCond&&<rect x={HOUSE_W} y="0" width={VW-HOUSE_W} height={VH}
-            style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
+            style={{fill:outsideFill,transition:'fill 2.5s ease'}}/>}
           {/* Full attic space above deck - subtly tinted by mode, see intFill above. */}
           <rect x="0" y="0" width={hasCond?HOUSE_W:VW} height={DECK_Y}
-            style={{fill:intFill('attic'),transition:'fill .8s ease'}}/>
+            style={{fill:intFill('attic'),transition:'fill 2.5s ease'}}/>
           {/* Sky above the roofline, house side - painted over the top
               sliver of the attic-interior rect above, so it matches the
               outside zone's sky instead of reading as an interior-tinted
@@ -4699,10 +4803,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               this rect for why (a faint anti-aliasing seam between two
               same-color adjacent rects otherwise reads as a parapet line). */}
           {hasCond&&<rect x="0" y="0" width={HOUSE_W+2} height={ROOF_EAVE_Y}
-            style={{fill:outsideFill,transition:'fill .8s ease'}}/>}
+            style={{fill:outsideFill,transition:'fill 2.5s ease'}}/>}
           {/* Closet below deck */}
           <rect x={UNIT_X-28} y={DECK_Y} width={UNIT_W+56} height={VH-DECK_Y}
-            style={{fill:intFill('closet'),transition:'fill .8s ease'}} stroke={W+'.05)'} strokeWidth="1.4"/>
+            style={{fill:intFill('closet'),transition:'fill 2.5s ease'}} stroke={W+'.05)'} strokeWidth="1.4"/>
           <rect x={UNIT_X-28} y={DECK_Y} width="4" height={VH-DECK_Y} fill="#0d0d0d"/>
           <rect x={UNIT_X+UNIT_W+28} y={DECK_Y} width="4" height={VH-DECK_Y} fill="#0d0d0d"/>
           <text x={UNIT_X+UNIT_W/2} y={DECK_Y+14} textAnchor="middle"
@@ -4906,9 +5010,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // duct to the grille. Thin/no-glow, matching the attic
               // layout's own duct stems (13-14px ducts are too narrow for
               // the bolder plenum-arrow treatment).
+              // pathLength normalizes stroke-dasharray to a 0-100 scale
+              // regardless of the path's real pixel length - without it,
+              // the fixed-pixel "10 6" dash pattern from .airflow's own
+              // CSS tiles a different number of times across a short
+              // straight drop vs a longer angled run, so a shorter duct
+              // visibly shows fewer dash segments (reads as "dimmer") even
+              // though all of them share identical color/opacity/speed.
+              // The inline strokeDasharray here (in the same normalized
+              // 0-100 space pathLength sets up) overrides .airflow's own
+              // pixel-based dasharray - inline style wins over a
+              // stylesheet class for any property the class doesn't
+              // itself animate - while .airflow's animated dashoffset
+              // keyframe still drives the actual motion.
               const ductArrow=(d,key)=>(
-                <path key={key} d={d} fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
-                  strokeDasharray="5 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
+                <path key={key} d={d} pathLength="100" fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
+                  className="airflow" style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
               );
               // Vertical drop goes from exitY down to DECK_Y. Flex-duct
               // corrugation (DuctRibbing/DuctClamp - see the attic
@@ -4992,7 +5109,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 {/* Faint active-state tint - see FurnaceH's own comment
                     on the identical pattern for why this needs
                     pointer-events:none. */}
-                {active&&<rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
+                {active&&<rect className="phase-color" x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={ACOIL_H} rx="5"
                   fill={refReversed?O+'.03)':'rgba(35,137,224,.03)'} stroke="none" style={{pointerEvents:'none'}}/>}
                 <rect x={UNIT_X} y={ACOIL_Y} width={UNIT_W} height={7} rx="5"
                   fill="url(#silver)" opacity=".65"/>
@@ -5044,16 +5161,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   </>
                 }
                 {hasCond&&!hasFurnace&&<>
-                  <path d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${UNIT_X+UNIT_W+28} ${LS_Y1}`}
-                    fill="none" stroke={active?evapC:'rgba(32,32,52,.5)'} strokeWidth="2.8" strokeLinecap="round" className="draw"/>
-                  <path d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${UNIT_X+UNIT_W+28} ${LS_Y2}`}
-                    fill="none" stroke={active?evapC2:'rgba(32,32,52,.4)'} strokeWidth="2.8" strokeLinecap="round" className="draw" style={{animationDelay:'.08s'}}/>
-                  {active&&<text x={UNIT_X+UNIT_W+14} y={LS_Y1-8}
+                  <path className="draw phase-color" d={`M${UNIT_X+UNIT_W} ${LS_Y1} L${UNIT_X+UNIT_W+28} ${LS_Y1}`}
+                    fill="none" stroke={active?evapC:'rgba(32,32,52,.5)'} strokeWidth="2.8" strokeLinecap="round"/>
+                  <path className="draw phase-color" d={`M${UNIT_X+UNIT_W} ${LS_Y2} L${UNIT_X+UNIT_W+28} ${LS_Y2}`}
+                    fill="none" stroke={active?evapC2:'rgba(32,32,52,.4)'} strokeWidth="2.8" strokeLinecap="round" style={{animationDelay:'.08s'}}/>
+                  {active&&<text className="phase-color" x={UNIT_X+UNIT_W+14} y={LS_Y1-8}
                     textAnchor="middle" fill={evapC} fontSize="13" fontFamily="monospace">
                     {refReversed?'←':'→'}
                   </text>}
                 </>}
-                <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y-6} textAnchor="middle"
+                <text className="phase-color" x={UNIT_X+UNIT_W/2} y={ACOIL_Y-6} textAnchor="middle"
                   fill={active?evapC:(S+'.45)')} fontSize="12" fontFamily="monospace">
                   {hasFurnace?"A-COIL":"AIR HANDLER"}
                 </text>
@@ -5067,7 +5184,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     chase) - anchor to the AH box's own top instead, in the
                     empty space below its "AIR HANDLER" title and above the
                     blower graphic. */}
-                <text x={UNIT_X+UNIT_W/2} y={hasFurnace?(ACOIL_Y+ACOIL_H+APR_H+27):(ACOIL_Y+20)} textAnchor="middle"
+                <text className="phase-color" x={UNIT_X+UNIT_W/2} y={hasFurnace?(ACOIL_Y+ACOIL_H+APR_H+27):(ACOIL_Y+20)} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):(auxHeatActive?'rgba(249,115,22,.65)':'rgba(255,255,255,.14)')} fontSize="12" fontFamily="monospace">
                   {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
                 </text>
@@ -5526,8 +5643,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const tempDisplayC=showRangeC
               ?<>{thermostatTemp-2}°-{thermostatTemp+2}°</>
               :<>{thermostatTemp}°</>;
+            // Same 2-vs-3-button widening as the attic thermostat - see
+            // THERM_BTN_N/THERM_ROW_W/THERM_ROW_X's own comments there.
+            // Row is centered on the face's own center (TX+38); 76 (the
+            // 2-button case) reduces THERM_ROW_X_C back to TX exactly, so
+            // every box below is an unchanged no-op for a straight-cool
+            // system.
+            const THERM_BTN_N_C=(isDualFuel||!hasFurnace)?3:2;
+            const THERM_ROW_W_C=THERM_BTN_N_C===3?96:76;
+            const THERM_ROW_X_C=TX+38-THERM_ROW_W_C/2;
             return <g className="snap therm-hover-zone" key="tstat-c" style={{animationDelay:'.26s'}}
-              onMouseEnter={()=>setHoverPart({x:TX,y:TY,w:76,h:70,
+              onMouseEnter={()=>setHoverPart({x:THERM_ROW_X_C,y:TY,w:THERM_ROW_W_C,h:70,
                 vw:SVG_VW,vh:SVG_VH,title:T('thermostat_general').title,text:T('thermostat_general').text,highlight:true})}
               onMouseLeave={()=>setHoverPart(null)}>
             {/* General "what is this" thermostat tooltip - same purely-
@@ -5536,7 +5662,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 pair lives on the outer g (not this rect) for the same
                 "EditZone/buttons paint after this and would otherwise be
                 the actual hover target" reason as there. */}
-            <rect x={TX-2} y={TY-2} width={82} height={116}
+            <rect x={THERM_ROW_X_C-2} y={TY-2} width={THERM_ROW_W_C+6} height={116}
               fill="transparent" style={{pointerEvents:'all'}}/>
             {(()=>{
               const modeColorC=heatMode?"#f97316":"#2389e0";
@@ -5588,11 +5714,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 </>;
             })()}
             <EditZone stepId="thermostat" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
-              x={TX-2} y={TY-2} w={82} h={116}/>
+              x={THERM_ROW_X_C-2} y={TY-2} w={THERM_ROW_W_C+6} h={116}/>
             {/* Painted after EditZone (topmost in paint order) so a click
                 lands on the button, not the done-screen's edit-zone overlay
                 underneath it - see EditZone's own onClick above. */}
-            <ThermModeButtons x={TX} y={btnY} w={36} h={17} gap={4} fontSize={9.5} heatMode={heatMode} setHeatMode={setHeatMode}/>
+            <ThermModeButtons modes={thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode)}
+              cx={TX+38} y={btnY} totalW={THERM_ROW_W_C} gap={4} h={17} fontSize={THERM_BTN_N_C===3?8.5:9.5}/>
           </g>;
           })()}
 
@@ -5679,8 +5806,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               {hasCond&&<StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="cond_tier"
                 x={COND_X-2} y={COND_Y-2} w={COND_W+4} h={COND_H+4} rx={5}/>}
               <StepFocusRing onEditStep={onEditStep} curStepId={curStepId} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH} stepId="thermostat"
-                x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-40}
-                y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40} w={82} h={116}/>
+                x={UNIT_X+UNIT_W+16+(EXT_WALL_X-16-(UNIT_X+UNIT_W+16))/2-38-((isDualFuel||!hasFurnace)?96:76)/2-2}
+                y={(hasFurnace?FURN_Y+FURN_H/2:ACOIL_Y+ACOIL_H/2)-40}
+                w={((isDualFuel||!hasFurnace)?96:76)+6} h={116}/>
               {/* APR_H is 0 only if the (effectively always-on) filtration
                   cabinet is somehow off - 28 stand-in matches its real
                   height exactly, see the attic layout's own APR_W comment. */}

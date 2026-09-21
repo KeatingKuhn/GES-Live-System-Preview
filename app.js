@@ -459,6 +459,28 @@
     const x = Math.sin(seed * 12.9898) * 43758.5453;
     return x - Math.floor(x);
   }
+  function useLerpedNumber(target, duration = 2500) {
+    const [display, setDisplay] = useState(target);
+    const displayRef = useRef(target);
+    const rafRef = useRef(null);
+    React.useEffect(() => {
+      if (target === displayRef.current) return;
+      const from = displayRef.current;
+      const start = performance.now();
+      cancelAnimationFrame(rafRef.current);
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const next = from + (target - from) * eased;
+        displayRef.current = next;
+        setDisplay(next);
+        if (t < 1) rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(rafRef.current);
+    }, [target, duration]);
+    return display;
+  }
   function OutsideZone({
     wallX,
     zoneW,
@@ -685,7 +707,16 @@
         fontFamily: "monospace"
       },
       "GROUND LEVEL"
-    ), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity .8s ease" } }, /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 - 9, cy: zoneH * 0.075 + 20, rx: "10", ry: "7", fill: "#aab4c2" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 4, cy: zoneH * 0.075 + 15, rx: "12", ry: "8.5", fill: "#bcc5d1" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 17, cy: zoneH * 0.075 + 20, rx: "9", ry: "6.5", fill: "#aab4c2" }), snowField), /* @__PURE__ */ React.createElement("g", { style: { opacity: !heatMode ? 1 : 0, transition: "opacity .8s ease" } }, /* @__PURE__ */ React.createElement("circle", { cx: wallX + zoneW * 0.25, cy: zoneH * 0.075 + 18, r: "9", fill: "#ffd76b" }), Array.from({ length: 8 }, (_, i) => {
+    ), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, (() => {
+      const sx = wallX + zoneW * 0.25, sy = zoneH * 0.075 + 18;
+      return /* @__PURE__ */ React.createElement("g", { stroke: "#cfe0f5", strokeWidth: "1.6", strokeLinecap: "round", fill: "none" }, Array.from({ length: 6 }, (_, i) => {
+        const ang = i * Math.PI / 3;
+        const ux = Math.cos(ang), uy = Math.sin(ang);
+        const px = -uy, py = ux;
+        const bx = sx + ux * 9, by = sy + uy * 9;
+        return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("line", { x1: sx + ux * 3, y1: sy + uy * 3, x2: sx + ux * 13, y2: sy + uy * 13 }), /* @__PURE__ */ React.createElement("line", { x1: bx, y1: by, x2: bx + ux * 3 + px * 3, y2: by + uy * 3 + py * 3 }), /* @__PURE__ */ React.createElement("line", { x1: bx, y1: by, x2: bx + ux * 3 - px * 3, y2: by + uy * 3 - py * 3 }));
+      }), /* @__PURE__ */ React.createElement("circle", { cx: sx, cy: sy, r: "1.6", fill: "#cfe0f5", stroke: "none" }));
+    })(), snowField), /* @__PURE__ */ React.createElement("g", { style: { opacity: !heatMode ? 1 : 0, transition: "opacity 2.5s ease" } }, /* @__PURE__ */ React.createElement("circle", { cx: wallX + zoneW * 0.25, cy: zoneH * 0.075 + 18, r: "9", fill: "#ffd76b" }), Array.from({ length: 8 }, (_, i) => {
       const ang = i * Math.PI / 4;
       const sx = wallX + zoneW * 0.25, sy = zoneH * 0.075 + 18;
       return /* @__PURE__ */ React.createElement(
@@ -701,7 +732,7 @@
           strokeLinecap: "round"
         }
       );
-    })), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && isMildHp ? 1 : 0, transition: "opacity .8s ease" } }, /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 - 9, cy: zoneH * 0.075 + 20, rx: "10", ry: "7", fill: "#8a94a3" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 4, cy: zoneH * 0.075 + 15, rx: "12", ry: "8.5", fill: "#9aa3b0" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 17, cy: zoneH * 0.075 + 20, rx: "9", ry: "6.5", fill: "#8a94a3" }), /* @__PURE__ */ React.createElement("rect", { x: wallX, y: groundY - 4, width: zoneW, height: 4, fill: "rgba(122,184,224,.14)" }), rainField), /* @__PURE__ */ React.createElement(
+    })), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 - 9, cy: zoneH * 0.075 + 20, rx: "10", ry: "7", fill: "#8a94a3" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 4, cy: zoneH * 0.075 + 15, rx: "12", ry: "8.5", fill: "#9aa3b0" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 17, cy: zoneH * 0.075 + 20, rx: "9", ry: "6.5", fill: "#8a94a3" }), /* @__PURE__ */ React.createElement("rect", { x: wallX, y: groundY - 4, width: zoneW, height: 4, fill: "rgba(122,184,224,.14)" }), rainField), /* @__PURE__ */ React.createElement(
       "rect",
       {
         x: condX - 10,
@@ -1197,7 +1228,7 @@
           text: partInfo("disconnect", lang).text
         }
       ));
-    })(), condenserEl, /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity .8s ease" } }, (() => {
+    })(), condenserEl, /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, (() => {
       const segs = 6;
       let d = `M${condX} ${condY}`;
       for (let i = 0; i <= segs; i++) {
@@ -1210,6 +1241,7 @@
     })()), /* @__PURE__ */ React.createElement(
       "text",
       {
+        className: "phase-color",
         x: wallX + zoneW - 30,
         y: condY - 24,
         textAnchor: "end",
@@ -1221,6 +1253,7 @@
     ), active && /* @__PURE__ */ React.createElement(
       "text",
       {
+        className: "phase-color",
         x: wallX + zoneW - 30,
         y: condY - 9,
         textAnchor: "end",
@@ -1967,7 +2000,8 @@
   function CondenserFan({ cx, cy, r, active, fast, onEditStep, lang, vw, vh }) {
     const bladeFill = active ? "#ccd3e0" : "#565c68";
     const rim = active ? "#7fb8ff" : "rgba(70,76,90,.6)";
-    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 3, fill: "rgba(0,0,0,.55)", stroke: "rgba(60,65,78,.7)", strokeWidth: "1.2" }), active && /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 1, fill: "none", stroke: rim, strokeWidth: "1", opacity: "0.55", filter: "url(#glow-sm)" }), /* @__PURE__ */ React.createElement("g", { className: active ? "spin" : void 0, style: active ? { transformBox: "view-box", transformOrigin: cx + "px " + cy + "px", animationDuration: fast ? "0.45s" : "0.8s" } : {} }, Array.from({ length: 3 }, (_, i) => {
+    const spinDuration = useLerpedNumber(fast ? 0.45 : 0.8);
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 3, fill: "rgba(0,0,0,.55)", stroke: "rgba(60,65,78,.7)", strokeWidth: "1.2" }), active && /* @__PURE__ */ React.createElement("circle", { cx, cy, r: r + 1, fill: "none", stroke: rim, strokeWidth: "1", opacity: "0.55", filter: "url(#glow-sm)" }), /* @__PURE__ */ React.createElement("g", { className: active ? "spin" : void 0, style: active ? { transformBox: "view-box", transformOrigin: cx + "px " + cy + "px", animationDuration: spinDuration + "s" } : {} }, Array.from({ length: 3 }, (_, i) => {
       const ang = i * (Math.PI * 2 / 3);
       const sweep = 1.4;
       const hubR = r * 0.14, tipR = r * 0.94;
@@ -2120,7 +2154,7 @@
       const rodLen2 = Math.min(h * 0.75, h - 12);
       const rodCY = y + h / 2;
       return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX, y: rodCY - rodLen2 / 2, len: rodLen2, vertical: true });
-    })(), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.8 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC + "2a" : "rgba(22,22,44,.7)", stroke: evapC, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("rect", { x: x + w - 6, y: y + h * 0.88 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC2 + "2a" : "rgba(22,22,44,.7)", stroke: evapC2, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement(
+    })(), /* @__PURE__ */ React.createElement("rect", { className: "phase-color", x: x + w - 6, y: y + h * 0.8 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC + "2a" : "rgba(22,22,44,.7)", stroke: evapC, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement("rect", { className: "phase-color", x: x + w - 6, y: y + h * 0.88 - 3, width: 16, height: 6, rx: "1.5", fill: active ? evapC2 + "2a" : "rgba(22,22,44,.7)", stroke: evapC2, strokeWidth: "0.9" }), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x,
@@ -2662,6 +2696,7 @@
     })()), isMini && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
       "rect",
       {
+        className: "phase-color",
         x,
         y,
         width: w,
@@ -2874,6 +2909,7 @@
     })()), isBig && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
       "rect",
       {
+        className: "phase-color",
         x,
         y,
         width: w,
@@ -3064,6 +3100,7 @@
     })(), active && /* @__PURE__ */ React.createElement(
       "rect",
       {
+        className: "phase-color",
         x,
         y,
         width: w,
@@ -3255,7 +3292,7 @@
         strokeOpacity: "0.8",
         strokeWidth: "1.5"
       }
-    ), active && /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: h, rx: "4", fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)", stroke: "none", style: { pointerEvents: "none" } }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 7, rx: "4", fill: "url(#silver)", opacity: ".68" }), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 19, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: c1, cy: y + 3.5, w: 13 }), /* @__PURE__ */ React.createElement("line", { x1: c1, y1: y + 7, x2: c1, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), /* @__PURE__ */ React.createElement("line", { x1: c2, y1: y + 7, x2: c2, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
+    ), active && /* @__PURE__ */ React.createElement("rect", { className: "phase-color", x, y, width: w, height: h, rx: "4", fill: refReversed ? O + ".03)" : "rgba(35,137,224,.03)", stroke: "none", style: { pointerEvents: "none" } }), /* @__PURE__ */ React.createElement("rect", { x, y, width: w, height: 7, rx: "4", fill: "url(#silver)", opacity: ".68" }), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x, y, w }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + 19, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: x + w - 8, cy: y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: c1, cy: y + 3.5, w: 13 }), /* @__PURE__ */ React.createElement("line", { x1: c1, y1: y + 7, x2: c1, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), /* @__PURE__ */ React.createElement("line", { x1: c2, y1: y + 7, x2: c2, y2: y + h, stroke: S + ".26)", strokeWidth: "0.9", strokeDasharray: "4 3" }), Array.from({ length: 7 }, (_, i) => /* @__PURE__ */ React.createElement(
       "line",
       {
         key: i,
@@ -3503,67 +3540,70 @@
     }));
   }
   var Defs = () => /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("linearGradient", { id: "gold", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#f0d64e" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ab8024" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "silver", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#e4e7ed" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#8b93a3" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "cabinet-edge", x1: "0", y1: "0", x2: "1", y2: "1" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ccd2dc" }), /* @__PURE__ */ React.createElement("stop", { offset: "45%", stopColor: "#8b93a3" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#4d5361" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "blue", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#1a6cb5" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#2389e0" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "red-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#b91c1c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#ef4444" })), /* @__PURE__ */ React.createElement("linearGradient", { id: "orange-g", x1: "0", y1: "0", x2: "1", y2: "0" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#ea580c" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#f97316" })), /* @__PURE__ */ React.createElement("filter", { id: "glow" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "2.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-sm" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "1.2", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "glow-uv" }, /* @__PURE__ */ React.createElement("feGaussianBlur", { stdDeviation: "3.5", result: "b" }), /* @__PURE__ */ React.createElement("feMerge", null, /* @__PURE__ */ React.createElement("feMergeNode", { in: "b" }), /* @__PURE__ */ React.createElement("feMergeNode", { in: "SourceGraphic" }))), /* @__PURE__ */ React.createElement("filter", { id: "shadow", x: "-60%", y: "-60%", width: "220%", height: "220%" }, /* @__PURE__ */ React.createElement("feDropShadow", { dx: "0", dy: "2", stdDeviation: "3", floodColor: "rgba(0,0,0,.55)" })), /* @__PURE__ */ React.createElement("marker", { id: "arr", viewBox: "0 0 8 8", refX: "6", refY: "4", markerWidth: "4", markerHeight: "4", orient: "auto-start-reverse" }, /* @__PURE__ */ React.createElement("path", { d: "M1 1L6 4L1 7", fill: "none", stroke: "context-stroke", strokeWidth: "1.5" })));
-  function ThermModeButtons({ x, y, w, h, gap, fontSize, heatMode, setHeatMode }) {
-    const coolActive = !heatMode, heatActive = heatMode;
-    return /* @__PURE__ */ React.createElement("g", { className: "therm-mode-btns" }, /* @__PURE__ */ React.createElement(
-      "rect",
-      {
-        className: `therm-btn therm-btn-cool${coolActive ? " active" : ""}`,
-        x,
-        y,
-        width: w,
-        height: h,
-        rx: h / 2,
-        fill: coolActive ? "rgba(35,137,224,.22)" : "rgba(255,255,255,.05)",
-        stroke: coolActive ? "#5ba8f5" : "rgba(255,255,255,.2)",
-        strokeWidth: "1",
-        style: { cursor: "pointer" },
-        onClick: () => setHeatMode(false)
-      }
-    ), /* @__PURE__ */ React.createElement(
-      "text",
-      {
-        x: x + w / 2,
-        y: y + h / 2,
-        textAnchor: "middle",
-        dominantBaseline: "central",
-        fontFamily: "monospace",
-        fontWeight: "700",
-        fontSize,
-        fill: coolActive ? "#5ba8f5" : "rgba(255,255,255,.45)",
-        style: { pointerEvents: "none" }
-      },
-      "COOL"
-    ), /* @__PURE__ */ React.createElement(
-      "rect",
-      {
-        className: `therm-btn therm-btn-heat${heatActive ? " active" : ""}`,
-        x: x + w + gap,
-        y,
-        width: w,
-        height: h,
-        rx: h / 2,
-        fill: heatActive ? "rgba(249,115,22,.22)" : "rgba(255,255,255,.05)",
-        stroke: heatActive ? "#f97316" : "rgba(255,255,255,.2)",
-        strokeWidth: "1",
-        style: { cursor: "pointer" },
-        onClick: () => setHeatMode(true)
-      }
-    ), /* @__PURE__ */ React.createElement(
-      "text",
-      {
-        x: x + w + gap + w / 2,
-        y: y + h / 2,
-        textAnchor: "middle",
-        dominantBaseline: "central",
-        fontFamily: "monospace",
-        fontWeight: "700",
-        fontSize,
-        fill: heatActive ? "#f97316" : "rgba(255,255,255,.45)",
-        style: { pointerEvents: "none" }
-      },
-      "HEAT"
-    ));
+  function thermModes(isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode) {
+    const cool = { key: "cool", label: "COOL", active: !heatMode, color: "#5ba8f5", onClick: () => setHeatMode(false) };
+    if (isDualFuel) return [
+      cool,
+      { key: "hp", label: "HP", active: heatMode && heatSubMode === "hp", color: "#f97316", onClick: () => {
+        setHeatMode(true);
+        setHeatSubMode("hp");
+      } },
+      { key: "furnace", label: "FURN", active: heatMode && heatSubMode === "furnace", color: "#f97316", onClick: () => {
+        setHeatMode(true);
+        setHeatSubMode("furnace");
+      } }
+    ];
+    if (!hasFurnace) return [
+      cool,
+      { key: "hp", label: "HP", active: heatMode && heatSubMode === "hp", color: "#f97316", onClick: () => {
+        setHeatMode(true);
+        setHeatSubMode("hp");
+      } },
+      { key: "aux", label: "AUX", active: heatMode && heatSubMode === "aux", color: "#f97316", onClick: () => {
+        setHeatMode(true);
+        setHeatSubMode("aux");
+      } }
+    ];
+    return [cool, { key: "heat", label: "HEAT", active: heatMode, color: "#f97316", onClick: () => setHeatMode(true) }];
+  }
+  function ThermModeButtons({ modes, cx, y, totalW, gap, h, fontSize }) {
+    const n = modes.length;
+    const bw = (totalW - gap * (n - 1)) / n;
+    const startX = cx - totalW / 2;
+    return /* @__PURE__ */ React.createElement("g", { className: "therm-mode-btns" }, modes.map((m, i) => {
+      const bx = startX + i * (bw + gap);
+      return /* @__PURE__ */ React.createElement(React.Fragment, { key: m.key }, /* @__PURE__ */ React.createElement(
+        "rect",
+        {
+          className: `therm-btn therm-btn-${m.key}${m.active ? " active" : ""} phase-color`,
+          x: bx,
+          y,
+          width: bw,
+          height: h,
+          rx: h / 2,
+          fill: m.active ? m.key === "cool" ? "rgba(35,137,224,.22)" : "rgba(249,115,22,.22)" : "rgba(255,255,255,.05)",
+          stroke: m.active ? m.color : "rgba(255,255,255,.2)",
+          strokeWidth: "1",
+          style: { cursor: "pointer" },
+          onClick: m.onClick
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          className: "phase-color",
+          x: bx + bw / 2,
+          y: y + h / 2,
+          textAnchor: "middle",
+          dominantBaseline: "central",
+          fontFamily: "monospace",
+          fontWeight: "700",
+          fontSize,
+          fill: m.active ? m.color : "rgba(255,255,255,.45)",
+          style: { pointerEvents: "none" }
+        },
+        m.label
+      ));
+    }));
   }
   function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
     const T = (key) => partInfo(key, lang);
@@ -4017,9 +4057,12 @@
       const THERM_CONTENT_W = 116, THERM_CONTENT_L = -26;
       const THERM_MAX_SCALE = (UNIT_H - 10) / 96;
       const THERM_SCALE = THERM_IN_MARGIN ? Math.max(0.65, Math.min(THERM_MAX_SCALE, (MARGIN_L - 16) / THERM_CONTENT_W)) : 0.65;
-      const THERM_W = 64 * THERM_SCALE, THERM_H = 96 * THERM_SCALE;
+      const THERM_BTN_N = isDualFuel || !hasFurnace ? 3 : 2;
+      const THERM_ROW_W = THERM_BTN_N === 3 ? 84 : 64;
+      const THERM_W = THERM_ROW_W * THERM_SCALE, THERM_H = 96 * THERM_SCALE;
       const THERM_TX = THERM_IN_MARGIN ? Math.round(8 - THERM_CONTENT_L * THERM_SCALE) : RET_X + RET_PLEN_W + 8;
       const THERM_TY = THERM_IN_MARGIN ? Math.round(UNIT_Y + (UNIT_H - THERM_H) / 2) : DECK_Y + 12;
+      const THERM_ROW_X = THERM_TX + (32 - THERM_ROW_W / 2) * THERM_SCALE;
       const APR_X = RET_X + RET_PLEN_W + (APR_W ? 2 : 0);
       const UNIT_X = APR_X + APR_W + (APR_W ? 2 : 0);
       const FURN_X = UNIT_X;
@@ -4067,7 +4110,7 @@
           y: "0",
           width: OUTSIDE_W,
           height: VH,
-          style: { fill: outsideFill, transition: "fill .8s ease" }
+          style: { fill: outsideFill, transition: "fill 2.5s ease" }
         }
       ), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
@@ -4076,7 +4119,7 @@
           y: "0",
           width: HOUSE_W + 2,
           height: EAVE_Y,
-          style: { fill: outsideFill, transition: "fill .8s ease" }
+          style: { fill: outsideFill, transition: "fill 2.5s ease" }
         }
       ), /* @__PURE__ */ React.createElement(
         "rect",
@@ -4085,7 +4128,7 @@
           y: EAVE_Y,
           width: HOUSE_W,
           height: DECK_Y - EAVE_Y,
-          style: { fill: intFill("attic"), transition: "fill .8s ease" }
+          style: { fill: intFill("attic"), transition: "fill 2.5s ease" }
         }
       ), /* @__PURE__ */ React.createElement(
         "rect",
@@ -4094,7 +4137,7 @@
           y: DECK_Y,
           width: HOUSE_W,
           height: VH - DECK_Y,
-          style: { fill: intFill("living"), transition: "fill .8s ease" }
+          style: { fill: intFill("living"), transition: "fill 2.5s ease" }
         }
       ), /* @__PURE__ */ React.createElement(
         "line",
@@ -4482,6 +4525,7 @@
         ), active && /* @__PURE__ */ React.createElement(
           "rect",
           {
+            className: "phase-color",
             x: ACOIL_X,
             y: UNIT_Y,
             width: ACOIL_W,
@@ -4533,6 +4577,7 @@
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
+            className: "phase-color",
             x: ACOIL_X + ACOIL_W / 2 + 6,
             y: UNIT_Y - 5,
             textAnchor: "middle",
@@ -4566,6 +4611,7 @@
       ), /* @__PURE__ */ React.createElement(
         "text",
         {
+          className: "phase-color",
           x: AH_X + AH_W / 2,
           y: UNIT_Y - 16,
           textAnchor: "middle",
@@ -4577,6 +4623,7 @@
       ), /* @__PURE__ */ React.createElement(
         "text",
         {
+          className: "phase-color",
           x: AH_X + AH_W / 2,
           y: UNIT_Y - 5,
           textAnchor: "middle",
@@ -4724,12 +4771,12 @@
           {
             key,
             d,
+            pathLength: "100",
             fill: "none",
             stroke: (heatMode ? O : B) + ".85)",
             strokeWidth: "1.6",
-            strokeDasharray: "5 4",
             className: "airflow",
-            style: { strokeDashoffset: 0 },
+            style: { strokeDashoffset: 0, strokeDasharray: "16 10" },
             markerEnd: "url(#arr)"
           }
         );
@@ -4898,7 +4945,7 @@
             key: "tstat",
             style: { animationDelay: ".26s" },
             onMouseEnter: () => setHoverPart({
-              x: THERM_TX,
+              x: THERM_ROW_X,
               y: THERM_TY,
               w: THERM_W,
               h: THERM_H,
@@ -4913,7 +4960,7 @@
           /* @__PURE__ */ React.createElement(
             "rect",
             {
-              x: THERM_TX - 2,
+              x: THERM_ROW_X - 2,
               y: THERM_TY - 2,
               width: THERM_W + 4,
               height: THERM_H + 4,
@@ -5072,13 +5119,24 @@
               svgScale: SVG_SCALE,
               vw: SVG_VW,
               vh: SVG_VH,
-              x: THERM_TX - 2,
+              x: THERM_ROW_X - 2,
               y: THERM_TY - 2,
               w: THERM_W + 4,
               h: THERM_H + 4
             }
           ),
-          /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(ThermModeButtons, { x: 0, y: btnY, w: 30, h: 15, gap: 4, fontSize: 8.5, heatMode, setHeatMode }))
+          /* @__PURE__ */ React.createElement("g", { transform: `translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})` }, /* @__PURE__ */ React.createElement(
+            ThermModeButtons,
+            {
+              modes: thermModes(isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode),
+              cx: 32,
+              y: btnY,
+              totalW: THERM_ROW_W,
+              gap: 4,
+              h: 15,
+              fontSize: THERM_BTN_N === 3 ? 7.5 : 8.5
+            }
+          ))
         );
       })(), hasDehu && hasTstat && THERM_IN_MARGIN && /* @__PURE__ */ React.createElement(
         DehumidistatWall,
@@ -5335,7 +5393,7 @@
           vw: SVG_VW,
           vh: SVG_VH,
           stepId: "thermostat",
-          x: THERM_TX - 2,
+          x: THERM_ROW_X - 2,
           y: THERM_TY - 2,
           w: THERM_W + 4,
           h: THERM_H + 4
@@ -5466,7 +5524,7 @@
           y: "0",
           width: VW - HOUSE_W,
           height: VH,
-          style: { fill: outsideFill, transition: "fill .8s ease" }
+          style: { fill: outsideFill, transition: "fill 2.5s ease" }
         }
       ), /* @__PURE__ */ React.createElement(
         "rect",
@@ -5475,7 +5533,7 @@
           y: "0",
           width: hasCond ? HOUSE_W : VW,
           height: DECK_Y,
-          style: { fill: intFill("attic"), transition: "fill .8s ease" }
+          style: { fill: intFill("attic"), transition: "fill 2.5s ease" }
         }
       ), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
@@ -5484,7 +5542,7 @@
           y: "0",
           width: HOUSE_W + 2,
           height: ROOF_EAVE_Y,
-          style: { fill: outsideFill, transition: "fill .8s ease" }
+          style: { fill: outsideFill, transition: "fill 2.5s ease" }
         }
       ), /* @__PURE__ */ React.createElement(
         "rect",
@@ -5493,7 +5551,7 @@
           y: DECK_Y,
           width: UNIT_W + 56,
           height: VH - DECK_Y,
-          style: { fill: intFill("closet"), transition: "fill .8s ease" },
+          style: { fill: intFill("closet"), transition: "fill 2.5s ease" },
           stroke: W + ".05)",
           strokeWidth: "1.4"
         }
@@ -5735,12 +5793,12 @@
           {
             key,
             d,
+            pathLength: "100",
             fill: "none",
             stroke: (heatMode ? O : B) + ".85)",
             strokeWidth: "1.6",
-            strokeDasharray: "5 4",
             className: "airflow",
-            style: { strokeDashoffset: 0 },
+            style: { strokeDashoffset: 0, strokeDasharray: "16 10" },
             markerEnd: "url(#arr)"
           }
         );
@@ -5841,6 +5899,7 @@
         ), active && /* @__PURE__ */ React.createElement(
           "rect",
           {
+            className: "phase-color",
             x: UNIT_X,
             y: ACOIL_Y,
             width: UNIT_W,
@@ -5955,27 +6014,28 @@
         )), hasCond && !hasFurnace && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "path",
           {
+            className: "draw phase-color",
             d: `M${UNIT_X + UNIT_W} ${LS_Y1} L${UNIT_X + UNIT_W + 28} ${LS_Y1}`,
             fill: "none",
             stroke: active ? evapC : "rgba(32,32,52,.5)",
             strokeWidth: "2.8",
-            strokeLinecap: "round",
-            className: "draw"
+            strokeLinecap: "round"
           }
         ), /* @__PURE__ */ React.createElement(
           "path",
           {
+            className: "draw phase-color",
             d: `M${UNIT_X + UNIT_W} ${LS_Y2} L${UNIT_X + UNIT_W + 28} ${LS_Y2}`,
             fill: "none",
             stroke: active ? evapC2 : "rgba(32,32,52,.4)",
             strokeWidth: "2.8",
             strokeLinecap: "round",
-            className: "draw",
             style: { animationDelay: ".08s" }
           }
         ), active && /* @__PURE__ */ React.createElement(
           "text",
           {
+            className: "phase-color",
             x: UNIT_X + UNIT_W + 14,
             y: LS_Y1 - 8,
             textAnchor: "middle",
@@ -5987,6 +6047,7 @@
         )), /* @__PURE__ */ React.createElement(
           "text",
           {
+            className: "phase-color",
             x: UNIT_X + UNIT_W / 2,
             y: ACOIL_Y - 6,
             textAnchor: "middle",
@@ -5998,6 +6059,7 @@
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
+            className: "phase-color",
             x: UNIT_X + UNIT_W / 2,
             y: hasFurnace ? ACOIL_Y + ACOIL_H + APR_H + 27 : ACOIL_Y + 20,
             textAnchor: "middle",
@@ -6699,6 +6761,9 @@
         const btnY = isProprietaryC ? TY + 90 : isWifiC ? TY + 93 : TY + 65;
         const showRangeC = heatMode && isMildHp;
         const tempDisplayC = showRangeC ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
+        const THERM_BTN_N_C = isDualFuel || !hasFurnace ? 3 : 2;
+        const THERM_ROW_W_C = THERM_BTN_N_C === 3 ? 96 : 76;
+        const THERM_ROW_X_C = TX + 38 - THERM_ROW_W_C / 2;
         return /* @__PURE__ */ React.createElement(
           "g",
           {
@@ -6706,9 +6771,9 @@
             key: "tstat-c",
             style: { animationDelay: ".26s" },
             onMouseEnter: () => setHoverPart({
-              x: TX,
+              x: THERM_ROW_X_C,
               y: TY,
-              w: 76,
+              w: THERM_ROW_W_C,
               h: 70,
               vw: SVG_VW,
               vh: SVG_VH,
@@ -6721,9 +6786,9 @@
           /* @__PURE__ */ React.createElement(
             "rect",
             {
-              x: TX - 2,
+              x: THERM_ROW_X_C - 2,
               y: TY - 2,
-              width: 82,
+              width: THERM_ROW_W_C + 6,
               height: 116,
               fill: "transparent",
               style: { pointerEvents: "all" }
@@ -6879,13 +6944,24 @@
               svgScale: SVG_SCALE,
               vw: SVG_VW,
               vh: SVG_VH,
-              x: TX - 2,
+              x: THERM_ROW_X_C - 2,
               y: TY - 2,
-              w: 82,
+              w: THERM_ROW_W_C + 6,
               h: 116
             }
           ),
-          /* @__PURE__ */ React.createElement(ThermModeButtons, { x: TX, y: btnY, w: 36, h: 17, gap: 4, fontSize: 9.5, heatMode, setHeatMode })
+          /* @__PURE__ */ React.createElement(
+            ThermModeButtons,
+            {
+              modes: thermModes(isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode),
+              cx: TX + 38,
+              y: btnY,
+              totalW: THERM_ROW_W_C,
+              gap: 4,
+              h: 17,
+              fontSize: THERM_BTN_N_C === 3 ? 8.5 : 9.5
+            }
+          )
         );
       })(), hasDehu && hasTstat && (() => {
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;
@@ -7017,9 +7093,9 @@
             vw: SVG_VW,
             vh: SVG_VH,
             stepId: "thermostat",
-            x: UNIT_X + UNIT_W + 16 + (EXT_WALL_X - 16 - (UNIT_X + UNIT_W + 16)) / 2 - 40,
+            x: UNIT_X + UNIT_W + 16 + (EXT_WALL_X - 16 - (UNIT_X + UNIT_W + 16)) / 2 - 38 - (isDualFuel || !hasFurnace ? 96 : 76) / 2 - 2,
             y: (hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2) - 40,
-            w: 82,
+            w: (isDualFuel || !hasFurnace ? 96 : 76) + 6,
             h: 116
           }
         ), /* @__PURE__ */ React.createElement(

@@ -323,10 +323,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    its mid-pulse brightness; gpulse then takes over, delayed to start right
    where glowIn leaves off (opacity .5) so there's no visible seam between
    the two. The always-running pulse itself is unchanged. */
-.glow-pulse{animation:glowIn .22s ease-out both,gpulse 2.5s ease-in-out .22s infinite;pointer-events:none}
+.glow-pulse{animation:glowIn .22s ease-out both,gpulse 2.5s ease-in-out .22s infinite;pointer-events:none;transition:fill 2.5s ease-in-out}
 @keyframes glowIn{from{opacity:0}to{opacity:.5}}
 @keyframes gpulse{0%,100%{opacity:.5}50%{opacity:1}}
-.line-pulse{animation:gpulse 2.2s ease-in-out infinite;pointer-events:none}
+.line-pulse{animation:gpulse 2.2s ease-in-out infinite;pointer-events:none;transition:stroke 2.5s ease-in-out}
+/* Mode-toggle (cool/heat pump/aux heat) "phase change" - color-driven
+   parts (condenser body/text, coil colors, refrigerant labels) ease
+   between states over the same ~2.5s window as the weather/sky fade
+   below instead of snapping, so flipping the preview reads as a
+   transition happening rather than a full redraw. */
+.phase-color{transition:fill 2.5s ease-in-out,stroke 2.5s ease-in-out}
 /* prefers-reduced-motion - the diagram runs several purely-decorative,
    NEVER-ending loops (a fan literally spinning forever, a refrigerant
    line's opacity pulsing forever, a duct's dashed flow arrow marching
@@ -352,6 +358,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .rain-drop,.rain-splash,.snow-flake{display:none!important}
   .glow-pulse{animation:glowIn .22s ease-out both!important}
   .step-focus-ring{animation:glowIn .3s ease-out both!important}
+  .phase-color,.line-pulse,.glow-pulse{transition:none!important}
 }
 /* Done-screen diagram is clickable - hover reveals which piece each
    component maps back to, so "edit this" doesn't require finding it in a list.
@@ -391,7 +398,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .therm-btn:not(.active){opacity:.6}
 .therm-btn:hover{opacity:1}
 .therm-btn-cool:hover{filter:drop-shadow(0 0 2.5px rgba(91,168,245,.95)) drop-shadow(0 0 1px rgba(91,168,245,.95))}
-.therm-btn-heat:hover{filter:drop-shadow(0 0 2.5px rgba(249,115,22,.95)) drop-shadow(0 0 1px rgba(249,115,22,.95))}
+.therm-btn-heat:hover,.therm-btn-hp:hover,.therm-btn-furnace:hover,.therm-btn-aux:hover{filter:drop-shadow(0 0 2.5px rgba(249,115,22,.95)) drop-shadow(0 0 1px rgba(249,115,22,.95))}
 /* Generic "what is this" hover tooltip (HoverInfo/HoverCtx/HoverPanel in
    canvas.js) - every individually-hoverable diagram part, in both the
    wizard and the done screen, at all times (not gated behind the diagram
