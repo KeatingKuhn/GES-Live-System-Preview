@@ -305,7 +305,19 @@ function App(){
   // straight to the previous build's stale price/result panel (or a
   // mid-sizing sub-step) instead of the ordinary review grid with a
   // fresh "Get Pricing" button, the first time it was reached.
-  const pickLocation=loc=>{trackEvent('wizard_started',{location:loc});setA("location",loc);setStepIdx(1);setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});};
+  // QA FIX - this used to only setA("location",loc), merging the new
+  // location into whatever `answers` already held instead of starting a
+  // clean build. That's invisible the very first time (answers is already
+  // the bare defaultAnswers() then), but repro: start an Attic build, pick
+  // Furnace, back out all the way to the splash screen (fully reachable
+  // mid-build via the wizard's own Back button, not just Start Over), then
+  // pick Closet Upflow instead. indoor_type has no per-location showIf, so
+  // the brand-new Closet build's very first question landed with "Furnace"
+  // already selected - a real leftover answer from the abandoned Attic
+  // build, not a default. Resetting the whole answers object here (same
+  // defaultAnswers() restart() already uses) means every pickLocation
+  // always starts genuinely clean.
+  const pickLocation=loc=>{trackEvent('wizard_started',{location:loc});setAnswers({...defaultAnswers(),location:loc});setStepIdx(1);setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});};
   const sel=id=>answers[id];
   const msel=id=>Array.isArray(answers[id])?answers[id]:[];
   const setA=(k,v)=>setAnswers(p=>{
@@ -1596,7 +1608,17 @@ function App(){
                             into the duct-replacement line item and the headline
                             total with no warning - a QA pass caught a typo'd
                             vent count silently producing a 6-figure estimate. */}
-                        <input type="number" min="1" max="40" value={pricingAnswers.ventCount||''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.min(40,Math.max(0,parseInt(e.target.value)||0))}))}
+                        {/* QA FIX - value used `||''` to show a blank field
+                            before anything's typed, but 0 is itself a valid
+                            (if not yet submittable, min="1") clamped result -
+                            `0||''` is also '', so typing "0" outright, or a
+                            negative number the clamp above rounds down to 0,
+                            silently blanked the field back out on the very
+                            keystroke that set it - LOOKS like the keystroke
+                            never registered, not like an invalid value was
+                            clamped. `??` only falls back to '' for the
+                            genuine unset case (undefined). */}
+                        <input type="number" min="1" max="40" value={pricingAnswers.ventCount??''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.min(40,Math.max(0,parseInt(e.target.value)||0))}))}
                           className={"pricing-input"+(isAtticMode?" compact":"")}/>
                       </div>}
                     </div>}
@@ -1854,7 +1876,24 @@ function App(){
               {/* Q14 - mailto: link, no backend. Body built fresh per-click
                   via buildEmailHref() above. */}
               <a href={buildEmailHref()} onClick={()=>trackEvent('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box"}}>✉ {tr('Email My Build','Enviar por Correo')}</a>
-              <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);}}>‹ {tr('Back','Atrás')}</button>
+              {/* QA FIX - this drops back into the wizard's last step, same
+                  as goBack's own "past step 1" branch and pickLocation/
+                  restart/cancelQuickEdit all do - but unlike every one of
+                  those, it never went through goBack() and never reset
+                  pricingFlow/pricingSubStep/pricingAnswers. Repro: finish a
+                  build, Get Pricing, pick a tonnage, Get My Estimate, then
+                  click this Back button, change an earlier answer (e.g. the
+                  efficiency tier, which can invalidate the tonnage already
+                  picked), and walk forward to Finish again WITHOUT touching
+                  pricing - it skipped the review grid entirely and dropped
+                  straight back onto the old 'result' screen, silently
+                  pricing whatever fallback tonnage calcEstimate defaults to
+                  for a no-longer-valid tonnageChoice. Resetting here
+                  (mirroring pickLocation's own reset of these same three
+                  pieces of state) means re-finishing the build always lands
+                  back on the plain review grid with a fresh Get Pricing
+                  button. */}
+              <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});}}>‹ {tr('Back','Atrás')}</button>
               <button className="quick-restart-btn" style={{width:"100%",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",padding:"9px"}} onClick={restart}>{tr('Start Over','Empezar de Nuevo')}</button>
             </div>
           </div>
