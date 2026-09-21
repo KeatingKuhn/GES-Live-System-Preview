@@ -7338,11 +7338,11 @@
         // way), but the row drops the AFUE suffix since there's no furnace
         // for it to describe.
         answers.furnace_eff ? { step: "insulation", label: tr("Insulation", "Aislamiento"), val: answers.indoor_type === "furnace" ? answers.furnace_eff === "e90" ? tr("Spray foam - 90% AFUE", "Espuma aislante - 90% AFUE") : tr("Fiberglass - 80% AFUE", "Fibra de vidrio - 80% AFUE") : answers.furnace_eff === "e90" ? tr("Spray foam", "Espuma aislante") : tr("Fiberglass", "Fibra de vidrio") } : null,
-        { step: "plenum", label: tr("Plenum", "Plenum"), val: answers.plenum === "ductboard" ? tr("New ductboard plenum", "Nuevo plenum de ductboard") : answers.plenum === "metal" ? tr("New sheet metal plenum", "Nuevo plenum de l\xE1mina met\xE1lica") : answers.plenum === "none" ? tr("Keep existing plenum", "Conservar plenum actual") : null },
+        { step: "plenum", label: tr("Plenum", "Plenum"), val: answers.plenum === "ductboard" ? tr("New ductboard plenum", "Nuevo plenum de ductboard") : answers.plenum === "metal" ? tr("New sheet metal plenum", "Nuevo plenum de l\xE1mina met\xE1lica") : answers.plenum === "none" ? tr("Keep existing plenum", "Conservar el plenum actual") : null },
         {
           step: "thermostat",
           label: tr("Thermostat", "Termostato"),
-          val: answers.thermostat === "wifi" ? tr("Wi-Fi smart thermostat", "Termostato inteligente Wi-Fi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Communicating thermostat", "Termostato comunicante") : null,
+          val: answers.thermostat === "wifi" ? tr("Wi-Fi smart thermostat", "Termostato inteligente Wi-Fi") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Communicating Thermostat", "Termostato comunicante") : null,
           short: answers.thermostat === "wifi" ? tr("Wi-Fi smart t-stat", "Wi-Fi inteligente") : answers.thermostat === "basic" ? tr("Basic programmable", "Programable b\xE1sico") : answers.thermostat === "proprietary" ? tr("Communicating t-stat", "Comunicante") : null
         },
         Array.isArray(answers.purif) && answers.purif.length > 0 ? {
