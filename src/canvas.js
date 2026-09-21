@@ -1139,10 +1139,20 @@ const PART_INFO={
     es:{title:'SUMINISTRO DEDICADO',text:"Envía el aire deshumidificado directamente a su propia rejilla en el tablaroca cercano, en lugar de conectarse al tronco de suministro principal."}},
   lineset:{en:{title:'LINE SET',text:"The two insulated copper lines carrying refrigerant between the indoor coil and the outdoor condenser."},
     es:{title:'LÍNEAS DE REFRIGERANTE',text:"Las dos líneas de cobre aisladas que transportan refrigerante entre el serpentín interior y el condensador exterior."}},
-  condensate_drain:{en:{title:'CONDENSATE DRAIN',text:"Carries the water that condenses off the coil safely out of the house, the same way a window A/C drips outside."},
-    es:{title:'DRENAJE DE CONDENSADO',text:"Lleva el agua que se condensa en el serpentín de forma segura fuera de la casa, igual que un A/C de ventana gotea al exterior."}},
+  condensate_drain:{en:{title:'CONDENSATE DRAIN',text:"Carries the water that condenses off the coil safely out of the house - into a P-trap under a sink, near your outdoor condenser, or another suitable drain point."},
+    es:{title:'DRENAJE DE CONDENSADO',text:"Lleva el agua que se condensa en el serpentín de forma segura fuera de la casa - a un sifón bajo un lavabo, cerca de su condensador exterior, u otro punto de drenaje adecuado."}},
   insulation:{en:{title:'ATTIC INSULATION',text:"Keeps conditioned air at the right temperature instead of leaking it away through the attic above your ductwork."},
     es:{title:'AISLAMIENTO DEL ÁTICO',text:"Mantiene el aire acondicionado a la temperatura correcta en lugar de perderlo a través del ático sobre sus ductos."}},
+  flue_pipe:{en:{title:'FLUE PIPE',text:"Vents the furnace's combustion gases safely outside, away from the air you breathe."},
+    es:{title:'TUBO DE ESCAPE',text:"Ventila los gases de combustión del horno de forma segura hacia el exterior, lejos del aire que usted respira."}},
+  gas_line:{en:{title:'GAS LINE',text:"Feeds natural gas to the furnace, with a shutoff valve and a drip leg to catch sediment before it reaches the gas valve."},
+    es:{title:'LÍNEA DE GAS',text:"Alimenta gas natural al horno, con una válvula de cierre y un colector de sedimentos antes de llegar a la válvula de gas."}},
+  service_switch:{en:{title:'SERVICE SWITCH',text:"Lets a technician cut power to the blower and control board before servicing the indoor unit, separate from the condenser's outdoor disconnect."},
+    es:{title:'INTERRUPTOR DE SERVICIO',text:"Permite a un técnico cortar la energía al motor soplador y la tarjeta de control antes de dar servicio a la unidad interior, aparte de la desconexión exterior del condensador."}},
+  ionizer:{en:{title:'IONIZER',text:"Releases charged ions into the airstream that attach to dust, allergens, and odors so they clump and get caught by your filter."},
+    es:{title:'IONIZADOR',text:"Libera iones cargados en la corriente de aire que se adhieren al polvo, alérgenos y olores para que se agrupen y sean atrapados por su filtro."}},
+  uv_light:{en:{title:'UV LIGHT',text:"A germicidal bulb mounted at the coil that kills mold and bacteria growing on it, keeping the coil clean and your airflow odor-free."},
+    es:{title:'LUZ UV',text:"Una lámpara germicida montada en el serpentín que elimina el moho y las bacterias que crecen en él, manteniendo el serpentín limpio y el flujo de aire libre de olores."}},
 };
 // lang defaults to English whenever a call site hasn't been threaded a
 // lang prop (per the task's "don't crash if undefined" guidance) - falls
@@ -1648,17 +1658,21 @@ function ACoilH({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
     {/* UV rod - centered exactly in the > coil:
         horizontal midline = y+h/2, depth center = x + w*0.45
         rod runs horizontal, length ~9" at scale (46px) */}
-    {hasUV&&(()=>{
-      const rodLen=Math.min(w*0.70, w-12);
-      const rodCX=x+w*0.48;
-      const rodCY=y+h/2;
-      return <UVRod x={rodCX-rodLen/2} y={rodCY} len={rodLen}/>;
-    })()}
+    {hasUV&&<UVRod x={x+w*0.48-Math.min(w*0.70,w-12)/2} y={y+h/2} len={Math.min(w*0.70,w-12)}/>}
     {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
         reasoning as BlowerWheel's own hover above. */}
     <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={vw} vh={vh}
       title={partInfo(infoKey,lang).title} text={partInfo(infoKey,lang).text}
       onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+    {/* UV-specific hover, painted AFTER (so it wins hover priority over)
+        the whole-coil hover just above, matching the ringPath/priority
+        convention used elsewhere in this file - otherwise hovering
+        directly over the rod just showed the generic A-coil copy. */}
+    {hasUV&&(()=>{
+      const rodLen=Math.min(w*0.70,w-12), rodCX=x+w*0.48, rodCY=y+h/2;
+      return <HoverInfo x={rodCX-rodLen/2-4} y={rodCY-6} w={rodLen+8} h={16} rx={3}
+        vw={vw} vh={vh} title={partInfo('uv_light',lang).title} text={partInfo('uv_light',lang).text}/>;
+    })()}
   </g>;
 }
 
@@ -1727,6 +1741,13 @@ function ACoilV({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
     <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={vw} vh={vh}
       title={partInfo(infoKey,lang).title} text={partInfo(infoKey,lang).text}
       onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+    {/* UV-specific hover, painted AFTER the whole-coil hover just above
+        so it wins - see ACoilH's own comment on this same pattern. */}
+    {hasUV&&(()=>{
+      const rodCX=x+w*0.5, rodLen2=Math.min(h*0.75,h-12), rodCY=y+h/2;
+      return <HoverInfo x={rodCX-8} y={rodCY-rodLen2/2-4} w={16} h={rodLen2+8} rx={3}
+        vw={vw} vh={vh} title={partInfo('uv_light',lang).title} text={partInfo('uv_light',lang).text}/>;
+    })()}
   </g>;
 }
 
@@ -1849,20 +1870,29 @@ function FurnaceH({x,y,w,h,active,roofY,onEditStep,lang,vw,vh,blowerActive,is90,
       // fixed defensively even though this specific vertical run, unlike
       // the closet layout's routed flue below, doesn't currently cross
       // any other hover zone).
-      return <g style={{pointerEvents:'none'}}>
-        {/* Flue pipe - from top of furnace up through the roof, stopping
-            just above the roofline instead of shooting up toward the
-            top of the canvas. */}
-        <rect x={fX-pW/2} y={pipeTop} width={pW} height={Math.max(0,y-pipeTop)} rx="1"
-          fill={pC} stroke={pS} strokeWidth="0.7"/>
-        {/* Cap at top (visible just above the roofline) */}
-        {is90
-          ?<rect x={fX-pW-1} y={pipeTop} width={pW*2+2} height={5} rx="1" fill={pC} stroke={pS} strokeWidth="0.7"/>
-          :<path d={'M'+(fX-pW-2)+' '+(pipeTop+5)+' L'+fX+' '+(pipeTop-3)+' L'+(fX+pW+2)+' '+(pipeTop+5)} fill={pC} stroke={pS} strokeWidth="0.5"/>
-        }
-        <text x={fX+6} y={y-8} textAnchor="start"
-          fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
-      </g>;
+      const flueD=`M${fX} ${y} L${fX} ${pipeTop}`;
+      return <>
+        <g style={{pointerEvents:'none'}}>
+          {/* Flue pipe - from top of furnace up through the roof, stopping
+              just above the roofline instead of shooting up toward the
+              top of the canvas. */}
+          <rect x={fX-pW/2} y={pipeTop} width={pW} height={Math.max(0,y-pipeTop)} rx="1"
+            fill={pC} stroke={pS} strokeWidth="0.7"/>
+          {/* Cap at top (visible just above the roofline) */}
+          {is90
+            ?<rect x={fX-pW-1} y={pipeTop} width={pW*2+2} height={5} rx="1" fill={pC} stroke={pS} strokeWidth="0.7"/>
+            :<path d={'M'+(fX-pW-2)+' '+(pipeTop+5)+' L'+fX+' '+(pipeTop-3)+' L'+(fX+pW+2)+' '+(pipeTop+5)} fill={pC} stroke={pS} strokeWidth="0.5"/>
+          }
+          <text x={fX+6} y={y-8} textAnchor="start"
+            fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
+        </g>
+        {/* Flue hover - this run doesn't cross any other hover zone (see
+            this block's own comment above), so it's safe to hit-test the
+            whole pipe, unlike the closet layout's routed equivalent. */}
+        <HoverInfo x={fX-pW/2-4} y={pipeTop-2} w={pW+8} h={Math.max(0,y-pipeTop)+4} rx={2}
+          vw={vw} vh={vh} title={partInfo('flue_pipe',lang).title} text={partInfo('flue_pipe',lang).text}
+          ringPath={flueD} ringStrokeWidth={pW+6}/>
+      </>;
     })()}
     {isComm&&<><rect x={x+4} y={y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={x+7} y={y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">COMMUNICATING</text></>}
     <rect x={mid+4} y={y+11} width={36} height="8" rx="2" fill={is90?"rgba(35,137,224,.13)":(G+'.07)')} stroke={is90?(B+'.24)'):(G+'.16)')} strokeWidth="0.5"/>
@@ -3050,6 +3080,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // return value a caller here could reuse directly. Every one of these
   // forwards its click to the identical onEditStep('indoor_type'/
   // 'cond_tier') call the enclosing EditZone itself already makes.
+  // UV-specific hover, shared by both branches below - reused as-is once
+  // the done screen's own EditZone/indoorSubHoversH exists (see this
+  // function's own call site comment): that EditZone's A-COIL sub-hover
+  // is painted AFTER ACoilH's own internal hovers (this whole function
+  // is EditZone's `children`, rendered later in the JSX tree than the
+  // A-coil/AirHandlerH block above it), so on the done screen it silently
+  // wins back over ACoilH's own UV-specific hover underneath - confirmed
+  // via a hover sweep (hovering the UV rod there showed "A-COIL", not
+  // "UV LIGHT"). Needs its own entry here, in the same coordinate space
+  // ACoilH's caller actually renders it in (x+8/y+12/w-16/h-20 for the
+  // furnace branch, x+9/y+12/w-19/h-22 for AirHandlerH's own embedded
+  // call - see each one's own call site for those exact offsets).
+  const uvHoverH=(cx,cy,cw,ch)=>{
+    if(!hasUV)return null;
+    const rodLen=Math.min(cw*0.70,cw-12), rodCX=cx+cw*0.48, rodCY=cy+ch/2;
+    return <HoverInfo x={rodCX-rodLen/2-4} y={rodCY-6} w={rodLen+8} h={16} rx={3} vw={SVG_VW} vh={SVG_VH}
+      title={T('uv_light').title} text={T('uv_light').text}/>;
+  };
   const indoorSubHoversH=(hasFurnaceLocal,FURN_X,FURN_W,ACOIL_X,ACOIL_W,AH_X,AH_W,UNIT_Y,UNIT_H)=>{
     const go=()=>onEditStep('indoor_type');
     if(hasFurnaceLocal){
@@ -3065,6 +3113,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           title={T('afue_badge').title} text={T('afue_badge').text} onClick={go}/>
         <HoverInfo x={ACOIL_X} y={UNIT_Y} w={ACOIL_W} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
           title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
+        {uvHoverH(ACOIL_X+8,UNIT_Y+12,ACOIL_W-16,UNIT_H-20)}
       </>;
     }
     return <>
@@ -3074,6 +3123,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
         title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
       <HoverInfo x={AH_X+AH_W*0.5} y={UNIT_Y} w={AH_W*0.5} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
         title={T('blower').title} text={T('blower').text} onClick={go}/>
+      {uvHoverH(AH_X+9,UNIT_Y+12,AH_W*0.5-19,UNIT_H-22)}
     </>;
   };
   // Closet/vertical equivalent - furnace sits BELOW the A-coil (HX on top
@@ -3082,8 +3132,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // top with the A-coil at the bottom (closest to the return, per that
   // block's own comment) - reversed order from the attic air handler's
   // left-right split, so this can't just reuse indoorSubHoversH.
+  // Vertical counterpart of uvHoverH above - same "done screen's own
+  // EditZone sub-hover otherwise wins back over ACoilV's own UV hover"
+  // reasoning, using ACoilV's own rodCX/rodCY/rodLen formula (vertical
+  // rod) instead of ACoilH's horizontal one.
+  const uvHoverV=(cx,cy,cw,ch)=>{
+    if(!hasUV)return null;
+    const rodCX=cx+cw*0.5, rodLen2=Math.min(ch*0.75,ch-12), rodCY=cy+ch/2;
+    return <HoverInfo x={rodCX-8} y={rodCY-rodLen2/2-4} w={16} h={rodLen2+8} rx={3} vw={SVG_VW} vh={SVG_VH}
+      title={T('uv_light').title} text={T('uv_light').text}/>;
+  };
   const indoorSubHoversV=(hasFurnaceLocal,UNIT_X,UNIT_W,ACOIL_Y,ACOIL_H,FURN_Y,FURN_H)=>{
     const go=()=>onEditStep('indoor_type');
+    // Mirrors COIL_BOX_Y/COIL_BOX_H's own formula (see that block's own
+    // comment) - ACoilV's real position/size differs by hasFurnaceLocal.
+    const coilBoxY=hasFurnaceLocal?ACOIL_Y+14:ACOIL_Y+ACOIL_H*0.58;
+    const coilBoxH=hasFurnaceLocal?ACOIL_H-28:ACOIL_H*0.38;
     if(hasFurnaceLocal){
       return <>
         <HoverInfo x={UNIT_X} y={ACOIL_Y} w={UNIT_W} h={ACOIL_H} rx={5} vw={SVG_VW} vh={SVG_VH}
@@ -3096,6 +3160,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           title={T('afue_badge').title} text={T('afue_badge').text} onClick={go}/>
         <HoverInfo x={UNIT_X} y={FURN_Y+FURN_H/2} w={UNIT_W} h={FURN_H/2} rx={5} vw={SVG_VW} vh={SVG_VH}
           title={T('blower').title} text={T('blower').text} onClick={go}/>
+        {uvHoverV(UNIT_X+8,coilBoxY,UNIT_W-16,coilBoxH)}
       </>;
     }
     return <>
@@ -3105,6 +3170,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
         title={T('blower').title} text={T('blower').text} onClick={go}/>
       <HoverInfo x={UNIT_X} y={ACOIL_Y+ACOIL_H*0.5} w={UNIT_W} h={ACOIL_H*0.5} rx={5} vw={SVG_VW} vh={SVG_VH}
         title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
+      {uvHoverV(UNIT_X+8,coilBoxY,UNIT_W-16,coilBoxH)}
     </>;
   };
   // Condenser's own fan/compressor/SEER sub-hovers, shared by both layout
@@ -4053,17 +4119,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               54) on every gas appliance connection: a tee with a short
               capped nipple hanging straight down catches sediment/
               condensate by gravity before it reaches the furnace's own gas
-              valve. Riser sits at 0.15*FURN_W, clear of the blower graphic
-              above it (which is drawn mid-cabinet, not at the bottom edge
-              this enters through) and well left of the centered FURNACE/
-              STANDBY label below the cabinet. Runs down to DECK_Y, the
-              same attic-floor line the thermostat's own margin column and
-              the condensate drain both reference, since that's where the
+              valve. Riser sits at 0.85*FURN_W, under the heat exchanger
+              (right half of the cabinet) and well right of the centered
+              FURNACE/STANDBY label below the cabinet - mirrored from its
+              old 0.15*FURN_W spot (now the service switch's, just below)
+              per direct feedback. Runs down to DECK_Y, the same attic-
+              floor line the thermostat's own margin column and the
+              condensate drain both reference, since that's where the
               home's actual gas piping would come up from. */}
           {hasCoil&&hasFurnace&&(()=>{
-            const gasX=FURN_X+FURN_W*0.15;
+            const gasX=FURN_X+FURN_W*0.85;
             const gasTopY=UNIT_Y+UNIT_H;
             const teeY=gasTopY+38, valveY=gasTopY+65;
+            const gasD=`M${gasX} ${gasTopY} L${gasX} ${DECK_Y}`;
             return <g className="snap" style={{animationDelay:'.14s'}}>
               <line x1={gasX} y1={DECK_Y} x2={gasX} y2={gasTopY} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
               <line x1={gasX} y1={DECK_Y} x2={gasX} y2={gasTopY} stroke="#5a5a5a" strokeWidth="1" strokeLinecap="round"/>
@@ -4076,6 +4144,34 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <rect x={gasX-3.5} y={teeY+11} width="7" height="3.5" rx="1" fill="#242424" stroke="#5a5a5a" strokeWidth="0.5"/>
               <text x={gasX+10} y={teeY+15} textAnchor="start" fill="rgba(180,180,180,.5)" fontSize="8" fontFamily="monospace">DRIP LEG</text>
               <text x={gasX} y={DECK_Y+14} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="11" fontFamily="monospace">GAS</text>
+              <HoverInfo x={gasX-11} y={gasTopY-2} w={22} h={DECK_Y-gasTopY+18} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}
+                ringPath={gasD} ringStrokeWidth={9}/>
+            </g>;
+          })()}
+
+          {/* Furnace service disconnect - a 120V single-pole switch (often
+              just a household light switch) that lets a tech kill power to
+              the blower/control board before servicing, separate from the
+              240V condenser DISC. box outside. Takes the gas line's old
+              spot (0.15*FURN_W, below the blower, clear of both the blower
+              graphic and the centered FURNACE/STANDBY label) - see the gas
+              line's own comment above for why they swapped sides. Mirrors
+              the closet layout's own service-switch plate design. */}
+          {hasCoil&&hasFurnace&&(()=>{
+            const swX=FURN_X+FURN_W*0.15;
+            const swTopY=UNIT_Y+UNIT_H;
+            const plateW=16, plateH=26, plateY=swTopY+38+plateH/2;
+            return <g className="snap" style={{animationDelay:'.16s'}}>
+              <line x1={swX} y1={swTopY} x2={swX} y2={plateY-plateH/2} stroke="#3a3a3a" strokeWidth="2" strokeLinecap="round"/>
+              <rect x={swX-plateW/2} y={plateY-plateH/2} width={plateW} height={plateH} rx="2"
+                fill="#e8e4da" stroke="#8a8578" strokeWidth="0.8"/>
+              <rect x={swX-2.6} y={plateY-8} width="5.2" height="11" rx="1.4"
+                fill="#2a2a2a" stroke="#555" strokeWidth="0.5"/>
+              <text x={swX} y={plateY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">SERVICE</text>
+              <text x={swX} y={plateY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">SWITCH</text>
+              <HoverInfo x={swX-plateW/2-3} y={plateY-plateH/2-3} w={plateW+6} h={plateH+22} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('service_switch').title} text={T('service_switch').text}/>
             </g>;
           })()}
 
@@ -4230,6 +4326,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <line x1={ionX} y1={plenTop} x2={ionX} y2={plenTop+ionRodLen} stroke="rgba(253,224,71,.8)" strokeWidth={2} strokeLinecap="round"/>
                     <circle cx={ionX} cy={plenTop+ionRodLen} r={2.5} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
                     <text x={ionX+14} y={ionBulbY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="11" fontFamily="monospace">IONIZER</text>
+                    <HoverInfo x={ionX-14} y={ionBulbY-14} w={28} h={plenTop+ionRodLen-(ionBulbY-14)+6} rx={3}
+                      vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
                   </g>;
                 })()}
               </>;
@@ -4812,28 +4910,59 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               now, unconditionally. */}
           {hasCoil&&<g key="attic-drain">
             {(()=>{
-              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.60);
+              // QA FIX - the no-furnace (air handler) branch's old 0.60
+              // fraction landed inside the BLOWER section of AirHandlerH
+              // (coil occupies its left 50%, blower the next 35% - see
+              // that component's own coilW/blowerW split), reading as the
+              // drain hanging off the blower instead of the coil that
+              // actually produces the condensate. Moved to 0.22, inside
+              // the coil's own span, mirroring the furnace branch's
+              // 0.12-of-the-coil-width convention just to its left.
+              const coilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.22);
               const drainTopY=UNIT_Y+UNIT_H+4;
+              const drainD=`M${coilCX} ${drainTopY} L${coilCX} ${DECK_Y+20}`;
               return <>
                 <line x1={coilCX} y1={drainTopY} x2={coilCX} y2={DECK_Y+20}
                   stroke={B+'.35)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
                 <text x={coilCX+7} y={DECK_Y+14} textAnchor="start"
                   fill={B+'.35)'} fontSize="12" fontFamily="monospace">DRAIN</text>
-                {/* QA FIX - was 80 wide (a leftover from when this box also
-                    had to reach sideways to a condensate pump, now removed
-                    - see this block's own comment). For a straight 1.5px
-                    dashed line that read as a huge gold hover box floating
-                    well past the line on both sides, swallowing whatever
-                    diagram content happened to sit under it (direct
-                    feedback: "big ass box"). Narrowed to hug the line
-                    itself, same width convention every other straight
-                    duct/line hover in this file uses. No EditZone covers
-                    this - free-standing hover, no onClick. */}
+                {/* QA FIX - a narrowed rect alone (was 80 units wide, then
+                    20) still drew a fatter gold ring than the closet
+                    layout's own drain hover, which traces the actual line
+                    with ringPath+ringStrokeWidth instead of a plain rect
+                    ring. Matched that same treatment here: rect stays a
+                    loose hit-box (fine for hit-testing), ringPath makes the
+                    visible ring hug the 1.5px line itself. No EditZone
+                    covers this - free-standing hover, no onClick. */}
                 <HoverInfo x={coilCX-10} y={drainTopY-4} w={20} h={DECK_Y+20-drainTopY+8} rx={3}
-                  vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}/>
+                  vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                  ringPath={drainD} ringStrokeWidth={8}/>
               </>;
             })()}
           </g>}
+
+          {/* Air-handler (no-furnace) service disconnect - the furnace
+              branch gets its own service switch below the blower (see the
+              gas-line block's own comment on that swap); this is the same
+              part for the no-furnace air-handler cabinet, positioned below
+              ITS blower (coilW..coilW+blowerW band in AirHandlerH, i.e.
+              AH_W*0.50 to AH_W*0.85 - center at 0.675). */}
+          {hasCoil&&!hasFurnace&&(()=>{
+            const swX=AH_X+AH_W*0.675;
+            const swTopY=UNIT_Y+UNIT_H;
+            const plateW=16, plateH=26, plateY=swTopY+38+plateH/2;
+            return <g className="snap" style={{animationDelay:'.16s'}}>
+              <line x1={swX} y1={swTopY} x2={swX} y2={plateY-plateH/2} stroke="#3a3a3a" strokeWidth="2" strokeLinecap="round"/>
+              <rect x={swX-plateW/2} y={plateY-plateH/2} width={plateW} height={plateH} rx="2"
+                fill="#e8e4da" stroke="#8a8578" strokeWidth="0.8"/>
+              <rect x={swX-2.6} y={plateY-8} width="5.2" height="11" rx="1.4"
+                fill="#2a2a2a" stroke="#555" strokeWidth="0.5"/>
+              <text x={swX} y={plateY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">SERVICE</text>
+              <text x={swX} y={plateY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">SWITCH</text>
+              <HoverInfo x={swX-plateW/2-3} y={plateY-plateH/2-3} w={plateW+6} h={plateH+22} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('service_switch').title} text={T('service_switch').text}/>
+            </g>;
+          })()}
 
           {/* Insulation label (SPRAY FOAM - SEALED ATTIC / FIBERGLASS
               INSULATION) - moved off the ridge (RIDGE_X/RIDGE_Y+24 used to
@@ -5352,6 +5481,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <line x1={UNIT_X+PLEN_W} y1={rodY} x2={rodTip} y2={rodY} stroke="rgba(253,224,71,.8)" strokeWidth={2.2} strokeLinecap="round"/>
                     <circle cx={rodTip} cy={rodY} r={3} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
                     <text x={bulbX+18} y={rodY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="11" fontFamily="monospace">IONIZER</text>
+                    <HoverInfo x={rodTip-4} y={rodY-16} w={bulbX+16-rodTip+4} h={32} rx={3}
+                      vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
                   </g>;
                 })()}
               </>;
@@ -5723,31 +5854,46 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // established fix for the three raw glow-duplicate <path>
               // pairs elsewhere in this file) lets the duct hover
               // underneath it work everywhere in its own box again.
-              return <g style={{pointerEvents:'none'}}>
-                {/* Vertical stub from furnace up to elbow 1 */}
-                <rect x={EXIT_X-PIPE_W/2} y={ELB1_Y+ELBOW_R} width={PIPE_W} height={EXIT_Y-ELB1_Y-ELBOW_R}
-                  fill={PIPE_C} stroke={PIPE_S} strokeWidth="0.7"/>
-                {/* 45° elbow 1: turn left - quarter circle arc */}
-                <path d={`M${EXIT_X-PIPE_W/2} ${ELB1_Y+ELBOW_R} Q${EXIT_X-PIPE_W/2} ${ELB1_Y} ${EXIT_X-PIPE_W/2-ELBOW_R} ${ELB1_Y}`}
-                  fill="none" stroke={PIPE_S} strokeWidth={PIPE_W} strokeLinecap="round"/>
-                <path d={`M${EXIT_X+PIPE_W/2} ${ELB1_Y+ELBOW_R} Q${EXIT_X+PIPE_W/2} ${ELB1_Y-PIPE_W} ${EXIT_X+PIPE_W/2-ELBOW_R-PIPE_W} ${ELB1_Y-PIPE_W}`}
-                  fill="none" stroke={PIPE_C} strokeWidth="1" strokeLinecap="round" opacity="0.6"/>
-                {/* Horizontal run left */}
-                <rect x={HORIZ_X+ELBOW_R} y={ELB1_Y-PIPE_W} width={EXIT_X-PIPE_W/2-ELBOW_R-HORIZ_X-ELBOW_R} height={PIPE_W}
-                  fill={PIPE_C} stroke={PIPE_S} strokeWidth="0.7"/>
-                {/* 45° elbow 2: turn up */}
-                <path d={`M${HORIZ_X+ELBOW_R} ${ELB1_Y-PIPE_W} Q${HORIZ_X} ${ELB1_Y-PIPE_W} ${HORIZ_X} ${ELB2_Y-ELBOW_R-PIPE_W}`}
-                  fill="none" stroke={PIPE_S} strokeWidth={PIPE_W} strokeLinecap="round"/>
-                {/* Vertical run up through roof */}
-                <rect x={HORIZ_X-PIPE_W/2} y={TOP_Y} width={PIPE_W} height={ELB2_Y-ELBOW_R-PIPE_W-TOP_Y}
-                  fill={PIPE_C} stroke={PIPE_S} strokeWidth="0.7"/>
-                {/* Cap at top */}
-                {!is90&&<path d={`M${HORIZ_X-PIPE_W-2} ${TOP_Y+4} L${HORIZ_X} ${TOP_Y-2} L${HORIZ_X+PIPE_W+2} ${TOP_Y+4}`} fill={PIPE_C}/>}
-                <text x={HORIZ_X} y={TOP_Y-6} textAnchor="middle"
-                  fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">
-                  {is90?'PVC':'B-VENT'}
-                </text>
-              </g>;
+              const stubD=`M${EXIT_X} ${EXIT_Y} L${EXIT_X} ${ELB1_Y+ELBOW_R}`;
+              const riserD=`M${HORIZ_X} ${TOP_Y} L${HORIZ_X} ${ELB2_Y-ELBOW_R-PIPE_W}`;
+              return <>
+                <g style={{pointerEvents:'none'}}>
+                  {/* Vertical stub from furnace up to elbow 1 */}
+                  <rect x={EXIT_X-PIPE_W/2} y={ELB1_Y+ELBOW_R} width={PIPE_W} height={EXIT_Y-ELB1_Y-ELBOW_R}
+                    fill={PIPE_C} stroke={PIPE_S} strokeWidth="0.7"/>
+                  {/* 45° elbow 1: turn left - quarter circle arc */}
+                  <path d={`M${EXIT_X-PIPE_W/2} ${ELB1_Y+ELBOW_R} Q${EXIT_X-PIPE_W/2} ${ELB1_Y} ${EXIT_X-PIPE_W/2-ELBOW_R} ${ELB1_Y}`}
+                    fill="none" stroke={PIPE_S} strokeWidth={PIPE_W} strokeLinecap="round"/>
+                  <path d={`M${EXIT_X+PIPE_W/2} ${ELB1_Y+ELBOW_R} Q${EXIT_X+PIPE_W/2} ${ELB1_Y-PIPE_W} ${EXIT_X+PIPE_W/2-ELBOW_R-PIPE_W} ${ELB1_Y-PIPE_W}`}
+                    fill="none" stroke={PIPE_C} strokeWidth="1" strokeLinecap="round" opacity="0.6"/>
+                  {/* Horizontal run left */}
+                  <rect x={HORIZ_X+ELBOW_R} y={ELB1_Y-PIPE_W} width={EXIT_X-PIPE_W/2-ELBOW_R-HORIZ_X-ELBOW_R} height={PIPE_W}
+                    fill={PIPE_C} stroke={PIPE_S} strokeWidth="0.7"/>
+                  {/* 45° elbow 2: turn up */}
+                  <path d={`M${HORIZ_X+ELBOW_R} ${ELB1_Y-PIPE_W} Q${HORIZ_X} ${ELB1_Y-PIPE_W} ${HORIZ_X} ${ELB2_Y-ELBOW_R-PIPE_W}`}
+                    fill="none" stroke={PIPE_S} strokeWidth={PIPE_W} strokeLinecap="round"/>
+                  {/* Vertical run up through roof */}
+                  <rect x={HORIZ_X-PIPE_W/2} y={TOP_Y} width={PIPE_W} height={ELB2_Y-ELBOW_R-PIPE_W-TOP_Y}
+                    fill={PIPE_C} stroke={PIPE_S} strokeWidth="0.7"/>
+                  {/* Cap at top */}
+                  {!is90&&<path d={`M${HORIZ_X-PIPE_W-2} ${TOP_Y+4} L${HORIZ_X} ${TOP_Y-2} L${HORIZ_X+PIPE_W+2} ${TOP_Y+4}`} fill={PIPE_C}/>}
+                  <text x={HORIZ_X} y={TOP_Y-6} textAnchor="middle"
+                    fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">
+                    {is90?'PVC':'B-VENT'}
+                  </text>
+                </g>
+                {/* Flue hover - only the two vertical segments (stub near
+                    the furnace, riser through the roof). The horizontal
+                    run in between stays pointer-events:none since it
+                    crosses directly over the left supply duct's own hover
+                    zone (see this block's own comment above). */}
+                <HoverInfo x={EXIT_X-PIPE_W/2-4} y={ELB1_Y+ELBOW_R-2} w={PIPE_W+8} h={EXIT_Y-ELB1_Y-ELBOW_R+4} rx={2}
+                  vw={SVG_VW} vh={SVG_VH} title={T('flue_pipe').title} text={T('flue_pipe').text}
+                  ringPath={stubD} ringStrokeWidth={PIPE_W+6}/>
+                <HoverInfo x={HORIZ_X-PIPE_W/2-4} y={TOP_Y-2} w={PIPE_W+8} h={ELB2_Y-ELBOW_R-PIPE_W-TOP_Y+4} rx={2}
+                  vw={SVG_VW} vh={SVG_VH} title={T('flue_pipe').title} text={T('flue_pipe').text}
+                  ringPath={riserD} ringStrokeWidth={PIPE_W+6}/>
+              </>;
             })()}
             {isComm&&<><rect x={UNIT_X+4} y={FURN_Y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={UNIT_X+7} y={FURN_Y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">COMMUNICATING</text></>}
             {/* Kept at the original 9.5px, unlike its sibling "FURNACE"
@@ -5796,6 +5942,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <line x1={valveX} y1={gasY-6} x2={valveX} y2={gasY+6} stroke="#c0392b" strokeWidth="2.4" strokeLinecap="round"/>
               <text x={gasX1+18} y={gasY-9} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="8.5" fontFamily="monospace">GAS</text>
               <text x={teeX} y={gasY+24} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">DRIP LEG</text>
+              <HoverInfo x={gasX1-2} y={gasY-12} w={gasX2-gasX1+4} h={38} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}/>
             </g>;
           })()}
 
@@ -5819,6 +5967,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 fill="#2a2a2a" stroke="#555" strokeWidth="0.5"/>
               <text x={plateX+plateW/2} y={swY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">SERVICE</text>
               <text x={plateX+plateW/2} y={swY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">SWITCH</text>
+              <HoverInfo x={plateX-3} y={swY-plateH/2-3} w={plateW+6} h={plateH+22} rx={2}
+                vw={SVG_VW} vh={SVG_VH} title={T('service_switch').title} text={T('service_switch').text}/>
             </g>;
           })()}
 

@@ -1331,10 +1331,26 @@ function App(){
               // the SAME row-height logic as every review cell around it,
               // instead of a separate element outside the grid entirely
               // whose height has nothing to do with the grid's own rows.
+              // Closet-only: how many cells will actually render (nulls from
+              // skipped optional steps don't reach the DOM, so CSS's own
+              // :last-child:nth-child(2n+1) full-width-span rule - see that
+              // rule's own comment in styles.css - keys off THIS count, not
+              // reviewItems.length). Mirrored here so the lone spanning cell
+              // (an odd total leaves one item alone in the final row) can
+              // render as a single compact line instead of the normal
+              // stacked layout - QA FIX: that cell reads as "too wide" once
+              // it spans both columns while still stacking label/value/EDIT
+              // vertically like a half-width cell, wasting the extra width
+              // it just gained instead of using it to shrink its own height.
+              const closetVisibleCount=reviewItems.filter(it=>it&&it.val).length;
+              let closetRenderedIdx=0;
               const reviewGrid=(leadCell)=>(
                 <div className={"done-review-grid"+(isAtticMode?" attic-mode-grid":" closet-mode-grid")} style={{width:"100%",marginBottom:8,border:"1px solid rgba(215,183,64,.15)",display:"grid"}}>
                   {leadCell}
-                  {reviewItems.map((item,i)=>item&&item.val?(
+                  {reviewItems.map((item,i)=>{if(!(item&&item.val))return null;
+                    closetRenderedIdx++;
+                    const isLastSpanning=!isAtticMode&&closetRenderedIdx===closetVisibleCount&&closetVisibleCount%2===1;
+                    return(
                     // Attic's grid cells live in the fixed 200px-tall panel
                     // (see .done-wrap-attic above), but unlike .opt-compact's
                     // fixed-height/zero-slack panel, this one's own container
@@ -1389,6 +1405,24 @@ function App(){
                           own content. */}
                       <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{position:"absolute",top:4,right:4,fontSize:"var(--fs-review-edit)",padding:"6px 6px"}}>{tr('EDIT','EDITAR')}</button>
                     </div>
+                    :isLastSpanning?
+                    // QA FIX - the lone odd-count cell spans both columns
+                    // (see styles.css's own :last-child:nth-child(2n+1)
+                    // rule this mirrors), which used to just hand the
+                    // normal stacked closet cell below twice the width and
+                    // let it sit there unused - "too wide" for content this
+                    // short, per direct feedback. A single compact line
+                    // (label + value + EDIT, all inline) actually spends
+                    // that width instead, cutting this row from ~4 stacked
+                    // lines down to 1 and buying back real vertical room for
+                    // the Get Pricing button below on a short viewport.
+                    <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"baseline",gap:8,minWidth:0,overflow:"hidden"}}>
+                        <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em",flexShrink:0}}>{item.label}</span>
+                        <span style={{color:"rgba(255,255,255,.9)",fontFamily:"var(--fb)",fontSize:"var(--fs-review-val-md)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={item.val}>{item.short||item.val}</span>
+                      </div>
+                      <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{fontSize:"var(--fs-review-edit-md)",padding:"6px 7px",flexShrink:0}}>{tr('EDIT','EDITAR')}</button>
+                    </div>
                     :
                     // Closet's cell doesn't reserve a fixed right-hand gutter for
                     // an absolutely-positioned EDIT chip (that's what attic does
@@ -1397,7 +1431,7 @@ function App(){
                     // of the label text. Putting EDIT in normal flow next to the
                     // value instead means it can never overlap anything: the
                     // value just wraps in whatever width is left beside it.
-                    <div key={i} style={{display:"flex",flexDirection:"column",gap:2,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:1,padding:"5px 9px",background:i%2===0?"rgba(255,255,255,.02)":"transparent",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
                       <span style={{color:"rgba(215,183,64,.68)",fontFamily:"var(--fm)",fontSize:"var(--fs-review-label-md)",letterSpacing:".03em"}}>{item.label}</span>
                       {/* Value gets the cell's full width to wrap in (previously
                           shared the row with the EDIT button, so a value long
@@ -1428,8 +1462,8 @@ function App(){
                           just grows the cell slightly instead of risking
                           overlap with anything else in it. */}
                       <button className="no-print review-edit-btn" onClick={()=>jumpToStep(item.step)} style={{alignSelf:"flex-end",fontSize:"var(--fs-review-edit-md)",padding:"6px 7px",marginTop:"auto"}}>{tr('EDIT','EDITAR')}</button>
-                    </div>)
-                  ):null)}
+                    </div>));
+                  })}
                 </div>
               );
               return pricingFlow?
@@ -1469,10 +1503,14 @@ function App(){
                       <div className="done-title" style={{fontSize:"var(--fs-review-val)",marginBottom:0,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{tr('Your System is Built','Su Sistema Construido')}</div>
                     </div>
                   ):<>
-                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,width:"100%"}}>
-                      <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:42,height:42,fontSize:19,flexShrink:0}}>✓</div></div>
+                    {/* QA FIX - trimmed from marginBottom:12/42px icon/19px
+                        title to buy back vertical room for the review grid
+                        below on a short viewport (direct feedback: the gold
+                        Get Pricing button needed scrolling to reach). */}
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,width:"100%"}}>
+                      <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:34,height:34,fontSize:16,flexShrink:0}}>✓</div></div>
                       <div>
-                        <div className="done-title" style={{fontSize:19,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
+                        <div className="done-title" style={{fontSize:16,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
                         <div style={{fontSize:"var(--fs-review-label-lg)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
                       </div>
                     </div>

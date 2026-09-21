@@ -3106,12 +3106,32 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       es: { title: "L\xCDNEAS DE REFRIGERANTE", text: "Las dos l\xEDneas de cobre aisladas que transportan refrigerante entre el serpent\xEDn interior y el condensador exterior." }
     },
     condensate_drain: {
-      en: { title: "CONDENSATE DRAIN", text: "Carries the water that condenses off the coil safely out of the house, the same way a window A/C drips outside." },
-      es: { title: "DRENAJE DE CONDENSADO", text: "Lleva el agua que se condensa en el serpent\xEDn de forma segura fuera de la casa, igual que un A/C de ventana gotea al exterior." }
+      en: { title: "CONDENSATE DRAIN", text: "Carries the water that condenses off the coil safely out of the house - into a P-trap under a sink, near your outdoor condenser, or another suitable drain point." },
+      es: { title: "DRENAJE DE CONDENSADO", text: "Lleva el agua que se condensa en el serpent\xEDn de forma segura fuera de la casa - a un sif\xF3n bajo un lavabo, cerca de su condensador exterior, u otro punto de drenaje adecuado." }
     },
     insulation: {
       en: { title: "ATTIC INSULATION", text: "Keeps conditioned air at the right temperature instead of leaking it away through the attic above your ductwork." },
       es: { title: "AISLAMIENTO DEL \xC1TICO", text: "Mantiene el aire acondicionado a la temperatura correcta en lugar de perderlo a trav\xE9s del \xE1tico sobre sus ductos." }
+    },
+    flue_pipe: {
+      en: { title: "FLUE PIPE", text: "Vents the furnace's combustion gases safely outside, away from the air you breathe." },
+      es: { title: "TUBO DE ESCAPE", text: "Ventila los gases de combusti\xF3n del horno de forma segura hacia el exterior, lejos del aire que usted respira." }
+    },
+    gas_line: {
+      en: { title: "GAS LINE", text: "Feeds natural gas to the furnace, with a shutoff valve and a drip leg to catch sediment before it reaches the gas valve." },
+      es: { title: "L\xCDNEA DE GAS", text: "Alimenta gas natural al horno, con una v\xE1lvula de cierre y un colector de sedimentos antes de llegar a la v\xE1lvula de gas." }
+    },
+    service_switch: {
+      en: { title: "SERVICE SWITCH", text: "Lets a technician cut power to the blower and control board before servicing the indoor unit, separate from the condenser's outdoor disconnect." },
+      es: { title: "INTERRUPTOR DE SERVICIO", text: "Permite a un t\xE9cnico cortar la energ\xEDa al motor soplador y la tarjeta de control antes de dar servicio a la unidad interior, aparte de la desconexi\xF3n exterior del condensador." }
+    },
+    ionizer: {
+      en: { title: "IONIZER", text: "Releases charged ions into the airstream that attach to dust, allergens, and odors so they clump and get caught by your filter." },
+      es: { title: "IONIZADOR", text: "Libera iones cargados en la corriente de aire que se adhieren al polvo, al\xE9rgenos y olores para que se agrupen y sean atrapados por su filtro." }
+    },
+    uv_light: {
+      en: { title: "UV LIGHT", text: "A germicidal bulb mounted at the coil that kills mold and bacteria growing on it, keeping the coil clean and your airflow odor-free." },
+      es: { title: "LUZ UV", text: "Una l\xE1mpara germicida montada en el serpent\xEDn que elimina el moho y las bacterias que crecen en \xE9l, manteniendo el serpent\xEDn limpio y el flujo de aire libre de olores." }
     }
   };
   function partInfo(key, lang) {
@@ -3454,12 +3474,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     }), Array.from({ length: n }, (_, i) => {
       const t = (i + 0.5) / n, tx = x + (peakX - x) * t + 3, ty = y + h + (peakY - (y + h)) * t - 3;
       return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: 22, fill: active ? evapC2 + "22" : "rgba(14,14,34,.8)", stroke: active ? evapC2 : tc, glow: evapC2, active, delay: (i + n) * 0.1 }), active && i % 3 === 2 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx - 1.5, cy: ty + 3, delay: (i + n) * 0.3 }));
-    }), /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 5.5, fill: "#06061c", stroke: active ? evapC : G + ".3)", strokeWidth: "1.3" }), active && /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 2.5, fill: evapC, opacity: "0.85", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".2)", strokeWidth: "0.7" }), hasUV && (() => {
-      const rodLen = Math.min(w * 0.7, w - 12);
-      const rodCX = x + w * 0.48;
-      const rodCY = y + h / 2;
-      return /* @__PURE__ */ React.createElement(UVRod, { x: rodCX - rodLen / 2, y: rodCY, len: rodLen });
-    })(), /* @__PURE__ */ React.createElement(
+    }), /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 5.5, fill: "#06061c", stroke: active ? evapC : G + ".3)", strokeWidth: "1.3" }), active && /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 2.5, fill: evapC, opacity: "0.85", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".2)", strokeWidth: "0.7" }), hasUV && /* @__PURE__ */ React.createElement(UVRod, { x: x + w * 0.48 - Math.min(w * 0.7, w - 12) / 2, y: y + h / 2, len: Math.min(w * 0.7, w - 12) }), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x,
@@ -3473,7 +3488,23 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         text: partInfo(infoKey, lang).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
-    ));
+    ), hasUV && (() => {
+      const rodLen = Math.min(w * 0.7, w - 12), rodCX = x + w * 0.48, rodCY = y + h / 2;
+      return /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: rodCX - rodLen / 2 - 4,
+          y: rodCY - 6,
+          w: rodLen + 8,
+          h: 16,
+          rx: 3,
+          vw,
+          vh,
+          title: partInfo("uv_light", lang).title,
+          text: partInfo("uv_light", lang).text
+        }
+      );
+    })());
   }
   function ACoilV({ x, y, w, h, active, evapC, evapC2, hasUV, infoKey, onEditStep, lang, vw, vh }) {
     const peakX = x + w / 2, peakY = y;
@@ -3542,7 +3573,23 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         text: partInfo(infoKey, lang).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
-    ));
+    ), hasUV && (() => {
+      const rodCX = x + w * 0.5, rodLen2 = Math.min(h * 0.75, h - 12), rodCY = y + h / 2;
+      return /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: rodCX - 8,
+          y: rodCY - rodLen2 / 2 - 4,
+          w: 16,
+          h: rodLen2 + 8,
+          rx: 3,
+          vw,
+          vh,
+          title: partInfo("uv_light", lang).title,
+          text: partInfo("uv_light", lang).text
+        }
+      );
+    })());
   }
   function FurnaceH({ x, y, w, h, active, roofY, onEditStep, lang, vw, vh, blowerActive, is90, isComm, blowerMotorLabel }) {
     const mid = x + w / 2;
@@ -3648,7 +3695,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const pS = is90 ? "#93c5fd" : "#999";
       const fX = mid + Math.round(w * 0.2);
       const pipeTop = roofY - 12;
-      return /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
+      const flueD = `M${fX} ${y} L${fX} ${pipeTop}`;
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: fX - pW / 2,
@@ -3671,6 +3719,21 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontFamily: "monospace"
         },
         is90 ? "PVC" : "B-VENT"
+      )), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: fX - pW / 2 - 4,
+          y: pipeTop - 2,
+          w: pW + 8,
+          h: Math.max(0, y - pipeTop) + 4,
+          rx: 2,
+          vw,
+          vh,
+          title: partInfo("flue_pipe", lang).title,
+          text: partInfo("flue_pipe", lang).text,
+          ringPath: flueD,
+          ringStrokeWidth: pW + 6
+        }
       ));
     })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x + 4, y: y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: x + 7, y: y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement("rect", { x: mid + 4, y: y + 11, width: 36, height: "8", rx: "2", fill: is90 ? "rgba(35,137,224,.13)" : G + ".07)", stroke: is90 ? B + ".24)" : G + ".16)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: mid + 22, y: y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "11", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
       HoverInfo,
@@ -5036,6 +5099,24 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
     const T = (key) => partInfo(key, lang);
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
+    const uvHoverH = (cx, cy, cw, ch) => {
+      if (!hasUV) return null;
+      const rodLen = Math.min(cw * 0.7, cw - 12), rodCX = cx + cw * 0.48, rodCY = cy + ch / 2;
+      return /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: rodCX - rodLen / 2 - 4,
+          y: rodCY - 6,
+          w: rodLen + 8,
+          h: 16,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("uv_light").title,
+          text: T("uv_light").text
+        }
+      );
+    };
     const indoorSubHoversH = (hasFurnaceLocal, FURN_X, FURN_W, ACOIL_X, ACOIL_W, AH_X, AH_W, UNIT_Y, UNIT_H) => {
       const go = () => onEditStep("indoor_type");
       if (hasFurnaceLocal) {
@@ -5109,7 +5190,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             text: T(acoilInfoKey()).text,
             onClick: go
           }
-        ));
+        ), uvHoverH(ACOIL_X + 8, UNIT_Y + 12, ACOIL_W - 16, UNIT_H - 20));
       }
       return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         HoverInfo,
@@ -5153,10 +5234,30 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           text: T("blower").text,
           onClick: go
         }
-      ));
+      ), uvHoverH(AH_X + 9, UNIT_Y + 12, AH_W * 0.5 - 19, UNIT_H - 22));
+    };
+    const uvHoverV = (cx, cy, cw, ch) => {
+      if (!hasUV) return null;
+      const rodCX = cx + cw * 0.5, rodLen2 = Math.min(ch * 0.75, ch - 12), rodCY = cy + ch / 2;
+      return /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: rodCX - 8,
+          y: rodCY - rodLen2 / 2 - 4,
+          w: 16,
+          h: rodLen2 + 8,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("uv_light").title,
+          text: T("uv_light").text
+        }
+      );
     };
     const indoorSubHoversV = (hasFurnaceLocal, UNIT_X, UNIT_W, ACOIL_Y, ACOIL_H, FURN_Y, FURN_H) => {
       const go = () => onEditStep("indoor_type");
+      const coilBoxY = hasFurnaceLocal ? ACOIL_Y + 14 : ACOIL_Y + ACOIL_H * 0.58;
+      const coilBoxH = hasFurnaceLocal ? ACOIL_H - 28 : ACOIL_H * 0.38;
       if (hasFurnaceLocal) {
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5227,7 +5328,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             text: T("blower").text,
             onClick: go
           }
-        ));
+        ), uvHoverV(UNIT_X + 8, coilBoxY, UNIT_W - 16, coilBoxH));
       }
       return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         HoverInfo,
@@ -5271,7 +5372,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           text: T(acoilInfoKey()).text,
           onClick: go
         }
-      ));
+      ), uvHoverV(UNIT_X + 8, coilBoxY, UNIT_W - 16, coilBoxH));
     };
     const condenserSubHovers = (x, y, w, h, tierKey) => {
       const go = () => onEditStep("cond_tier");
@@ -5934,10 +6035,68 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         },
         furnaceActive ? "GAS HEATING ACTIVE" : "STANDBY"
       )), hasCoil && hasFurnace && (() => {
-        const gasX = FURN_X + FURN_W * 0.15;
+        const gasX = FURN_X + FURN_W * 0.85;
         const gasTopY = UNIT_Y + UNIT_H;
         const teeY = gasTopY + 38, valveY = gasTopY + 65;
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: gasX, cy: valveY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 6, y1: valveY, x2: gasX + 6, y2: valveY, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 5, y1: teeY, x2: gasX + 5, y2: teeY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: teeY, x2: gasX, y2: teeY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: gasX - 3.5, y: teeY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: gasX + 10, y: teeY + 15, textAnchor: "start", fill: "rgba(180,180,180,.5)", fontSize: "8", fontFamily: "monospace" }, "DRIP LEG"), /* @__PURE__ */ React.createElement("text", { x: gasX, y: DECK_Y + 14, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "11", fontFamily: "monospace" }, "GAS"));
+        const gasD = `M${gasX} ${gasTopY} L${gasX} ${DECK_Y}`;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: gasX, cy: valveY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 6, y1: valveY, x2: gasX + 6, y2: valveY, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 5, y1: teeY, x2: gasX + 5, y2: teeY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: teeY, x2: gasX, y2: teeY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: gasX - 3.5, y: teeY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: gasX + 10, y: teeY + 15, textAnchor: "start", fill: "rgba(180,180,180,.5)", fontSize: "8", fontFamily: "monospace" }, "DRIP LEG"), /* @__PURE__ */ React.createElement("text", { x: gasX, y: DECK_Y + 14, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "11", fontFamily: "monospace" }, "GAS"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: gasX - 11,
+            y: gasTopY - 2,
+            w: 22,
+            h: DECK_Y - gasTopY + 18,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("gas_line").title,
+            text: T("gas_line").text,
+            ringPath: gasD,
+            ringStrokeWidth: 9
+          }
+        ));
+      })(), hasCoil && hasFurnace && (() => {
+        const swX = FURN_X + FURN_W * 0.15;
+        const swTopY = UNIT_Y + UNIT_H;
+        const plateW = 16, plateH = 26, plateY = swTopY + 38 + plateH / 2;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".16s" } }, /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swTopY, x2: swX, y2: plateY - plateH / 2, stroke: "#3a3a3a", strokeWidth: "2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: swX - plateW / 2,
+            y: plateY - plateH / 2,
+            width: plateW,
+            height: plateH,
+            rx: "2",
+            fill: "#e8e4da",
+            stroke: "#8a8578",
+            strokeWidth: "0.8"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: swX - 2.6,
+            y: plateY - 8,
+            width: "5.2",
+            height: "11",
+            rx: "1.4",
+            fill: "#2a2a2a",
+            stroke: "#555",
+            strokeWidth: "0.5"
+          }
+        ), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: swX - plateW / 2 - 3,
+            y: plateY - plateH / 2 - 3,
+            w: plateW + 6,
+            h: plateH + 22,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("service_switch").title,
+            text: T("service_switch").text
+          }
+        ));
       })(), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac" + a.cond_tier, style: { animationDelay: ".08s" }, filter: "url(#shadow)" }, (() => {
         const active = evapActive;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
@@ -6187,7 +6346,20 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           const plenTop = SUP_PLEN_Y;
           const ionBulbY = plenTop - 14;
           const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: ionBulbY, r: 12, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 8, ry: 10, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 5, ry: 6.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: ionX - 2, y1: ionBulbY - 4, x2: ionX + 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: ionX + 2, y1: ionBulbY - 4, x2: ionX - 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: ionX - 6, y: plenTop - 6, width: 12, height: 8, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.22)", strokeWidth: 6, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.8)", strokeWidth: 2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: plenTop + ionRodLen, r: 2.5, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: ionX + 14, y: ionBulbY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"));
+          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: ionBulbY, r: 12, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 8, ry: 10, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 5, ry: 6.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: ionX - 2, y1: ionBulbY - 4, x2: ionX + 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: ionX + 2, y1: ionBulbY - 4, x2: ionX - 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: ionX - 6, y: plenTop - 6, width: 12, height: 8, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.22)", strokeWidth: 6, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.8)", strokeWidth: 2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: plenTop + ionRodLen, r: 2.5, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: ionX + 14, y: ionBulbY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"), /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: ionX - 14,
+              y: ionBulbY - 14,
+              w: 28,
+              h: plenTop + ionRodLen - (ionBulbY - 14) + 6,
+              rx: 3,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("ionizer").title,
+              text: T("ionizer").text
+            }
+          ));
         })());
       })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
@@ -6631,8 +6803,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           }
         ));
       })(), hasCoil && /* @__PURE__ */ React.createElement("g", { key: "attic-drain" }, (() => {
-        const coilCX = hasFurnace ? ACOIL_X + ACOIL_W * 0.12 : AH_X + Math.round(AH_W * 0.6);
+        const coilCX = hasFurnace ? ACOIL_X + ACOIL_W * 0.12 : AH_X + Math.round(AH_W * 0.22);
         const drainTopY = UNIT_Y + UNIT_H + 4;
+        const drainD = `M${coilCX} ${drainTopY} L${coilCX} ${DECK_Y + 20}`;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           "line",
           {
@@ -6667,10 +6840,54 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("condensate_drain").title,
-            text: T("condensate_drain").text
+            text: T("condensate_drain").text,
+            ringPath: drainD,
+            ringStrokeWidth: 8
           }
         ));
-      })()), a.insulation && (() => {
+      })()), hasCoil && !hasFurnace && (() => {
+        const swX = AH_X + AH_W * 0.675;
+        const swTopY = UNIT_Y + UNIT_H;
+        const plateW = 16, plateH = 26, plateY = swTopY + 38 + plateH / 2;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".16s" } }, /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swTopY, x2: swX, y2: plateY - plateH / 2, stroke: "#3a3a3a", strokeWidth: "2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: swX - plateW / 2,
+            y: plateY - plateH / 2,
+            width: plateW,
+            height: plateH,
+            rx: "2",
+            fill: "#e8e4da",
+            stroke: "#8a8578",
+            strokeWidth: "0.8"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: swX - 2.6,
+            y: plateY - 8,
+            width: "5.2",
+            height: "11",
+            rx: "1.4",
+            fill: "#2a2a2a",
+            stroke: "#555",
+            strokeWidth: "0.5"
+          }
+        ), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: swX - plateW / 2 - 3,
+            y: plateY - plateH / 2 - 3,
+            w: plateW + 6,
+            h: plateH + 22,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("service_switch").title,
+            text: T("service_switch").text
+          }
+        ));
+      })(), a.insulation && (() => {
         if (!isSpray) return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -7173,7 +7390,20 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           const bulbX = UNIT_X + PLEN_W + 12;
           const rodY = PLEN_TOP + PLEN_TOTAL * 0.88;
           const rodTip = UNIT_X + PLEN_W - rodLen;
-          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: bulbX, cy: rodY, r: 16, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 10, ry: 12, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 6, ry: 7.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 3, y1: rodY - 5, x2: bulbX + 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX + 3, y1: rodY - 5, x2: bulbX - 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W - 2, y: rodY - 5, width: 16, height: 10, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.22)", strokeWidth: 8, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.8)", strokeWidth: 2.2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: rodTip, cy: rodY, r: 3, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: bulbX + 18, y: rodY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"));
+          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: bulbX, cy: rodY, r: 16, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 10, ry: 12, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 6, ry: 7.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 3, y1: rodY - 5, x2: bulbX + 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX + 3, y1: rodY - 5, x2: bulbX - 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W - 2, y: rodY - 5, width: 16, height: 10, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.22)", strokeWidth: 8, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.8)", strokeWidth: 2.2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: rodTip, cy: rodY, r: 3, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: bulbX + 18, y: rodY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"), /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: rodTip - 4,
+              y: rodY - 16,
+              w: bulbX + 16 - rodTip + 4,
+              h: 32,
+              rx: 3,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("ionizer").title,
+              text: T("ionizer").text
+            }
+          ));
         })());
       })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
@@ -7695,7 +7925,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           return roofYAtX - 12;
         })();
         const ELBOW_R = 8;
-        return /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
+        const stubD = `M${EXIT_X} ${EXIT_Y} L${EXIT_X} ${ELB1_Y + ELBOW_R}`;
+        const riserD = `M${HORIZ_X} ${TOP_Y} L${HORIZ_X} ${ELB2_Y - ELBOW_R - PIPE_W}`;
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
           "rect",
           {
             x: EXIT_X - PIPE_W / 2,
@@ -7767,6 +7999,36 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontFamily: "monospace"
           },
           is90 ? "PVC" : "B-VENT"
+        )), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: EXIT_X - PIPE_W / 2 - 4,
+            y: ELB1_Y + ELBOW_R - 2,
+            w: PIPE_W + 8,
+            h: EXIT_Y - ELB1_Y - ELBOW_R + 4,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("flue_pipe").title,
+            text: T("flue_pipe").text,
+            ringPath: stubD,
+            ringStrokeWidth: PIPE_W + 6
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: HORIZ_X - PIPE_W / 2 - 4,
+            y: TOP_Y - 2,
+            w: PIPE_W + 8,
+            h: ELB2_Y - ELBOW_R - PIPE_W - TOP_Y + 4,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("flue_pipe").title,
+            text: T("flue_pipe").text,
+            ringPath: riserD,
+            ringStrokeWidth: PIPE_W + 6
+          }
         ));
       })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 4, y: FURN_Y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 7, y: FURN_Y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement(
         "text",
@@ -7783,7 +8045,20 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const gasY = FURN_Y + 50;
         const gasX1 = UNIT_X + UNIT_W, gasX2 = gasX1 + 62;
         const teeX = gasX1 + 34, valveX = gasX1 + 48;
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY - 5, x2: teeX, y2: gasY + 5, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY, x2: teeX, y2: gasY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: teeX - 3.5, y: gasY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("circle", { cx: valveX, cy: gasY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: valveX, y1: gasY - 6, x2: valveX, y2: gasY + 6, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("text", { x: gasX1 + 18, y: gasY - 9, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "8.5", fontFamily: "monospace" }, "GAS"), /* @__PURE__ */ React.createElement("text", { x: teeX, y: gasY + 24, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "DRIP LEG"));
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY - 5, x2: teeX, y2: gasY + 5, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY, x2: teeX, y2: gasY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: teeX - 3.5, y: gasY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("circle", { cx: valveX, cy: gasY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: valveX, y1: gasY - 6, x2: valveX, y2: gasY + 6, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("text", { x: gasX1 + 18, y: gasY - 9, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "8.5", fontFamily: "monospace" }, "GAS"), /* @__PURE__ */ React.createElement("text", { x: teeX, y: gasY + 24, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "DRIP LEG"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: gasX1 - 2,
+            y: gasY - 12,
+            w: gasX2 - gasX1 + 4,
+            h: 38,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("gas_line").title,
+            text: T("gas_line").text
+          }
+        ));
       })(), hasFurnace && (() => {
         const swY = FURN_Y + 50;
         const swX2 = UNIT_X, swX1 = swX2 - 30;
@@ -7812,7 +8087,20 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             stroke: "#555",
             strokeWidth: "0.5"
           }
-        ), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"));
+        ), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: plateX - 3,
+            y: swY - plateH / 2 - 3,
+            w: plateW + 6,
+            h: plateH + 22,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("service_switch").title,
+            text: T("service_switch").text
+          }
+        ));
       })(), hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
         {
@@ -9106,44 +9394,63 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       },
       "i"
     )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" })), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
-      const reviewGrid = (leadCell) => /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, leadCell, reviewItems.map((item, i) => item && item.val ? (
-        // Attic's grid cells live in the fixed 200px-tall panel
-        // (see .done-wrap-attic above), but unlike .opt-compact's
-        // fixed-height/zero-slack panel, this one's own container
-        // sets overflowY:"auto" (see the .sidebar style a few lines
-        // up), so growing this type only ever adds scroll, never
-        // clips - sized here off the --fs-review-* variables (a
-        // smaller "compact" pair for attic's short bar, a mid pair
-        // for closet's now-2-column grid, which still scrolls by
-        // design but needs less of it) instead of the hardcoded
-        // 9px/11px/8.5px this used to pin to, which read as
-        // barely-legible fine print and made the EDIT button a
-        // genuinely fiddly tap target. Closet shows a trimmed
-        // "short" wording where one exists (full detail is still
-        // one hover/tap away via the native title tooltip, same
-        // place attic's ellipsis-clipped cells already send it).
-        isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement(
-          "span",
-          {
-            className: "review-val",
-            style: lang === "es" ? { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "visible", whiteSpace: "normal" } : { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-            title: item.val
-          },
-          item.short || item.val
-        ), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "6px 6px" } }, tr("EDIT", "EDITAR"))) : (
-          // Closet's cell doesn't reserve a fixed right-hand gutter for
-          // an absolutely-positioned EDIT chip (that's what attic does
-          // above) - at 2-column width the chip's real rendered width
-          // didn't match a guessed gutter and ended up sitting on top
-          // of the label text. Putting EDIT in normal flow next to the
-          // value instead means it can never overlap anything: the
-          // value just wraps in whatever width is left beside it.
-          /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "6px 7px", marginTop: "auto" } }, tr("EDIT", "EDITAR")))
-        )
-      ) : null));
+      const closetVisibleCount = reviewItems.filter((it) => it && it.val).length;
+      let closetRenderedIdx = 0;
+      const reviewGrid = (leadCell) => /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, leadCell, reviewItems.map((item, i) => {
+        if (!(item && item.val)) return null;
+        closetRenderedIdx++;
+        const isLastSpanning = !isAtticMode && closetRenderedIdx === closetVisibleCount && closetVisibleCount % 2 === 1;
+        return (
+          // Attic's grid cells live in the fixed 200px-tall panel
+          // (see .done-wrap-attic above), but unlike .opt-compact's
+          // fixed-height/zero-slack panel, this one's own container
+          // sets overflowY:"auto" (see the .sidebar style a few lines
+          // up), so growing this type only ever adds scroll, never
+          // clips - sized here off the --fs-review-* variables (a
+          // smaller "compact" pair for attic's short bar, a mid pair
+          // for closet's now-2-column grid, which still scrolls by
+          // design but needs less of it) instead of the hardcoded
+          // 9px/11px/8.5px this used to pin to, which read as
+          // barely-legible fine print and made the EDIT button a
+          // genuinely fiddly tap target. Closet shows a trimmed
+          // "short" wording where one exists (full detail is still
+          // one hover/tap away via the native title tooltip, same
+          // place attic's ellipsis-clipped cells already send it).
+          isAtticMode ? /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "4px 34px 4px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", position: "relative", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement(
+            "span",
+            {
+              className: "review-val",
+              style: lang === "es" ? { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "visible", whiteSpace: "normal" } : { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+              title: item.val
+            },
+            item.short || item.val
+          ), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { position: "absolute", top: 4, right: 4, fontSize: "var(--fs-review-edit)", padding: "6px 6px" } }, tr("EDIT", "EDITAR"))) : isLastSpanning ? (
+            // QA FIX - the lone odd-count cell spans both columns
+            // (see styles.css's own :last-child:nth-child(2n+1)
+            // rule this mirrors), which used to just hand the
+            // normal stacked closet cell below twice the width and
+            // let it sit there unused - "too wide" for content this
+            // short, per direct feedback. A single compact line
+            // (label + value + EDIT, all inline) actually spends
+            // that width instead, cutting this row from ~4 stacked
+            // lines down to 1 and buying back real vertical room for
+            // the Get Pricing button below on a short viewport.
+            /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "6px 10px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 8, minWidth: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em", flexShrink: 0 } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, title: item.val }, item.short || item.val)), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { fontSize: "var(--fs-review-edit-md)", padding: "6px 7px", flexShrink: 0 } }, tr("EDIT", "EDITAR")))
+          ) : (
+            // Closet's cell doesn't reserve a fixed right-hand gutter for
+            // an absolutely-positioned EDIT chip (that's what attic does
+            // above) - at 2-column width the chip's real rendered width
+            // didn't match a guessed gutter and ended up sitting on top
+            // of the label text. Putting EDIT in normal flow next to the
+            // value instead means it can never overlap anything: the
+            // value just wraps in whatever width is left beside it.
+            /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 1, padding: "5px 9px", background: i % 2 === 0 ? "rgba(255,255,255,.02)" : "transparent", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.68)", fontFamily: "var(--fm)", fontSize: "var(--fs-review-label-md)", letterSpacing: ".03em" } }, item.label), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val-md)", lineHeight: 1.25, overflow: "visible", whiteSpace: "normal" }, title: item.val }, item.short || item.val), /* @__PURE__ */ React.createElement("button", { className: "no-print review-edit-btn", onClick: () => jumpToStep(item.step), style: { alignSelf: "flex-end", fontSize: "var(--fs-review-edit-md)", padding: "6px 7px", marginTop: "auto" } }, tr("EDIT", "EDITAR")))
+          )
+        );
+      }));
       return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid(null))) : /* @__PURE__ */ React.createElement(React.Fragment, null, isAtticMode ? reviewGrid(
         /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "rgba(255,255,255,.02)", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 20, height: 20, fontSize: 10, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: "var(--fs-review-val)", marginBottom: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, tr("Your System is Built", "Su Sistema Construido")))
-      ) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 42, height: 42, fontSize: 19, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 19, marginBottom: 1 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-review-label-lg)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))), reviewGrid(null)));
+      ) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 8, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 34, height: 34, fontSize: 16, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 16, marginBottom: 1 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-review-label-lg)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))), reviewGrid(null)));
     })(), pricingFlow !== null && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", marginBottom: 12 } }, pricingFlow === "sizing" && (() => {
       const subSteps = ["sqft", "ducts"];
       const subId = subSteps[pricingSubStep];
