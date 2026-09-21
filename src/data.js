@@ -272,14 +272,18 @@ export const PRICING={
 // homes (e.g. ~1,000 sq ft) down to a smaller tonnage than Texas heat load
 // really wants. Each option still shows its reference sq ft (~600 sq ft/ton)
 // so the pick is guided, not a guess. sqftMid also drives dehu/ERV sizing.
+// labelEs/sqftLabelEs are the Spanish counterparts to label/sqftLabel - a QA
+// pass caught the tonnage picker (app.js's sizing sub-step) rendering both
+// of these raw/English-only even under the Spanish toggle, since this array
+// (unlike STEPS/getOpts) had no *_ES override table at all.
 export const TONNAGE_OPTIONS=[
-  {v:'t15', label:'1.5 Tons', sqftLabel:'~900 sq ft',           tons:1.5, sqftMid:900},
-  {v:'t2',  label:'2 Tons',   sqftLabel:'~1,200 sq ft',         tons:2,   sqftMid:1200},
-  {v:'t25', label:'2.5 Tons', sqftLabel:'~1,500 sq ft',         tons:2.5, sqftMid:1500},
-  {v:'t3',  label:'3 Tons',   sqftLabel:'~1,800 sq ft',         tons:3,   sqftMid:1800},
-  {v:'t35', label:'3.5 Tons', sqftLabel:'~2,100 sq ft',         tons:3.5, sqftMid:2100},
-  {v:'t4',  label:'4 Tons',   sqftLabel:'~2,400 sq ft',         tons:4,   sqftMid:2400},
-  {v:'t5',  label:'5 Tons',   sqftLabel:'3,000+ sq ft',         tons:5,   sqftMid:3600},
+  {v:'t15', label:'1.5 Tons', labelEs:'1.5 Toneladas', sqftLabel:'~900 sq ft',   sqftLabelEs:'~900 pies²',   tons:1.5, sqftMid:900},
+  {v:'t2',  label:'2 Tons',   labelEs:'2 Toneladas',   sqftLabel:'~1,200 sq ft', sqftLabelEs:'~1,200 pies²', tons:2,   sqftMid:1200},
+  {v:'t25', label:'2.5 Tons', labelEs:'2.5 Toneladas', sqftLabel:'~1,500 sq ft', sqftLabelEs:'~1,500 pies²', tons:2.5, sqftMid:1500},
+  {v:'t3',  label:'3 Tons',   labelEs:'3 Toneladas',   sqftLabel:'~1,800 sq ft', sqftLabelEs:'~1,800 pies²', tons:3,   sqftMid:1800},
+  {v:'t35', label:'3.5 Tons', labelEs:'3.5 Toneladas', sqftLabel:'~2,100 sq ft', sqftLabelEs:'~2,100 pies²', tons:3.5, sqftMid:2100},
+  {v:'t4',  label:'4 Tons',   labelEs:'4 Toneladas',   sqftLabel:'~2,400 sq ft', sqftLabelEs:'~2,400 pies²', tons:4,   sqftMid:2400},
+  {v:'t5',  label:'5 Tons',   labelEs:'5 Toneladas',   sqftLabel:'3,000+ sq ft', sqftLabelEs:'3,000+ pies²', tons:5,   sqftMid:3600},
 ];
 // Optional light-touch nudge: typing a sq ft doesn't lock anything in, it just
 // suggests the closest tonnage option so the pick steers toward accuracy
