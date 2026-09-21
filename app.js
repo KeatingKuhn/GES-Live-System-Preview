@@ -7109,6 +7109,18 @@
       return () => clearTimeout(t);
     }, [done]);
     const [quickEdit, setQuickEdit] = useState2(false);
+    const lastTrackedBuildRef = useRef2(null);
+    const wasDoneRef = useRef2(false);
+    React.useEffect(() => {
+      if (done && !wasDoneRef.current) {
+        const sig = JSON.stringify(answers);
+        if (lastTrackedBuildRef.current !== sig) {
+          lastTrackedBuildRef.current = sig;
+          trackBuildCompleted(answers);
+        }
+      }
+      wasDoneRef.current = done;
+    }, [done, answers]);
     const [pricingFlow, setPricingFlow] = useState2(null);
     const [pricingSubStep, setPricingSubStep] = useState2(0);
     const [pricingAnswers, setPricingAnswers] = useState2({});
@@ -7245,7 +7257,6 @@
           setQuickEdit(false);
           setDone(true);
           scrollTop();
-          trackBuildCompleted(answers);
         } else {
           setStepIdx(i);
           scrollTop();
@@ -7259,7 +7270,6 @@
       } else {
         setDone(true);
         scrollTop();
-        trackBuildCompleted(answers);
       }
     };
     const goBack = () => {
@@ -7293,6 +7303,7 @@
       setPricingFlow(null);
       setPricingSubStep(0);
       setPricingAnswers({});
+      lastTrackedBuildRef.current = null;
     };
     const resumeBuild = () => {
       const savedAnswers = savedBuild.answers || {};
@@ -7305,6 +7316,10 @@
       setPricingSubStep(savedBuild.pricingSubStep || 0);
       setPricingAnswers(savedBuild.pricingAnswers || {});
       setResumePending(false);
+      if (savedBuild.done) {
+        wasDoneRef.current = true;
+        lastTrackedBuildRef.current = JSON.stringify(savedAnswers);
+      }
     };
     const discardSavedBuild = () => {
       clearSavedBuild();

@@ -83,6 +83,44 @@ function App(){
   // snaps straight back to done, only pausing on a step the edit actually
   // invalidated (e.g. a thermostat pick that no longer fits the new tier).
   const [quickEdit,setQuickEdit]=useState(false);
+  // Analytics: build_completed fires exactly once per genuinely-new
+  // completed build, from this single effect rather than inline at each
+  // of goNext's two "reached done" call sites (quick-edit's own snap-back
+  // finish, and the ordinary first-time-through finish). Two things that
+  // call site approach got wrong, both worth spelling out:
+  //  1) It read `answers` synchronously, in the same handler that could
+  //     still have a just-queued setAnswers update pending (e.g. skip()
+  //     sets the final step's value then immediately calls goNext() in
+  //     the same tick) - React batches that update into the SAME render,
+  //     but the handler's own local `answers` closure is still the
+  //     pre-update value, so the very first completion of any build
+  //     ending on a skipped step fired with that step's answer missing
+  //     from the snapshot. An effect runs after the commit, so it always
+  //     sees the fully-settled state.
+  //  2) `done` can flip back to true with nothing actually changed - the
+  //     done screen's own "Back" quick action (a plain nav button, not
+  //     quick-edit) drops to the wizard's last step and clicking Finish
+  //     there runs the exact same finish branch again. Firing on every
+  //     true transition would double-count that as a second completed
+  //     build. Guards on both an edge (only the false->true transition,
+  //     not every render where done stays true - e.g. while pricingFlow
+  //     changes underneath it) and a content signature (so a real
+  //     quick-edit that changes the build still counts as its own
+  //     completion, but poking Back then Finish with zero changes does
+  //     not) - restart() resets the signature so a fresh build, even one
+  //     that lands on identical picks, still fires.
+  const lastTrackedBuildRef=useRef(null);
+  const wasDoneRef=useRef(false);
+  React.useEffect(()=>{
+    if(done&&!wasDoneRef.current){
+      const sig=JSON.stringify(answers);
+      if(lastTrackedBuildRef.current!==sig){
+        lastTrackedBuildRef.current=sig;
+        trackBuildCompleted(answers);
+      }
+    }
+    wasDoneRef.current=done;
+  },[done,answers]);
   // Post-build pricing: null=not asked, 'sizing'=sub-questions,
   // 'leadgate'=waiting on the contact form, 'result'=estimate shown
   const [pricingFlow,setPricingFlow]=useState(null);
@@ -269,7 +307,7 @@ function App(){
     if(quickEdit){
       let i=stepIdx+1;
       while(i<activeSteps.length&&stepSatisfied(activeSteps[i]))i++;
-      if(i>=activeSteps.length){setQuickEdit(false);setDone(true);scrollTop();trackBuildCompleted(answers);}
+      if(i>=activeSteps.length){setQuickEdit(false);setDone(true);scrollTop();}
       else{setStepIdx(i);scrollTop();}
       return;
     }
@@ -278,7 +316,7 @@ function App(){
     // new progress through the wizard, and would double-count the same
     // step_id every time someone tweaks an earlier answer).
     if(cur)trackEvent('step_completed',{step_id:cur.id,step_number:stepIdx+1,total_steps:activeSteps.length});
-    if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}else{setDone(true);scrollTop();trackBuildCompleted(answers);}
+    if(stepIdx<activeSteps.length-1){setStepIdx(s=>s+1);scrollTop();}else{setDone(true);scrollTop();}
   };
   const goBack=()=>{
     if(stepIdx>0){
@@ -324,6 +362,10 @@ function App(){
     trackEvent('restart_clicked');
     clearSavedBuild();setAnswers(defaultAnswers());setStepIdx(0);setDone(false);setQuickEdit(false);
     setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});
+    // Clears the build_completed dedup guard too - a genuinely fresh build
+    // (even one that happens to land on the exact same picks as the one
+    // just abandoned) is its own real completion and must still fire.
+    lastTrackedBuildRef.current=null;
   };
   const resumeBuild=()=>{
     const savedAnswers=savedBuild.answers||{};
@@ -346,6 +388,16 @@ function App(){
     setPricingSubStep(savedBuild.pricingSubStep||0);
     setPricingAnswers(savedBuild.pricingAnswers||{});
     setResumePending(false);
+    // Resuming straight into an already-completed saved build (the person
+    // finished it in an earlier visit, then reloaded/came back) is not a
+    // new completion - pre-arm both refs the build_completed effect above
+    // reads so its done:false->true edge, when it runs after this render,
+    // finds the build already accounted for instead of firing again for
+    // work that happened last session.
+    if(savedBuild.done){
+      wasDoneRef.current=true;
+      lastTrackedBuildRef.current=JSON.stringify(savedAnswers);
+    }
   };
   const discardSavedBuild=()=>{clearSavedBuild();setResumePending(false);};
 

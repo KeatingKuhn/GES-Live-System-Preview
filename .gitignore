@@ -2,3 +2,4 @@
 node_modules/
 vendor/
 index.local.html
+_qa_*.html
