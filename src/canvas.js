@@ -3307,6 +3307,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // dual fuel; a straight-cool system (furnace-only heating, no heat pump
   // at all) has no "efficient" state to show, so it always reads 67°.
   const thermostatTemp=!heatMode?(hasDehu?76:74):(((isDualFuel||!hasFurnace)&&heatSubMode==='hp')?70:67);
+  // Return-air temp reads as whatever the room currently is (the same
+  // thermostatTemp reading above) - supply air runs a real design split
+  // off of that, colder in cool mode, warmer in any heat mode. The split
+  // itself varies by mode the same physical way a real system's does: a
+  // heat pump's lower-temperature refrigerant heat runs a smaller supply
+  // split than resistance/gas heat's much hotter air, both still inside
+  // a realistic 15-18F range.
+  const returnTemp=thermostatTemp;
+  const supplySplit=!heatMode?17:(refReversed?15:18);
+  const supplyTemp=!heatMode?thermostatTemp-supplySplit:thermostatTemp+supplySplit;
 
   // Refrigerant colors - physically correct
   const evapC  = refReversed ? '#ef4444' : '#2389e0'; // evap: red=HP heat, blue=cool
@@ -3800,6 +3810,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <text x={RET_X+RET_PLEN_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
               fill="rgba(255,182,193,.52)" fontSize="13" fontFamily="monospace"
               transform={`rotate(-45,${RET_X+RET_PLEN_W/2},${UNIT_Y+UNIT_H/2})`}>RETURN PLENUM</text>
+            {/* Return-air temp - room-temp reading, opposite heat/cool
+                coloring from the supply-side temp on purpose, same
+                reasoning as this plenum's own airflow arrow below (this
+                air hasn't been conditioned yet). Sits at the box's own
+                top edge, clear of the diagonal RETURN PLENUM label which
+                only crosses through the box's center. */}
+            <text className="phase-color" x={RET_X+RET_PLEN_W/2} y={UNIT_Y+18} textAnchor="middle"
+              fill={heatMode?'#2389e0':'#f97316'} fontSize="14" fontWeight="700" fontFamily="monospace">
+              {returnTemp}°
+            </text>
             {Array.from({length:8},(_,i)=>(
               <line key={i} x1={RET_X+2} y1={UNIT_Y+12+i*(UNIT_H-24)/8}
                 x2={RET_X+2} y2={UNIT_Y+18+i*(UNIT_H-24)/8}
@@ -4020,6 +4040,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+16} textAnchor="middle"
                   fill={G+'.32)'} fontSize="11.5" fontFamily="monospace">4–6 FT SUPPLY</text>}
+                {/* Supply-air temp reading - sits in the otherwise-empty gap
+                    between the top flow arrow (28% down) and the plenum-type
+                    label (center), so it never competes with either. See
+                    supplyTemp/supplySplit's own comment above for how the
+                    mode-dependent split is derived. */}
+                <text className="phase-color" x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2-16} textAnchor="middle"
+                  fill={heatMode?'#f97316':'#2389e0'} fontSize="14" fontWeight="700" fontFamily="monospace">
+                  {supplyTemp}°
+                </text>
                 {[SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.28), SUP_PLEN_Y+Math.round(SUP_PLEN_H*0.72)].map((ay,i)=>(
                   // pointerEvents:none on the wrapper - see the return
                   // plenum's own airflow-arrow comment above for why the
@@ -4937,6 +4966,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   fill={isExisting?(G+'.55)'):(G+'.5)')} fontSize="11" fontFamily="monospace">
                   {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
                 </text>
+                {/* Supply-air temp - same mode-dependent reading as the
+                    attic layout's own supply plenum. Shares this label's
+                    own x-center (50% width) but the two flow arrows below
+                    sit at 28%/68% width, so there's no collision. */}
+                <text className="phase-color" x={UNIT_X+PLEN_W/2} y={PLEN_TOP+PLEN_TOTAL*0.38+18} textAnchor="middle"
+                  fill={heatMode?'#f97316':'#2389e0'} fontSize="13" fontWeight="700" fontFamily="monospace">
+                  {supplyTemp}°
+                </text>
                 {/* Supply airflow arrows INSIDE the plenum - two upward flow arrows */}
                 {[UNIT_X+PLEN_W*0.28, UNIT_X+PLEN_W*0.68].map((ax,i)=>(
                   <g key={i}>
@@ -5483,6 +5520,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 fill="none" stroke={(heatMode?B:O)+'.8)'} strokeWidth="1.4"
                 strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}} markerEnd="url(#arr)"/>
             </g>
+            {/* Return-air temp - room-temp reading, opposite heat/cool
+                coloring from supply on purpose, same reasoning as this
+                chase's own airflow arrow just above. Sits near the
+                chase's top, off to the side of the arrow's own centered
+                column so the arrowhead never paints through it. */}
+            <text className="phase-color" x={UNIT_X+UNIT_W/2+34} y={CHASE_Y+22} textAnchor="middle"
+              fill={heatMode?'#2389e0':'#f97316'} fontSize="14" fontWeight="700" fontFamily="monospace">
+              {returnTemp}°
+            </text>
             <text x={UNIT_X+UNIT_W/2} y={VH-8} textAnchor="middle"
               fill="rgba(138,98,42,.62)" fontSize="11.5" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
             {/* No EditZone covers this - free-standing hover, no onClick.

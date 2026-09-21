@@ -4009,6 +4009,9 @@
     const auxHeatActive = !hasFurnace && heatMode && heatSubMode === "aux";
     const blowerActive = !heatMode || furnaceActive || evapActive || auxHeatActive;
     const thermostatTemp = !heatMode ? hasDehu ? 76 : 74 : (isDualFuel || !hasFurnace) && heatSubMode === "hp" ? 70 : 67;
+    const returnTemp = thermostatTemp;
+    const supplySplit = !heatMode ? 17 : refReversed ? 15 : 18;
+    const supplyTemp = !heatMode ? thermostatTemp - supplySplit : thermostatTemp + supplySplit;
     const evapC = refReversed ? "#ef4444" : "#2389e0";
     const evapC2 = refReversed ? "#fca5a5" : "#7dd3fc";
     const condC = heatMode && (!hasFurnace || isDualFuel && heatSubMode === "hp") ? "#2389e0" : "#ef4444";
@@ -4346,6 +4349,20 @@
           transform: `rotate(-45,${RET_X + RET_PLEN_W / 2},${UNIT_Y + UNIT_H / 2})`
         },
         "RETURN PLENUM"
+      ), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          className: "phase-color",
+          x: RET_X + RET_PLEN_W / 2,
+          y: UNIT_Y + 18,
+          textAnchor: "middle",
+          fill: heatMode ? "#2389e0" : "#f97316",
+          fontSize: "14",
+          fontWeight: "700",
+          fontFamily: "monospace"
+        },
+        returnTemp,
+        "\xB0"
       ), Array.from({ length: 8 }, (_, i) => /* @__PURE__ */ React.createElement(
         "line",
         {
@@ -4689,6 +4706,20 @@
             fontFamily: "monospace"
           },
           "4\u20136 FT SUPPLY"
+        ), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            className: "phase-color",
+            x: SUP_X + SUP_PLEN_W / 2,
+            y: SUP_PLEN_Y + SUP_PLEN_H / 2 - 16,
+            textAnchor: "middle",
+            fill: heatMode ? "#f97316" : "#2389e0",
+            fontSize: "14",
+            fontWeight: "700",
+            fontFamily: "monospace"
+          },
+          supplyTemp,
+          "\xB0"
         ), [SUP_PLEN_Y + Math.round(SUP_PLEN_H * 0.28), SUP_PLEN_Y + Math.round(SUP_PLEN_H * 0.72)].map((ay, i) => (
           // pointerEvents:none on the wrapper - see the return
           // plenum's own airflow-arrow comment above for why the
@@ -5712,6 +5743,20 @@
             fontFamily: "monospace"
           },
           isExisting ? "EXISTING PLENUM" : isMetal ? "METAL PLENUM" : "DUCTBOARD PLENUM"
+        ), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            className: "phase-color",
+            x: UNIT_X + PLEN_W / 2,
+            y: PLEN_TOP + PLEN_TOTAL * 0.38 + 18,
+            textAnchor: "middle",
+            fill: heatMode ? "#f97316" : "#2389e0",
+            fontSize: "13",
+            fontWeight: "700",
+            fontFamily: "monospace"
+          },
+          supplyTemp,
+          "\xB0"
         ), [UNIT_X + PLEN_W * 0.28, UNIT_X + PLEN_W * 0.68].map((ax, i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(
           "path",
           {
@@ -6512,6 +6557,20 @@
           markerEnd: "url(#arr)"
         }
       )), /* @__PURE__ */ React.createElement(
+        "text",
+        {
+          className: "phase-color",
+          x: UNIT_X + UNIT_W / 2 + 34,
+          y: CHASE_Y + 22,
+          textAnchor: "middle",
+          fill: heatMode ? "#2389e0" : "#f97316",
+          fontSize: "14",
+          fontWeight: "700",
+          fontFamily: "monospace"
+        },
+        returnTemp,
+        "\xB0"
+      ), /* @__PURE__ */ React.createElement(
         "text",
         {
           x: UNIT_X + UNIT_W / 2,
