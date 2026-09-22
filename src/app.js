@@ -51,7 +51,103 @@ function hoverCapable(){
   try{return window.matchMedia('(hover: hover)').matches;}catch(e){return true;}
 }
 
+// ─── PATH PICKER - the new "choose your adventure" landing screen ──
+// Shown first, before the pre-existing attic/closet splash. Reuses the
+// exact same title/intro copy, trust bullets, splash-rise stagger and
+// language toggle as that screen (see its own comments further down) so
+// the two feel like one continuous entrance rather than a bolted-on extra
+// step - only the eyebrow line and the card row itself are new. Matches
+// the approved "choose your adventure" mockup: one big primary card (with
+// a PRIMARY PATH tag) plus two smaller stacked cards to its right.
+function PathPicker({tr,lang,setLang,onPick}){
+  return (
+    <div className="splash-screen">
+      <div className="splash-logo splash-rise" style={{animationDelay:'0s'}}>{tr('BUILD YOUR OWN SYSTEM','ARME SU PROPIO SISTEMA')}</div>
+      <p className="splash-rise" style={{animationDelay:'.06s',fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
+        {tr(<>Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.</>,
+            <>Díganos dónde vive su unidad interior y construiremos un <strong style={{color:"rgba(255,255,255,.8)"}}>diagrama en vivo y en tiempo real</strong> de su sistema HVAC completo - cada componente, cada conexión, dimensionado y etiquetado.</>)}
+      </p>
+      <div className="splash-rise" style={{animationDelay:'.12s',display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px 18px",maxWidth:560,margin:"6px 0"}}>
+        {[
+          tr('Locally owned & operated - not private equity','Propiedad y operación local - no somos capital privado'),
+          tr('We treat your home like our own','Tratamos su hogar como si fuera el nuestro'),
+          tr('Transparent pricing, zero pressure','Precios transparentes, sin presión'),
+        ].map((line,i)=>(
+          <span key={i} style={{fontFamily:"var(--fb)",fontSize:12.5,color:"rgba(255,255,255,.55)",display:"flex",alignItems:"center",gap:5}}>
+            <span style={{color:"var(--gl)"}}>✓</span>{line}
+          </span>
+        ))}
+      </div>
+      <p className="splash-rise" style={{animationDelay:'.18s',fontFamily:"var(--fm)",fontSize:"14px",color:"rgba(215,183,64,.75)",textAlign:"center",letterSpacing:".1em",margin:"0 0 6px"}}>{tr('CHOOSE YOUR SYSTEM TYPE TO BEGIN','ELIJA EL TIPO DE SISTEMA PARA COMENZAR')}</p>
+      <div className="path-cards splash-rise" style={{animationDelay:'.24s'}}>
+        <div className="path-card path-card-primary" role="button" tabIndex={0}
+          aria-label={tr('Standard Split System - One indoor unit, one outdoor unit, ducts to every room.','Sistema Dividido Estándar - Una unidad interior, una unidad exterior, ductos a cada habitación.')}
+          onClick={()=>onPick('standard')}
+          onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick('standard');}}}>
+          <div className="path-tag">{tr('PRIMARY PATH','RUTA PRINCIPAL')}</div>
+          <div className="path-icon">🏠</div>
+          <div className="path-card-title">{tr('Standard Split System','Sistema Dividido Estándar')}</div>
+          <div className="path-card-desc">{tr('One indoor unit, one outdoor unit, ducts to every room - the classic Austin setup. Attic or closet install.','Una unidad interior, una unidad exterior, ductos a cada habitación - la configuración clásica de Austin. Instalación en ático o clóset.')}</div>
+        </div>
+        <div className="path-cards-secondary">
+          <div className="path-card path-card-secondary" role="button" tabIndex={0}
+            aria-label={tr('Mini-Split - Ductless, room by room.','Mini-Split - Sin ductos, habitación por habitación.')}
+            onClick={()=>onPick('minisplit')}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick('minisplit');}}}>
+            <div className="path-icon path-icon-sm">❄️</div>
+            <div className="path-card-title path-card-title-sm">{tr('Mini-Split','Mini-Split')}</div>
+            <div className="path-card-desc path-card-desc-sm">{tr('Ductless, room by room','Sin ductos, habitación por habitación')}</div>
+          </div>
+          <div className="path-card path-card-secondary" role="button" tabIndex={0}
+            aria-label={tr('Zone System - Multiple zones, one system.','Sistema de Zonas - Múltiples zonas, un sistema.')}
+            onClick={()=>onPick('zone')}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick('zone');}}}>
+            <div className="path-icon path-icon-sm">🗺️</div>
+            <div className="path-card-title path-card-title-sm">{tr('Zone System','Sistema de Zonas')}</div>
+            <div className="path-card-desc path-card-desc-sm">{tr('Multiple zones, one system','Múltiples zonas, un sistema')}</div>
+          </div>
+        </div>
+      </div>
+      <button className="lang-toggle-btn splash-rise" onClick={()=>setLang(l=>l==='es'?'en':'es')}
+        aria-label={tr('Switch to Spanish','Cambiar a inglés')}
+        style={{animationDelay:'.3s',fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
+        {lang==='es'?'EN':'ES'}
+      </button>
+      <p className="splash-rise" style={{animationDelay:'.36s',fontFamily:"var(--fb)",fontSize:"14px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:460,lineHeight:1.6,marginTop:8}}>
+        {tr('Takes about 2 minutes. No personal info required. Your build saves automatically as you go.','Toma unos 2 minutos. No se requiere información personal. Su sistema se guarda automáticamente mientras avanza.')}
+      </p>
+    </div>
+  );
+}
+
+// ─── COMING SOON - placeholder for paths not yet built out (Zone System,
+// and for now Mini-Split too - see the redirect note in minisplit-flow.js/
+// minisplit-canvas.js: those files exist but are intentionally NOT wired
+// in yet, pending a new approved visual direction for the diagram) ──────
+function ComingSoonScreen({tr,title,onBack}){
+  return (
+    <div className="splash-screen" style={{gap:20}}>
+      <div className="splash-logo splash-rise" style={{animationDelay:'0s',fontSize:"clamp(28px,6vw,44px)"}}>{title}</div>
+      <p className="splash-rise" style={{animationDelay:'.08s',fontFamily:"var(--fb)",fontSize:"17px",color:"rgba(255,255,255,.6)",textAlign:"center",maxWidth:480,lineHeight:1.7}}>
+        {tr("We're still building this out - check back soon, or start a Standard Split System build in the meantime.","Todavía estamos construyendo esto - vuelva pronto, o comience un sistema dividido estándar mientras tanto.")}
+      </p>
+      <button className="btn-back splash-rise" style={{animationDelay:'.16s',padding:"10px 22px"}} onClick={onBack}>‹ {tr('Back','Atrás')}</button>
+    </div>
+  );
+}
+
 function App(){
+  // ─── ENTRY PATH - "choose your adventure" landing screen ───────
+  // Gates which top-level screen shows before anything else in this
+  // component. null = the new 3-card path picker; 'standard' reveals the
+  // pre-existing attic/closet splash + full wizard completely unchanged
+  // (just gated behind this instead of being the very first thing shown);
+  // 'minisplit'/'zone' are their own simple placeholder screens for now.
+  // Declared as a plain, unconditionally-called hook like every other
+  // piece of state here - the branching on its value happens down in the
+  // JSX return, never by skipping hook calls, so Rules of Hooks stays
+  // intact no matter which branch renders.
+  const [entryPath,setEntryPath]=useState(null);
   const [savedBuild]=useState(loadSavedBuild);
   const [resumePending,setResumePending]=useState(!!savedBuild);
   // The enhanced filtration cabinet ships standard on every install, so it
@@ -992,6 +1088,28 @@ function App(){
     </button>;
   };
 
+  // ─── ENTRY PATH GATE (Part 1) ──────────────────────────────────
+  // These three branches return BEFORE the pre-existing standard-flow JSX
+  // below - safe to do here (and only here) because every hook this
+  // component uses is already declared above, unconditionally, so which
+  // branch actually renders never changes how many hooks got called.
+  // 'minisplit' is intentionally routed to the same coming-soon placeholder
+  // as 'zone' for now - the mini-split flow's own files (minisplit-flow.js/
+  // minisplit-canvas.js) exist on disk but are deliberately NOT imported/
+  // wired in yet, pending a new approved visual direction for its diagram
+  // (video-game-HUD style, isometric-ish angle, matching canvas.js - see
+  // that redirect's own notes) rather than the realistic style they were
+  // first built against.
+  if(entryPath===null){
+    return <PathPicker tr={tr} lang={lang} setLang={setLang} onPick={setEntryPath}/>;
+  }
+  if(entryPath==='zone'){
+    return <ComingSoonScreen tr={tr} title={tr('ZONE SYSTEM','SISTEMA DE ZONAS')} onBack={()=>setEntryPath(null)}/>;
+  }
+  if(entryPath==='minisplit'){
+    return <ComingSoonScreen tr={tr} title={tr('MINI-SPLIT','MINI-SPLIT')} onBack={()=>setEntryPath(null)}/>;
+  }
+
     return(<>
       {/* Reserved header-spacer bar simulating the real WordPress site
           header's height above the iframe - unrelated to the language
@@ -1069,6 +1187,12 @@ function App(){
           all three needed this same guard against leaking into Tab order
           while hidden. */}
       <div ref={splashRef} className={"splash-screen"+(loc||done?" out":"")}>
+        {/* Returns to the new path-picker screen above this one (Part 1) -
+            this whole div already goes `inert` (see the splashRef effect
+            elsewhere in this file) the instant loc/done make it invisible,
+            so this button is automatically unreachable then too, same as
+            the two location cards below it. */}
+        <button className="path-back-btn" onClick={()=>setEntryPath(null)}>‹ {tr('Back','Atrás')}</button>
         {/* Staged entrance (splash-rise, see its own comment in styles.css) -
             each direct block eases up into place a beat after the one
             before it, instead of the whole screen popping in fully-formed

@@ -7869,7 +7869,85 @@
       return true;
     }
   }
+  function PathPicker({ tr, lang: lang2, setLang, onPick }) {
+    return /* @__PURE__ */ React.createElement("div", { className: "splash-screen" }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo splash-rise", style: { animationDelay: "0s" } }, tr("BUILD YOUR OWN SYSTEM", "ARME SU PROPIO SISTEMA")), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".06s", fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, tr(
+      /* @__PURE__ */ React.createElement(React.Fragment, null, "Tell us where your indoor unit lives and we will build a ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "live, real-time diagram"), " of your complete HVAC system - every component, every connection, sized and labeled."),
+      /* @__PURE__ */ React.createElement(React.Fragment, null, "D\xEDganos d\xF3nde vive su unidad interior y construiremos un ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "diagrama en vivo y en tiempo real"), " de su sistema HVAC completo - cada componente, cada conexi\xF3n, dimensionado y etiquetado.")
+    )), /* @__PURE__ */ React.createElement("div", { className: "splash-rise", style: { animationDelay: ".12s", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 18px", maxWidth: 560, margin: "6px 0" } }, [
+      tr("Locally owned & operated - not private equity", "Propiedad y operaci\xF3n local - no somos capital privado"),
+      tr("We treat your home like our own", "Tratamos su hogar como si fuera el nuestro"),
+      tr("Transparent pricing, zero pressure", "Precios transparentes, sin presi\xF3n")
+    ].map((line, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontFamily: "var(--fb)", fontSize: 12.5, color: "rgba(255,255,255,.55)", display: "flex", alignItems: "center", gap: 5 } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--gl)" } }, "\u2713"), line))), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".18s", fontFamily: "var(--fm)", fontSize: "14px", color: "rgba(215,183,64,.75)", textAlign: "center", letterSpacing: ".1em", margin: "0 0 6px" } }, tr("CHOOSE YOUR SYSTEM TYPE TO BEGIN", "ELIJA EL TIPO DE SISTEMA PARA COMENZAR")), /* @__PURE__ */ React.createElement("div", { className: "path-cards splash-rise", style: { animationDelay: ".24s" } }, /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        className: "path-card path-card-primary",
+        role: "button",
+        tabIndex: 0,
+        "aria-label": tr("Standard Split System - One indoor unit, one outdoor unit, ducts to every room.", "Sistema Dividido Est\xE1ndar - Una unidad interior, una unidad exterior, ductos a cada habitaci\xF3n."),
+        onClick: () => onPick("standard"),
+        onKeyDown: (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onPick("standard");
+          }
+        }
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "path-tag" }, tr("PRIMARY PATH", "RUTA PRINCIPAL")),
+      /* @__PURE__ */ React.createElement("div", { className: "path-icon" }, "\u{1F3E0}"),
+      /* @__PURE__ */ React.createElement("div", { className: "path-card-title" }, tr("Standard Split System", "Sistema Dividido Est\xE1ndar")),
+      /* @__PURE__ */ React.createElement("div", { className: "path-card-desc" }, tr("One indoor unit, one outdoor unit, ducts to every room - the classic Austin setup. Attic or closet install.", "Una unidad interior, una unidad exterior, ductos a cada habitaci\xF3n - la configuraci\xF3n cl\xE1sica de Austin. Instalaci\xF3n en \xE1tico o cl\xF3set."))
+    ), /* @__PURE__ */ React.createElement("div", { className: "path-cards-secondary" }, /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        className: "path-card path-card-secondary",
+        role: "button",
+        tabIndex: 0,
+        "aria-label": tr("Mini-Split - Ductless, room by room.", "Mini-Split - Sin ductos, habitaci\xF3n por habitaci\xF3n."),
+        onClick: () => onPick("minisplit"),
+        onKeyDown: (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onPick("minisplit");
+          }
+        }
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "path-icon path-icon-sm" }, "\u2744\uFE0F"),
+      /* @__PURE__ */ React.createElement("div", { className: "path-card-title path-card-title-sm" }, tr("Mini-Split", "Mini-Split")),
+      /* @__PURE__ */ React.createElement("div", { className: "path-card-desc path-card-desc-sm" }, tr("Ductless, room by room", "Sin ductos, habitaci\xF3n por habitaci\xF3n"))
+    ), /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        className: "path-card path-card-secondary",
+        role: "button",
+        tabIndex: 0,
+        "aria-label": tr("Zone System - Multiple zones, one system.", "Sistema de Zonas - M\xFAltiples zonas, un sistema."),
+        onClick: () => onPick("zone"),
+        onKeyDown: (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onPick("zone");
+          }
+        }
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "path-icon path-icon-sm" }, "\u{1F5FA}\uFE0F"),
+      /* @__PURE__ */ React.createElement("div", { className: "path-card-title path-card-title-sm" }, tr("Zone System", "Sistema de Zonas")),
+      /* @__PURE__ */ React.createElement("div", { className: "path-card-desc path-card-desc-sm" }, tr("Multiple zones, one system", "M\xFAltiples zonas, un sistema"))
+    ))), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        className: "lang-toggle-btn splash-rise",
+        onClick: () => setLang((l) => l === "es" ? "en" : "es"),
+        "aria-label": tr("Switch to Spanish", "Cambiar a ingl\xE9s"),
+        style: { animationDelay: ".3s", fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
+      },
+      lang2 === "es" ? "EN" : "ES"
+    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su sistema se guarda autom\xE1ticamente mientras avanza.")));
+  }
+  function ComingSoonScreen({ tr, title, onBack }) {
+    return /* @__PURE__ */ React.createElement("div", { className: "splash-screen", style: { gap: 20 } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo splash-rise", style: { animationDelay: "0s", fontSize: "clamp(28px,6vw,44px)" } }, title), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".08s", fontFamily: "var(--fb)", fontSize: "17px", color: "rgba(255,255,255,.6)", textAlign: "center", maxWidth: 480, lineHeight: 1.7 } }, tr("We're still building this out - check back soon, or start a Standard Split System build in the meantime.", "Todav\xEDa estamos construyendo esto - vuelva pronto, o comience un sistema dividido est\xE1ndar mientras tanto.")), /* @__PURE__ */ React.createElement("button", { className: "btn-back splash-rise", style: { animationDelay: ".16s", padding: "10px 22px" }, onClick: onBack }, "\u2039 ", tr("Back", "Atr\xE1s")));
+  }
   function App() {
+    const [entryPath, setEntryPath] = useState2(null);
     const [savedBuild] = useState2(loadSavedBuild);
     const [resumePending, setResumePending] = useState2(!!savedBuild);
     const defaultAnswers = () => ({ purif: ["aprilaire"] });
@@ -8394,6 +8472,15 @@
       }
       return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), opt.desc && /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, opt.desc)), /* @__PURE__ */ React.createElement("div", { className: isMulti ? "opt-check" : "opt-check radio", style: isOn && !isMulti ? { borderColor: "var(--gl)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" } : {} }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 8, height: 8, borderRadius: "50%", background: "var(--gh)" } }) : "")));
     };
+    if (entryPath === null) {
+      return /* @__PURE__ */ React.createElement(PathPicker, { tr, lang: lang2, setLang, onPick: setEntryPath });
+    }
+    if (entryPath === "zone") {
+      return /* @__PURE__ */ React.createElement(ComingSoonScreen, { tr, title: tr("ZONE SYSTEM", "SISTEMA DE ZONAS"), onBack: () => setEntryPath(null) });
+    }
+    if (entryPath === "minisplit") {
+      return /* @__PURE__ */ React.createElement(ComingSoonScreen, { tr, title: tr("MINI-SPLIT", "MINI-SPLIT"), onBack: () => setEntryPath(null) });
+    }
     return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, /* @__PURE__ */ React.createElement("svg", { width: "0", height: "0", style: { position: "absolute" }, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null)), /* @__PURE__ */ React.createElement("div", { "aria-live": "polite", "aria-atomic": "true", className: "sr-only" }, liveMessage), resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, tr("WELCOME BACK", "BIENVENIDO DE NUEVO")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
       const savedCur = savedSteps[savedBuild.stepIdx];
@@ -8405,7 +8492,7 @@
     })()), /* @__PURE__ */ React.createElement("button", { className: "done-cta", style: { width: 220 }, onClick: resumeBuild }, tr("Resume My Build", "Continuar Mi Sistema")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: discardSavedBuild }, tr("Start Fresh Instead", "Empezar de Nuevo"))), /* @__PURE__ */ React.createElement("div", { className: "prog-chapters", style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 30 } }, chapterNames.map((name, i) => {
       const segPct = done || i < curChapter ? 100 : i > curChapter ? 0 : chapterCounts[i] ? Math.round(curChapterStepNum / chapterCounts[i] * 100) : 0;
       return /* @__PURE__ */ React.createElement("div", { key: i, className: "prog-chapter" + (segPct >= 100 ? " done" : ""), title: name }, /* @__PURE__ */ React.createElement("div", { className: "prog-chapter-fill", style: { width: segPct + "%" } }));
-    })), /* @__PURE__ */ React.createElement("div", { ref: splashRef, className: "splash-screen" + (loc || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo splash-rise", style: { animationDelay: "0s" } }, tr("BUILD YOUR OWN SYSTEM", "ARME SU PROPIO SISTEMA")), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".06s", fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, tr(
+    })), /* @__PURE__ */ React.createElement("div", { ref: splashRef, className: "splash-screen" + (loc || done ? " out" : "") }, /* @__PURE__ */ React.createElement("button", { className: "path-back-btn", onClick: () => setEntryPath(null) }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("div", { className: "splash-logo splash-rise", style: { animationDelay: "0s" } }, tr("BUILD YOUR OWN SYSTEM", "ARME SU PROPIO SISTEMA")), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".06s", fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, tr(
       /* @__PURE__ */ React.createElement(React.Fragment, null, "Tell us where your indoor unit lives and we will build a ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "live, real-time diagram"), " of your complete HVAC system - every component, every connection, sized and labeled."),
       /* @__PURE__ */ React.createElement(React.Fragment, null, "D\xEDganos d\xF3nde vive su unidad interior y construiremos un ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "diagrama en vivo y en tiempo real"), " de su sistema HVAC completo - cada componente, cada conexi\xF3n, dimensionado y etiquetado.")
     )), /* @__PURE__ */ React.createElement("div", { className: "splash-rise", style: { animationDelay: ".12s", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 18px", maxWidth: 560, margin: "6px 0" } }, [
