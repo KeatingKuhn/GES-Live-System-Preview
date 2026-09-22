@@ -19,13 +19,13 @@ export const STEPS=[
     hint:'Feeds conditioned air to your ductwork.', optional:false},
   {id:'cond_tier',   q:'Pick your efficiency tier.', chapter:1,
     hint:'Higher efficiency, lower monthly bills.', optional:false},
-  {id:'system_for',  q:'Heat pump or straight cool?', chapter:1,
+  {id:'system_for',  q:'Dual fuel heat pump, or straight cool?', chapter:1,
     hint:'Heat pump does more; AC only cools.', optional:false,
     // Mid efficiency only comes as dual fuel - nothing to actually choose,
     // so skip the step entirely instead of showing a single-card question.
     showIf:a=>a.indoor_type==='furnace'&&a.cond_tier!=='mid_ge15'},
   {id:'thermostat',  q:'Which thermostat?', chapter:2,
-    hint:'Wi-Fi models save 10–15% on your bill.',            optional:false},
+    hint:'Wi-Fi models can help save 10–15% on your bill.',   optional:false},
   {id:'purif',       q:'Any add-ons?', chapter:2,
     hint:'Filtration ships standard; add more here.',optional:true, multi:true},
   // Merged with the old standalone "extras" step (condensate pump/ERV) -
@@ -51,7 +51,7 @@ export function getOpts(stepId, answers){
     ];
     case 'indoor_type':return[
       {v:'furnace',label:'Furnace - Gas Heat',      desc:'Most common in Austin'},
-      {v:'ah',     label:'Air Handler - All Electric', desc:'Auxiliary heat installed'},
+      {v:'ah',     label:'Air Handler - All Electric', desc:'Includes electric auxiliary heat'},
     ];
     case 'insulation':{
       // Insulation is asked regardless of indoor_type - it's a property of
@@ -79,14 +79,19 @@ export function getOpts(stepId, answers){
       ];
       return[
       {v:'basic',label:'Basic Programmable', desc:'Reliable, no app or subscription. Set your schedule and it runs.'},
-      {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, learns your habits. Saves 10–15% on bills.',badge:true},
+      {v:'wifi', label:'Wi-Fi Smart',   desc:'Control from your phone, learns your habits. Can help save 10–15% on bills.',badge:true},
     ];
     case 'purif':return[
       // Enhanced Filtration Cabinet isn't listed - it's automatic on every
       // system (see defaultAnswers), not a real choice to present.
       {v:'uv',       label:'UV Light System',    desc:'Keeps the evaporator coil clean for lasting efficiency.'},
-      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Neutralizes airborne particles, odors, and VOCs in your ducts.'},
-      {v:'surge',    label:'Surge Protector',    desc:'Shields the compressor from voltage spikes and lightning.'},
+      // QA FIX - used to say "neutralizes... VOCs," a chemical-destruction
+      // claim that contradicted the diagram's own ionizer tooltip (which
+      // correctly describes charged-particle filtration, not neutralization)
+      // and overstated what bipolar/needlepoint ionization is actually
+      // established to do - aligned on the filtration mechanism everywhere.
+      {v:'ionizer',  label:'Ionizer / Plasma',   desc:'Charges airborne particles and odors so your filter catches more of them.'},
+      {v:'surge',    label:'Surge Protector',    desc:'Helps protect the compressor from voltage spikes and nearby lightning strikes.'},
     ];
     // No mid_ge15 branch here - the system_for STEP itself is hidden for
     // mid_ge15 (see its showIf above, which forces 'hp' directly instead),
@@ -98,14 +103,25 @@ export function getOpts(stepId, answers){
       {v:'sc', label:'Straight Cool',        desc:'AC cools only - furnace handles all heating. Simpler, lower upfront cost.'},
     ];
     case 'cond_tier':{
+      // QA FIX - "14 SEER2" was off: the 2023 DOE South-region minimum this
+      // tier is actually built to is 14.3 SEER2 for most residential sizes
+      // (13.8 for 4.5+ ton systems) - relabeled to the number that actually
+      // applies, since this tier's whole pitch is "meets code."
+      // Humidity-control claim used to only appear on Mid's card, while the
+      // step's own info panel separately claimed High has "the best"
+      // humidity control - a homeowner skimming just the cards would've
+      // concluded the opposite of what the info panel said. Both cards now
+      // carry it, worded so they don't compete for the same claim, and
+      // High's copy explains inverter-driven as the more precise form of
+      // variable-speed rather than an unrelated feature.
       return[
-        {v:'fedmin',   label:'Federal Minimum - 14 SEER2', desc:'Meets 2023 federal energy code.'},
-        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed, better humidity control.'},
-        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven top tier.'},
+        {v:'fedmin',   label:'Federal Minimum - 14.3 SEER2', desc:'Meets 2023 federal energy code.'},
+        {v:'mid_ge15', label:'Mid Efficiency - 18 SEER2',  desc:'Variable-speed - better humidity control than Federal Minimum. Uses roughly 20% less energy to cool the same home.'},
+        {v:'high_ge18',label:'High Efficiency - 21 SEER2', desc:'Inverter-driven (full modulation) - our best humidity control. Uses roughly 30% less energy than Federal Minimum.'},
       ];
     }
     case 'dehu':return[
-      {v:'dehu',label:'Whole-Home Dehumidifier', desc:'Sized to your square footage, runs automatically. No maintenance.'},
+      {v:'dehu',label:'Whole-Home Dehumidifier', desc:'Sized to your square footage, runs automatically - just an occasional filter check, no buckets to empty.'},
       {v:'erv', label:'ERV (Energy Recovery)',   desc:'Fresh filtered air in, stale air out, recovering most of the energy.'},
     ];
     default:return[];
@@ -135,8 +151,8 @@ export const STEPS_ES={
   insulation: {q:'¿Fibra de vidrio o espuma aislante?',    hint:'Determina la construcción de su ático - y la eficiencia de su horno, si tiene uno.'},
   plenum:     {q:'¿Necesita un plenum de suministro nuevo?', hint:'Envía aire acondicionado a sus ductos.'},
   cond_tier:  {q:'Elija su nivel de eficiencia.',          hint:'Mayor eficiencia, facturas mensuales más bajas.'},
-  system_for: {q:'¿Bomba de calor o solo enfriamiento?',   hint:'La bomba de calor hace más; el A/C solo enfría.'},
-  thermostat: {q:'¿Qué termostato?',                       hint:'Los modelos Wi-Fi ahorran 10–15% en su factura.'},
+  system_for: {q:'¿Bomba de calor de combustible dual, o solo enfriamiento?', hint:'La bomba de calor hace más; el A/C solo enfría.'},
+  thermostat: {q:'¿Qué termostato?',                       hint:'Los modelos Wi-Fi pueden ahorrar 10–15% en su factura.'},
   purif:      {q:'¿Algún complemento?',                    hint:'La filtración viene incluida; agregue más aquí.'},
   dehu:       {q:'¿Quiere mejorar la calidad del aire interior?', hint:'Deshumidificador para toda la casa, sistema ERV de aire fresco, o ambos.'},
 };
@@ -167,24 +183,24 @@ export const OPTS_ES={
   thermostat:{
     proprietary:{label:'Termostato Comunicante',  desc:'Requerido en este nivel para un control por etapas preciso y diagnósticos completos.'},
     basic:      {label:'Programable Básico',      desc:'Confiable, sin app ni suscripción. Configure su horario y listo.'},
-    wifi:       {label:'Inteligente Wi-Fi',       desc:'Contrólelo desde su teléfono, aprende sus hábitos. Ahorra 10–15% en su factura.'},
+    wifi:       {label:'Inteligente Wi-Fi',       desc:'Contrólelo desde su teléfono, aprende sus hábitos. Puede ahorrar 10–15% en su factura.'},
   },
   purif:{
     uv:     {label:'Sistema de Luz UV',          desc:'Mantiene limpio el serpentín evaporador para una eficiencia duradera.'},
-    ionizer:{label:'Ionizador / Plasma',         desc:'Neutraliza partículas, olores y COV en el aire de sus ductos.'},
-    surge:  {label:'Protector de Sobrevoltaje',  desc:'Protege el compresor de picos de voltaje y rayos.'},
+    ionizer:{label:'Ionizador / Plasma',         desc:'Carga las partículas y olores en el aire para que su filtro atrape más.'},
+    surge:  {label:'Protector de Sobrevoltaje',  desc:'Ayuda a proteger el compresor de picos de voltaje y rayos cercanos.'},
   },
   system_for:{
     hp:{label:'Combustible Dual (Bomba de calor + horno)', desc:'La bomba de calor cubre la mayor parte del año, hasta ~35°F. El horno se encarga del resto.'},
     sc:{label:'Solo Enfriamiento',                          desc:'El A/C solo enfría - el horno se encarga de toda la calefacción. Más simple, menor costo inicial.'},
   },
   cond_tier:{
-    fedmin:   {label:'Mínimo Federal - 14 SEER2',  desc:'Cumple con el código energético federal de 2023.'},
-    mid_ge15: {label:'Eficiencia Media - 18 SEER2', desc:'Velocidad variable, mejor control de humedad.'},
-    high_ge18:{label:'Alta Eficiencia - 21 SEER2',  desc:'Nivel superior con tecnología Inverter.'},
+    fedmin:   {label:'Mínimo Federal - 14.3 SEER2',  desc:'Cumple con el código energético federal de 2023.'},
+    mid_ge15: {label:'Eficiencia Media - 18 SEER2', desc:'Velocidad variable - mejor control de humedad que el Mínimo Federal. Usa aproximadamente 20% menos energía para enfriar la misma casa.'},
+    high_ge18:{label:'Alta Eficiencia - 21 SEER2',  desc:'Tecnología Inverter (modulación total) - nuestro mejor control de humedad. Usa aproximadamente 30% menos energía que el Mínimo Federal.'},
   },
   dehu:{
-    dehu:{label:'Deshumidificador para Toda la Casa', desc:'Calculado según el tamaño de su casa, funciona automáticamente. Sin mantenimiento.'},
+    dehu:{label:'Deshumidificador para Toda la Casa', desc:'Calculado según el tamaño de su casa, funciona automáticamente - solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar.'},
     erv: {label:'ERV (Recuperación de Energía)',       desc:'Aire fresco filtrado entra, aire viciado sale, recuperando la mayor parte de la energía.'},
   },
 };
@@ -437,7 +453,16 @@ export const GATE_CONFIG={
   // src/app.js, right where this is imported and used.
   gravityFormId:9,
 };
-const TIER_LABEL={fedmin:'Federal Minimum - 14 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
+// The office inbox the "Send to Our Office" quick-action (result screen,
+// src/app.js buildEmailHref) mailto:'s to, alongside the existing "Email
+// a Copy to Yourself" button (blank recipient, same build content) - per
+// direct feedback, the end of the build should let someone send it to
+// GES AND keep a copy for themselves, not just one or the other. Same
+// "ships hidden until configured" convention as GATE_CONFIG/
+// FINANCING_OPTIONS above: blank means that button simply doesn't render.
+// Site owner: fill in the real office inbox before launch.
+export const OFFICE_EMAIL='';
+const TIER_LABEL={fedmin:'Federal Minimum - 14.3 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
 // given the wizard's own filtering, but guards against stale/edge-case answers).
 export function calcEstimate(answers,pricingAnswers){

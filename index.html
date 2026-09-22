@@ -1427,7 +1427,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     },
     {
       id: "system_for",
-      q: "Heat pump or straight cool?",
+      q: "Dual fuel heat pump, or straight cool?",
       chapter: 1,
       hint: "Heat pump does more; AC only cools.",
       optional: false,
@@ -1439,7 +1439,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       id: "thermostat",
       q: "Which thermostat?",
       chapter: 2,
-      hint: "Wi-Fi models save 10\u201315% on your bill.",
+      hint: "Wi-Fi models can help save 10\u201315% on your bill.",
       optional: false
     },
     {
@@ -1477,7 +1477,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       case "indoor_type":
         return [
           { v: "furnace", label: "Furnace - Gas Heat", desc: "Most common in Austin" },
-          { v: "ah", label: "Air Handler - All Electric", desc: "Auxiliary heat installed" }
+          { v: "ah", label: "Air Handler - All Electric", desc: "Includes electric auxiliary heat" }
         ];
       case "insulation": {
         const isFurnace = answers.indoor_type === "furnace";
@@ -1506,15 +1506,20 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         ];
         return [
           { v: "basic", label: "Basic Programmable", desc: "Reliable, no app or subscription. Set your schedule and it runs." },
-          { v: "wifi", label: "Wi-Fi Smart", desc: "Control from your phone, learns your habits. Saves 10\u201315% on bills.", badge: true }
+          { v: "wifi", label: "Wi-Fi Smart", desc: "Control from your phone, learns your habits. Can help save 10\u201315% on bills.", badge: true }
         ];
       case "purif":
         return [
           // Enhanced Filtration Cabinet isn't listed - it's automatic on every
           // system (see defaultAnswers), not a real choice to present.
           { v: "uv", label: "UV Light System", desc: "Keeps the evaporator coil clean for lasting efficiency." },
-          { v: "ionizer", label: "Ionizer / Plasma", desc: "Neutralizes airborne particles, odors, and VOCs in your ducts." },
-          { v: "surge", label: "Surge Protector", desc: "Shields the compressor from voltage spikes and lightning." }
+          // QA FIX - used to say "neutralizes... VOCs," a chemical-destruction
+          // claim that contradicted the diagram's own ionizer tooltip (which
+          // correctly describes charged-particle filtration, not neutralization)
+          // and overstated what bipolar/needlepoint ionization is actually
+          // established to do - aligned on the filtration mechanism everywhere.
+          { v: "ionizer", label: "Ionizer / Plasma", desc: "Charges airborne particles and odors so your filter catches more of them." },
+          { v: "surge", label: "Surge Protector", desc: "Helps protect the compressor from voltage spikes and nearby lightning strikes." }
         ];
       // No mid_ge15 branch here - the system_for STEP itself is hidden for
       // mid_ge15 (see its showIf above, which forces 'hp' directly instead),
@@ -1528,14 +1533,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         ];
       case "cond_tier": {
         return [
-          { v: "fedmin", label: "Federal Minimum - 14 SEER2", desc: "Meets 2023 federal energy code." },
-          { v: "mid_ge15", label: "Mid Efficiency - 18 SEER2", desc: "Variable-speed, better humidity control." },
-          { v: "high_ge18", label: "High Efficiency - 21 SEER2", desc: "Inverter-driven top tier." }
+          { v: "fedmin", label: "Federal Minimum - 14.3 SEER2", desc: "Meets 2023 federal energy code." },
+          { v: "mid_ge15", label: "Mid Efficiency - 18 SEER2", desc: "Variable-speed - better humidity control than Federal Minimum. Uses roughly 20% less energy to cool the same home." },
+          { v: "high_ge18", label: "High Efficiency - 21 SEER2", desc: "Inverter-driven (full modulation) - our best humidity control. Uses roughly 30% less energy than Federal Minimum." }
         ];
       }
       case "dehu":
         return [
-          { v: "dehu", label: "Whole-Home Dehumidifier", desc: "Sized to your square footage, runs automatically. No maintenance." },
+          { v: "dehu", label: "Whole-Home Dehumidifier", desc: "Sized to your square footage, runs automatically - just an occasional filter check, no buckets to empty." },
           { v: "erv", label: "ERV (Energy Recovery)", desc: "Fresh filtered air in, stale air out, recovering most of the energy." }
         ];
       default:
@@ -1549,8 +1554,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Determina la construcci\xF3n de su \xE1tico - y la eficiencia de su horno, si tiene uno." },
     plenum: { q: "\xBFNecesita un plenum de suministro nuevo?", hint: "Env\xEDa aire acondicionado a sus ductos." },
     cond_tier: { q: "Elija su nivel de eficiencia.", hint: "Mayor eficiencia, facturas mensuales m\xE1s bajas." },
-    system_for: { q: "\xBFBomba de calor o solo enfriamiento?", hint: "La bomba de calor hace m\xE1s; el A/C solo enfr\xEDa." },
-    thermostat: { q: "\xBFQu\xE9 termostato?", hint: "Los modelos Wi-Fi ahorran 10\u201315% en su factura." },
+    system_for: { q: "\xBFBomba de calor de combustible dual, o solo enfriamiento?", hint: "La bomba de calor hace m\xE1s; el A/C solo enfr\xEDa." },
+    thermostat: { q: "\xBFQu\xE9 termostato?", hint: "Los modelos Wi-Fi pueden ahorrar 10\u201315% en su factura." },
     purif: { q: "\xBFAlg\xFAn complemento?", hint: "La filtraci\xF3n viene incluida; agregue m\xE1s aqu\xED." },
     dehu: { q: "\xBFQuiere mejorar la calidad del aire interior?", hint: "Deshumidificador para toda la casa, sistema ERV de aire fresco, o ambos." }
   };
@@ -1585,24 +1590,24 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     thermostat: {
       proprietary: { label: "Termostato Comunicante", desc: "Requerido en este nivel para un control por etapas preciso y diagn\xF3sticos completos." },
       basic: { label: "Programable B\xE1sico", desc: "Confiable, sin app ni suscripci\xF3n. Configure su horario y listo." },
-      wifi: { label: "Inteligente Wi-Fi", desc: "Contr\xF3lelo desde su tel\xE9fono, aprende sus h\xE1bitos. Ahorra 10\u201315% en su factura." }
+      wifi: { label: "Inteligente Wi-Fi", desc: "Contr\xF3lelo desde su tel\xE9fono, aprende sus h\xE1bitos. Puede ahorrar 10\u201315% en su factura." }
     },
     purif: {
       uv: { label: "Sistema de Luz UV", desc: "Mantiene limpio el serpent\xEDn evaporador para una eficiencia duradera." },
-      ionizer: { label: "Ionizador / Plasma", desc: "Neutraliza part\xEDculas, olores y COV en el aire de sus ductos." },
-      surge: { label: "Protector de Sobrevoltaje", desc: "Protege el compresor de picos de voltaje y rayos." }
+      ionizer: { label: "Ionizador / Plasma", desc: "Carga las part\xEDculas y olores en el aire para que su filtro atrape m\xE1s." },
+      surge: { label: "Protector de Sobrevoltaje", desc: "Ayuda a proteger el compresor de picos de voltaje y rayos cercanos." }
     },
     system_for: {
       hp: { label: "Combustible Dual (Bomba de calor + horno)", desc: "La bomba de calor cubre la mayor parte del a\xF1o, hasta ~35\xB0F. El horno se encarga del resto." },
       sc: { label: "Solo Enfriamiento", desc: "El A/C solo enfr\xEDa - el horno se encarga de toda la calefacci\xF3n. M\xE1s simple, menor costo inicial." }
     },
     cond_tier: {
-      fedmin: { label: "M\xEDnimo Federal - 14 SEER2", desc: "Cumple con el c\xF3digo energ\xE9tico federal de 2023." },
-      mid_ge15: { label: "Eficiencia Media - 18 SEER2", desc: "Velocidad variable, mejor control de humedad." },
-      high_ge18: { label: "Alta Eficiencia - 21 SEER2", desc: "Nivel superior con tecnolog\xEDa Inverter." }
+      fedmin: { label: "M\xEDnimo Federal - 14.3 SEER2", desc: "Cumple con el c\xF3digo energ\xE9tico federal de 2023." },
+      mid_ge15: { label: "Eficiencia Media - 18 SEER2", desc: "Velocidad variable - mejor control de humedad que el M\xEDnimo Federal. Usa aproximadamente 20% menos energ\xEDa para enfriar la misma casa." },
+      high_ge18: { label: "Alta Eficiencia - 21 SEER2", desc: "Tecnolog\xEDa Inverter (modulaci\xF3n total) - nuestro mejor control de humedad. Usa aproximadamente 30% menos energ\xEDa que el M\xEDnimo Federal." }
     },
     dehu: {
-      dehu: { label: "Deshumidificador para Toda la Casa", desc: "Calculado seg\xFAn el tama\xF1o de su casa, funciona autom\xE1ticamente. Sin mantenimiento." },
+      dehu: { label: "Deshumidificador para Toda la Casa", desc: "Calculado seg\xFAn el tama\xF1o de su casa, funciona autom\xE1ticamente - solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar." },
       erv: { label: "ERV (Recuperaci\xF3n de Energ\xEDa)", desc: "Aire fresco filtrado entra, aire viciado sale, recuperando la mayor parte de la energ\xEDa." }
     }
   };
@@ -1771,7 +1776,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     // src/app.js, right where this is imported and used.
     gravityFormId: 9
   };
-  var TIER_LABEL = { fedmin: "Federal Minimum - 14 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
+  var OFFICE_EMAIL = "";
+  var TIER_LABEL = { fedmin: "Federal Minimum - 14.3 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
   function calcEstimate(answers, pricingAnswers) {
     const tier = answers.cond_tier;
     const sysKey = systemTypeKey(answers);
@@ -2964,8 +2970,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       es: { title: "INTERCAMBIADOR DE CALOR", text: "Donde la llama realmente calienta el aire, manteniendo los gases de combusti\xF3n completamente sellados del aire que usted respira." }
     },
     afue_badge: {
-      en: { title: "AFUE RATING", text: "The share of every dollar of gas that becomes usable heat. 90% AFUE wastes less than 80%, using a sealed PVC flue instead of metal." },
-      es: { title: "CLASIFICACI\xD3N AFUE", text: "La parte de cada d\xF3lar de gas que se convierte en calor \xFAtil. 90% AFUE desperdicia menos que 80%, usando una chimenea de PVC sellada en vez de metal." }
+      en: { title: "AFUE RATING", text: "The share of every dollar of gas that becomes usable heat. 90% AFUE wastes less fuel than an 80% unit, using a sealed PVC flue instead of metal." },
+      es: { title: "CLASIFICACI\xD3N AFUE", text: "La parte de cada d\xF3lar de gas que se convierte en calor \xFAtil. 90% AFUE desperdicia menos combustible que una unidad de 80%, usando una chimenea de PVC sellada en vez de metal." }
     },
     acoil: {
       en: { title: "A-COIL", text: "Refrigerant flows through it to pull heat and humidity out of the air your blower pushes across it, cooling your home." },
@@ -3021,8 +3027,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       es: { title: "CAJA DE DESCONEXI\xD3N", text: "Permite a un t\xE9cnico cortar la energ\xEDa al condensador justo en la unidad antes de darle servicio - un requisito de seguridad en toda instalaci\xF3n." }
     },
     surge_protector: {
-      en: { title: "SURGE PROTECTOR", text: "Shields the condenser's electronics from lightning and power spikes - a single nearby strike can destroy a compressor." },
-      es: { title: "PROTECTOR DE SOBREVOLTAJE", text: "Protege la electr\xF3nica del condensador de rayos y picos de energ\xEDa - un solo rayo cercano puede destruir un compresor." }
+      en: { title: "SURGE PROTECTOR", text: "Helps protect the condenser's electronics from nearby lightning and power spikes - a single nearby strike can destroy a compressor." },
+      es: { title: "PROTECTOR DE SOBREVOLTAJE", text: "Ayuda a proteger la electr\xF3nica del condensador de rayos cercanos y picos de energ\xEDa - un solo rayo cercano puede destruir un compresor." }
     },
     supply_plenum: {
       en: { title: "SUPPLY PLENUM", text: "Where conditioned air leaves your indoor unit and splits off into the ductwork that feeds every room." },
@@ -3069,8 +3075,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       es: { title: "DESHUMIDISTATO", text: "Un control de pared que permite que su deshumidificador de toda la casa mantenga una humedad objetivo autom\xE1ticamente, separado de su termostato." }
     },
     dehu_box: {
-      en: { title: "DEHUMIDIFIER", text: "Ties into your ductwork and pulls extra moisture out of the air system-wide - no buckets to empty, no upkeep from you." },
-      es: { title: "DESHUMIDIFICADOR", text: "Se conecta a sus ductos y extrae el exceso de humedad del aire en toda la casa - sin cubetas que vaciar, sin mantenimiento de su parte." }
+      en: { title: "DEHUMIDIFIER", text: "Ties into your ductwork and pulls extra moisture out of the air system-wide - runs automatically, just an occasional filter check, no buckets to empty." },
+      es: { title: "DESHUMIDIFICADOR", text: "Se conecta a sus ductos y extrae el exceso de humedad del aire en toda la casa - funciona autom\xE1ticamente, solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar." }
     },
     erv_box: {
       en: { title: "ERV", text: "Energy recovery ventilator - brings in fresh outdoor air while venting stale air out, recovering most of the energy either way." },
@@ -3106,8 +3112,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       es: { title: "SUMINISTRO DEDICADO", text: "Env\xEDa el aire deshumidificado directamente a su propia rejilla en el tablaroca cercano, en lugar de conectarse al tronco de suministro principal." }
     },
     lineset: {
-      en: { title: "LINE SET", text: "The two insulated copper lines carrying refrigerant between the indoor coil and the outdoor condenser." },
-      es: { title: "L\xCDNEAS DE REFRIGERANTE", text: "Las dos l\xEDneas de cobre aisladas que transportan refrigerante entre el serpent\xEDn interior y el condensador exterior." }
+      en: { title: "LINE SET", text: "The two copper lines carrying refrigerant between the indoor coil and the outdoor condenser - the larger one wrapped in insulation to stop it from sweating." },
+      es: { title: "L\xCDNEAS DE REFRIGERANTE", text: "Las dos l\xEDneas de cobre que transportan refrigerante entre el serpent\xEDn interior y el condensador exterior - la m\xE1s grande est\xE1 aislada para evitar la condensaci\xF3n." }
     },
     condensate_drain: {
       en: { title: "CONDENSATE DRAIN", text: "Carries the water that condenses off the coil safely out of the house - into a P-trap under a sink, near your outdoor condenser, or another suitable drain point." },
@@ -9307,7 +9313,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           // were wrapping the review-grid boxes awkwardly).
           short: answers.purif.map((v) => v === "aprilaire" ? tr('5" Filter', 'Filtro 5"') : v === "uv" ? tr("UV", "UV") : v === "ionizer" ? tr("Ionizer", "Ionizador") : v === "surge" ? tr("Surge", "Sobrevoltaje") : v).join(" + ")
         } : null,
-        { step: "cond_tier", label: tr("Efficiency", "Eficiencia"), val: answers.cond_tier === "fedmin" ? tr("Federal Minimum - 14 SEER2", "M\xEDnimo Federal - 14 SEER2") : answers.cond_tier === "mid_ge15" ? tr("Mid Efficiency - 18 SEER2", "Eficiencia Media - 18 SEER2") : answers.cond_tier === "high_ge18" ? tr("High Efficiency - 21 SEER2", "Alta Eficiencia - 21 SEER2") : null },
+        { step: "cond_tier", label: tr("Efficiency", "Eficiencia"), val: answers.cond_tier === "fedmin" ? tr("Federal Minimum - 14.3 SEER2", "M\xEDnimo Federal - 14.3 SEER2") : answers.cond_tier === "mid_ge15" ? tr("Mid Efficiency - 18 SEER2", "Eficiencia Media - 18 SEER2") : answers.cond_tier === "high_ge18" ? tr("High Efficiency - 21 SEER2", "Alta Eficiencia - 21 SEER2") : null },
         answers.system_for ? {
           step: "system_for",
           label: tr("Heat source", "Fuente de calor"),
@@ -9362,7 +9368,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           return line.label;
       }
     };
-    const buildEmailHref = () => {
+    const buildEmailHref = (to = "") => {
       const lines = [tr("Here is the system I built with Gold Eagle Services:", "Este es el sistema que arm\xE9 con Gold Eagle Services:"), ""];
       reviewItems.forEach((item) => {
         if (item && item.val) lines.push(`${item.label}: ${item.val}`);
@@ -9381,7 +9387,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       lines.push(tr("Built with the Gold Eagle Services online system builder.", "Creado con el configurador de sistemas en l\xEDnea de Gold Eagle Services."));
       const subject = encodeURIComponent(tr("My Gold Eagle Services HVAC Build", "Mi Sistema HVAC de Gold Eagle Services"));
       const body = encodeURIComponent(lines.join("\n"));
-      return `mailto:?subject=${subject}&body=${body}`;
+      return `mailto:${to}?subject=${subject}&body=${body}`;
     };
     const [showInfo, setShowInfo] = React.useState(false);
     const autoInfoShown = React.useRef(false);
@@ -9426,11 +9432,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       // detail and just covers the attic construction/comfort side instead.
       insulation_ah: "Attic insulation shows up in your diagram either way, even without a furnace to size. Fiberglass or blown-in means a vented attic, the most common setup in Austin. Spray foam means a sealed attic, which runs cooler and more efficiently.",
       plenum: "The supply plenum connects your indoor unit to your ductwork, so conditioned air can reach every room. If yours is damaged, leaking, or over 15 years old, replacing it improves both efficiency and airflow.",
-      thermostat: "A basic programmable thermostat is reliable -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
-      purif: "The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer clears particles, odors, and VOCs. A surge protector guards the condenser -- one lightning strike can destroy a compressor.",
+      thermostat: "A basic programmable thermostat is reliable -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can help save 10-15% off your energy bill. Both work with any system we install.",
+      // High Efficiency forces the communicating thermostat, so the generic
+      // paragraph above (which describes basic/Wi-Fi as real choices and says
+      // "any system we install") no longer matches what's actually on screen
+      // at this tier - QA FIX, same insulation_ah pattern used just above.
+      thermostat_high: "At this efficiency tier, only a communicating thermostat can drive the system's full variable-speed staging and diagnostics -- a basic or Wi-Fi model can't talk to it the same way, so it's the one option here.",
+      purif: "The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer charges particles and odors so your filter catches more of them. A surge protector helps guard the condenser -- a nearby lightning strike can destroy a compressor.",
       cond_tier: "The condenser is your outdoor unit. SEER2 measures cooling output per unit of electricity, so higher means lower bills. Federal Minimum meets current code at the lowest cost. Mid Efficiency is our best-value tier. High Efficiency is our top tier, with the best humidity control.",
       system_for: "With a gas furnace, you get two options. Dual fuel pairs a heat pump with the furnace -- the heat pump handles cooling and mild-weather heating, and the furnace only fires below about 35 degrees, the most efficient combo we offer. Straight cool means the AC only cools, and the furnace handles all heating.",
-      dehu: "Austin humidity makes your home feel warmer than the thermostat reads. A whole-home dehumidifier ties into your ductwork and runs automatically, with no buckets and no upkeep from you. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange. Add either, both, or neither."
+      dehu: "Austin humidity makes your home feel warmer than the thermostat reads. A whole-home dehumidifier ties into your ductwork and runs automatically -- just an occasional filter check, no buckets to empty. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange. Add either, both, or neither."
     };
     const INFO_TEXT_ES = {
       location: "La ubicaci\xF3n de su unidad interior define el dise\xF1o de todo el sistema. \xC1tico es la instalaci\xF3n m\xE1s com\xFAn en Austin, con la unidad en posici\xF3n horizontal sobre el espacio habitable. Cl\xF3set es de flujo ascendente, en posici\xF3n vertical en un pasillo o cl\xF3set de servicio. Ambas funcionan bien; las instalaciones de cl\xF3set son un poco m\xE1s f\xE1ciles de dar servicio.",
@@ -9438,13 +9449,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       insulation: "El aislamiento del \xE1tico determina qu\xE9 horno le corresponde. Fibra de vidrio o soplada significa un \xE1tico ventilado, donde un horno est\xE1ndar de 80% AFUE funciona bien con una chimenea met\xE1lica tipo B. Espuma aislante significa un \xE1tico sellado, que requiere un horno de condensaci\xF3n de 90% AFUE con chimenea de PVC hacia el techo.",
       insulation_ah: "El aislamiento del \xE1tico aparece en su diagrama de cualquier forma, aunque no haya un horno que dimensionar. Fibra de vidrio o soplada significa un \xE1tico ventilado, la instalaci\xF3n m\xE1s com\xFAn en Austin. Espuma aislante significa un \xE1tico sellado, que funciona m\xE1s fresco y eficiente.",
       plenum: "El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitaci\xF3n. Si el suyo est\xE1 da\xF1ado, con fugas, o tiene m\xE1s de 15 a\xF1os, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
-      thermostat: "Un termostato programable b\xE1sico es confiable: configure su horario y olv\xEDdese de \xE9l. Un termostato inteligente Wi-Fi se conecta a su tel\xE9fono, aprende sus h\xE1bitos, y puede reducir su factura de energ\xEDa entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
-      purif: "El gabinete de filtraci\xF3n mejorada viene incluido de f\xE1brica en cada instalaci\xF3n, capturando ya mucho m\xE1s polvo, polen y al\xE9rgenos que un filtro t\xEDpico de 1 pulgada. Una luz UV mantiene limpio el serpent\xEDn. Un ionizador elimina part\xEDculas, olores y COV. Un protector de sobrevoltaje protege el condensador: un solo rayo puede destruir un compresor.",
+      thermostat: "Un termostato programable b\xE1sico es confiable: configure su horario y olv\xEDdese de \xE9l. Un termostato inteligente Wi-Fi se conecta a su tel\xE9fono, aprende sus h\xE1bitos, y puede ayudar a reducir su factura de energ\xEDa entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
+      thermostat_high: "En este nivel de eficiencia, solo un termostato comunicante puede controlar la modulaci\xF3n por etapas y los diagn\xF3sticos completos del sistema - un termostato b\xE1sico o Wi-Fi no puede comunicarse con \xE9l de la misma forma, por lo que es la \xFAnica opci\xF3n aqu\xED.",
+      purif: "El gabinete de filtraci\xF3n mejorada viene incluido de f\xE1brica en cada instalaci\xF3n, capturando ya mucho m\xE1s polvo, polen y al\xE9rgenos que un filtro t\xEDpico de 1 pulgada. Una luz UV mantiene limpio el serpent\xEDn. Un ionizador carga las part\xEDculas y olores para que su filtro atrape m\xE1s. Un protector de sobrevoltaje ayuda a proteger el condensador: un rayo cercano puede destruir un compresor.",
       cond_tier: "El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, as\xED que m\xE1s alto significa facturas m\xE1s bajas. M\xEDnimo Federal cumple con el c\xF3digo actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con el mejor control de humedad.",
       system_for: "Con un horno a gas, tiene dos opciones. Combustible Dual combina una bomba de calor con el horno: la bomba de calor se encarga del enfriamiento y la calefacci\xF3n en clima templado, y el horno solo se enciende por debajo de aproximadamente 35 grados, la combinaci\xF3n m\xE1s eficiente que ofrecemos. Solo Enfriamiento significa que el A/C solo enfr\xEDa, y el horno se encarga de toda la calefacci\xF3n.",
-      dehu: "La humedad de Austin hace que su hogar se sienta m\xE1s caliente de lo que marca el termostato. Un deshumidificador para toda la casa se conecta a sus ductos y funciona autom\xE1ticamente, sin cubetas ni mantenimiento de su parte. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio. Agregue cualquiera, ambos, o ninguno."
+      dehu: "La humedad de Austin hace que su hogar se sienta m\xE1s caliente de lo que marca el termostato. Un deshumidificador para toda la casa se conecta a sus ductos y funciona autom\xE1ticamente - solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio. Agregue cualquiera, ambos, o ninguno."
     };
-    const infoTextId = cur && cur.id === "insulation" && answers.indoor_type !== "furnace" ? "insulation_ah" : cur && cur.id;
+    const infoTextId = cur && cur.id === "insulation" && answers.indoor_type !== "furnace" ? "insulation_ah" : cur && cur.id === "thermostat" && answers.cond_tier === "high_ge18" ? "thermostat_high" : cur && cur.id;
     const infoText = infoTextId && (lang === "es" ? INFO_TEXT_ES[infoTextId] || INFO_TEXT[infoTextId] : INFO_TEXT[infoTextId]);
     const REACTION = {
       // indoor_type has no entry here on purpose - its hint is forced to 3
@@ -9520,9 +9532,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const isDisabled = !!opt.disabled;
       const click = isDisabled ? null : isMulti ? () => toggle(cur.id, opt.v) : () => setA(cur.id, opt.v);
       if (isSmall) {
-        return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "attic-opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("span", { className: "attic-opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, "GES")), /* @__PURE__ */ React.createElement("span", { className: "attic-opt-desc" }, opt.desc || ""), /* @__PURE__ */ React.createElement("div", { className: "attic-opt-foot" }, /* @__PURE__ */ React.createElement("div", { className: "attic-chk" + (isMulti ? "" : " radio") }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 7, height: 7, borderRadius: "50%", background: "var(--gh)" } }) : "")));
+        return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "attic-opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("span", { className: "attic-opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), /* @__PURE__ */ React.createElement("span", { className: "attic-opt-desc" }, opt.desc || ""), /* @__PURE__ */ React.createElement("div", { className: "attic-opt-foot" }, /* @__PURE__ */ React.createElement("div", { className: "attic-chk" + (isMulti ? "" : " radio") }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 7, height: 7, borderRadius: "50%", background: "var(--gh)" } }) : "")));
       }
-      return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, "GES")), opt.desc && /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, opt.desc)), /* @__PURE__ */ React.createElement("div", { className: isMulti ? "opt-check" : "opt-check radio", style: isOn && !isMulti ? { borderColor: "var(--gl)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" } : {} }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 8, height: 8, borderRadius: "50%", background: "var(--gh)" } }) : "")));
+      return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), opt.desc && /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, opt.desc)), /* @__PURE__ */ React.createElement("div", { className: isMulti ? "opt-check" : "opt-check radio", style: isOn && !isMulti ? { borderColor: "var(--gl)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" } : {} }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 8, height: 8, borderRadius: "50%", background: "var(--gh)" } }) : "")));
     };
     return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, /* @__PURE__ */ React.createElement("div", { "aria-live": "polite", "aria-atomic": "true", className: "sr-only" }, liveMessage), resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, tr("WELCOME BACK", "BIENVENIDO DE NUEVO")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
@@ -9772,7 +9784,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           onClick: () => trackEvent("financing_clicked", { lender: "wisetack", source: "price_reveal" })
         },
         tr("\u2192 Or prequalify online with Wisetack", "\u2192 O precalifique en l\xEDnea con Wisetack")
-      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, est.display.toLocaleString())), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr("Includes a 10-year manufacturer warranty.", "Incluye una garant\xEDa de f\xE1brica de 10 a\xF1os.")), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, est.display.toLocaleString())), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr("Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).", "Incluye una garant\xEDa de f\xE1brica de 10 a\xF1os en piezas (requiere registro dentro de los 60 d\xEDas posteriores a la instalaci\xF3n).")), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
@@ -9808,7 +9820,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     } }, "\u{1F4B0} ", tr("Get Pricing", "Ver Precios")), /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, width: "100%", marginBottom: 8 } }, FINANCING_OPTIONS.filter((f) => f.url).map((f) => /* @__PURE__ */ React.createElement("a", { key: f.key, href: f.url, target: "_blank", rel: "noopener", onClick: () => trackEvent("financing_clicked", { lender: f.key }), className: "quick-financing-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", textDecoration: "none", textAlign: "center", boxSizing: "border-box" } }, "\u{1F4B3} ", tr(f.label, f.labelEs))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       trackEvent("print_clicked");
       window.print();
-    }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 ", tr("Save / Print", "Guardar / Imprimir")), /* @__PURE__ */ React.createElement("a", { href: buildEmailHref(), onClick: () => trackEvent("email_build_clicked"), className: "quick-print-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em", textDecoration: "none", boxSizing: "border-box" } }, "\u2709 ", tr("Email My Build", "Enviar por Correo")), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
+    }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 ", tr("Save / Print", "Guardar / Imprimir")), /* @__PURE__ */ React.createElement("a", { href: buildEmailHref(), onClick: () => trackEvent("email_build_clicked"), className: "quick-print-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em", textDecoration: "none", boxSizing: "border-box" } }, "\u2709 ", tr("Email a Copy to Yourself", "Enviar Copia a Mi Correo")), OFFICE_EMAIL && /* @__PURE__ */ React.createElement("a", { href: buildEmailHref(OFFICE_EMAIL), onClick: () => trackEvent("email_office_clicked"), className: "quick-print-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em", textDecoration: "none", boxSizing: "border-box" } }, "\u2709 ", tr("Send to Our Office", "Enviar a Nuestra Oficina")), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
       setDone(false);
       setStepIdx(activeSteps.length - 1);
       setPricingFlow(null);

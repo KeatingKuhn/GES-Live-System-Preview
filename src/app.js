@@ -1,5 +1,5 @@
 const {useState,useMemo,useRef,useCallback}=React;
-import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,CHAPTERS_ES,STEPS_ES,OPTS_ES} from './data.js';
+import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES} from './data.js';
 import {Canvas,CountUp} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
@@ -564,7 +564,7 @@ function App(){
         // to name it, not describe it (direct feedback: the long strings
         // were wrapping the review-grid boxes awkwardly).
         short:answers.purif.map(v=>v==="aprilaire"?tr('5" Filter','Filtro 5"'):v==="uv"?tr("UV","UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge","Sobrevoltaje"):v).join(" + ")}:null,
-      {step:"cond_tier",label:tr("Efficiency","Eficiencia"),val:answers.cond_tier==="fedmin"?tr("Federal Minimum - 14 SEER2","Mínimo Federal - 14 SEER2"):answers.cond_tier==="mid_ge15"?tr("Mid Efficiency - 18 SEER2","Eficiencia Media - 18 SEER2"):answers.cond_tier==="high_ge18"?tr("High Efficiency - 21 SEER2","Alta Eficiencia - 21 SEER2"):null},
+      {step:"cond_tier",label:tr("Efficiency","Eficiencia"),val:answers.cond_tier==="fedmin"?tr("Federal Minimum - 14.3 SEER2","Mínimo Federal - 14.3 SEER2"):answers.cond_tier==="mid_ge15"?tr("Mid Efficiency - 18 SEER2","Eficiencia Media - 18 SEER2"):answers.cond_tier==="high_ge18"?tr("High Efficiency - 21 SEER2","Alta Eficiencia - 21 SEER2"):null},
       answers.system_for?{step:"system_for",label:tr("Heat source","Fuente de calor"),
         val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - horno únicamente"),
         short:answers.system_for==="hp"?tr("Dual Fuel (HP + furnace)","Combustible Dual (BC + horno)"):tr("Straight Cool (furnace)","Solo Enfriamiento (horno)")}:null,
@@ -618,7 +618,14 @@ function App(){
   // calculated. Built fresh on every render (cheap - just string
   // concatenation) rather than memoized, since it only actually runs when
   // someone clicks the link.
-  const buildEmailHref=()=>{
+  // QA FIX - per direct feedback, the end of the build should be able to
+  // send the build to GES AND keep a copy for the customer, not just one
+  // or the other - takes an optional `to` (OFFICE_EMAIL when set) so the
+  // "Send to Our Office" button below can reuse this exact same content
+  // instead of a second, driftable copy of it; left blank (as before) for
+  // "Email a Copy to Yourself", which opens the customer's own mail app
+  // with nothing pre-addressed.
+  const buildEmailHref=(to='')=>{
     const lines=[tr('Here is the system I built with Gold Eagle Services:','Este es el sistema que armé con Gold Eagle Services:'),''];
     reviewItems.forEach(item=>{if(item&&item.val)lines.push(`${item.label}: ${item.val}`);});
     if(pricingFlow==='result'){
@@ -635,7 +642,7 @@ function App(){
     lines.push(tr('Built with the Gold Eagle Services online system builder.','Creado con el configurador de sistemas en línea de Gold Eagle Services.'));
     const subject=encodeURIComponent(tr('My Gold Eagle Services HVAC Build','Mi Sistema HVAC de Gold Eagle Services'));
     const body=encodeURIComponent(lines.join('\n'));
-    return `mailto:?subject=${subject}&body=${body}`;
+    return `mailto:${to}?subject=${subject}&body=${body}`;
   };
 
   const [showInfo,setShowInfo]=React.useState(false);
@@ -745,11 +752,16 @@ function App(){
     // detail and just covers the attic construction/comfort side instead.
     insulation_ah:"Attic insulation shows up in your diagram either way, even without a furnace to size. Fiberglass or blown-in means a vented attic, the most common setup in Austin. Spray foam means a sealed attic, which runs cooler and more efficiently.",
     plenum:"The supply plenum connects your indoor unit to your ductwork, so conditioned air can reach every room. If yours is damaged, leaking, or over 15 years old, replacing it improves both efficiency and airflow.",
-    thermostat:"A basic programmable thermostat is reliable -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can cut 10-15% off your energy bill. Both work with any system we install.",
-    purif:"The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer clears particles, odors, and VOCs. A surge protector guards the condenser -- one lightning strike can destroy a compressor.",
+    thermostat:"A basic programmable thermostat is reliable -- set your schedule and forget it. A Wi-Fi smart thermostat connects to your phone, learns your habits, and can help save 10-15% off your energy bill. Both work with any system we install.",
+    // High Efficiency forces the communicating thermostat, so the generic
+    // paragraph above (which describes basic/Wi-Fi as real choices and says
+    // "any system we install") no longer matches what's actually on screen
+    // at this tier - QA FIX, same insulation_ah pattern used just above.
+    thermostat_high:"At this efficiency tier, only a communicating thermostat can drive the system's full variable-speed staging and diagnostics -- a basic or Wi-Fi model can't talk to it the same way, so it's the one option here.",
+    purif:"The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer charges particles and odors so your filter catches more of them. A surge protector helps guard the condenser -- a nearby lightning strike can destroy a compressor.",
     cond_tier:"The condenser is your outdoor unit. SEER2 measures cooling output per unit of electricity, so higher means lower bills. Federal Minimum meets current code at the lowest cost. Mid Efficiency is our best-value tier. High Efficiency is our top tier, with the best humidity control.",
     system_for:"With a gas furnace, you get two options. Dual fuel pairs a heat pump with the furnace -- the heat pump handles cooling and mild-weather heating, and the furnace only fires below about 35 degrees, the most efficient combo we offer. Straight cool means the AC only cools, and the furnace handles all heating.",
-    dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A whole-home dehumidifier ties into your ductwork and runs automatically, with no buckets and no upkeep from you. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange. Add either, both, or neither.",
+    dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A whole-home dehumidifier ties into your ductwork and runs automatically -- just an occasional filter check, no buckets to empty. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange. Add either, both, or neither.",
   };
   // Spanish overrides for the info-panel paragraphs - same scoped-
   // translation approach as STEPS_ES/OPTS_ES in data.js (overlay, not a
@@ -761,15 +773,22 @@ function App(){
     insulation:"El aislamiento del ático determina qué horno le corresponde. Fibra de vidrio o soplada significa un ático ventilado, donde un horno estándar de 80% AFUE funciona bien con una chimenea metálica tipo B. Espuma aislante significa un ático sellado, que requiere un horno de condensación de 90% AFUE con chimenea de PVC hacia el techo.",
     insulation_ah:"El aislamiento del ático aparece en su diagrama de cualquier forma, aunque no haya un horno que dimensionar. Fibra de vidrio o soplada significa un ático ventilado, la instalación más común en Austin. Espuma aislante significa un ático sellado, que funciona más fresco y eficiente.",
     plenum:"El plenum de suministro conecta su unidad interior con sus ductos, para que el aire acondicionado llegue a cada habitación. Si el suyo está dañado, con fugas, o tiene más de 15 años, reemplazarlo mejora tanto la eficiencia como el flujo de aire.",
-    thermostat:"Un termostato programable básico es confiable: configure su horario y olvídese de él. Un termostato inteligente Wi-Fi se conecta a su teléfono, aprende sus hábitos, y puede reducir su factura de energía entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
-    purif:"El gabinete de filtración mejorada viene incluido de fábrica en cada instalación, capturando ya mucho más polvo, polen y alérgenos que un filtro típico de 1 pulgada. Una luz UV mantiene limpio el serpentín. Un ionizador elimina partículas, olores y COV. Un protector de sobrevoltaje protege el condensador: un solo rayo puede destruir un compresor.",
+    thermostat:"Un termostato programable básico es confiable: configure su horario y olvídese de él. Un termostato inteligente Wi-Fi se conecta a su teléfono, aprende sus hábitos, y puede ayudar a reducir su factura de energía entre 10-15%. Ambos funcionan con cualquier sistema que instalemos.",
+    thermostat_high:"En este nivel de eficiencia, solo un termostato comunicante puede controlar la modulación por etapas y los diagnósticos completos del sistema - un termostato básico o Wi-Fi no puede comunicarse con él de la misma forma, por lo que es la única opción aquí.",
+    purif:"El gabinete de filtración mejorada viene incluido de fábrica en cada instalación, capturando ya mucho más polvo, polen y alérgenos que un filtro típico de 1 pulgada. Una luz UV mantiene limpio el serpentín. Un ionizador carga las partículas y olores para que su filtro atrape más. Un protector de sobrevoltaje ayuda a proteger el condensador: un rayo cercano puede destruir un compresor.",
     cond_tier:"El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, así que más alto significa facturas más bajas. Mínimo Federal cumple con el código actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con el mejor control de humedad.",
     system_for:"Con un horno a gas, tiene dos opciones. Combustible Dual combina una bomba de calor con el horno: la bomba de calor se encarga del enfriamiento y la calefacción en clima templado, y el horno solo se enciende por debajo de aproximadamente 35 grados, la combinación más eficiente que ofrecemos. Solo Enfriamiento significa que el A/C solo enfría, y el horno se encarga de toda la calefacción.",
-    dehu:"La humedad de Austin hace que su hogar se sienta más caliente de lo que marca el termostato. Un deshumidificador para toda la casa se conecta a sus ductos y funciona automáticamente, sin cubetas ni mantenimiento de su parte. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energía en el intercambio. Agregue cualquiera, ambos, o ninguno.",
+    dehu:"La humedad de Austin hace que su hogar se sienta más caliente de lo que marca el termostato. Un deshumidificador para toda la casa se conecta a sus ductos y funciona automáticamente - solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energía en el intercambio. Agregue cualquiera, ambos, o ninguno.",
   };
   // insulation's info text has an air-handler variant (no furnace/AFUE to
-  // describe) - every other step's id maps straight to its own entry.
-  const infoTextId=cur&&cur.id==='insulation'&&answers.indoor_type!=='furnace'?'insulation_ah':cur&&cur.id;
+  // describe); thermostat has a High-Efficiency variant (only the
+  // communicating thermostat is actually offered at that tier - the
+  // generic paragraph describing basic/Wi-Fi as real choices doesn't match
+  // what's on screen there). Every other step's id maps straight to its
+  // own entry.
+  const infoTextId=cur&&cur.id==='insulation'&&answers.indoor_type!=='furnace'?'insulation_ah'
+    :cur&&cur.id==='thermostat'&&answers.cond_tier==='high_ge18'?'thermostat_high'
+    :cur&&cur.id;
   const infoText=infoTextId&&(lang==='es'?(INFO_TEXT_ES[infoTextId]||INFO_TEXT[infoTextId]):INFO_TEXT[infoTextId]);
 
   // A short, specific acknowledgment of what was just picked - replaces
@@ -944,12 +963,16 @@ function App(){
     const click = isDisabled ? null : isMulti ? ()=>toggle(cur.id,opt.v) : ()=>setA(cur.id,opt.v);
     if(isSmall){
       return <button key={opt.v} className={"attic-opt"+(isOn?" sel":"")+(isDisabled?" disabled":"")} onClick={click}>
-        {/* opt.badge (the "GES" recommended-pick pill, e.g. on the Wi-Fi
+        {/* opt.badge (the recommended-pick pill, e.g. on the Wi-Fi
             thermostat) used to only render in the full .opt card below -
             a QA pass caught the compact attic card silently dropping it,
             so the same option read as recommended in closet mode but not
-            in attic mode. Reuses .opt-badge's own styling. */}
-        <span className="attic-opt-label">{opt.label}{opt.badge&&<span className="opt-badge">GES</span>}</span>
+            in attic mode. Reuses .opt-badge's own styling.
+            QA FIX - used to just say "GES", which reads as the company's
+            initials with no context for what it actually signals - matches
+            the same SUGGESTED/SUGERIDO badge text the tonnage picker's own
+            recommended-pick pill already uses elsewhere in this file. */}
+        <span className="attic-opt-label">{opt.label}{opt.badge&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
         <span className="attic-opt-desc">{opt.desc||""}</span>
         <div className="attic-opt-foot">
           <div className={"attic-chk"+(isMulti?"":" radio")}>{isMulti&&isOn?"✓":""}{!isMulti&&isOn?<div style={{width:7,height:7,borderRadius:"50%",background:"var(--gh)"}}/>:""}</div>
@@ -959,7 +982,7 @@ function App(){
     return <button key={opt.v} className={"opt"+(isOn?" sel":"")+(isDisabled?" disabled":"")} onClick={click}>
       <div className="opt-inner">
         <div className="opt-body">
-          <span className="opt-label">{opt.label}{opt.badge&&<span className="opt-badge">GES</span>}</span>
+          <span className="opt-label">{opt.label}{opt.badge&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
           {opt.desc&&<span className="opt-desc">{opt.desc}</span>}
         </div>
         <div className={isMulti?"opt-check":"opt-check radio"} style={isOn&&!isMulti?{borderColor:"var(--gl)",background:"transparent",display:"flex",alignItems:"center",justifyContent:"center"}:{}}>
@@ -1800,7 +1823,7 @@ function App(){
                     {/* Same in-flight-animation print fix as the /mo hero
                         figure above - see its comment. */}
                     <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CountUp value={est.display} format={n=>n.toLocaleString()}/></span><span className="price-static">{est.display.toLocaleString()}</span></div>
-                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr('Includes a 10-year manufacturer warranty.','Incluye una garantía de fábrica de 10 años.')}</div>
+                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr('Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).','Incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación).')}</div>
                     {addonLines.length>0&&<div className="price-breakdown">
                       <div className="price-breakdown-bar">
                         <div className="price-breakdown-seg base" style={{width:basePct+"%"}}/>
@@ -1903,9 +1926,19 @@ function App(){
                 <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {tr(f.label,f.labelEs)}</a>
               ))}
               <button onClick={()=>{trackEvent('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ {tr('Save / Print','Guardar / Imprimir')}</button>
-              {/* Q14 - mailto: link, no backend. Body built fresh per-click
-                  via buildEmailHref() above. */}
-              <a href={buildEmailHref()} onClick={()=>trackEvent('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box"}}>✉ {tr('Email My Build','Enviar por Correo')}</a>
+              {/* QA FIX - per direct feedback, paired with the office button
+                  right below so the end of the build reads as "send to our
+                  office + a copy to yourself" - this one stays the original
+                  blank-recipient mailto (opens the customer's own mail app,
+                  nothing pre-addressed) for the "copy to yourself" half. */}
+              <a href={buildEmailHref()} onClick={()=>trackEvent('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box"}}>✉ {tr('Email a Copy to Yourself','Enviar Copia a Mi Correo')}</a>
+              {/* QA FIX - "send to our office" half of the same pair - mailto:
+                  pre-addressed to OFFICE_EMAIL (data.js), same build content
+                  as the button above via the same buildEmailHref(). Ships
+                  hidden (same "no config = no button" convention as
+                  FINANCING_OPTIONS) until the site owner fills in the real
+                  office inbox. */}
+              {OFFICE_EMAIL&&<a href={buildEmailHref(OFFICE_EMAIL)} onClick={()=>trackEvent('email_office_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box"}}>✉ {tr('Send to Our Office','Enviar a Nuestra Oficina')}</a>}
               {/* QA FIX - this drops back into the wizard's last step, same
                   as goBack's own "past step 1" branch and pickLocation/
                   restart/cancelQuickEdit all do - but unlike every one of
