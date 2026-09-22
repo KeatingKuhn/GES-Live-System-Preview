@@ -1213,8 +1213,8 @@ const PART_INFO={
     es:{title:'SIFÓN EN P',text:"Una curva en forma de U en la línea de condensado que sella contra la presión de aire del motor soplador - sin ella, esa presión puede jalar aire hacia atrás por el drenaje o expulsar el agua en vez de dejarla fluir. Estándar en el drenaje de todo serpentín, ya sea horno o manejador de aire."}},
   // Also universal (any coil), sized differently by indoor_type at each
   // call site - see the pan's own comment where it's drawn for why.
-  secondary_drain_pan:{en:{title:'SECONDARY FLOAT SWITCH',text:"Wired into the coil's own secondary drain port, right next to the primary line - if the primary ever clogs and water backs up, this switch cuts power to the unit before it can overflow into the ceiling below."},
-    es:{title:'INTERRUPTOR DE FLOTADOR SECUNDARIO',text:"Conectado al puerto de drenaje secundario del serpentín, justo al lado de la línea principal - si el drenaje principal se llega a tapar y el agua retrocede, este interruptor corta la energía a la unidad antes de que se desborde hacia el techo de abajo."}},
+  secondary_drain_pan:{en:{title:'SECONDARY DRAIN PAN',text:"A shallow catch-pan wrapped tightly around the coil (or the whole air handler, on a standalone unit), required by code as backup - if the primary drain ever clogs, this pan catches the overflow and its float switch cuts power to the unit before the water can reach the ceiling below."},
+    es:{title:'BANDEJA DE DRENAJE SECUNDARIA',text:"Una bandeja poco profunda que rodea ajustadamente el serpentín (o todo el manejador de aire, en una unidad independiente), requerida por código como respaldo - si el drenaje principal se llega a tapar, esta bandeja atrapa el desbordamiento y su interruptor de flotador corta la energía a la unidad antes de que el agua llegue al techo de abajo."}},
   // Deliberately no on-canvas glyph of its own (see this key's call
   // sites, right on the existing DuctClamp collars) - low-profile by
   // design, per direct feedback: discoverable on hover, not announced.
@@ -4567,24 +4567,23 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               hoisted above, alongside the lineset's own linesetRingPath,
               so both halves share the exact same numbers. */}
           {hasCoil&&hasCond&&<g key="attic-drain-indoor">
-            <line x1={drainCoilCX} y1={drainTopY} x2={drainCoilCX} y2={drainCrossY}
-              stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
+            {/* First leg is a single path, not a plain line - QA FIX, the
+                P-trap loop used to be drawn as a separate decorative shape
+                bulging out beside this line (endpoints offset left/right
+                of drainCoilCX), which read as floating next to the pipe
+                instead of part of it. Now the trap IS the pipe: straight
+                down, one semicircle bulge (arc sweep=0 bulges left,
+                staying clear of the "DRAIN" label to the right), straight
+                down again - same drainCoilCX the whole way, so the run
+                above and below the loop stays perfectly in-line. */}
+            {(()=>{
+              const tR=6.5, loopTopY=drainTopY+18, loopBotY=loopTopY+tR*2;
+              const d=`M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${loopTopY} `+
+                `A${tR} ${tR} 0 1 0 ${drainCoilCX} ${loopBotY} L${drainCoilCX} ${drainCrossY}`;
+              return <path d={d} fill="none" stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>;
+            })()}
             <line x1={drainCoilCX} y1={drainCrossY} x2={drainWallX} y2={drainCrossY2}
               stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
-            {/* P-trap loop itself (the visible U-bend) is drawn here so it
-                reads as part of this pipe, but its own HoverInfo is
-                pulled OUT to a separate g painted after this whole block
-                (see "attic-p-trap-hover" below) - it needs to win over
-                this block's own big loose-bounding-box drain HoverInfo
-                (right below) at the one small spot they overlap, and a
-                HoverInfo painted earlier in the SAME <g> as a
-                later-painted sibling still loses to it. */}
-            {(()=>{
-              const tR=5.5, tSpan=tR*1.8;
-              const tX=drainCoilCX-tSpan, tY=drainTopY+22;
-              const tD=`M${tX} ${tY} q0 ${tSpan} ${tSpan} ${tSpan} q${tSpan} 0 ${tSpan} -${tSpan}`;
-              return <path d={tD} fill="none" stroke={B+'.42)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>;
-            })()}
             <text x={drainCoilCX+7} y={drainTopY+14} textAnchor="start"
               fill={B+'.4)'} fontSize="12" fontFamily="monospace">{CT('DRAIN',lang)}</text>
             {/* No EditZone covers this line run - free-standing hover, no
@@ -4598,44 +4597,73 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               ringStrokeWidth={7}/>
           </g>}
 
-          {/* Secondary float switch - QA FIX, replaces the old free-standing
-              "secondary drain pan" rectangle (direct feedback: too
-              complicated, didn't read well against the already-busy DRAIN/
-              DRIP LEG strip). A real A-coil's drain pan has two threaded
-              ports molded in - primary (the DRAIN line above already
-              exits from there) and a secondary, a few inches over on the
-              same pan, normally capped or fitted with exactly this kind of
-              float switch as a safety backup. So: no pan shape, just a
-              short capped stub plumbed into that secondary port with the
-              switch clipped to it, sitting right beside the primary
-              connection instead of floating in its own box below. */}
+          {/* Secondary drain pan + float switch - QA FIX, reinstated per
+              direct feedback ("i like the idea but it did not turn out
+              like i expected... the main thing we need is for it to
+              surround the outside of the entire air handler but just
+              barely"). Real-world reference sizes: 60x30 under a
+              standalone air handler (the WHOLE cabinet, no furnace beside
+              it), 36x36 under a furnace-paired coil (just the coil box).
+              This app's cabinet widths aren't literally to that scale, so
+              rather than force those exact numbers, the pan hugs the
+              REAL cabinet geometry tightly (a few px margin on all sides
+              - "just barely") and bleeds rightward into the supply
+              plenum's own footprint by a fixed amount ("shifted partially
+              underneath the supply plenum") - which naturally reads as
+              wide-and-shallow for the big AH_W cabinet and closer to
+              square for the narrower ACOIL_W one, matching the spirit of
+              60x30 vs 36x36 without needing an artificial ratio formula.
+              Painted AFTER the drain block above so its own HoverInfo
+              wins the area the two shapes share (the drain's vertical run
+              passes right through the pan's left edge). */}
           {hasCoil&&hasCond&&(()=>{
-            const portX=drainCoilCX+16, portY=drainTopY;
-            const swX=portX, swY=portY+9;
-            return <g key="attic-secondary-port">
-              <line x1={portX} y1={portY} x2={portX} y2={portY+5}
-                stroke={B+'.42)'} strokeWidth="1.5" strokeLinecap="round"/>
+            const cabX=hasFurnace?ACOIL_X:AH_X, cabW=hasFurnace?ACOIL_W:AH_W;
+            const margin=5;
+            // Top margin kept much tighter than the others - the cabinet's
+            // own "ABSORBING HEAT"/state-label text sits right at UNIT_Y-5
+            // (see the A-COIL/AirHandlerH title block above), so the full
+            // 5px margin used everywhere else would draw the pan's top
+            // edge straight through that text - confirmed via screenshot.
+            const topMargin=1;
+            const plenumBleed=hasFurnace?26:34;
+            const panX=cabX-margin, panY=UNIT_Y-topMargin;
+            const panW=(cabX+cabW-panX)+plenumBleed, panH=UNIT_H+margin+topMargin;
+            // Float switch on the LEFT side of the pan, per direct
+            // feedback (was on the right in an earlier pass) - bottom-left
+            // corner specifically, not top-left: the refrigerant lineset's
+            // own vertical run enters right at the coil's upper-left area
+            // (confirmed via screenshot - a switch placed there gets
+            // visually swallowed by the lineset's thick red/blue strokes
+            // passing directly over it), and the pan's lower-left corner
+            // sits clear of that run.
+            const swX=panX+10, swY=panY+panH-20;
+            return <g key="attic-drain-pan">
+              <rect x={panX} y={panY} width={panW} height={panH} rx="3"
+                fill={B+'.06)'} stroke={B+'.5)'} strokeWidth="1.2" strokeDasharray="4 3"/>
               <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
               <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
               <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
-              <HoverInfo x={portX-8} y={portY-4} w={16} h={26} rx={3}
+              <HoverInfo x={panX-4} y={panY-4} w={panW+8} h={panH+8} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
             </g>;
           })()}
 
-          {/* P-trap hover zone - see the drain block's own comment above
-              for why this is split out and painted last. Universal to any
-              coil (furnace+A-coil combo or standalone air handler) - the
-              trap seals the line against the blower's static pressure,
-              which would otherwise pull air backward through the drain
-              or blow water out of it - so this sits on the single shared
-              drain origin point (drainCoilCX/drainTopY, already
-              hasFurnace-ternary'd upstream) rather than needing its own
-              per-indoor-type branch. */}
+          {/* P-trap hover zone - split out and painted last so it wins
+              over the pan's own HoverInfo (just above) and the drain's
+              big loose-bounding-box HoverInfo (in the block above that) at
+              the one small spot all three overlap - a HoverInfo painted
+              earlier still loses to a later-painted sibling even across
+              separate blocks. Universal to any coil (furnace+A-coil combo
+              or standalone air handler) - the trap seals the line against
+              the blower's static pressure, which would otherwise pull air
+              backward through the drain or blow water out of it - so this
+              sits on the single shared drain origin point (drainCoilCX/
+              drainTopY, already hasFurnace-ternary'd upstream) rather than
+              needing its own per-indoor-type branch. Geometry matches the
+              inline loop drawn above (same tR/loopTopY/loopBotY math). */}
           {hasCoil&&hasCond&&(()=>{
-            const tR=5.5, tSpan=tR*1.8;
-            const tX=drainCoilCX-tSpan, tY=drainTopY+22;
-            return <HoverInfo x={tX-3} y={tY-3} w={tSpan*2+6} h={tSpan+7} rx={3}
+            const tR=6.5, loopTopY=drainTopY+18, loopBotY=loopTopY+tR*2;
+            return <HoverInfo x={drainCoilCX-tR-3} y={loopTopY-3} w={tR+6} h={loopBotY-loopTopY+6} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('p_trap').title} text={T('p_trap').text}/>;
           })()}
 
@@ -6326,28 +6354,31 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="9.5" fontFamily="monospace">{CT('FURNACE',lang)}</text>
           </g>}
 
-          {/* Secondary float switch - QA FIX, replaces the old free-standing
-              "secondary drain pan" (direct feedback: too complicated,
-              didn't read well against this tight seam's existing FURNACE/
-              90% AFUE fixtures). Same idea as the attic layout's own
-              replacement: a real A-coil's drain pan has two threaded
-              ports - primary (already piped to the DRAIN line's own exit
-              point below, exitX/exitY, recomputed here since that's
-              scoped inside a different block) and a secondary, normally
-              capped or fitted with exactly this kind of float switch.
-              Placed right beside the primary connection instead of a
-              separate box lower down. */}
+          {/* Secondary drain pan + float switch - QA FIX, reinstated per
+              direct feedback (see the attic layout's own sibling block for
+              the full "why"/sizing reasoning - same idea here). Unlike the
+              attic layout's side-by-side cabinet/plenum, this closet stack
+              has the supply plenum sitting ABOVE the coil, not beside it -
+              so "shifted partially underneath the supply plenum" means
+              extending the pan's TOP edge upward into the plenum's own
+              bottom portion instead of sideways. ACOIL_Y/ACOIL_H already
+              mean "just the coil" (furnace-paired) or "the whole air
+              handler" (standalone) via the hasFurnace ternary upstream -
+              no separate branch needed, same as the attic layout's own
+              ACOIL_W/AH_W split. */}
           {hasCoil&&hasCond&&(()=>{
-            const exitX=UNIT_X+UNIT_W, exitY=Math.max(LS_Y2+14,ACOIL_Y+Math.round(ACOIL_H*0.85));
-            const portX=exitX+3, portY=exitY-14;
-            const swX=portX, swY=portY+5;
-            return <g key="closet-secondary-port">
-              <line x1={portX} y1={portY} x2={portX} y2={portY+5}
-                stroke={B+'.45)'} strokeWidth="1.5" strokeLinecap="round"/>
+            const margin=5;
+            const plenumBleed=hasFurnace?22:30;
+            const panX=UNIT_X-margin, panY=ACOIL_Y-plenumBleed;
+            const panW=UNIT_W+margin*2, panH=(ACOIL_Y+ACOIL_H-panY)+margin;
+            const swX=panX+10, swY=panY+12;
+            return <g key="closet-drain-pan">
+              <rect x={panX} y={panY} width={panW} height={panH} rx="3"
+                fill={B+'.06)'} stroke={B+'.5)'} strokeWidth="1.2" strokeDasharray="4 3"/>
               <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
               <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
               <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
-              <HoverInfo x={portX-8} y={portY-4} w={16} h={26} rx={3}
+              <HoverInfo x={panX-4} y={panY-4} w={panW+8} h={panH+8} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
             </g>;
           })()}
@@ -6650,29 +6681,20 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             return <>
               {/* Sloped run from the unit to the wall - indoors, so the
                   same dim opacity every other indoor drain segment in this
-                  file uses reads fine against the dark house interior. */}
-              <line x1={exitX} y1={exitY} x2={wallX2} y2={slopeY}
-                stroke={B+'.45)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
-              {/* P-trap loop itself (the visible U-bend) - same idea/shape
-                  as the attic layout's own trap loop (see that block's
-                  comment), placed right at this run's origin (exitX/
-                  exitY) rather than the coil's exact center - this
-                  segment starts out nearly horizontal, not vertical, but
-                  a trap still hangs straight down off the pipe regardless
-                  of which way the run slopes afterward. Universal to any
-                  coil (furnace+A-coil combo or standalone AH) - see
-                  PART_INFO's own p_trap comment. Its own HoverInfo is
-                  pulled out to right before this fragment's own closing
-                  `</>` (see that comment) - it needs to win over this
-                  same block's own 4 CONDENSATE DRAIN HoverInfos at the
-                  one small spot they overlap (this segment's own start),
-                  and a HoverInfo painted earlier still loses to a
-                  later-painted sibling even inside the same fragment. */}
+                  file uses reads fine against the dark house interior.
+                  QA FIX - drawn as a path (not a plain line) so the
+                  P-trap loop right below can sit truly in-line with it:
+                  the loop's own entry/exit points are computed to fall
+                  exactly ON this diagonal run (see that block's own
+                  comment), not offset to the side of it. */}
               {(()=>{
-                const tR=6, tSpan=tR*1.8;
-                const tX=exitX+3, tY=exitY;
-                const tD=`M${tX} ${tY} q0 ${tSpan} ${tSpan} ${tSpan} q${tSpan} 0 ${tSpan} -${tSpan}`;
-                return <path d={tD} fill="none" stroke={B+'.45)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>;
+                const dx=wallX2-exitX, dy=slopeY-exitY, len=Math.hypot(dx,dy)||1;
+                const ux=dx/len, uy=dy/len;
+                const tR=6, t1=8, t2=t1+tR*2;
+                const p1x=exitX+ux*t1, p1y=exitY+uy*t1;
+                const p2x=exitX+ux*t2, p2y=exitY+uy*t2;
+                const d=`M${exitX} ${exitY} L${p1x} ${p1y} A${tR} ${tR} 0 1 0 ${p2x} ${p2y} L${wallX2} ${slopeY}`;
+                return <path d={d} fill="none" stroke={B+'.45)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>;
               })()}
               {/* Down the wall to ground level - crosses from the dark
                   interior into the lighter outdoor sky fill partway down,
@@ -6740,13 +6762,21 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <line x1={drainEndX} y1={groundY2} x2={drainEndX} y2={groundY2+5}
                 stroke={B+'.85)'} strokeWidth="2" strokeLinecap="round"/>
               <circle cx={drainEndX} cy={groundY2+5} r={3} fill={B+'.7)'} stroke={B+'.95)'} strokeWidth="0.8"/>
-              {/* P-trap hover zone - see the loop's own comment above for
-                  why this is split out and painted last in this
-                  fragment. */}
+              {/* P-trap hover zone - matches the in-line loop's own
+                  geometry (see the sloped-run block above), split out and
+                  painted last so it wins over this fragment's own 4
+                  CONDENSATE DRAIN HoverInfos at the one small spot they
+                  overlap - a HoverInfo painted earlier still loses to a
+                  later-painted sibling even inside the same fragment. */}
               {(()=>{
-                const tR=6, tSpan=tR*1.8;
-                const tX=exitX+3, tY=exitY;
-                return <HoverInfo x={tX-3} y={tY-3} w={tSpan*2+6} h={tSpan+7} rx={3}
+                const dx=wallX2-exitX, dy=slopeY-exitY, len=Math.hypot(dx,dy)||1;
+                const ux=dx/len, uy=dy/len;
+                const tR=6, t1=8, t2=t1+tR*2;
+                const p1x=exitX+ux*t1, p1y=exitY+uy*t1;
+                const p2x=exitX+ux*t2, p2y=exitY+uy*t2;
+                const minX=Math.min(p1x,p2x)-tR, maxX=Math.max(p1x,p2x)+tR;
+                const minY=Math.min(p1y,p2y)-3, maxY=Math.max(p1y,p2y)+3;
+                return <HoverInfo x={minX} y={minY} w={maxX-minX} h={maxY-minY} rx={3}
                   vw={SVG_VW} vh={SVG_VH} title={T('p_trap').title} text={T('p_trap').text}/>;
               })()}
             </>;
