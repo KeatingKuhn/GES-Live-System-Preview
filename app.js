@@ -6841,6 +6841,48 @@
             text: T("service_switch").text
           }
         ));
+      })(), hasCoil && !hasFurnace && (() => {
+        const swY = ACOIL_Y + ACOIL_H * 0.5;
+        const swX2 = UNIT_X, swX1 = swX2 - 30;
+        const plateX = swX1 - 16, plateW = 16, plateH = 26;
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".16s" } }, /* @__PURE__ */ React.createElement("line", { x1: swX1, y1: swY, x2: swX2, y2: swY, stroke: "#3a3a3a", strokeWidth: "2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: plateX,
+            y: swY - plateH / 2,
+            width: plateW,
+            height: plateH,
+            rx: "2",
+            fill: "#e8e4da",
+            stroke: "#8a8578",
+            strokeWidth: "0.8"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: plateX + plateW / 2 - 2.6,
+            y: swY - 8,
+            width: "5.2",
+            height: "11",
+            rx: "1.4",
+            fill: "#2a2a2a",
+            stroke: "#555",
+            strokeWidth: "0.5"
+          }
+        ), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: plateX - 3,
+            y: swY - plateH / 2 - 3,
+            w: plateW + 6,
+            h: plateH + 22,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("service_switch").title,
+            text: T("service_switch").text
+          }
+        ));
       })(), hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
         {
