@@ -5130,73 +5130,7 @@
           fontFamily: "monospace"
         },
         CT("DRAIN", lang2)
-      ), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: Math.min(drainCoilCX, drainWallX) - 6,
-          y: drainTopY - 4,
-          w: Math.abs(drainWallX - drainCoilCX) + 12,
-          h: Math.max(drainCrossY, drainCrossY2) - drainTopY + 8,
-          rx: 3,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("condensate_drain").title,
-          text: T("condensate_drain").text,
-          ringPath: drainFullPath,
-          ringStrokeWidth: 7
-        }
-      )), hasCoil && hasCond && (() => {
-        const cabX = hasFurnace ? ACOIL_X : AH_X, cabW = hasFurnace ? ACOIL_W : AH_W;
-        const margin = 5;
-        const topMargin = 1;
-        const plenumBleed = hasFurnace ? 26 : 34;
-        const panX = cabX - margin, panY = UNIT_Y - topMargin;
-        const panW = cabX + cabW - panX + plenumBleed, panH = UNIT_H + margin + topMargin;
-        const swX = panX + 10, swY = panY + panH - 20;
-        return /* @__PURE__ */ React.createElement("g", { key: "attic-drain-pan" }, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: panX,
-            y: panY,
-            width: panW,
-            height: panH,
-            rx: "3",
-            fill: B + ".06)",
-            stroke: B + ".5)",
-            strokeWidth: "1.2",
-            strokeDasharray: "4 3"
-          }
-        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: panX - 4,
-            y: panY - 4,
-            w: panW + 8,
-            h: panH + 8,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("secondary_drain_pan").title,
-            text: T("secondary_drain_pan").text
-          }
-        ));
-      })(), hasCoil && hasCond && (() => {
-        const tR = 6.5, loopTopY = drainTopY + 18, loopBotY = loopTopY + tR * 2;
-        return /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: drainCoilCX - tR - 3,
-            y: loopTopY - 3,
-            w: tR + 6,
-            h: loopBotY - loopTopY + 6,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("p_trap").title,
-            text: T("p_trap").text
-          }
-        );
-      })(), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
+      )), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
         const DW = 14;
         const DC = G + ".32)";
         const DS = G + ".18)";
@@ -5370,7 +5304,73 @@
           text: T("supply_plenum").text,
           onClick: onEditStep ? () => onEditStep("plenum") : void 0
         }
-      ), hasIonizer && (() => {
+      ), hasCoil && hasCond && (() => {
+        const cabX = hasFurnace ? ACOIL_X : AH_X, cabW = hasFurnace ? ACOIL_W : AH_W;
+        const margin = 5;
+        const topMargin = 1;
+        const plenumBleed = hasFurnace ? 26 : 34;
+        const panX = cabX - margin, panY = UNIT_Y - topMargin;
+        const panW = cabX + cabW - panX + plenumBleed, panH = UNIT_H + margin + topMargin;
+        const swX = panX + 10, swY = panY + panH - 20;
+        return /* @__PURE__ */ React.createElement("g", { key: "attic-drain-pan" }, /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: panX,
+            y: panY,
+            width: panW,
+            height: panH,
+            rx: "3",
+            fill: B + ".06)",
+            stroke: B + ".5)",
+            strokeWidth: "1.2",
+            strokeDasharray: "4 3"
+          }
+        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: panX - 4,
+            y: panY - 4,
+            w: panW + 8,
+            h: panH + 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("secondary_drain_pan").title,
+            text: T("secondary_drain_pan").text
+          }
+        ));
+      })(), hasCoil && hasCond && /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: Math.min(drainCoilCX, drainWallX) - 6,
+          y: drainTopY - 4,
+          w: Math.abs(drainWallX - drainCoilCX) + 12,
+          h: Math.max(drainCrossY, drainCrossY2) - drainTopY + 8,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condensate_drain").title,
+          text: T("condensate_drain").text,
+          ringPath: drainFullPath,
+          ringStrokeWidth: 7
+        }
+      ), hasCoil && hasCond && (() => {
+        const tR = 6.5, loopTopY = drainTopY + 18, loopBotY = loopTopY + tR * 2;
+        return /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: drainCoilCX - tR - 3,
+            y: loopTopY - 3,
+            w: tR + 6,
+            h: loopBotY - loopTopY + 6,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("p_trap").title,
+            text: T("p_trap").text
+          }
+        );
+      })(), hasIonizer && (() => {
         const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
         const ionBulbY = SUP_PLEN_Y - 14;
         const ionRodLen = Math.round(SUP_PLEN_H * 0.55);

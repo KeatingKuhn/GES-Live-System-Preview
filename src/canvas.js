@@ -4587,85 +4587,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <text x={drainCoilCX+7} y={drainTopY+14} textAnchor="start"
               fill={B+'.4)'} fontSize="12" fontFamily="monospace">{CT('DRAIN',lang)}</text>
             {/* No EditZone covers this line run - free-standing hover, no
-                onClick. Loose bounding rect for the hit-test, ringPath
-                traces the real bent route for the visible ring, same
-                convention as every other bent-pipe hover in this file. */}
-            <HoverInfo x={Math.min(drainCoilCX,drainWallX)-6} y={drainTopY-4}
-              w={Math.abs(drainWallX-drainCoilCX)+12} h={Math.max(drainCrossY,drainCrossY2)-drainTopY+8} rx={3}
-              vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-              ringPath={drainFullPath}
-              ringStrokeWidth={7}/>
+                onClick. QA FIX - this HoverInfo used to sit right here,
+                but its loose bounding rect (top run + cross run) overlaps
+                a good chunk of the secondary drain pan's own footprint
+                right where the pipe exits the coil, and the pan is now
+                painted after this point (see that block's own comment for
+                why) - so this box was silently losing the shared area to
+                the pan's hover, confirmed via elementFromPoint. Split out
+                and moved down past the pan (same "later sibling wins"
+                convention as everywhere else in this file, same fix
+                already applied to the supply plenum's own hover just
+                below) so hovering the actual visible pipe still says
+                CONDENSATE DRAIN instead of SECONDARY DRAIN PAN. */}
           </g>}
 
-          {/* Secondary drain pan + float switch - QA FIX, reinstated per
-              direct feedback ("i like the idea but it did not turn out
-              like i expected... the main thing we need is for it to
-              surround the outside of the entire air handler but just
-              barely"). Real-world reference sizes: 60x30 under a
-              standalone air handler (the WHOLE cabinet, no furnace beside
-              it), 36x36 under a furnace-paired coil (just the coil box).
-              This app's cabinet widths aren't literally to that scale, so
-              rather than force those exact numbers, the pan hugs the
-              REAL cabinet geometry tightly (a few px margin on all sides
-              - "just barely") and bleeds rightward into the supply
-              plenum's own footprint by a fixed amount ("shifted partially
-              underneath the supply plenum") - which naturally reads as
-              wide-and-shallow for the big AH_W cabinet and closer to
-              square for the narrower ACOIL_W one, matching the spirit of
-              60x30 vs 36x36 without needing an artificial ratio formula.
-              Painted AFTER the drain block above so its own HoverInfo
-              wins the area the two shapes share (the drain's vertical run
-              passes right through the pan's left edge). */}
-          {hasCoil&&hasCond&&(()=>{
-            const cabX=hasFurnace?ACOIL_X:AH_X, cabW=hasFurnace?ACOIL_W:AH_W;
-            const margin=5;
-            // Top margin kept much tighter than the others - the cabinet's
-            // own "ABSORBING HEAT"/state-label text sits right at UNIT_Y-5
-            // (see the A-COIL/AirHandlerH title block above), so the full
-            // 5px margin used everywhere else would draw the pan's top
-            // edge straight through that text - confirmed via screenshot.
-            const topMargin=1;
-            const plenumBleed=hasFurnace?26:34;
-            const panX=cabX-margin, panY=UNIT_Y-topMargin;
-            const panW=(cabX+cabW-panX)+plenumBleed, panH=UNIT_H+margin+topMargin;
-            // Float switch on the LEFT side of the pan, per direct
-            // feedback (was on the right in an earlier pass) - bottom-left
-            // corner specifically, not top-left: the refrigerant lineset's
-            // own vertical run enters right at the coil's upper-left area
-            // (confirmed via screenshot - a switch placed there gets
-            // visually swallowed by the lineset's thick red/blue strokes
-            // passing directly over it), and the pan's lower-left corner
-            // sits clear of that run.
-            const swX=panX+10, swY=panY+panH-20;
-            return <g key="attic-drain-pan">
-              <rect x={panX} y={panY} width={panW} height={panH} rx="3"
-                fill={B+'.06)'} stroke={B+'.5)'} strokeWidth="1.2" strokeDasharray="4 3"/>
-              <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
-              <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
-              <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
-              <HoverInfo x={panX-4} y={panY-4} w={panW+8} h={panH+8} rx={3}
-                vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
-            </g>;
-          })()}
-
-          {/* P-trap hover zone - split out and painted last so it wins
-              over the pan's own HoverInfo (just above) and the drain's
-              big loose-bounding-box HoverInfo (in the block above that) at
-              the one small spot all three overlap - a HoverInfo painted
-              earlier still loses to a later-painted sibling even across
-              separate blocks. Universal to any coil (furnace+A-coil combo
-              or standalone air handler) - the trap seals the line against
-              the blower's static pressure, which would otherwise pull air
-              backward through the drain or blow water out of it - so this
-              sits on the single shared drain origin point (drainCoilCX/
-              drainTopY, already hasFurnace-ternary'd upstream) rather than
-              needing its own per-indoor-type branch. Geometry matches the
-              inline loop drawn above (same tR/loopTopY/loopBotY math). */}
-          {hasCoil&&hasCond&&(()=>{
-            const tR=6.5, loopTopY=drainTopY+18, loopBotY=loopTopY+tR*2;
-            return <HoverInfo x={drainCoilCX-tR-3} y={loopTopY-3} w={tR+6} h={loopBotY-loopTopY+6} rx={3}
-              vw={SVG_VW} vh={SVG_VH} title={T('p_trap').title} text={T('p_trap').text}/>;
-          })()}
+          {/* Secondary drain pan, condensate drain's own hover, and the
+              P-trap hover all moved down past the supply plenum's own
+              hover (see that block's comment, a few hundred lines below)
+              - see that insertion point for the full explanation. */}
 
           {/* ── DUCTWORK - 3 supply stems off the plenum bottom, down through
                the attic floor into a drywall ceiling grille below - same
@@ -4908,6 +4847,97 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasPlenum&&hasCoil&&<HoverInfo x={SUP_X-2} y={SUP_PLEN_Y-2} w={SUP_PLEN_W+4} h={SUP_PLEN_H+4} rx={5}
             vw={SVG_VW} vh={SVG_VH} title={T('supply_plenum').title} text={T('supply_plenum').text}
             onClick={onEditStep?()=>onEditStep('plenum'):undefined}/>}
+
+          {/* Secondary drain pan + float switch - QA FIX, reinstated per
+              direct feedback ("i like the idea but it did not turn out
+              like i expected... the main thing we need is for it to
+              surround the outside of the entire air handler but just
+              barely"). Real-world reference sizes: 60x30 under a
+              standalone air handler (the WHOLE cabinet, no furnace beside
+              it), 36x36 under a furnace-paired coil (just the coil box).
+              This app's cabinet widths aren't literally to that scale, so
+              rather than force those exact numbers, the pan hugs the
+              REAL cabinet geometry tightly (a few px margin on all sides
+              - "just barely") and bleeds rightward into the supply
+              plenum's own footprint by a fixed amount ("shifted partially
+              underneath the supply plenum") - which naturally reads as
+              wide-and-shallow for the big AH_W cabinet and closer to
+              square for the narrower ACOIL_W one, matching the spirit of
+              60x30 vs 36x36 without needing an artificial ratio formula.
+              QA FIX - moved down here, painted AFTER the supply plenum's
+              own hover just above, instead of living back where it's
+              drawn (right after the cabinet) - its whole point is to
+              "poke outside the main box" into the plenum's own footprint,
+              and a HoverInfo painted earlier always loses that shared
+              strip to a later-painted sibling (same convention as the
+              plenum's own hover just above, moved for the identical
+              reason against the lineset). Confirmed via elementFromPoint
+              that the old position lost the bleed area to SUPPLY PLENUM
+              every time. */}
+          {hasCoil&&hasCond&&(()=>{
+            const cabX=hasFurnace?ACOIL_X:AH_X, cabW=hasFurnace?ACOIL_W:AH_W;
+            const margin=5;
+            // Top margin kept much tighter than the others - the cabinet's
+            // own "ABSORBING HEAT"/state-label text sits right at UNIT_Y-5
+            // (see the A-COIL/AirHandlerH title block above), so the full
+            // 5px margin used everywhere else would draw the pan's top
+            // edge straight through that text - confirmed via screenshot.
+            const topMargin=1;
+            const plenumBleed=hasFurnace?26:34;
+            const panX=cabX-margin, panY=UNIT_Y-topMargin;
+            const panW=(cabX+cabW-panX)+plenumBleed, panH=UNIT_H+margin+topMargin;
+            // Float switch on the LEFT side of the pan, per direct
+            // feedback (was on the right in an earlier pass) - bottom-left
+            // corner specifically, not top-left: the refrigerant lineset's
+            // own vertical run enters right at the coil's upper-left area
+            // (confirmed via screenshot - a switch placed there gets
+            // visually swallowed by the lineset's thick red/blue strokes
+            // passing directly over it), and the pan's lower-left corner
+            // sits clear of that run.
+            const swX=panX+10, swY=panY+panH-20;
+            return <g key="attic-drain-pan">
+              <rect x={panX} y={panY} width={panW} height={panH} rx="3"
+                fill={B+'.06)'} stroke={B+'.5)'} strokeWidth="1.2" strokeDasharray="4 3"/>
+              <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
+              <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
+              <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
+              <HoverInfo x={panX-4} y={panY-4} w={panW+8} h={panH+8} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
+            </g>;
+          })()}
+
+          {/* Condensate drain's own hover - split out from the visual
+              block way above (see that block's own comment) and painted
+              here, after the pan, so the actual visible pipe still wins
+              hover back from the pan's much broader box wherever the two
+              overlap (the pipe's top run/exit point sits right inside the
+              pan's own footprint). Same box/ringPath this always had -
+              only its paint-order position changed. */}
+          {hasCoil&&hasCond&&<HoverInfo x={Math.min(drainCoilCX,drainWallX)-6} y={drainTopY-4}
+            w={Math.abs(drainWallX-drainCoilCX)+12} h={Math.max(drainCrossY,drainCrossY2)-drainTopY+8} rx={3}
+            vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+            ringPath={drainFullPath}
+            ringStrokeWidth={7}/>}
+
+          {/* P-trap hover zone - split out and painted last so it wins
+              over the pan's own HoverInfo and the drain's big
+              loose-bounding-box HoverInfo (both just above) at the one
+              small spot all three overlap - a HoverInfo painted earlier
+              still loses to a later-painted sibling even across separate
+              blocks. Universal to any coil (furnace+A-coil combo or
+              standalone air handler) - the trap seals the line against
+              the blower's static pressure, which would otherwise pull air
+              backward through the drain or blow water out of it - so this
+              sits on the single shared drain origin point (drainCoilCX/
+              drainTopY, already hasFurnace-ternary'd upstream) rather than
+              needing its own per-indoor-type branch. Geometry matches the
+              inline loop drawn on the visual block above (same
+              tR/loopTopY/loopBotY math). */}
+          {hasCoil&&hasCond&&(()=>{
+            const tR=6.5, loopTopY=drainTopY+18, loopBotY=loopTopY+tR*2;
+            return <HoverInfo x={drainCoilCX-tR-3} y={loopTopY-3} w={tR+6} h={loopBotY-loopTopY+6} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('p_trap').title} text={T('p_trap').text}/>;
+          })()}
 
           {/* QA FIX - ionizer's own hover used to live right where it's
               drawn (bulb+rod, above/inside the plenum), which left its
