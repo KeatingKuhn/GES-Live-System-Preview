@@ -1755,6 +1755,27 @@
     uv_light: {
       en: { title: "UV LIGHT", text: "A germicidal bulb mounted at the coil that kills mold and bacteria growing on it, keeping the coil clean and your airflow odor-free." },
       es: { title: "LUZ UV", text: "Una l\xE1mpara germicida montada en el serpent\xEDn que elimina el moho y las bacterias que crecen en \xE9l, manteniendo el serpent\xEDn limpio y el flujo de aire libre de olores." }
+    },
+    // Universal to ANY coil in the airstream (furnace+A-coil combo or a
+    // standalone air handler) - the blower's static pressure would
+    // otherwise pull air backward through the drain line or blow water out
+    // of it, so every coil install gets one, not just air-handler builds.
+    p_trap: {
+      en: { title: "P-TRAP", text: "A U-shaped bend in the condensate line that seals against the blower's air pressure - without it, that pressure can pull air backward through the drain or blow water out instead of letting it flow. Standard on every coil's drain, furnace or air handler alike." },
+      es: { title: "SIF\xD3N EN P", text: "Una curva en forma de U en la l\xEDnea de condensado que sella contra la presi\xF3n de aire del motor soplador - sin ella, esa presi\xF3n puede jalar aire hacia atr\xE1s por el drenaje o expulsar el agua en vez de dejarla fluir. Est\xE1ndar en el drenaje de todo serpent\xEDn, ya sea horno o manejador de aire." }
+    },
+    // Also universal (any coil), sized differently by indoor_type at each
+    // call site - see the pan's own comment where it's drawn for why.
+    secondary_drain_pan: {
+      en: { title: "SECONDARY DRAIN PAN", text: "A shallow catch-pan under the coil, required by code as backup - if the primary drain ever clogs, this pan catches the overflow and its float switch cuts power to the unit before the water can reach the ceiling below." },
+      es: { title: "BANDEJA DE DRENAJE SECUNDARIA", text: "Una bandeja poco profunda bajo el serpent\xEDn, requerida por c\xF3digo como respaldo - si el drenaje principal se llega a tapar, esta bandeja atrapa el desbordamiento y su interruptor de flotador corta la energ\xEDa a la unidad antes de que el agua llegue al techo de abajo." }
+    },
+    // Deliberately no on-canvas glyph of its own (see this key's call
+    // sites, right on the existing DuctClamp collars) - low-profile by
+    // design, per direct feedback: discoverable on hover, not announced.
+    balancing_damper: {
+      en: { title: "BALANCING DAMPER", text: "Lets a tech fine-tune airflow to this branch so every room gets its fair share, instead of the room nearest the unit hogging all the air." },
+      es: { title: "COMPUERTA DE BALANCEO", text: "Permite a un t\xE9cnico ajustar el flujo de aire hacia esta rama para que cada habitaci\xF3n reciba su parte justa, en lugar de que la habitaci\xF3n m\xE1s cercana a la unidad acapare todo el aire." }
     }
   };
   function partInfo(key, lang2) {
@@ -1833,7 +1854,8 @@
     "HEAT MODE": "MODO CALOR",
     "Not a control - tap to see how this system behaves in each mode": "No es un control - toque para ver c\xF3mo se comporta este sistema en cada modo",
     "Not a control - click to see how this system behaves in each mode": "No es un control - haga clic para ver c\xF3mo se comporta este sistema en cada modo",
-    "2\xD74 RETURN AIR CHASE": "2\xD74 DUCTO DE RETORNO"
+    "2\xD74 RETURN AIR CHASE": "2\xD74 DUCTO DE RETORNO",
+    "AUX PAN": "BANDEJA AUX"
   };
   function CT(en, lang2) {
     return lang2 === "es" && CANVAS_ES[en] ? CANVAS_ES[en] : en;
@@ -5106,7 +5128,12 @@
           strokeDasharray: "4 3",
           strokeLinecap: "round"
         }
-      ), /* @__PURE__ */ React.createElement(
+      ), (() => {
+        const tR = 5.5, tSpan = tR * 1.8;
+        const tX = drainCoilCX - tSpan, tY = drainTopY + 22;
+        const tD = `M${tX} ${tY} q0 ${tSpan} ${tSpan} ${tSpan} q${tSpan} 0 ${tSpan} -${tSpan}`;
+        return /* @__PURE__ */ React.createElement("path", { d: tD, fill: "none", stroke: B + ".42)", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" });
+      })(), /* @__PURE__ */ React.createElement(
         "text",
         {
           x: drainCoilCX + 7,
@@ -5132,7 +5159,62 @@
           ringPath: drainFullPath,
           ringStrokeWidth: 7
         }
-      )), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
+      )), hasCoil && hasCond && (() => {
+        const cabX = hasFurnace ? ACOIL_X : AH_X, cabW = hasFurnace ? ACOIL_W : AH_W * 0.5;
+        const padTop = 6;
+        const availH = Math.max(20, DECK_Y - 10 - (UNIT_Y + UNIT_H + padTop));
+        const refW = cabW * 1.05;
+        const hTarget = hasFurnace ? refW : refW * 0.5;
+        const panH = Math.min(hTarget, availH);
+        const panW = hTarget > availH ? refW * (availH / hTarget) : refW;
+        const panX = cabX + (cabW - panW) / 2;
+        const panY = UNIT_Y + UNIT_H + padTop;
+        const swX = panX + panW - 14, swY = panY - 3;
+        return /* @__PURE__ */ React.createElement("g", { key: "attic-drain-pan" }, /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: panX,
+            y: panY,
+            width: panW,
+            height: panH,
+            rx: "2",
+            fill: B + ".09)",
+            stroke: B + ".5)",
+            strokeWidth: "1.1",
+            strokeDasharray: "3 2"
+          }
+        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: panX - 4,
+            y: panY - 6,
+            w: panW + 8,
+            h: panH + 16,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("secondary_drain_pan").title,
+            text: T("secondary_drain_pan").text
+          }
+        ));
+      })(), hasCoil && hasCond && (() => {
+        const tR = 5.5, tSpan = tR * 1.8;
+        const tX = drainCoilCX - tSpan, tY = drainTopY + 22;
+        return /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: tX - 3,
+            y: tY - 3,
+            w: tSpan * 2 + 6,
+            h: tSpan + 7,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("p_trap").title,
+            text: T("p_trap").text
+          }
+        );
+      })(), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
         const DW = 14;
         const DC = G + ".32)";
         const DS = G + ".18)";
@@ -5171,6 +5253,19 @@
             ringPath: `M${cx} ${pBot} L${cx} ${DECK_Y}`,
             ringStrokeWidth: DW + 8
           }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: cx - DW / 2 - 2,
+            y: pBot,
+            w: DW + 4,
+            h: 10,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("balancing_damper").title,
+            text: T("balancing_damper").text
+          }
         ), grille(cx));
         const angled = (topX, dir, key) => {
           const bendY = Math.min(pBot + FAN, DECK_Y - 6);
@@ -5207,6 +5302,19 @@
               group: "supply_duct",
               ringPath: d,
               ringStrokeWidth: DW + 8
+            }
+          ), /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: topX - DW / 2 - 2,
+              y: pBot,
+              w: DW + 4,
+              h: 10,
+              rx: 2,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("balancing_damper").title,
+              text: T("balancing_damper").text
             }
           ), grille(botX));
         };
@@ -6311,6 +6419,19 @@
             ringPath: `M${UNIT_X - 3} ${exitY + DW / 2} L${leftDropX + DW / 2} ${exitY + DW / 2} L${leftDropX + DW / 2} ${DECK_Y - 4}`,
             ringStrokeWidth: DW + 8
           }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X - DW - 3 - 2,
+            y: exitY - 3,
+            w: 10,
+            h: DW + 6,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("balancing_damper").title,
+            text: T("balancing_damper").text
+          }
         ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: leftDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: CT("SUPPLY", lang2), lang: lang2, vw: SVG_VW, vh: SVG_VH }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W, y: exitY, width: rightDropX - (UNIT_X + PLEN_W) + DW, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: UNIT_X + PLEN_W, y: exitY, w: rightDropX - (UNIT_X + PLEN_W) + DW, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: rightDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: rightDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X + PLEN_W + 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: rightDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X + PLEN_W + 3},${exitY + DW / 2} L${rightDropX + DW / 2},${exitY + DW / 2} L${rightDropX + DW / 2},${DECK_Y - 4}`, "ra"), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
@@ -6342,6 +6463,19 @@
             group: "supply_duct",
             ringPath: `M${UNIT_X + PLEN_W + 3} ${exitY + DW / 2} L${rightDropX + DW / 2} ${exitY + DW / 2} L${rightDropX + DW / 2} ${DECK_Y - 4}`,
             ringStrokeWidth: DW + 8
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X + PLEN_W + 3 - 2,
+            y: exitY - 3,
+            w: 10,
+            h: DW + 6,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("balancing_damper").title,
+            text: T("balancing_damper").text
           }
         ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: rightDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: CT("SUPPLY", lang2), lang: lang2, vw: SVG_VW, vh: SVG_VH }));
       })()), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac-c" + a.cond_tier, style: { animationDelay: ".07s" } }, (() => {
@@ -6864,7 +6998,54 @@
           fontFamily: "monospace"
         },
         CT("FURNACE", lang2)
-      )), hasCoil && hasFurnace && (() => {
+      )), hasCoil && hasCond && (() => {
+        const refW = UNIT_W * 0.6;
+        const hTarget = hasFurnace ? refW : refW * 0.5;
+        const capH = 32;
+        const panH = Math.min(hTarget, capH);
+        const panW = hTarget > capH ? refW * (capH / hTarget) : refW;
+        const panX = UNIT_X + (UNIT_W - panW) / 2;
+        const panY = ACOIL_Y + ACOIL_H - panH * 0.7;
+        const swX = panX + panW + 10, swY = panY + panH / 2 - 8;
+        return /* @__PURE__ */ React.createElement("g", { key: "closet-drain-pan" }, /* @__PURE__ */ React.createElement(
+          "rect",
+          {
+            x: panX,
+            y: panY,
+            width: panW,
+            height: panH,
+            rx: "2",
+            fill: B + ".09)",
+            stroke: B + ".5)",
+            strokeWidth: "1.1",
+            strokeDasharray: "3 2"
+          }
+        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
+          "text",
+          {
+            x: panX - 4,
+            y: panY + panH / 2 + 3,
+            textAnchor: "end",
+            fill: B + ".42)",
+            fontSize: "7",
+            fontFamily: "monospace"
+          },
+          CT("AUX PAN", lang2)
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: panX - 4,
+            y: panY - 6,
+            w: panW + 18,
+            h: panH + 16,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("secondary_drain_pan").title,
+            text: T("secondary_drain_pan").text
+          }
+        ));
+      })(), hasCoil && hasFurnace && (() => {
         const gasY = FURN_Y + 50;
         const gasX1 = UNIT_X + UNIT_W, gasX2 = gasX1 + 62;
         const teeX = gasX1 + 34, valveX = gasX1 + 48;
@@ -7280,7 +7461,12 @@
             strokeDasharray: "5 3",
             strokeLinecap: "round"
           }
-        ), /* @__PURE__ */ React.createElement(
+        ), (() => {
+          const tR = 6, tSpan = tR * 1.8;
+          const tX = exitX + 3, tY = exitY;
+          const tD = `M${tX} ${tY} q0 ${tSpan} ${tSpan} ${tSpan} q${tSpan} 0 ${tSpan} -${tSpan}`;
+          return /* @__PURE__ */ React.createElement("path", { d: tD, fill: "none", stroke: B + ".45)", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" });
+        })(), /* @__PURE__ */ React.createElement(
           "line",
           {
             x1: wallX2,
@@ -7386,7 +7572,24 @@
             strokeWidth: "2",
             strokeLinecap: "round"
           }
-        ), /* @__PURE__ */ React.createElement("circle", { cx: drainEndX, cy: groundY2 + 5, r: 3, fill: B + ".7)", stroke: B + ".95)", strokeWidth: "0.8" }));
+        ), /* @__PURE__ */ React.createElement("circle", { cx: drainEndX, cy: groundY2 + 5, r: 3, fill: B + ".7)", stroke: B + ".95)", strokeWidth: "0.8" }), (() => {
+          const tR = 6, tSpan = tR * 1.8;
+          const tX = exitX + 3, tY = exitY;
+          return /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: tX - 3,
+              y: tY - 3,
+              w: tSpan * 2 + 6,
+              h: tSpan + 7,
+              rx: 3,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("p_trap").title,
+              text: T("p_trap").text
+            }
+          );
+        })());
       })(), hasTstat && (() => {
         const gapLeft = UNIT_X + UNIT_W + 16, gapRight = EXT_WALL_X - 16;
         const midY = hasFurnace ? FURN_Y + FURN_H / 2 : ACOIL_Y + ACOIL_H / 2;

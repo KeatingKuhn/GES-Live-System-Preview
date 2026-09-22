@@ -1205,6 +1205,21 @@ const PART_INFO={
     es:{title:'IONIZADOR',text:"Libera iones cargados en la corriente de aire que se adhieren al polvo, alérgenos y olores para que se agrupen y sean atrapados por su filtro."}},
   uv_light:{en:{title:'UV LIGHT',text:"A germicidal bulb mounted at the coil that kills mold and bacteria growing on it, keeping the coil clean and your airflow odor-free."},
     es:{title:'LUZ UV',text:"Una lámpara germicida montada en el serpentín que elimina el moho y las bacterias que crecen en él, manteniendo el serpentín limpio y el flujo de aire libre de olores."}},
+  // Universal to ANY coil in the airstream (furnace+A-coil combo or a
+  // standalone air handler) - the blower's static pressure would
+  // otherwise pull air backward through the drain line or blow water out
+  // of it, so every coil install gets one, not just air-handler builds.
+  p_trap:{en:{title:'P-TRAP',text:"A U-shaped bend in the condensate line that seals against the blower's air pressure - without it, that pressure can pull air backward through the drain or blow water out instead of letting it flow. Standard on every coil's drain, furnace or air handler alike."},
+    es:{title:'SIFÓN EN P',text:"Una curva en forma de U en la línea de condensado que sella contra la presión de aire del motor soplador - sin ella, esa presión puede jalar aire hacia atrás por el drenaje o expulsar el agua en vez de dejarla fluir. Estándar en el drenaje de todo serpentín, ya sea horno o manejador de aire."}},
+  // Also universal (any coil), sized differently by indoor_type at each
+  // call site - see the pan's own comment where it's drawn for why.
+  secondary_drain_pan:{en:{title:'SECONDARY DRAIN PAN',text:"A shallow catch-pan under the coil, required by code as backup - if the primary drain ever clogs, this pan catches the overflow and its float switch cuts power to the unit before the water can reach the ceiling below."},
+    es:{title:'BANDEJA DE DRENAJE SECUNDARIA',text:"Una bandeja poco profunda bajo el serpentín, requerida por código como respaldo - si el drenaje principal se llega a tapar, esta bandeja atrapa el desbordamiento y su interruptor de flotador corta la energía a la unidad antes de que el agua llegue al techo de abajo."}},
+  // Deliberately no on-canvas glyph of its own (see this key's call
+  // sites, right on the existing DuctClamp collars) - low-profile by
+  // design, per direct feedback: discoverable on hover, not announced.
+  balancing_damper:{en:{title:'BALANCING DAMPER',text:"Lets a tech fine-tune airflow to this branch so every room gets its fair share, instead of the room nearest the unit hogging all the air."},
+    es:{title:'COMPUERTA DE BALANCEO',text:"Permite a un técnico ajustar el flujo de aire hacia esta rama para que cada habitación reciba su parte justa, en lugar de que la habitación más cercana a la unidad acapare todo el aire."}},
 };
 // lang defaults to English whenever a call site hasn't been threaded a
 // lang prop (per the task's "don't crash if undefined" guidance) - falls
@@ -1263,6 +1278,7 @@ const CANVAS_ES={
   'Not a control - tap to see how this system behaves in each mode':'No es un control - toque para ver cómo se comporta este sistema en cada modo',
   'Not a control - click to see how this system behaves in each mode':'No es un control - haga clic para ver cómo se comporta este sistema en cada modo',
   '2×4 RETURN AIR CHASE':'2×4 DUCTO DE RETORNO',
+  'AUX PAN':'BANDEJA AUX',
 };
 function CT(en,lang){ return lang==='es'&&CANVAS_ES[en]?CANVAS_ES[en]:en; }
 
@@ -4466,6 +4482,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             {indoorSubHoversH(hasFurnace,FURN_X,FURN_W,ACOIL_X,ACOIL_W,AH_X,AH_W,UNIT_Y,UNIT_H)}
           </EditZone>}
 
+          {/* Secondary drain pan is drawn AFTER the condensate drain block
+              below (see "attic-drain-pan", moved there) rather than here -
+              its hover needs to paint AFTER the drain's own big loose-
+              bounding-box HoverInfo to win in the area the two overlap
+              (the drain's vertical run passes right through the pan),
+              same "more specific/later wins" convention used everywhere
+              else in this file. */}
+
           {/* Supply plenum - right of A-coil/AH, same height */}
           {hasPlenum&&hasCoil&&<g className="snap" key="spl" style={{animationDelay:'.12s'}}>
             {(()=>{
@@ -4556,6 +4580,20 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
             <line x1={drainCoilCX} y1={drainCrossY} x2={drainWallX} y2={drainCrossY2}
               stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
+            {/* P-trap loop itself (the visible U-bend) is drawn here so it
+                reads as part of this pipe, but its own HoverInfo is
+                pulled OUT to a separate g painted after this whole block
+                (see "attic-p-trap-hover" below) - it needs to win over
+                this block's own big loose-bounding-box drain HoverInfo
+                (right below) at the one small spot they overlap, and a
+                HoverInfo painted earlier in the SAME <g> as a
+                later-painted sibling still loses to it. */}
+            {(()=>{
+              const tR=5.5, tSpan=tR*1.8;
+              const tX=drainCoilCX-tSpan, tY=drainTopY+22;
+              const tD=`M${tX} ${tY} q0 ${tSpan} ${tSpan} ${tSpan} q${tSpan} 0 ${tSpan} -${tSpan}`;
+              return <path d={tD} fill="none" stroke={B+'.42)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>;
+            })()}
             <text x={drainCoilCX+7} y={drainTopY+14} textAnchor="start"
               fill={B+'.4)'} fontSize="12" fontFamily="monospace">{CT('DRAIN',lang)}</text>
             {/* No EditZone covers this line run - free-standing hover, no
@@ -4568,6 +4606,68 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               ringPath={drainFullPath}
               ringStrokeWidth={7}/>
           </g>}
+
+          {/* Secondary drain pan - see its own comment further up (where
+              its old call site used to be) for the full "why"/sizing
+              reasoning. Painted AFTER the drain block above so its own
+              HoverInfo wins the area the two shapes share (the drain's
+              vertical run passes right through this pan), then the
+              P-trap hover right after THIS wins the one small spot all
+              three overlap (see that block's own comment). */}
+          {hasCoil&&hasCond&&(()=>{
+            // QA FIX - the air-handler case used to size the pan off the
+            // WHOLE cabinet (AH_W), which covers coil+blower+aux-heat
+            // combined - wide enough to land the pan (and its float
+            // switch) right on top of the SERVICE SWITCH glyph sitting
+            // below the blower band (swX=AH_X+AH_W*0.675, canvas.js:5333).
+            // A drain pan only ever sits under the COIL itself, so scope
+            // it to that sub-section's own width (AirHandlerH's own
+            // coilW=w*0.50 convention, canvas.js:2632) instead of the
+            // full cabinet.
+            const cabX=hasFurnace?ACOIL_X:AH_X, cabW=hasFurnace?ACOIL_W:AH_W*0.5;
+            const padTop=6;
+            const availH=Math.max(20,DECK_Y-10-(UNIT_Y+UNIT_H+padTop));
+            const refW=cabW*1.05; // slightly wider than the cabinet itself, per spec
+            const hTarget=hasFurnace?refW:refW*0.5; // 1:1 square vs 2:1 wide/shallow
+            const panH=Math.min(hTarget,availH);
+            const panW=hTarget>availH?refW*(availH/hTarget):refW;
+            const panX=cabX+(cabW-panW)/2;
+            const panY=UNIT_Y+UNIT_H+padTop;
+            const swX=panX+panW-14, swY=panY-3;
+            return <g key="attic-drain-pan">
+              <rect x={panX} y={panY} width={panW} height={panH} rx="2"
+                fill={B+'.09)'} stroke={B+'.5)'} strokeWidth="1.1" strokeDasharray="3 2"/>
+              {/* Float switch - clips to the pan's own rim, short wire
+                  dropping to a small sensor puck just inside the pan. */}
+              <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
+              <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
+              <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
+              {/* No persistent text label - this whole strip (DRAIN/DRIP LEG/
+                  P-trap) is already crowded with existing text, and the
+                  pan's own dashed outline + float switch glyph read as a
+                  distinct thing on their own, same as the P-trap loop right
+                  above needing no label of its own - both rely on hover for
+                  the name/description instead of fighting for pixels here. */}
+              <HoverInfo x={panX-4} y={panY-6} w={panW+8} h={panH+16} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
+            </g>;
+          })()}
+
+          {/* P-trap hover zone - see the drain block's own comment above
+              for why this is split out and painted last. Universal to any
+              coil (furnace+A-coil combo or standalone air handler) - the
+              trap seals the line against the blower's static pressure,
+              which would otherwise pull air backward through the drain
+              or blow water out of it - so this sits on the single shared
+              drain origin point (drainCoilCX/drainTopY, already
+              hasFurnace-ternary'd upstream) rather than needing its own
+              per-indoor-type branch. */}
+          {hasCoil&&hasCond&&(()=>{
+            const tR=5.5, tSpan=tR*1.8;
+            const tX=drainCoilCX-tSpan, tY=drainTopY+22;
+            return <HoverInfo x={tX-3} y={tY-3} w={tSpan*2+6} h={tSpan+7} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('p_trap').title} text={T('p_trap').text}/>;
+          })()}
 
           {/* ── DUCTWORK - 3 supply stems off the plenum bottom, down through
                the attic floor into a drywall ceiling grille below - same
@@ -4637,6 +4737,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   <HoverInfo x={cx-DW/2-2} y={pBot} w={DW+4} h={Math.max(0,DECK_Y-pBot)} rx={2}
                     vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
                     ringPath={`M${cx} ${pBot} L${cx} ${DECK_Y}`} ringStrokeWidth={DW+8}/>
+                  {/* Balancing damper - deliberately NOT a new visible
+                      glyph (per direct feedback: "low profile, only
+                      noticeable when hovering, even if accidentally") -
+                      just a small hover zone right on top of the existing
+                      clamp collar right at the plenum end, painted after
+                      (so it wins) the general duct hover just above for
+                      this small overlapping strip only. */}
+                  <HoverInfo x={cx-DW/2-2} y={pBot} w={DW+4} h={10} rx={2}
+                    vw={SVG_VW} vh={SVG_VH} title={T('balancing_damper').title} text={T('balancing_damper').text}/>
                   {grille(cx)}
                 </g>
               );
@@ -4673,6 +4782,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <HoverInfo x={botX-DW/2-2} y={bendY} w={DW+4} h={Math.max(0,DECK_Y-bendY)} rx={2}
                       vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
                       ringPath={d} ringStrokeWidth={DW+8}/>
+                    {/* Balancing damper - same low-profile, hover-only
+                        easter egg as the straight duct's own (see that
+                        one's comment) - right on the clamp at the
+                        plenum end of this branch. */}
+                    <HoverInfo x={topX-DW/2-2} y={pBot} w={DW+4} h={10} rx={2}
+                      vw={SVG_VW} vh={SVG_VH} title={T('balancing_damper').title} text={T('balancing_damper').text}/>
                     {grille(botX)}
                   </g>
                 );
@@ -5894,6 +6009,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <HoverInfo x={leftDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
                   vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
                   ringPath={`M${UNIT_X-3} ${exitY+DW/2} L${leftDropX+DW/2} ${exitY+DW/2} L${leftDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
+                {/* Balancing damper - low-profile, hover-only easter egg
+                    (see the attic layout's own straight-duct comment for
+                    the full reasoning) - right on the existing clamp
+                    collar at the plenum face, painted after both general
+                    duct hovers above so it wins this small strip. */}
+                <HoverInfo x={UNIT_X-DW-3-2} y={exitY-3} w={10} h={DW+6} rx={2}
+                  vw={SVG_VW} vh={SVG_VH} title={T('balancing_damper').title} text={T('balancing_damper').text}/>
                 <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label={CT('SUPPLY',lang)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
 
                 {/* ── RIGHT DUCT ── */}
@@ -5912,6 +6034,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <HoverInfo x={rightDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
                   vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
                   ringPath={`M${UNIT_X+PLEN_W+3} ${exitY+DW/2} L${rightDropX+DW/2} ${exitY+DW/2} L${rightDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
+                {/* Balancing damper - same low-profile, hover-only easter
+                    egg as the left duct's own (see that one's comment). */}
+                <HoverInfo x={UNIT_X+PLEN_W+3-2} y={exitY-3} w={10} h={DW+6} rx={2}
+                  vw={SVG_VW} vh={SVG_VH} title={T('balancing_damper').title} text={T('balancing_damper').text}/>
                 <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label={CT('SUPPLY',lang)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
               </>;
             })()}
@@ -6230,6 +6356,76 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="9.5" fontFamily="monospace">{CT('FURNACE',lang)}</text>
           </g>}
 
+          {/* Secondary drain pan + float switch - same universal safety
+              add-on as the attic layout's own pan (see that block's
+              comment for the full "why"/sizing-ratio reasoning), drawn
+              here instead of inside the coil/AH block above so it paints
+              AFTER whatever's stacked immediately below the coil box
+              (this furnace block, just closed, or - for a standalone AH -
+              nothing at all yet) and so is never itself painted over.
+              Unlike the attic layout's isolated cabinets (open attic
+              floor below them), this closet stack leaves almost no real
+              seam below the coil box (FURN_Y sits only 4px below it, and
+              the !hasFurnace filtration cabinet APR_Y sits flush at 0px -
+              see those constants' own comments up near ACOIL_H) - so
+              instead of a free-standing box in open space, this pan
+              straddles that seam as a shallow, mostly-translucent
+              overlay: the bulk of it overlaps the coil box's own bottom
+              edge, a smaller sliver dips into the top of whatever's
+              stacked next. Same width:height RATIO rule as the attic
+              pan (1:1 square under a furnace-paired coil vs 2:1 wide/
+              shallow under a standalone air handler), off THIS cabinet's
+              own shared width (UNIT_W), scaled down together (ratio
+              preserved) to a shallow cap since there's no real stack
+              room to grow into here. */}
+          {hasCoil&&hasCond&&(()=>{
+            const refW=UNIT_W*0.6;
+            const hTarget=hasFurnace?refW:refW*0.5; // 1:1 square vs 2:1 wide/shallow
+            // Capped smaller than the attic layout's own pan - the
+            // furnace-paired case's own FURNACE label (FURN_Y-13, an
+            // existing fixture) already sits right in this same narrow
+            // seam, centered on the same UNIT_X+UNIT_W/2 this pan is, so
+            // a bigger pan here just fights that label for the same
+            // pixels instead of reading as a shallow tray.
+            const capH=32;
+            const panH=Math.min(hTarget,capH);
+            const panW=hTarget>capH?refW*(capH/hTarget):refW;
+            const panX=UNIT_X+(UNIT_W-panW)/2;
+            // Straddles the seam: most of the pan overlaps up into the
+            // coil box's own bottom edge, a small sliver dips below it.
+            const panY=ACOIL_Y+ACOIL_H-panH*0.7;
+            // QA FIX - the pan is centered on the exact same axis as the
+            // cabinet (panX+panW/2 === UNIT_X+UNIT_W/2, same as the
+            // FURNACE label below it), so nothing placed INSIDE the pan
+            // can dodge that label horizontally - confirmed via screenshot
+            // the switch glyph was landing right on top of "FURNACE" text.
+            // Moved outside the pan, to its right, mirroring the "AUX PAN"
+            // label's own outside-left placement just below - both now
+            // sit clear of the pan's crowded interior and the seam's
+            // existing FURNACE/90% AFUE fixtures.
+            const swX=panX+panW+10, swY=panY+panH/2-8;
+            return <g key="closet-drain-pan">
+              <rect x={panX} y={panY} width={panW} height={panH} rx="2"
+                fill={B+'.09)'} stroke={B+'.5)'} strokeWidth="1.1" strokeDasharray="3 2"/>
+              <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
+              <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
+              <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
+              {/* Label sits OUTSIDE the pan, to its left, rather than
+                  inside/below it - this tight closet seam already has the
+                  FURNACE label centered right above (furnace case) and
+                  the "90% AFUE" badge centered right below/beside
+                  (furnace case's own cabinet top strip), both fighting
+                  for the same centered pixels a bottom-anchored label
+                  used to land in - see this pan's attic-layout sibling
+                  for why that placement works fine THERE (open attic
+                  floor, no competing fixed label at that exact spot). */}
+              <text x={panX-4} y={panY+panH/2+3} textAnchor="end"
+                fill={B+'.42)'} fontSize="7" fontFamily="monospace">{CT('AUX PAN',lang)}</text>
+              <HoverInfo x={panX-4} y={panY-6} w={panW+18} h={panH+16} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
+            </g>;
+          })()}
+
           {/* Gas line + drip leg - closet version enters from the wall on
               the furnace's right face instead of from below (the attic
               layout's approach), since the space below the furnace here
@@ -6531,6 +6727,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   file uses reads fine against the dark house interior. */}
               <line x1={exitX} y1={exitY} x2={wallX2} y2={slopeY}
                 stroke={B+'.45)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
+              {/* P-trap loop itself (the visible U-bend) - same idea/shape
+                  as the attic layout's own trap loop (see that block's
+                  comment), placed right at this run's origin (exitX/
+                  exitY) rather than the coil's exact center - this
+                  segment starts out nearly horizontal, not vertical, but
+                  a trap still hangs straight down off the pipe regardless
+                  of which way the run slopes afterward. Universal to any
+                  coil (furnace+A-coil combo or standalone AH) - see
+                  PART_INFO's own p_trap comment. Its own HoverInfo is
+                  pulled out to right before this fragment's own closing
+                  `</>` (see that comment) - it needs to win over this
+                  same block's own 4 CONDENSATE DRAIN HoverInfos at the
+                  one small spot they overlap (this segment's own start),
+                  and a HoverInfo painted earlier still loses to a
+                  later-painted sibling even inside the same fragment. */}
+              {(()=>{
+                const tR=6, tSpan=tR*1.8;
+                const tX=exitX+3, tY=exitY;
+                const tD=`M${tX} ${tY} q0 ${tSpan} ${tSpan} ${tSpan} q${tSpan} 0 ${tSpan} -${tSpan}`;
+                return <path d={tD} fill="none" stroke={B+'.45)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>;
+              })()}
               {/* Down the wall to ground level - crosses from the dark
                   interior into the lighter outdoor sky fill partway down,
                   so this segment steps up in opacity rather than down. */}
@@ -6597,6 +6814,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <line x1={drainEndX} y1={groundY2} x2={drainEndX} y2={groundY2+5}
                 stroke={B+'.85)'} strokeWidth="2" strokeLinecap="round"/>
               <circle cx={drainEndX} cy={groundY2+5} r={3} fill={B+'.7)'} stroke={B+'.95)'} strokeWidth="0.8"/>
+              {/* P-trap hover zone - see the loop's own comment above for
+                  why this is split out and painted last in this
+                  fragment. */}
+              {(()=>{
+                const tR=6, tSpan=tR*1.8;
+                const tX=exitX+3, tY=exitY;
+                return <HoverInfo x={tX-3} y={tY-3} w={tSpan*2+6} h={tSpan+7} rx={3}
+                  vw={SVG_VW} vh={SVG_VH} title={T('p_trap').title} text={T('p_trap').text}/>;
+              })()}
             </>;
           })()}
 
