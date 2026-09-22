@@ -3905,6 +3905,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // grille height, so the crossing reads as "behind the pipes" without
     // touching the grilles/registers right at the floor line.
     const drainCrossY=DECK_Y-25;
+    // QA FIX - the crossing run used to be dead-level (same Y at both
+    // ends), which read as a flat, unrealistic line for a gravity-fed
+    // drain and drew direct feedback ("needs to slope to outside"). A
+    // real condensate line pitches down away from the coil, so the wall
+    // end sits a little lower than the coil end - same idea as the
+    // closet layout's own sloped first leg, just applied to this one's
+    // horizontal-reading crossing run instead of a short diagonal jog.
+    const drainCrossY2=drainCrossY+22;
     // Inner-right edge of the wall band, clear of the lineset's own
     // px1/px2 (wallMidX∓3 inside OutsideZone) which cross a few px to its
     // left - same offset convention as the closet layout's own drain.
@@ -4415,7 +4423,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasCoil&&hasCond&&<g key="attic-drain-indoor">
             <line x1={drainCoilCX} y1={drainTopY} x2={drainCoilCX} y2={drainCrossY}
               stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
-            <line x1={drainCoilCX} y1={drainCrossY} x2={drainWallX} y2={drainCrossY}
+            <line x1={drainCoilCX} y1={drainCrossY} x2={drainWallX} y2={drainCrossY2}
               stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
             <text x={drainCoilCX+7} y={drainTopY+14} textAnchor="start"
               fill={B+'.4)'} fontSize="12" fontFamily="monospace">DRAIN</text>
@@ -4424,9 +4432,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 traces the real bent route for the visible ring, same
                 convention as every other bent-pipe hover in this file. */}
             <HoverInfo x={Math.min(drainCoilCX,drainWallX)-6} y={drainTopY-4}
-              w={Math.abs(drainWallX-drainCoilCX)+12} h={drainCrossY-drainTopY+8} rx={3}
+              w={Math.abs(drainWallX-drainCoilCX)+12} h={Math.max(drainCrossY,drainCrossY2)-drainTopY+8} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-              ringPath={`M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY}`}
+              ringPath={`M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY2}`}
               ringStrokeWidth={7}/>
           </g>}
 
@@ -4702,24 +4710,35 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               rect's own opaque fill - the closet layout's identical drain
               hit this same z-order issue first; see its own comment.
               Picks up right where the indoor half (before the ductwork
-              block, up near SUP_X) left off, at drainWallX/drainCrossY. */}
+              block, up near SUP_X) left off, at drainWallX/drainCrossY2. */}
           {hasCoil&&hasCond&&(()=>{
-            const drainD2=`M${drainWallX} ${drainCrossY} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
+            const drainD2=`M${drainWallX} ${drainCrossY2} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
             return <g key="attic-drain-outdoor">
               {/* Down the wall to ground level - crosses from the dim
                   attic interior into the brighter outdoor sky fill
                   partway down, so this segment (and the ground-level one
                   below it) step UP in opacity rather than down, same
                   contrast fix the closet layout's own drain needed. */}
-              <line x1={drainWallX} y1={drainCrossY} x2={drainWallX} y2={drainGroundY}
+              <line x1={drainWallX} y1={drainCrossY2} x2={drainWallX} y2={drainGroundY}
                 stroke={B+'.6)'} strokeWidth="1.8" strokeDasharray="5 3" strokeLinecap="round"/>
               {/* Along the pad and past it */}
               <line x1={drainWallX} y1={drainGroundY} x2={drainEndX} y2={drainGroundY}
                 stroke={B+'.85)'} strokeWidth="2" strokeDasharray="5 3" strokeLinecap="round"/>
-              {/* No EditZone covers this line run - free-standing hover,
-                  no onClick. */}
-              <HoverInfo x={drainWallX-6} y={drainCrossY-4}
-                w={drainEndX-drainWallX+12} h={drainGroundY-drainCrossY+8} rx={3}
+              {/* QA FIX - this used to be one big bounding box spanning
+                  the whole outdoor run (wall drop through the far end
+                  past the pad), which swallowed hover AND click for
+                  everything under it - DISC, the condenser, COMP - the
+                  same oversized-hit-box bug already found and fixed on
+                  the closet layout's identical drain. Split into the same
+                  two narrow per-segment zones that fix used, both sharing
+                  this one ringPath so the visible ring still traces the
+                  whole bent route regardless of which segment's hovered. */}
+              <HoverInfo x={drainWallX-4} y={Math.min(drainCrossY2,drainGroundY)-4}
+                w={8} h={Math.abs(drainGroundY-drainCrossY2)+8} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                ringPath={drainD2} ringStrokeWidth={9}/>
+              <HoverInfo x={Math.min(drainWallX,drainEndX)-4} y={drainGroundY-4}
+                w={Math.abs(drainEndX-drainWallX)+8} h={8} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
                 ringPath={drainD2} ringStrokeWidth={9}/>
               {/* Open terminus - a short downward drip stub + a dark
@@ -5060,7 +5079,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasCoil&&!hasFurnace&&(()=>{
             const swX=AH_X+AH_W*0.675;
             const swTopY=UNIT_Y+UNIT_H;
-            const plateW=16, plateH=26, plateY=swTopY+38+plateH/2;
+            // QA FIX - raised from +38 to +28 (10px up) per direct
+            // feedback - the condensate drain's own crossing run (see
+            // drainCrossY/drainCrossY2 above) now dips slightly lower as
+            // it slopes toward the wall, and at the old offset this
+            // plate's own label text sat close enough underneath it to
+            // read as touching.
+            const plateW=16, plateH=26, plateY=swTopY+28+plateH/2;
             return <g className="snap" style={{animationDelay:'.16s'}}>
               <line x1={swX} y1={swTopY} x2={swX} y2={plateY-plateH/2} stroke="#3a3a3a" strokeWidth="2" strokeLinecap="round"/>
               <rect x={swX-plateW/2} y={plateY-plateH/2} width={plateW} height={plateH} rx="2"

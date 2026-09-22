@@ -4255,6 +4255,7 @@
       const drainCoilCX = hasFurnace ? ACOIL_X + ACOIL_W * 0.12 : AH_X + Math.round(AH_W * 0.22);
       const drainTopY = UNIT_Y + UNIT_H + 4;
       const drainCrossY = DECK_Y - 25;
+      const drainCrossY2 = drainCrossY + 22;
       const drainWallX = EXT_WALL_X + WALL_THICK - 3;
       const drainGroundY = VH - 28 - 2;
       const drainPastPad = 46;
@@ -5004,7 +5005,7 @@
           x1: drainCoilCX,
           y1: drainCrossY,
           x2: drainWallX,
-          y2: drainCrossY,
+          y2: drainCrossY2,
           stroke: B + ".42)",
           strokeWidth: "1.5",
           strokeDasharray: "4 3",
@@ -5027,13 +5028,13 @@
           x: Math.min(drainCoilCX, drainWallX) - 6,
           y: drainTopY - 4,
           w: Math.abs(drainWallX - drainCoilCX) + 12,
-          h: drainCrossY - drainTopY + 8,
+          h: Math.max(drainCrossY, drainCrossY2) - drainTopY + 8,
           rx: 3,
           vw: SVG_VW,
           vh: SVG_VH,
           title: T("condensate_drain").title,
           text: T("condensate_drain").text,
-          ringPath: `M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY}`,
+          ringPath: `M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY2}`,
           ringStrokeWidth: 7
         }
       )), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
@@ -5267,12 +5268,12 @@
         },
         condenserSubHovers(COND_X, COND_Y, COND_W, COND_H, a.cond_tier)
       ), hasCoil && hasCond && (() => {
-        const drainD2 = `M${drainWallX} ${drainCrossY} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
+        const drainD2 = `M${drainWallX} ${drainCrossY2} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
         return /* @__PURE__ */ React.createElement("g", { key: "attic-drain-outdoor" }, /* @__PURE__ */ React.createElement(
           "line",
           {
             x1: drainWallX,
-            y1: drainCrossY,
+            y1: drainCrossY2,
             x2: drainWallX,
             y2: drainGroundY,
             stroke: B + ".6)",
@@ -5295,10 +5296,25 @@
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: drainWallX - 6,
-            y: drainCrossY - 4,
-            w: drainEndX - drainWallX + 12,
-            h: drainGroundY - drainCrossY + 8,
+            x: drainWallX - 4,
+            y: Math.min(drainCrossY2, drainGroundY) - 4,
+            w: 8,
+            h: Math.abs(drainGroundY - drainCrossY2) + 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condensate_drain").title,
+            text: T("condensate_drain").text,
+            ringPath: drainD2,
+            ringStrokeWidth: 9
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: Math.min(drainWallX, drainEndX) - 4,
+            y: drainGroundY - 4,
+            w: Math.abs(drainEndX - drainWallX) + 8,
+            h: 8,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -5537,7 +5553,7 @@
       })(), hasCoil && !hasFurnace && (() => {
         const swX = AH_X + AH_W * 0.675;
         const swTopY = UNIT_Y + UNIT_H;
-        const plateW = 16, plateH = 26, plateY = swTopY + 38 + plateH / 2;
+        const plateW = 16, plateH = 26, plateY = swTopY + 28 + plateH / 2;
         return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".16s" } }, /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swTopY, x2: swX, y2: plateY - plateH / 2, stroke: "#3a3a3a", strokeWidth: "2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement(
           "rect",
           {
