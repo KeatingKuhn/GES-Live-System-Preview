@@ -460,8 +460,7 @@ export const GATE_CONFIG={
 // GES AND keep a copy for themselves, not just one or the other. Same
 // "ships hidden until configured" convention as GATE_CONFIG/
 // FINANCING_OPTIONS above: blank means that button simply doesn't render.
-// Site owner: fill in the real office inbox before launch.
-export const OFFICE_EMAIL='';
+export const OFFICE_EMAIL='sales@goldeagleservices.com';
 const TIER_LABEL={fedmin:'Federal Minimum - 14.3 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
 // given the wizard's own filtering, but guards against stale/edge-case answers).
