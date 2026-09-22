@@ -1767,8 +1767,8 @@
     // Also universal (any coil), sized differently by indoor_type at each
     // call site - see the pan's own comment where it's drawn for why.
     secondary_drain_pan: {
-      en: { title: "SECONDARY DRAIN PAN", text: "A shallow catch-pan under the coil, required by code as backup - if the primary drain ever clogs, this pan catches the overflow and its float switch cuts power to the unit before the water can reach the ceiling below." },
-      es: { title: "BANDEJA DE DRENAJE SECUNDARIA", text: "Una bandeja poco profunda bajo el serpent\xEDn, requerida por c\xF3digo como respaldo - si el drenaje principal se llega a tapar, esta bandeja atrapa el desbordamiento y su interruptor de flotador corta la energ\xEDa a la unidad antes de que el agua llegue al techo de abajo." }
+      en: { title: "SECONDARY FLOAT SWITCH", text: "Wired into the coil's own secondary drain port, right next to the primary line - if the primary ever clogs and water backs up, this switch cuts power to the unit before it can overflow into the ceiling below." },
+      es: { title: "INTERRUPTOR DE FLOTADOR SECUNDARIO", text: "Conectado al puerto de drenaje secundario del serpent\xEDn, justo al lado de la l\xEDnea principal - si el drenaje principal se llega a tapar y el agua retrocede, este interruptor corta la energ\xEDa a la unidad antes de que se desborde hacia el techo de abajo." }
     },
     // Deliberately no on-canvas glyph of its own (see this key's call
     // sites, right on the existing DuctClamp collars) - low-profile by
@@ -1854,8 +1854,7 @@
     "HEAT MODE": "MODO CALOR",
     "Not a control - tap to see how this system behaves in each mode": "No es un control - toque para ver c\xF3mo se comporta este sistema en cada modo",
     "Not a control - click to see how this system behaves in each mode": "No es un control - haga clic para ver c\xF3mo se comporta este sistema en cada modo",
-    "2\xD74 RETURN AIR CHASE": "2\xD74 DUCTO DE RETORNO",
-    "AUX PAN": "BANDEJA AUX"
+    "2\xD74 RETURN AIR CHASE": "2\xD74 DUCTO DE RETORNO"
   };
   function CT(en, lang2) {
     return lang2 === "es" && CANVAS_ES[en] ? CANVAS_ES[en] : en;
@@ -5160,36 +5159,26 @@
           ringStrokeWidth: 7
         }
       )), hasCoil && hasCond && (() => {
-        const cabX = hasFurnace ? ACOIL_X : AH_X, cabW = hasFurnace ? ACOIL_W : AH_W * 0.5;
-        const padTop = 6;
-        const availH = Math.max(20, DECK_Y - 10 - (UNIT_Y + UNIT_H + padTop));
-        const refW = cabW * 1.05;
-        const hTarget = hasFurnace ? refW : refW * 0.5;
-        const panH = Math.min(hTarget, availH);
-        const panW = hTarget > availH ? refW * (availH / hTarget) : refW;
-        const panX = cabX + (cabW - panW) / 2;
-        const panY = UNIT_Y + UNIT_H + padTop;
-        const swX = panX + panW - 14, swY = panY - 3;
-        return /* @__PURE__ */ React.createElement("g", { key: "attic-drain-pan" }, /* @__PURE__ */ React.createElement(
-          "rect",
+        const portX = drainCoilCX + 16, portY = drainTopY;
+        const swX = portX, swY = portY + 9;
+        return /* @__PURE__ */ React.createElement("g", { key: "attic-secondary-port" }, /* @__PURE__ */ React.createElement(
+          "line",
           {
-            x: panX,
-            y: panY,
-            width: panW,
-            height: panH,
-            rx: "2",
-            fill: B + ".09)",
-            stroke: B + ".5)",
-            strokeWidth: "1.1",
-            strokeDasharray: "3 2"
+            x1: portX,
+            y1: portY,
+            x2: portX,
+            y2: portY + 5,
+            stroke: B + ".42)",
+            strokeWidth: "1.5",
+            strokeLinecap: "round"
           }
         ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: panX - 4,
-            y: panY - 6,
-            w: panW + 8,
-            h: panH + 16,
+            x: portX - 8,
+            y: portY - 4,
+            w: 16,
+            h: 26,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -6999,45 +6988,27 @@
         },
         CT("FURNACE", lang2)
       )), hasCoil && hasCond && (() => {
-        const refW = UNIT_W * 0.6;
-        const hTarget = hasFurnace ? refW : refW * 0.5;
-        const capH = 32;
-        const panH = Math.min(hTarget, capH);
-        const panW = hTarget > capH ? refW * (capH / hTarget) : refW;
-        const panX = UNIT_X + (UNIT_W - panW) / 2;
-        const panY = ACOIL_Y + ACOIL_H - panH * 0.7;
-        const swX = panX + panW + 10, swY = panY + panH / 2 - 8;
-        return /* @__PURE__ */ React.createElement("g", { key: "closet-drain-pan" }, /* @__PURE__ */ React.createElement(
-          "rect",
+        const exitX = UNIT_X + UNIT_W, exitY = Math.max(LS_Y2 + 14, ACOIL_Y + Math.round(ACOIL_H * 0.85));
+        const portX = exitX + 3, portY = exitY - 14;
+        const swX = portX, swY = portY + 5;
+        return /* @__PURE__ */ React.createElement("g", { key: "closet-secondary-port" }, /* @__PURE__ */ React.createElement(
+          "line",
           {
-            x: panX,
-            y: panY,
-            width: panW,
-            height: panH,
-            rx: "2",
-            fill: B + ".09)",
-            stroke: B + ".5)",
-            strokeWidth: "1.1",
-            strokeDasharray: "3 2"
+            x1: portX,
+            y1: portY,
+            x2: portX,
+            y2: portY + 5,
+            stroke: B + ".45)",
+            strokeWidth: "1.5",
+            strokeLinecap: "round"
           }
         ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
-          "text",
-          {
-            x: panX - 4,
-            y: panY + panH / 2 + 3,
-            textAnchor: "end",
-            fill: B + ".42)",
-            fontSize: "7",
-            fontFamily: "monospace"
-          },
-          CT("AUX PAN", lang2)
-        ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: panX - 4,
-            y: panY - 6,
-            w: panW + 18,
-            h: panH + 16,
+            x: portX - 8,
+            y: portY - 4,
+            w: 16,
+            h: 26,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,

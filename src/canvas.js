@@ -1213,8 +1213,8 @@ const PART_INFO={
     es:{title:'SIFÓN EN P',text:"Una curva en forma de U en la línea de condensado que sella contra la presión de aire del motor soplador - sin ella, esa presión puede jalar aire hacia atrás por el drenaje o expulsar el agua en vez de dejarla fluir. Estándar en el drenaje de todo serpentín, ya sea horno o manejador de aire."}},
   // Also universal (any coil), sized differently by indoor_type at each
   // call site - see the pan's own comment where it's drawn for why.
-  secondary_drain_pan:{en:{title:'SECONDARY DRAIN PAN',text:"A shallow catch-pan under the coil, required by code as backup - if the primary drain ever clogs, this pan catches the overflow and its float switch cuts power to the unit before the water can reach the ceiling below."},
-    es:{title:'BANDEJA DE DRENAJE SECUNDARIA',text:"Una bandeja poco profunda bajo el serpentín, requerida por código como respaldo - si el drenaje principal se llega a tapar, esta bandeja atrapa el desbordamiento y su interruptor de flotador corta la energía a la unidad antes de que el agua llegue al techo de abajo."}},
+  secondary_drain_pan:{en:{title:'SECONDARY FLOAT SWITCH',text:"Wired into the coil's own secondary drain port, right next to the primary line - if the primary ever clogs and water backs up, this switch cuts power to the unit before it can overflow into the ceiling below."},
+    es:{title:'INTERRUPTOR DE FLOTADOR SECUNDARIO',text:"Conectado al puerto de drenaje secundario del serpentín, justo al lado de la línea principal - si el drenaje principal se llega a tapar y el agua retrocede, este interruptor corta la energía a la unidad antes de que se desborde hacia el techo de abajo."}},
   // Deliberately no on-canvas glyph of its own (see this key's call
   // sites, right on the existing DuctClamp collars) - low-profile by
   // design, per direct feedback: discoverable on hover, not announced.
@@ -1278,7 +1278,6 @@ const CANVAS_ES={
   'Not a control - tap to see how this system behaves in each mode':'No es un control - toque para ver cómo se comporta este sistema en cada modo',
   'Not a control - click to see how this system behaves in each mode':'No es un control - haga clic para ver cómo se comporta este sistema en cada modo',
   '2×4 RETURN AIR CHASE':'2×4 DUCTO DE RETORNO',
-  'AUX PAN':'BANDEJA AUX',
 };
 function CT(en,lang){ return lang==='es'&&CANVAS_ES[en]?CANVAS_ES[en]:en; }
 
@@ -4482,14 +4481,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             {indoorSubHoversH(hasFurnace,FURN_X,FURN_W,ACOIL_X,ACOIL_W,AH_X,AH_W,UNIT_Y,UNIT_H)}
           </EditZone>}
 
-          {/* Secondary drain pan is drawn AFTER the condensate drain block
-              below (see "attic-drain-pan", moved there) rather than here -
-              its hover needs to paint AFTER the drain's own big loose-
-              bounding-box HoverInfo to win in the area the two overlap
-              (the drain's vertical run passes right through the pan),
-              same "more specific/later wins" convention used everywhere
-              else in this file. */}
-
           {/* Supply plenum - right of A-coil/AH, same height */}
           {hasPlenum&&hasCoil&&<g className="snap" key="spl" style={{animationDelay:'.12s'}}>
             {(()=>{
@@ -4607,48 +4598,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               ringStrokeWidth={7}/>
           </g>}
 
-          {/* Secondary drain pan - see its own comment further up (where
-              its old call site used to be) for the full "why"/sizing
-              reasoning. Painted AFTER the drain block above so its own
-              HoverInfo wins the area the two shapes share (the drain's
-              vertical run passes right through this pan), then the
-              P-trap hover right after THIS wins the one small spot all
-              three overlap (see that block's own comment). */}
+          {/* Secondary float switch - QA FIX, replaces the old free-standing
+              "secondary drain pan" rectangle (direct feedback: too
+              complicated, didn't read well against the already-busy DRAIN/
+              DRIP LEG strip). A real A-coil's drain pan has two threaded
+              ports molded in - primary (the DRAIN line above already
+              exits from there) and a secondary, a few inches over on the
+              same pan, normally capped or fitted with exactly this kind of
+              float switch as a safety backup. So: no pan shape, just a
+              short capped stub plumbed into that secondary port with the
+              switch clipped to it, sitting right beside the primary
+              connection instead of floating in its own box below. */}
           {hasCoil&&hasCond&&(()=>{
-            // QA FIX - the air-handler case used to size the pan off the
-            // WHOLE cabinet (AH_W), which covers coil+blower+aux-heat
-            // combined - wide enough to land the pan (and its float
-            // switch) right on top of the SERVICE SWITCH glyph sitting
-            // below the blower band (swX=AH_X+AH_W*0.675, canvas.js:5333).
-            // A drain pan only ever sits under the COIL itself, so scope
-            // it to that sub-section's own width (AirHandlerH's own
-            // coilW=w*0.50 convention, canvas.js:2632) instead of the
-            // full cabinet.
-            const cabX=hasFurnace?ACOIL_X:AH_X, cabW=hasFurnace?ACOIL_W:AH_W*0.5;
-            const padTop=6;
-            const availH=Math.max(20,DECK_Y-10-(UNIT_Y+UNIT_H+padTop));
-            const refW=cabW*1.05; // slightly wider than the cabinet itself, per spec
-            const hTarget=hasFurnace?refW:refW*0.5; // 1:1 square vs 2:1 wide/shallow
-            const panH=Math.min(hTarget,availH);
-            const panW=hTarget>availH?refW*(availH/hTarget):refW;
-            const panX=cabX+(cabW-panW)/2;
-            const panY=UNIT_Y+UNIT_H+padTop;
-            const swX=panX+panW-14, swY=panY-3;
-            return <g key="attic-drain-pan">
-              <rect x={panX} y={panY} width={panW} height={panH} rx="2"
-                fill={B+'.09)'} stroke={B+'.5)'} strokeWidth="1.1" strokeDasharray="3 2"/>
-              {/* Float switch - clips to the pan's own rim, short wire
-                  dropping to a small sensor puck just inside the pan. */}
+            const portX=drainCoilCX+16, portY=drainTopY;
+            const swX=portX, swY=portY+9;
+            return <g key="attic-secondary-port">
+              <line x1={portX} y1={portY} x2={portX} y2={portY+5}
+                stroke={B+'.42)'} strokeWidth="1.5" strokeLinecap="round"/>
               <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
               <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
               <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
-              {/* No persistent text label - this whole strip (DRAIN/DRIP LEG/
-                  P-trap) is already crowded with existing text, and the
-                  pan's own dashed outline + float switch glyph read as a
-                  distinct thing on their own, same as the P-trap loop right
-                  above needing no label of its own - both rely on hover for
-                  the name/description instead of fighting for pixels here. */}
-              <HoverInfo x={panX-4} y={panY-6} w={panW+8} h={panH+16} rx={3}
+              <HoverInfo x={portX-8} y={portY-4} w={16} h={26} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
             </g>;
           })()}
@@ -6356,72 +6326,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="9.5" fontFamily="monospace">{CT('FURNACE',lang)}</text>
           </g>}
 
-          {/* Secondary drain pan + float switch - same universal safety
-              add-on as the attic layout's own pan (see that block's
-              comment for the full "why"/sizing-ratio reasoning), drawn
-              here instead of inside the coil/AH block above so it paints
-              AFTER whatever's stacked immediately below the coil box
-              (this furnace block, just closed, or - for a standalone AH -
-              nothing at all yet) and so is never itself painted over.
-              Unlike the attic layout's isolated cabinets (open attic
-              floor below them), this closet stack leaves almost no real
-              seam below the coil box (FURN_Y sits only 4px below it, and
-              the !hasFurnace filtration cabinet APR_Y sits flush at 0px -
-              see those constants' own comments up near ACOIL_H) - so
-              instead of a free-standing box in open space, this pan
-              straddles that seam as a shallow, mostly-translucent
-              overlay: the bulk of it overlaps the coil box's own bottom
-              edge, a smaller sliver dips into the top of whatever's
-              stacked next. Same width:height RATIO rule as the attic
-              pan (1:1 square under a furnace-paired coil vs 2:1 wide/
-              shallow under a standalone air handler), off THIS cabinet's
-              own shared width (UNIT_W), scaled down together (ratio
-              preserved) to a shallow cap since there's no real stack
-              room to grow into here. */}
+          {/* Secondary float switch - QA FIX, replaces the old free-standing
+              "secondary drain pan" (direct feedback: too complicated,
+              didn't read well against this tight seam's existing FURNACE/
+              90% AFUE fixtures). Same idea as the attic layout's own
+              replacement: a real A-coil's drain pan has two threaded
+              ports - primary (already piped to the DRAIN line's own exit
+              point below, exitX/exitY, recomputed here since that's
+              scoped inside a different block) and a secondary, normally
+              capped or fitted with exactly this kind of float switch.
+              Placed right beside the primary connection instead of a
+              separate box lower down. */}
           {hasCoil&&hasCond&&(()=>{
-            const refW=UNIT_W*0.6;
-            const hTarget=hasFurnace?refW:refW*0.5; // 1:1 square vs 2:1 wide/shallow
-            // Capped smaller than the attic layout's own pan - the
-            // furnace-paired case's own FURNACE label (FURN_Y-13, an
-            // existing fixture) already sits right in this same narrow
-            // seam, centered on the same UNIT_X+UNIT_W/2 this pan is, so
-            // a bigger pan here just fights that label for the same
-            // pixels instead of reading as a shallow tray.
-            const capH=32;
-            const panH=Math.min(hTarget,capH);
-            const panW=hTarget>capH?refW*(capH/hTarget):refW;
-            const panX=UNIT_X+(UNIT_W-panW)/2;
-            // Straddles the seam: most of the pan overlaps up into the
-            // coil box's own bottom edge, a small sliver dips below it.
-            const panY=ACOIL_Y+ACOIL_H-panH*0.7;
-            // QA FIX - the pan is centered on the exact same axis as the
-            // cabinet (panX+panW/2 === UNIT_X+UNIT_W/2, same as the
-            // FURNACE label below it), so nothing placed INSIDE the pan
-            // can dodge that label horizontally - confirmed via screenshot
-            // the switch glyph was landing right on top of "FURNACE" text.
-            // Moved outside the pan, to its right, mirroring the "AUX PAN"
-            // label's own outside-left placement just below - both now
-            // sit clear of the pan's crowded interior and the seam's
-            // existing FURNACE/90% AFUE fixtures.
-            const swX=panX+panW+10, swY=panY+panH/2-8;
-            return <g key="closet-drain-pan">
-              <rect x={panX} y={panY} width={panW} height={panH} rx="2"
-                fill={B+'.09)'} stroke={B+'.5)'} strokeWidth="1.1" strokeDasharray="3 2"/>
+            const exitX=UNIT_X+UNIT_W, exitY=Math.max(LS_Y2+14,ACOIL_Y+Math.round(ACOIL_H*0.85));
+            const portX=exitX+3, portY=exitY-14;
+            const swX=portX, swY=portY+5;
+            return <g key="closet-secondary-port">
+              <line x1={portX} y1={portY} x2={portX} y2={portY+5}
+                stroke={B+'.45)'} strokeWidth="1.5" strokeLinecap="round"/>
               <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
               <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
               <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
-              {/* Label sits OUTSIDE the pan, to its left, rather than
-                  inside/below it - this tight closet seam already has the
-                  FURNACE label centered right above (furnace case) and
-                  the "90% AFUE" badge centered right below/beside
-                  (furnace case's own cabinet top strip), both fighting
-                  for the same centered pixels a bottom-anchored label
-                  used to land in - see this pan's attic-layout sibling
-                  for why that placement works fine THERE (open attic
-                  floor, no competing fixed label at that exact spot). */}
-              <text x={panX-4} y={panY+panH/2+3} textAnchor="end"
-                fill={B+'.42)'} fontSize="7" fontFamily="monospace">{CT('AUX PAN',lang)}</text>
-              <HoverInfo x={panX-4} y={panY-6} w={panW+18} h={panH+16} rx={3}
+              <HoverInfo x={portX-8} y={portY-4} w={16} h={26} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
             </g>;
           })()}
