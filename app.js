@@ -1764,11 +1764,13 @@
       en: { title: "P-TRAP", text: "A U-shaped bend in the condensate line that seals against the blower's air pressure - without it, that pressure can pull air backward through the drain or blow water out instead of letting it flow. Standard on every coil's drain, furnace or air handler alike." },
       es: { title: "SIF\xD3N EN P", text: "Una curva en forma de U en la l\xEDnea de condensado que sella contra la presi\xF3n de aire del motor soplador - sin ella, esa presi\xF3n puede jalar aire hacia atr\xE1s por el drenaje o expulsar el agua en vez de dejarla fluir. Est\xE1ndar en el drenaje de todo serpent\xEDn, ya sea horno o manejador de aire." }
     },
-    // Also universal (any coil), sized differently by indoor_type at each
-    // call site - see the pan's own comment where it's drawn for why.
+    // Also universal (any coil) - see the switch's own comment where it's
+    // drawn for why this is a switch on the coil's own secondary port, not
+    // a pan (tried the pan twice, direct feedback both times: too
+    // complicated, didn't read well against the diagram).
     secondary_drain_pan: {
-      en: { title: "SECONDARY DRAIN PAN", text: "A shallow catch-pan wrapped tightly around the coil (or the whole air handler, on a standalone unit), required by code as backup - if the primary drain ever clogs, this pan catches the overflow and its float switch cuts power to the unit before the water can reach the ceiling below." },
-      es: { title: "BANDEJA DE DRENAJE SECUNDARIA", text: "Una bandeja poco profunda que rodea ajustadamente el serpent\xEDn (o todo el manejador de aire, en una unidad independiente), requerida por c\xF3digo como respaldo - si el drenaje principal se llega a tapar, esta bandeja atrapa el desbordamiento y su interruptor de flotador corta la energ\xEDa a la unidad antes de que el agua llegue al techo de abajo." }
+      en: { title: "SECONDARY FLOAT SWITCH", text: "Wired into the coil's own secondary drain port, right next to the primary line - if the primary ever clogs and water backs up, this switch cuts power to the unit before it can overflow into the ceiling below." },
+      es: { title: "INTERRUPTOR DE FLOTADOR SECUNDARIO", text: "Conectado al puerto de drenaje secundario del serpent\xEDn, justo al lado de la l\xEDnea principal - si el drenaje principal se llega a tapar y el agua retrocede, este interruptor corta la energ\xEDa a la unidad antes de que se desborde hacia el techo de abajo." }
     },
     // Deliberately no on-canvas glyph of its own (see this key's call
     // sites, right on the existing DuctClamp collars) - low-profile by
@@ -5304,42 +5306,7 @@
           text: T("supply_plenum").text,
           onClick: onEditStep ? () => onEditStep("plenum") : void 0
         }
-      ), hasCoil && hasCond && (() => {
-        const cabX = hasFurnace ? ACOIL_X : AH_X, cabW = hasFurnace ? ACOIL_W : AH_W;
-        const margin = 5;
-        const topMargin = 1;
-        const plenumBleed = hasFurnace ? 26 : 34;
-        const panX = cabX - margin, panY = UNIT_Y - topMargin;
-        const panW = cabX + cabW - panX + plenumBleed, panH = UNIT_H + margin + topMargin;
-        const swX = panX + 10, swY = panY + panH - 20;
-        return /* @__PURE__ */ React.createElement("g", { key: "attic-drain-pan" }, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: panX,
-            y: panY,
-            width: panW,
-            height: panH,
-            rx: "3",
-            fill: B + ".06)",
-            stroke: B + ".5)",
-            strokeWidth: "1.2",
-            strokeDasharray: "4 3"
-          }
-        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: panX - 4,
-            y: panY - 4,
-            w: panW + 8,
-            h: panH + 8,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("secondary_drain_pan").title,
-            text: T("secondary_drain_pan").text
-          }
-        ));
-      })(), hasCoil && hasCond && /* @__PURE__ */ React.createElement(
+      ), hasCoil && hasCond && /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
           x: Math.min(drainCoilCX, drainWallX) - 6,
@@ -5388,6 +5355,38 @@
             text: T("ionizer").text
           }
         );
+      })(), hasCoil && hasCond && (() => {
+        const cabX = hasFurnace ? ACOIL_X : AH_X, cabW = hasFurnace ? ACOIL_W : AH_W;
+        const portX = cabX + cabW * 0.5;
+        const portY0 = UNIT_Y + UNIT_H;
+        const stubLen = 13;
+        const portY1 = portY0 + stubLen;
+        const swX = portX, swY = portY1 + 3;
+        return /* @__PURE__ */ React.createElement("g", { key: "attic-secondary-port" }, /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: portX,
+            y1: portY0,
+            x2: portX,
+            y2: portY1,
+            stroke: B + ".5)",
+            strokeWidth: "2",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: portX - 6,
+            y: portY0 - 2,
+            w: 12,
+            h: swY + 13 - portY0 + 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("secondary_drain_pan").title,
+            text: T("secondary_drain_pan").text
+          }
+        ));
       })(), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
@@ -6980,40 +6979,7 @@
           fontFamily: "monospace"
         },
         CT("FURNACE", lang2)
-      )), hasCoil && hasCond && (() => {
-        const margin = 5;
-        const plenumBleed = hasFurnace ? 22 : 30;
-        const panX = UNIT_X - margin, panY = ACOIL_Y - plenumBleed;
-        const panW = UNIT_W + margin * 2, panH = ACOIL_Y + ACOIL_H - panY + margin;
-        const swX = panX + 10, swY = panY + 12;
-        return /* @__PURE__ */ React.createElement("g", { key: "closet-drain-pan" }, /* @__PURE__ */ React.createElement(
-          "rect",
-          {
-            x: panX,
-            y: panY,
-            width: panW,
-            height: panH,
-            rx: "3",
-            fill: B + ".06)",
-            stroke: B + ".5)",
-            strokeWidth: "1.2",
-            strokeDasharray: "4 3"
-          }
-        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: panX - 4,
-            y: panY - 4,
-            w: panW + 8,
-            h: panH + 8,
-            rx: 3,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("secondary_drain_pan").title,
-            text: T("secondary_drain_pan").text
-          }
-        ));
-      })(), hasCoil && hasFurnace && (() => {
+      )), hasCoil && hasFurnace && (() => {
         const gasY = FURN_Y + 50;
         const gasX1 = UNIT_X + UNIT_W, gasX2 = gasX1 + 62;
         const teeX = gasX1 + 34, valveX = gasX1 + 48;
@@ -7344,7 +7310,37 @@
           ringPath: linesetRingPath,
           ringStrokeWidth: 16
         }
-      )), hasCond && /* @__PURE__ */ React.createElement(
+      )), hasCoil && hasCond && (() => {
+        const portY = ACOIL_Y + ACOIL_H * 0.5;
+        const stubLen = 13;
+        const tipX = UNIT_X - stubLen;
+        const swX = tipX, swY = portY + 3;
+        return /* @__PURE__ */ React.createElement("g", { key: "closet-secondary-port" }, /* @__PURE__ */ React.createElement(
+          "line",
+          {
+            x1: UNIT_X,
+            y1: portY,
+            x2: tipX,
+            y2: portY,
+            stroke: B + ".5)",
+            strokeWidth: "2",
+            strokeLinecap: "round"
+          }
+        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: tipX - 4,
+            y: portY - 6,
+            w: UNIT_X - tipX + 8,
+            h: 30,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("secondary_drain_pan").title,
+            text: T("secondary_drain_pan").text
+          }
+        ));
+      })(), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
           wallX: EXT_WALL_X,
