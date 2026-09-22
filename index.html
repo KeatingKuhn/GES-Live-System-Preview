@@ -5659,6 +5659,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const drainGroundY = VH - 28 - 2;
       const drainPastPad = 46;
       const drainEndX = Math.min(VW - 16, COND_X + COND_W + 10 + drainPastPad);
+      const drainFullPath = `M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY2} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
       return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null), /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -6433,7 +6434,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           vh: SVG_VH,
           title: T("condensate_drain").title,
           text: T("condensate_drain").text,
-          ringPath: `M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY2}`,
+          ringPath: drainFullPath,
           ringStrokeWidth: 7
         }
       )), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "ducts", style: { animationDelay: ".18s" } }, (() => {
@@ -6667,7 +6668,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         },
         condenserSubHovers(COND_X, COND_Y, COND_W, COND_H, a.cond_tier)
       ), hasCoil && hasCond && (() => {
-        const drainD2 = `M${drainWallX} ${drainCrossY2} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
         return /* @__PURE__ */ React.createElement("g", { key: "attic-drain-outdoor" }, /* @__PURE__ */ React.createElement(
           "line",
           {
@@ -6704,7 +6704,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             vh: SVG_VH,
             title: T("condensate_drain").title,
             text: T("condensate_drain").text,
-            ringPath: drainD2,
+            ringPath: drainFullPath,
             ringStrokeWidth: 9
           }
         ), Math.min(drainWallX, drainEndX) < COND_X - 6 && /* @__PURE__ */ React.createElement(
@@ -6719,7 +6719,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             vh: SVG_VH,
             title: T("condensate_drain").title,
             text: T("condensate_drain").text,
-            ringPath: drainD2,
+            ringPath: drainFullPath,
             ringStrokeWidth: 9
           }
         ), Math.max(drainWallX, drainEndX) > COND_X + COND_W + 6 && /* @__PURE__ */ React.createElement(
@@ -6734,7 +6734,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             vh: SVG_VH,
             title: T("condensate_drain").title,
             text: T("condensate_drain").text,
-            ringPath: drainD2,
+            ringPath: drainFullPath,
             ringStrokeWidth: 9
           }
         ), /* @__PURE__ */ React.createElement(

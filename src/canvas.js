@@ -3969,6 +3969,21 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // would push the pipe off the edge of the canvas at this zoom).
     const drainPastPad=46;
     const drainEndX=Math.min(VW-16,COND_X+COND_W+10+drainPastPad);
+    // QA FIX - the indoor and outdoor halves used to each build their OWN
+    // separate ringPath string (one M...L...L stopping at the wall, the
+    // other starting fresh from the wall) even though the actual drawn
+    // line connects seamlessly - direct feedback: hovering looked like
+    // two disconnected pipes instead of one continuous run, since the
+    // gold ring only ever traced whichever half you were over. Same
+    // shared-path convention the lineset's own linesetRingPath already
+    // uses above: ONE path spanning coil to yard, passed as ringPath to
+    // every hit-zone on either half, so hovering ANYWHERE on the drain
+    // highlights its whole connected route, not just the half under the
+    // cursor. The two halves still render as separate <line> elements
+    // (still split for the z-order reasons each block's own comment
+    // explains), only the hover ring itself is unified.
+    const drainFullPath=`M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} `+
+      `L${drainWallX} ${drainCrossY2} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
 
     return(
       <HoverCtx.Provider value={setHoverPart}>
@@ -4474,7 +4489,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <HoverInfo x={Math.min(drainCoilCX,drainWallX)-6} y={drainTopY-4}
               w={Math.abs(drainWallX-drainCoilCX)+12} h={Math.max(drainCrossY,drainCrossY2)-drainTopY+8} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-              ringPath={`M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY2}`}
+              ringPath={drainFullPath}
               ringStrokeWidth={7}/>
           </g>}
 
@@ -4752,7 +4767,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               Picks up right where the indoor half (before the ductwork
               block, up near SUP_X) left off, at drainWallX/drainCrossY2. */}
           {hasCoil&&hasCond&&(()=>{
-            const drainD2=`M${drainWallX} ${drainCrossY2} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
             return <g key="attic-drain-outdoor">
               {/* Down the wall to ground level - crosses from the dim
                   attic interior into the brighter outdoor sky fill
@@ -4776,7 +4790,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <HoverInfo x={drainWallX-4} y={Math.min(drainCrossY2,drainGroundY)-4}
                 w={8} h={Math.abs(drainGroundY-drainCrossY2)+8} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-                ringPath={drainD2} ringStrokeWidth={9}/>
+                ringPath={drainFullPath} ringStrokeWidth={9}/>
               {/* QA FIX - the ground-level run physically passes right
                   behind the condenser (drainWallX..drainEndX crosses
                   COND_X..COND_X+COND_W along the pad), so a single hover
@@ -4793,11 +4807,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               {Math.min(drainWallX,drainEndX)<COND_X-6&&<HoverInfo x={Math.min(drainWallX,drainEndX)-4} y={drainGroundY-4}
                 w={Math.max(0,COND_X-6-Math.min(drainWallX,drainEndX))+4} h={8} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-                ringPath={drainD2} ringStrokeWidth={9}/>}
+                ringPath={drainFullPath} ringStrokeWidth={9}/>}
               {Math.max(drainWallX,drainEndX)>COND_X+COND_W+6&&<HoverInfo x={COND_X+COND_W+6} y={drainGroundY-4}
                 w={Math.max(0,Math.max(drainWallX,drainEndX)-(COND_X+COND_W+6))+4} h={8} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-                ringPath={drainD2} ringStrokeWidth={9}/>}
+                ringPath={drainFullPath} ringStrokeWidth={9}/>}
               {/* Open terminus - a short downward drip stub + a dark
                   discharge point, same "this is where it lets out" cue
                   the old indoor terminus used, relocated to the actual
