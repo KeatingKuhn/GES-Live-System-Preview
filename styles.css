@@ -881,36 +881,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .splash-card:active{transform:translateY(-2px) scale(.97);background:rgba(215,183,64,.14)}
 .splash-card-title{font-family:var(--ft);font-size:23px;font-weight:700;color:var(--wh)}
 .splash-card-desc{font-family:var(--fb);font-size:14.5px;color:var(--mut);text-align:center;line-height:1.6}
-
-/* ─── PATH PICKER (Part 1 "choose your adventure" landing) ───────
-   Sits on the exact same .splash-screen chrome as the attic/closet screen
-   right below it (same background, title, intro, trust line, splash-rise
-   stagger, language toggle) - only the eyebrow copy and this card row are
-   new. Asymmetric layout per the approved mockup: one big primary card
-   (with a PRIMARY PATH tag) plus two smaller cards stacked to its right. */
-.path-cards{display:flex;gap:16px;justify-content:center;align-items:stretch}
-.path-card{background:rgba(215,183,64,.04);border:1px solid rgba(215,183,64,.15);cursor:pointer;transition:background .18s,border-color .18s,transform .18s;outline:none;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
-.path-card:hover{background:rgba(215,183,64,.09);border-color:rgba(215,183,64,.4);transform:translateY(-2px)}
-.path-card:active{transform:translateY(-2px) scale(.97);background:rgba(215,183,64,.14)}
-.path-card-primary{width:380px;padding:26px 30px;justify-content:center}
-.path-cards-secondary{display:flex;flex-direction:column;gap:16px;width:230px}
-.path-card-secondary{flex:1;padding:16px 18px;justify-content:center}
-.path-tag{font-family:var(--fm);font-size:10.5px;letter-spacing:.14em;color:var(--gl);border:1px solid rgba(215,183,64,.45);border-radius:20px;padding:3px 12px;margin-bottom:2px}
-.path-icon{font-size:40px;line-height:1}
-.path-icon-sm{font-size:26px}
-.path-card-title{font-family:var(--ft);font-size:22px;font-weight:700;color:var(--wh)}
-.path-card-title-sm{font-size:17px}
-.path-card-desc{font-family:var(--fb);font-size:14px;color:var(--mut);line-height:1.55}
-.path-card-desc-sm{font-size:12.5px}
-/* Small utility control, top-left of the attic/closet screen only -
-   returns to this path picker. Absolute within .splash-screen (already
-   position:absolute;inset:0), so it sits in the corner without disturbing
-   the centered/staged content below it. Reuses .btn-back's own look
-   rather than a bespoke style, for the same reason every other Back
-   control in the app does. */
-.path-back-btn{position:absolute;top:16px;left:16px;z-index:2;background:transparent;border:1px solid var(--border);color:var(--mut);padding:7px 14px;font-family:var(--fb);font-size:13px;cursor:pointer;transition:border-color .2s,color .2s;outline:none}
-.path-back-btn:hover{border-color:rgba(215,183,64,.4);color:var(--gl)}
-
 /* Attic: canvas fills all, step bar on bottom */
 .attic-layout{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
 .attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
@@ -1024,14 +994,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .splash-card{width:min(90vw,420px);padding:20px 22px}
   .splash-logo{font-size:clamp(28px,7vw,52px)}
   .splash-sub{font-size:11px;letter-spacing:.14em}
-
-  /* Path picker: same single-column stack as the splash cards above it -
-     primary card first, then the two secondary cards full-width below. */
-  .path-cards{flex-direction:column;align-items:center;gap:12px}
-  .path-card-primary{width:min(90vw,420px);padding:20px 22px}
-  .path-cards-secondary{flex-direction:row;width:min(90vw,420px);gap:12px}
-  .path-card-secondary{padding:14px 12px}
-  .path-back-btn{padding:6px 12px;font-size:12px}
 
   /* Attic layout: canvas top 55%, bar bottom 45% scrollable */
   .attic-layout{flex-direction:column}
