@@ -2952,7 +2952,23 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,
 // derived from wizard state), so - like the color-palette consts above -
 // there was never a reason for this to be redeclared, and its whole
 // <defs> subtree rebuilt, on every single Canvas render. Module-scope.
-const Defs=()=><defs>
+// QA FIX - used to be rendered fresh inside EACH mounted <svg> (once per
+// Canvas instance - the wizard's own preview canvas stays mounted,
+// display:none, even after reaching the done screen, so up to 3 copies of
+// this same <defs> block, all reusing the exact same hardcoded ids like
+// "cabinet-edge"/"gold"/"silver", could exist in the document at once).
+// SVG's own url(#id) lookup is document-wide, not scoped to the local
+// <svg>, so that was harmless on screen - but under print, Chromium
+// resolves url(#cabinet-edge) to whichever copy of that id happens to sit
+// first in the DOM, and a gradient defined inside a display:none subtree
+// isn't available to paint with - which is exactly why the furnace/A-coil
+// cabinet (the one thing here using a gradient stroke, not a flat fill)
+// printed as an empty gap while everything else with a plain solid fill
+// printed fine. Now exported and rendered exactly ONCE, from a small
+// always-mounted (never display:none) SVG at the app root - every other
+// <svg> in the app still resolves url(#gold) etc. against that one shared
+// copy, the same way a browser's own icon-sprite <symbol> defs work.
+export const Defs=()=><defs>
   <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#f0d64e"/><stop offset="100%" stopColor="#ab8024"/></linearGradient>
   <linearGradient id="silver" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#e4e7ed"/><stop offset="100%" stopColor="#8b93a3"/></linearGradient>
   {/* Cabinet refresh pass - a diagonal light-to-dark sweep (same slate
@@ -3991,7 +4007,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid meet" className="canvas-svg" aria-hidden="true">
-          <Defs/>
 
           {/* Full canvas background */}
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
@@ -4268,7 +4283,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <line x1={gasX-5} y1={teeY} x2={gasX+5} y2={teeY} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
               <line x1={gasX} y1={teeY} x2={gasX} y2={teeY+11} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
               <rect x={gasX-3.5} y={teeY+11} width="7" height="3.5" rx="1" fill="#242424" stroke="#5a5a5a" strokeWidth="0.5"/>
-              <text x={gasX+10} y={teeY+15} textAnchor="start" fill="rgba(180,180,180,.5)" fontSize="8" fontFamily="monospace">DRIP LEG</text>
+              {/* QA FIX - this run is only as long as gasTopY..DECK_Y, which
+                  shrinks a lot on the earlier wizard steps (before a
+                  condenser's picked, the attic has far less vertical room
+                  than it will once the diagram's own layout settles) - short
+                  enough there that this label (anchored to the tee, near the
+                  TOP of the run) and the GAS label below (anchored to
+                  DECK_Y, the BOTTOM) end up landing on the same baseline,
+                  reading as one glued "GASDRIP LEG" word. Only draws once
+                  there's enough of the run left to actually separate the
+                  two - the hover tooltip (below) still covers this part
+                  either way, so nothing is lost when it's hidden. */}
+              {teeY+15<=DECK_Y+14-14&&<text x={gasX+10} y={teeY+15} textAnchor="start" fill="rgba(180,180,180,.5)" fontSize="8" fontFamily="monospace">DRIP LEG</text>}
               <text x={gasX} y={DECK_Y+14} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="11" fontFamily="monospace">GAS</text>
               <HoverInfo x={gasX-11} y={gasTopY-2} w={22} h={DECK_Y-gasTopY+18} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}
@@ -5507,7 +5533,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
         {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
-          <Defs/>
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
           {/* Outside zone - brightest sunny, dimmer overcast, darkest cold,
               same as the attic layout's outside zone (OUTSIDE_* above). */}

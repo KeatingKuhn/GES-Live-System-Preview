@@ -1,6 +1,6 @@
 const {useState,useMemo,useRef,useCallback}=React;
 import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES} from './data.js';
-import {Canvas,CountUp} from './canvas.js';
+import {Canvas,CountUp,Defs} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
 // ─── AUTOSAVE ───────────────────────────────────────────────────
@@ -998,6 +998,21 @@ function App(){
           toggle, which lives down on the splash screen now (see below). */}
       <div className="site-header-spacer no-print"/>
     <div ref={topRef} className="app-root">
+      {/* QA FIX - the diagram's shared gradients/filters (gold, silver,
+          cabinet-edge, glow, etc.) used to be defined fresh inside EACH
+          mounted <svg> (the wizard's own preview canvas stays mounted,
+          display:none, even after reaching the done screen - so up to 3
+          copies of the same ids could exist in the document at once).
+          SVG's url(#id) lookup is document-wide, so this was harmless on
+          screen, but under print Chromium could resolve a reference to a
+          copy sitting inside a display:none subtree and simply not paint
+          it - confirmed as the cause of the furnace/A-coil cabinet
+          printing as an empty gap (the one thing using a gradient stroke,
+          not a flat fill). Rendered exactly once here instead, in a
+          zero-size (not display:none, so it survives print) SVG that's
+          never conditionally hidden - every other <svg> in the app still
+          resolves url(#gold) etc. against this one shared copy. */}
+      <svg width="0" height="0" style={{position:"absolute"}} aria-hidden="true"><Defs/></svg>
       {/* Visually-hidden live region - see the liveMessage comment above.
           A stable, never-remounted node (no key, no conditional unmount)
           so screen readers treat every stepIdx/done change as a content
