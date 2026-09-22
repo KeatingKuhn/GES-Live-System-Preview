@@ -221,14 +221,25 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
   },[wallX,zoneW,zoneH,groundY]);
 
   return <g>
-    {/* ── GROUND ── */}
-    <rect x={wallX} y={groundY} width={zoneW} height={zoneH-groundY} fill="#0c0b08" stroke="none"/>
-    {Array.from({length:10},(_,i)=>(
-      <line key={i} x1={wallX+i*(zoneW/10)} y1={groundY} x2={wallX+i*(zoneW/10)+10} y2={groundY+8}
-        stroke="rgba(90,80,45,.2)" strokeWidth="0.7"/>
-    ))}
-    <text x={wallX+zoneW/2} y={groundY+18} textAnchor="middle"
-      fill="rgba(110,95,55,.45)" fontSize="12.5" fontFamily="monospace">GROUND LEVEL</text>
+    {/* ── GROUND ──
+         QA FIX - same fix as the CONCRETE PAD block below: this purely
+         decorative rect/ticks/label had no pointer-events style, and its
+         footprint runs the full width of the outside zone at ground
+         level - directly under where the condenser's own EditZone needs
+         to catch clicks along its bottom edge. Confirmed via
+         elementFromPoint that this text element (GROUND LEVEL's own
+         label) was winning the hit-test at one of the dead-click points
+         found in QA. pointerEvents:none lets clicks fall through to the
+         EditZone underneath. */}
+    <g style={{pointerEvents:'none'}}>
+      <rect x={wallX} y={groundY} width={zoneW} height={zoneH-groundY} fill="#0c0b08" stroke="none"/>
+      {Array.from({length:10},(_,i)=>(
+        <line key={i} x1={wallX+i*(zoneW/10)} y1={groundY} x2={wallX+i*(zoneW/10)+10} y2={groundY+8}
+          stroke="rgba(90,80,45,.2)" strokeWidth="0.7"/>
+      ))}
+      <text x={wallX+zoneW/2} y={groundY+18} textAnchor="middle"
+        fill="rgba(110,95,55,.45)" fontSize="12.5" fontFamily="monospace">GROUND LEVEL</text>
+    </g>
 
     {/* ── SNOW - furnace/aux-heat cold-snap mode only. Fades in/out
          instead of popping, so switching modes reads as a season
@@ -304,16 +315,29 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
       {rainField}
     </g>
 
-    {/* ── CONCRETE PAD - under condenser ── */}
-    <rect x={condX-10} y={padY} width={condW+20} height={14} rx="2"
-      fill="rgba(165,160,148,.22)" stroke="rgba(190,185,168,.28)" strokeWidth="1"/>
-    {Array.from({length:5},(_,i)=>(
-      <line key={i} x1={condX+i*(condW+20)/5-10} y1={padY+2}
-        x2={condX+i*(condW+20)/5-10} y2={padY+12}
-        stroke="rgba(190,185,168,.1)" strokeWidth="0.5"/>
-    ))}
-    <text x={condX+condW/2} y={padY+10} textAnchor="middle"
-      fill="rgba(170,160,140,.4)" fontSize="12.5" fontFamily="monospace">CONCRETE PAD</text>
+    {/* ── CONCRETE PAD - under condenser ──
+         QA FIX - this purely decorative rect (plus its expansion-joint
+         lines and label) had no pointer-events style at all, and its own
+         footprint (condX-10..condX+condW+10) sits directly under the
+         condenser, right where the cond_tier EditZone's own clickable box
+         also needs to catch clicks - confirmed via elementFromPoint that
+         this rect, not the EditZone, was winning the hit-test along the
+         condenser's bottom edge, making clicks there silently dead
+         instead of jumping to the efficiency-tier quick-edit. Same
+         "decorative layer sits on top of an interactive zone" bug this
+         file already fixes elsewhere - pointerEvents:none lets clicks
+         fall through to the EditZone underneath. */}
+    <g style={{pointerEvents:'none'}}>
+      <rect x={condX-10} y={padY} width={condW+20} height={14} rx="2"
+        fill="rgba(165,160,148,.22)" stroke="rgba(190,185,168,.28)" strokeWidth="1"/>
+      {Array.from({length:5},(_,i)=>(
+        <line key={i} x1={condX+i*(condW+20)/5-10} y1={padY+2}
+          x2={condX+i*(condW+20)/5-10} y2={padY+12}
+          stroke="rgba(190,185,168,.1)" strokeWidth="0.5"/>
+      ))}
+      <text x={condX+condW/2} y={padY+10} textAnchor="middle"
+        fill="rgba(170,160,140,.4)" fontSize="12.5" fontFamily="monospace">CONCRETE PAD</text>
+    </g>
 
     {/* ── WALL CROSS-SECTION ── proper side view of exterior wall.
          Starts at the roofline (eaveY), not the top of the canvas - this
@@ -1259,8 +1283,24 @@ function EditZone({x,y,w,h,stepId,rx,children,onEditStep,svgScale,vw,vh}){
   if(eh<minUnits){ey-=(minUnits-eh)/2; eh=minUnits;}
   if(vw){if(ex<0)ex=0; if(ex+ew>vw)ex=Math.max(0,vw-ew);}
   if(vh){if(ey<0)ey=0; if(ey+eh>vh)ey=Math.max(0,vh-eh);}
+  // QA FIX - this rect's own hit-testing used to rely on the assumption
+  // that being painted after whatever it covers is enough ("elsewhere in
+  // this file... deliberately painted after the equipment it covers" -
+  // see this component's own module comment above) - true against the
+  // equipment graphics themselves, but a QA pass found real dead clicks
+  // along the condenser's bottom edge in both layouts where a handful of
+  // OutsideZone's own decorative rects (ground fill, concrete pad) still
+  // sat on top despite that ordering, because fill="transparent" isn't
+  // actually hit-tested the same as a real paint under this browser's
+  // default pointer-events:visiblePainted - confirmed via
+  // elementFromPoint(). Every other interactive hit-box in this file
+  // (HoverInfo) already forces this explicitly; EditZone's own rect
+  // hadn't needed to until something happened to occlude it. Making it
+  // explicit here fixes the root cause once instead of chasing every
+  // decorative layer that could ever end up drawn on top of an EditZone.
   return <g className="edit-zone" onClick={()=>onEditStep(stepId)}>
-    <rect x={ex} y={ey} width={ew} height={eh} rx={rx||4} fill="transparent" stroke="none"/>
+    <rect x={ex} y={ey} width={ew} height={eh} rx={rx||4} fill="transparent" stroke="none"
+      style={{pointerEvents:'all'}}/>
     {children}
   </g>;
 }
@@ -4737,10 +4777,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 w={8} h={Math.abs(drainGroundY-drainCrossY2)+8} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
                 ringPath={drainD2} ringStrokeWidth={9}/>
-              <HoverInfo x={Math.min(drainWallX,drainEndX)-4} y={drainGroundY-4}
-                w={Math.abs(drainEndX-drainWallX)+8} h={8} rx={3}
+              {/* QA FIX - the ground-level run physically passes right
+                  behind the condenser (drainWallX..drainEndX crosses
+                  COND_X..COND_X+COND_W along the pad), so a single hover
+                  box for the whole span still overlapped the condenser's
+                  own EditZone at their shared ground-level edge - painted
+                  after it, the drain won that strip and swallowed clicks
+                  meant for the condenser (confirmed by a QA pass: clicks
+                  along the very bottom edge of the condenser cabinet were
+                  dead). Gapped into two pieces that stop short of the
+                  condenser's own footprint on each side instead of one
+                  continuous box, so that strip falls through to the
+                  EditZone beneath it again. The visible dashed line and
+                  its ring are untouched - only the hit-testing has the gap. */}
+              {Math.min(drainWallX,drainEndX)<COND_X-6&&<HoverInfo x={Math.min(drainWallX,drainEndX)-4} y={drainGroundY-4}
+                w={Math.max(0,COND_X-6-Math.min(drainWallX,drainEndX))+4} h={8} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-                ringPath={drainD2} ringStrokeWidth={9}/>
+                ringPath={drainD2} ringStrokeWidth={9}/>}
+              {Math.max(drainWallX,drainEndX)>COND_X+COND_W+6&&<HoverInfo x={COND_X+COND_W+6} y={drainGroundY-4}
+                w={Math.max(0,Math.max(drainWallX,drainEndX)-(COND_X+COND_W+6))+4} h={8} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                ringPath={drainD2} ringStrokeWidth={9}/>}
               {/* Open terminus - a short downward drip stub + a dark
                   discharge point, same "this is where it lets out" cue
                   the old indoor terminus used, relocated to the actual
@@ -6398,10 +6455,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 w={8} h={Math.abs(groundY2-slopeY)+8}
                 rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
                 ringPath={drainD} ringStrokeWidth={9}/>
-              <HoverInfo x={Math.min(wallX2,drainEndX)-4} y={groundY2-4}
-                w={Math.abs(drainEndX-wallX2)+8} h={8}
+              {/* QA FIX - same gap this ground-level segment needed on the
+                  attic layout's identical drain: it physically passes
+                  right behind the condenser along the pad, so one
+                  continuous box here still overlapped the condenser's own
+                  EditZone at their shared ground-level edge and, painted
+                  after it, won that strip - a QA pass confirmed clicks
+                  along the very bottom of the condenser cabinet were dead
+                  because of this. Gapped into two pieces stopping short of
+                  the condenser's own footprint on each side, so that
+                  strip falls through to the EditZone again. */}
+              {Math.min(wallX2,drainEndX)<COND_X-6&&<HoverInfo x={Math.min(wallX2,drainEndX)-4} y={groundY2-4}
+                w={Math.max(0,COND_X-6-Math.min(wallX2,drainEndX))+4} h={8}
                 rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-                ringPath={drainD} ringStrokeWidth={9}/>
+                ringPath={drainD} ringStrokeWidth={9}/>}
+              {Math.max(wallX2,drainEndX)>COND_X+COND_W+6&&<HoverInfo x={COND_X+COND_W+6} y={groundY2-4}
+                w={Math.max(0,Math.max(wallX2,drainEndX)-(COND_X+COND_W+6))+4} h={8}
+                rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+                ringPath={drainD} ringStrokeWidth={9}/>}
               <text x={wallX2+6} y={slopeY-6} textAnchor="start"
                 fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">DRAIN</text>
               {/* Open terminus - a short downward drip stub + a dark

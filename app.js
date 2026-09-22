@@ -676,7 +676,7 @@
       });
       return /* @__PURE__ */ React.createElement(React.Fragment, null, sheen, drops, splashes);
     }, [wallX, zoneW, zoneH, groundY]);
-    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("rect", { x: wallX, y: groundY, width: zoneW, height: zoneH - groundY, fill: "#0c0b08", stroke: "none" }), Array.from({ length: 10 }, (_, i) => /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement("rect", { x: wallX, y: groundY, width: zoneW, height: zoneH - groundY, fill: "#0c0b08", stroke: "none" }), Array.from({ length: 10 }, (_, i) => /* @__PURE__ */ React.createElement(
       "line",
       {
         key: i,
@@ -698,7 +698,7 @@
         fontFamily: "monospace"
       },
       "GROUND LEVEL"
-    ), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, (() => {
+    )), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, (() => {
       const sx = wallX + zoneW * 0.25, sy = zoneH * 0.075 + 18;
       return /* @__PURE__ */ React.createElement("g", { stroke: "#cfe0f5", strokeWidth: "1.6", strokeLinecap: "round", fill: "none" }, Array.from({ length: 6 }, (_, i) => {
         const ang = i * Math.PI / 3;
@@ -723,7 +723,7 @@
           strokeLinecap: "round"
         }
       );
-    })), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 - 9, cy: zoneH * 0.075 + 20, rx: "10", ry: "7", fill: "#8a94a3" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 4, cy: zoneH * 0.075 + 15, rx: "12", ry: "8.5", fill: "#9aa3b0" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 17, cy: zoneH * 0.075 + 20, rx: "9", ry: "6.5", fill: "#8a94a3" }), /* @__PURE__ */ React.createElement("rect", { x: wallX, y: groundY - 4, width: zoneW, height: 4, fill: "rgba(122,184,224,.14)" }), rainField), /* @__PURE__ */ React.createElement(
+    })), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 - 9, cy: zoneH * 0.075 + 20, rx: "10", ry: "7", fill: "#8a94a3" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 4, cy: zoneH * 0.075 + 15, rx: "12", ry: "8.5", fill: "#9aa3b0" }), /* @__PURE__ */ React.createElement("ellipse", { cx: wallX + zoneW * 0.25 + 17, cy: zoneH * 0.075 + 20, rx: "9", ry: "6.5", fill: "#8a94a3" }), /* @__PURE__ */ React.createElement("rect", { x: wallX, y: groundY - 4, width: zoneW, height: 4, fill: "rgba(122,184,224,.14)" }), rainField), /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
       "rect",
       {
         x: condX - 10,
@@ -757,7 +757,7 @@
         fontFamily: "monospace"
       },
       "CONCRETE PAD"
-    ), /* @__PURE__ */ React.createElement(
+    )), /* @__PURE__ */ React.createElement(
       "rect",
       {
         x: sidingX,
@@ -1777,7 +1777,19 @@
       if (ey < 0) ey = 0;
       if (ey + eh > vh) ey = Math.max(0, vh - eh);
     }
-    return /* @__PURE__ */ React.createElement("g", { className: "edit-zone", onClick: () => onEditStep(stepId) }, /* @__PURE__ */ React.createElement("rect", { x: ex, y: ey, width: ew, height: eh, rx: rx || 4, fill: "transparent", stroke: "none" }), children);
+    return /* @__PURE__ */ React.createElement("g", { className: "edit-zone", onClick: () => onEditStep(stepId) }, /* @__PURE__ */ React.createElement(
+      "rect",
+      {
+        x: ex,
+        y: ey,
+        width: ew,
+        height: eh,
+        rx: rx || 4,
+        fill: "transparent",
+        stroke: "none",
+        style: { pointerEvents: "all" }
+      }
+    ), children);
   }
   var MIN_FOCUS_PX = 28;
   function StepFocusRing({ x, y, w, h, stepId, rx, onEditStep, curStepId, svgScale, vw, vh }) {
@@ -5308,12 +5320,27 @@
             ringPath: drainD2,
             ringStrokeWidth: 9
           }
-        ), /* @__PURE__ */ React.createElement(
+        ), Math.min(drainWallX, drainEndX) < COND_X - 6 && /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: Math.min(drainWallX, drainEndX) - 4,
             y: drainGroundY - 4,
-            w: Math.abs(drainEndX - drainWallX) + 8,
+            w: Math.max(0, COND_X - 6 - Math.min(drainWallX, drainEndX)) + 4,
+            h: 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condensate_drain").title,
+            text: T("condensate_drain").text,
+            ringPath: drainD2,
+            ringStrokeWidth: 9
+          }
+        ), Math.max(drainWallX, drainEndX) > COND_X + COND_W + 6 && /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: COND_X + COND_W + 6,
+            y: drainGroundY - 4,
+            w: Math.max(0, Math.max(drainWallX, drainEndX) - (COND_X + COND_W + 6)) + 4,
             h: 8,
             rx: 3,
             vw: SVG_VW,
@@ -7182,12 +7209,27 @@
             ringPath: drainD,
             ringStrokeWidth: 9
           }
-        ), /* @__PURE__ */ React.createElement(
+        ), Math.min(wallX2, drainEndX) < COND_X - 6 && /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: Math.min(wallX2, drainEndX) - 4,
             y: groundY2 - 4,
-            w: Math.abs(drainEndX - wallX2) + 8,
+            w: Math.max(0, COND_X - 6 - Math.min(wallX2, drainEndX)) + 4,
+            h: 8,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("condensate_drain").title,
+            text: T("condensate_drain").text,
+            ringPath: drainD,
+            ringStrokeWidth: 9
+          }
+        ), Math.max(wallX2, drainEndX) > COND_X + COND_W + 6 && /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: COND_X + COND_W + 6,
+            y: groundY2 - 4,
+            w: Math.max(0, Math.max(wallX2, drainEndX) - (COND_X + COND_W + 6)) + 4,
             h: 8,
             rx: 3,
             vw: SVG_VW,
