@@ -1888,7 +1888,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     condenserEl,
     tierKey,
     eaveY,
-    lang,
+    lang: lang2,
     vw,
     vh,
     linesetRingPath
@@ -2090,7 +2090,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         fontSize: "12.5",
         fontFamily: "monospace"
       },
-      "GROUND LEVEL"
+      CT("GROUND LEVEL", lang2)
     )), /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, (() => {
       const sx = wallX + zoneW * 0.25, sy = zoneH * 0.075 + 18;
       return /* @__PURE__ */ React.createElement("g", { stroke: "#cfe0f5", strokeWidth: "1.6", strokeLinecap: "round", fill: "none" }, Array.from({ length: 6 }, (_, i) => {
@@ -2149,7 +2149,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         fontSize: "12.5",
         fontFamily: "monospace"
       },
-      "CONCRETE PAD"
+      CT("CONCRETE PAD", lang2)
     )), /* @__PURE__ */ React.createElement(
       "rect",
       {
@@ -2259,7 +2259,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "11.5",
           fontFamily: "monospace"
         },
-        "LINESET"
+        CT("LINESET", lang2)
       ), /* @__PURE__ */ React.createElement(
         "path",
         {
@@ -2340,8 +2340,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 3,
           vw,
           vh,
-          title: partInfo("lineset", lang).title,
-          text: partInfo("lineset", lang).text,
+          title: partInfo("lineset", lang2).title,
+          text: partInfo("lineset", lang2).text,
           ringPath: linesetRingPath,
           ringStrokeWidth: 16
         }
@@ -2355,8 +2355,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 3,
           vw,
           vh,
-          title: partInfo("lineset", lang).title,
-          text: partInfo("lineset", lang).text,
+          title: partInfo("lineset", lang2).title,
+          text: partInfo("lineset", lang2).text,
           ringPath: linesetRingPath,
           ringStrokeWidth: 16
         }
@@ -2412,7 +2412,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontFamily: "monospace",
           fontWeight: "700"
         },
-        "DISC."
+        CT("DISC.", lang2)
       ), [[DX + 4, DY + 4], [DX + DW - 4, DY + 4], [DX + 4, DY + DH - 4], [DX + DW - 4, DY + DH - 4]].map(([sx, sy], i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("circle", { cx: sx, cy: sy, r: "1.5", fill: "rgba(28,30,36,.9)", stroke: G2 + ".4)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("line", { x1: sx - 0.85, y1: sy - 0.2, x2: sx + 0.85, y2: sy + 0.2, stroke: G2 + ".55)", strokeWidth: "0.4" }))), /* @__PURE__ */ React.createElement(
         "rect",
         {
@@ -2563,7 +2563,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontFamily: "monospace",
           fontWeight: "700"
         },
-        "SURGE"
+        CT("SURGE", lang2)
       ), /* @__PURE__ */ React.createElement(
         "text",
         {
@@ -2584,7 +2584,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "7",
           fontFamily: "monospace"
         },
-        "PROTECTOR"
+        CT("PROTECTOR", lang2)
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -2595,8 +2595,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 4,
           vw,
           vh,
-          title: partInfo("surge_protector", lang).title,
-          text: partInfo("surge_protector", lang).text
+          title: partInfo("surge_protector", lang2).title,
+          text: partInfo("surge_protector", lang2).text
         }
       )), /* @__PURE__ */ React.createElement(
         HoverInfo,
@@ -2608,8 +2608,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 4,
           vw,
           vh,
-          title: partInfo("disconnect", lang).title,
-          text: partInfo("disconnect", lang).text
+          title: partInfo("disconnect", lang2).title,
+          text: partInfo("disconnect", lang2).text
         }
       ));
     })(), condenserEl, /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, (() => {
@@ -2633,7 +2633,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         fontSize: "13",
         fontFamily: "monospace"
       },
-      active ? "CONDENSER \xB7 ACTIVE" : "CONDENSER \xB7 STANDBY"
+      active ? CT("CONDENSER \xB7 ACTIVE", lang2) : CT("CONDENSER \xB7 STANDBY", lang2)
     ), active && /* @__PURE__ */ React.createElement(
       "text",
       {
@@ -2645,7 +2645,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         fontSize: "12",
         fontFamily: "monospace"
       },
-      refReversed ? "ABSORBING HEAT" : "RELEASING HEAT"
+      refReversed ? CT("ABSORBING HEAT", lang2) : CT("RELEASING HEAT", lang2)
     ), /* @__PURE__ */ React.createElement(
       "text",
       {
@@ -2657,10 +2657,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         fontFamily: "monospace",
         letterSpacing: "1.2"
       },
-      "OUTSIDE"
+      CT("OUTSIDE", lang2)
     ));
   }
-  function ToggleUI({ style, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName }) {
+  function ToggleUI({ style, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName, lang: lang2 }) {
     if (compactToggle) {
       const modes = isDualFuel ? [
         { key: "cool", temp: "95\xB0", active: !heatMode, color: "#5ba8f5", bg: "rgba(35,137,224,.18)", onClick: () => setHeatMode(false) },
@@ -2686,7 +2686,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         { key: "cool", temp: "95\xB0", active: !heatMode, color: "#5ba8f5", bg: "rgba(35,137,224,.18)", onClick: () => setHeatMode(false) },
         { key: "heat", temp: "32\xB0", active: heatMode, color: "#f97316", bg: "rgba(249,115,22,.18)", onClick: () => setHeatMode(true) }
       ];
-      return /* @__PURE__ */ React.createElement("div", { className: "no-print", title: "Not a control - tap to see how this system behaves in each mode", style: { display: "flex", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", borderRadius: 3, overflow: "hidden", ...style } }, modes.map(
+      return /* @__PURE__ */ React.createElement("div", { className: "no-print", title: CT("Not a control - tap to see how this system behaves in each mode", lang2), style: { display: "flex", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", borderRadius: 3, overflow: "hidden", ...style } }, modes.map(
         (m, i) => /* @__PURE__ */ React.createElement("button", { key: m.key, onClick: m.onClick, style: {
           padding: "6px 9px",
           border: "none",
@@ -2705,7 +2705,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         } }, /* @__PURE__ */ React.createElement("span", null, m.temp))
       ));
     }
-    return /* @__PURE__ */ React.createElement("div", { className: "fadein no-print", title: "Not a control - click to see how this system behaves in each mode", style: { display: "flex", flexDirection: "column", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", overflow: "hidden", ...style } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 10px", fontFamily: "monospace", fontSize: "var(--fs-toggle-eyebrow)", letterSpacing: ".06em", color: "rgba(215,183,64,.75)", textAlign: "right", borderBottom: "1px solid rgba(215,183,64,.18)" } }, "\u25B8 preview how your system runs"), /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(false), style: {
+    return /* @__PURE__ */ React.createElement("div", { className: "fadein no-print", title: CT("Not a control - click to see how this system behaves in each mode", lang2), style: { display: "flex", flexDirection: "column", background: "#0c0c0c", border: "1px solid rgba(215,183,64,.22)", overflow: "hidden", ...style } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 10px", fontFamily: "monospace", fontSize: "var(--fs-toggle-eyebrow)", letterSpacing: ".06em", color: "rgba(215,183,64,.75)", textAlign: "right", borderBottom: "1px solid rgba(215,183,64,.18)" } }, "\u25B8 ", CT("preview how your system runs", lang2)), /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(false), style: {
       padding: "8px 14px",
       border: "none",
       cursor: "pointer",
@@ -2719,7 +2719,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       alignItems: "center",
       justifyContent: "flex-end",
       gap: 5
-    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "(JUN)"), /* @__PURE__ */ React.createElement("span", null, "COOL MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: !heatMode ? 1 : 0.55 } }, "95\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("div", { style: { height: "1px", background: "rgba(215,183,64,.22)" } }), isDualFuel ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, "(JUN)"), /* @__PURE__ */ React.createElement("span", null, CT("COOL MODE", lang2)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: !heatMode ? 1 : 0.55 } }, "95\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: !heatMode ? 0.75 : 0.5 } }, CT("OUTSIDE TEMP", lang2))), /* @__PURE__ */ React.createElement("div", { style: { height: "1px", background: "rgba(215,183,64,.22)" } }), isDualFuel ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setHeatMode(true);
       setHeatSubMode("hp");
     }, style: {
@@ -2737,7 +2737,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       justifyContent: "flex-end",
       gap: 5,
       borderBottom: "1px solid rgba(215,183,64,.12)"
-    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "(OCT)"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "60\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "(OCT)"), /* @__PURE__ */ React.createElement("span", null, CT("HEAT PUMP", lang2)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "60\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, CT("OUTSIDE TEMP", lang2))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setHeatMode(true);
       setHeatSubMode("furnace");
     }, style: {
@@ -2754,7 +2754,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       alignItems: "center",
       justifyContent: "flex-end",
       gap: 5
-    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "FURNACE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "furnace" ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : !hasFurnace ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, CT("FURNACE", lang2)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "furnace" ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "furnace" ? 0.75 : 0.5 } }, CT("OUTSIDE TEMP", lang2)))) : !hasFurnace ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setHeatMode(true);
       setHeatSubMode("hp");
     }, style: {
@@ -2772,7 +2772,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       justifyContent: "flex-end",
       gap: 5,
       borderBottom: "1px solid rgba(215,183,64,.12)"
-    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "(OCT)"), /* @__PURE__ */ React.createElement("span", null, "HEAT PUMP"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "60\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "OUTSIDE TEMP")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, "(OCT)"), /* @__PURE__ */ React.createElement("span", null, CT("HEAT PUMP", lang2)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "hp" ? 1 : 0.55 } }, "60\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "hp" ? 0.75 : 0.5 } }, CT("OUTSIDE TEMP", lang2))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setHeatMode(true);
       setHeatSubMode("aux");
     }, style: {
@@ -2789,7 +2789,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       alignItems: "center",
       justifyContent: "flex-end",
       gap: 5
-    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "AUX HEAT"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "aux" ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "OUTSIDE TEMP"))) : /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(true), style: {
+    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, CT("AUX HEAT", lang2)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode && heatSubMode === "aux" ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode && heatSubMode === "aux" ? 0.75 : 0.5 } }, CT("OUTSIDE TEMP", lang2)))) : /* @__PURE__ */ React.createElement("button", { onClick: () => setHeatMode(true), style: {
       padding: "8px 14px",
       border: "none",
       cursor: "pointer",
@@ -2803,12 +2803,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       alignItems: "center",
       justifyContent: "flex-end",
       gap: 5
-    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, "HEAT MODE"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "OUTSIDE TEMP")));
+    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, "(FEB)"), /* @__PURE__ */ React.createElement("span", null, CT("HEAT MODE", lang2)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-temp)", fontWeight: 700, opacity: heatMode ? 1 : 0.55 } }, "32\xB0"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-toggle-caption)", letterSpacing: ".04em", opacity: heatMode ? 0.75 : 0.5 } }, CT("OUTSIDE TEMP", lang2))));
   }
-  function DehumidistatWall({ x, y, pct = 45, lang, vw, vh, scale = 1 }) {
+  function DehumidistatWall({ x, y, pct = 45, lang: lang2, vw, vh, scale = 1 }) {
     const W2 = 60, H = 30;
-    const info = partInfo("dehumidistat", lang);
-    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y}) scale(${scale})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 * 0.32, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "15" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { className: "phase-color", x: W2 * 0.68, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace", fontWeight: "700" }, pct, "%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, "DEHUMIDISTAT")), /* @__PURE__ */ React.createElement(
+    const info = partInfo("dehumidistat", lang2);
+    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y}) scale(${scale})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 * 0.32, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "15" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { className: "phase-color", x: W2 * 0.68, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace", fontWeight: "700" }, pct, "%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, CT("DEHUMIDISTAT", lang2))), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x: x - 2,
@@ -3144,10 +3144,86 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       es: { title: "LUZ UV", text: "Una l\xE1mpara germicida montada en el serpent\xEDn que elimina el moho y las bacterias que crecen en \xE9l, manteniendo el serpent\xEDn limpio y el flujo de aire libre de olores." }
     }
   };
-  function partInfo(key, lang) {
+  function partInfo(key, lang2) {
     const e = PART_INFO[key];
     if (!e) return { title: "", text: "" };
-    return lang === "es" && e.es ? e.es : e.en;
+    return lang2 === "es" && e.es ? e.es : e.en;
+  }
+  var CANVAS_ES = {
+    "BLOWER": "SOPLADOR",
+    "A-COIL": "SERPENT\xCDN",
+    "HEAT EXCH.": "INTERCAMB.",
+    "FURNACE": "HORNO",
+    "AIR HANDLER": "MANEJADOR",
+    "FILTRATION": "FILTRACI\xD3N",
+    "FILTRATION CABINET": "GABINETE DE FILTRO",
+    "RETURN": "RETORNO",
+    "RETURN PLENUM": "PLENUM DE RETORNO",
+    "SUPPLY": "SUMINISTRO",
+    "DUCTBOARD PLENUM": "PLENUM DUCTBOARD",
+    "METAL PLENUM": "PLENUM MET\xC1LICO",
+    "EXISTING PLENUM": "PLENUM EXISTENTE",
+    "DISC.": "DESC.",
+    "COMP.": "COMP.",
+    "SERVICE": "SERVICIO",
+    "SWITCH": "INTERRUPTOR",
+    "GAS": "GAS",
+    "DRIP LEG": "PIERNA DE GOTEO",
+    "IONIZER": "IONIZADOR",
+    "DEHU": "DESHUM",
+    "DEHUMIDISTAT": "DESHUMIDISTATO",
+    "ERV": "ERV",
+    "DRAIN": "DRENAJE",
+    "LINESET": "L\xCDNEAS",
+    "GROUND LEVEL": "NIVEL DEL SUELO",
+    "CONCRETE PAD": "BASE DE CONCRETO",
+    "LIVING SPACE": "ESPACIO HABITABLE",
+    "ATTIC": "\xC1TICO",
+    "UTILITY CLOSET": "CL\xD3SET DE SERVICIO",
+    "OUTSIDE": "EXTERIOR",
+    "FIBERGLASS INSULATION": "AISLAMIENTO DE FIBRA",
+    "SPRAY FOAM INSULATION": "AISLAMIENTO DE ESPUMA",
+    "SPRAY FOAM": "ESPUMA AISLANTE",
+    "COMMUNICATING": "COMUNICANTE",
+    "LIVE SYSTEM PREVIEW": "VISTA PREVIA DEL SISTEMA",
+    "Choose your location to begin building": "Elija su ubicaci\xF3n para comenzar",
+    "Components assemble here in real time \u2192": "Los componentes se arman aqu\xED en tiempo real \u2192",
+    "IN": "ENT",
+    "OUT": "SAL",
+    "AUX HEAT KIT": "KIT DE CALOR AUX",
+    "ACTIVE": "ACTIVO",
+    "STANDBY": "EN ESPERA",
+    "RELEASING HEAT": "LIBERANDO CALOR",
+    "ABSORBING HEAT": "ABSORBIENDO CALOR",
+    "REJECTING HEAT": "EXPULSANDO CALOR",
+    "AUX HEAT ONLY": "SOLO CALOR AUX",
+    "GAS HEATING ACTIVE": "CALEFACCI\xD3N A GAS ACTIVA",
+    "PVC": "PVC",
+    "B-VENT": "VENTEO-B",
+    "ECM MOTOR": "MOTOR ECM",
+    "VARIABLE SPEED": "VELOCIDAD VARIABLE",
+    "MOD. VAR. SPEED": "VEL. VAR. MOD.",
+    "preview how your system runs": "vista previa de c\xF3mo funciona su sistema",
+    "COOL MODE": "MODO FR\xCDO",
+    "HEAT PUMP": "BOMBA DE CALOR",
+    "AUX HEAT": "CALOR AUX",
+    "OUTSIDE TEMP": "TEMP. EXTERIOR",
+    "COOL": "FR\xCDO",
+    "HEAT": "CALOR",
+    "HP": "BC",
+    "AUX": "AUX",
+    "FURN": "HRN",
+    "SURGE": "SOBREVOLT.",
+    "PROTECTOR": "PROTECTOR",
+    "CONDENSER \xB7 ACTIVE": "CONDENSADOR \xB7 ACTIVO",
+    "CONDENSER \xB7 STANDBY": "CONDENSADOR \xB7 EN ESPERA",
+    "HEAT MODE": "MODO CALOR",
+    "Not a control - tap to see how this system behaves in each mode": "No es un control - toque para ver c\xF3mo se comporta este sistema en cada modo",
+    "Not a control - click to see how this system behaves in each mode": "No es un control - haga clic para ver c\xF3mo se comporta este sistema en cada modo",
+    "2\xD74 RETURN AIR CHASE": "2\xD74 DUCTO DE RETORNO"
+  };
+  function CT(en, lang2) {
+    return lang2 === "es" && CANVAS_ES[en] ? CANVAS_ES[en] : en;
   }
   var MIN_EDIT_PX = 28;
   function EditZone({ x, y, w, h, stepId, rx, children, onEditStep, svgScale, vw, vh }) {
@@ -3349,7 +3425,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
     ));
   }
-  function BlowerWheel({ cx, cy, r, spd, active, onEditStep, lang, vw, vh }) {
+  function BlowerWheel({ cx, cy, r, spd, active, onEditStep, lang: lang2, vw, vh }) {
     r = r || 28;
     spd = spd || 1;
     active = active !== false;
@@ -3407,13 +3483,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: r + 5,
         vw,
         vh,
-        title: partInfo("blower", lang).title,
-        text: partInfo("blower", lang).text,
+        title: partInfo("blower", lang2).title,
+        text: partInfo("blower", lang2).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
     ));
   }
-  function CondenserFan({ cx, cy, r, active, speedMode, onEditStep, lang, vw, vh }) {
+  function CondenserFan({ cx, cy, r, active, speedMode, onEditStep, lang: lang2, vw, vh }) {
     const bladeFill = active ? "#ccd3e0" : "#565c68";
     const rim = active ? "#7fb8ff" : "rgba(70,76,90,.6)";
     const spinDuration = useLerpedNumber(speedMode === "cool" ? 0.3 : speedMode === "hp" ? 0.5 : 0.8);
@@ -3444,13 +3520,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: r + 4,
         vw,
         vh,
-        title: partInfo("condenser_fan", lang).title,
-        text: partInfo("condenser_fan", lang).text,
+        title: partInfo("condenser_fan", lang2).title,
+        text: partInfo("condenser_fan", lang2).text,
         onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
       }
     ));
   }
-  function ACoilH({ x, y, w, h, active, evapC, evapC2, hasUV, infoKey, onEditStep, lang, vw, vh }) {
+  function ACoilH({ x, y, w, h, active, evapC, evapC2, hasUV, infoKey, onEditStep, lang: lang2, vw, vh }) {
     const peakX = x + w, peakY = y + h / 2;
     const n = 8;
     const tc = active ? evapC : "rgba(48,48,78,.8)";
@@ -3506,8 +3582,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: 3,
         vw,
         vh,
-        title: partInfo(infoKey, lang).title,
-        text: partInfo(infoKey, lang).text,
+        title: partInfo(infoKey, lang2).title,
+        text: partInfo(infoKey, lang2).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
     ), hasUV && (() => {
@@ -3522,13 +3598,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 3,
           vw,
           vh,
-          title: partInfo("uv_light", lang).title,
-          text: partInfo("uv_light", lang).text
+          title: partInfo("uv_light", lang2).title,
+          text: partInfo("uv_light", lang2).text
         }
       );
     })());
   }
-  function ACoilV({ x, y, w, h, active, evapC, evapC2, hasUV, infoKey, onEditStep, lang, vw, vh }) {
+  function ACoilV({ x, y, w, h, active, evapC, evapC2, hasUV, infoKey, onEditStep, lang: lang2, vw, vh }) {
     const peakX = x + w / 2, peakY = y;
     const n = 7;
     const tc = active ? evapC : "rgba(48,48,78,.8)";
@@ -3591,8 +3667,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: 3,
         vw,
         vh,
-        title: partInfo(infoKey, lang).title,
-        text: partInfo(infoKey, lang).text,
+        title: partInfo(infoKey, lang2).title,
+        text: partInfo(infoKey, lang2).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
     ), hasUV && (() => {
@@ -3607,13 +3683,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 3,
           vw,
           vh,
-          title: partInfo("uv_light", lang).title,
-          text: partInfo("uv_light", lang).text
+          title: partInfo("uv_light", lang2).title,
+          text: partInfo("uv_light", lang2).text
         }
       );
     })());
   }
-  function FurnaceH({ x, y, w, h, active, roofY, onEditStep, lang, vw, vh, blowerActive, is90, isComm, blowerMotorLabel }) {
+  function FurnaceH({ x, y, w, h, active, roofY, onEditStep, lang: lang2, vw, vh, blowerActive, is90, isComm, blowerMotorLabel }) {
     const mid = x + w / 2;
     return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
       HoverInfo,
@@ -3625,8 +3701,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: 4,
         vw,
         vh,
-        title: partInfo("furnace_cabinet", lang).title,
-        text: partInfo("furnace_cabinet", lang).text,
+        title: partInfo("furnace_cabinet", lang2).title,
+        text: partInfo("furnace_cabinet", lang2).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
     ), /* @__PURE__ */ React.createElement(
@@ -3663,11 +3739,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         spd: blowerActive ? 1.6 : 0.5,
         active: blowerActive,
         onEditStep,
-        lang,
+        lang: lang2,
         vw,
         vh
       }
-    ), /* @__PURE__ */ React.createElement("text", { x: x + w * 0.25, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, "BLOWER"), /* @__PURE__ */ React.createElement("text", { x: x + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, blowerMotorLabel), Array.from({ length: 6 }, (_, i) => {
+    ), /* @__PURE__ */ React.createElement("text", { x: x + w * 0.25, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, CT("BLOWER", lang2)), /* @__PURE__ */ React.createElement("text", { x: x + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, blowerMotorLabel), Array.from({ length: 6 }, (_, i) => {
       const gy = y + 10 + i * (h - 18) / 6;
       const d = `M${mid + 6} ${gy + 6} Q${mid + w * 0.17} ${gy - 2} ${mid + w * 0.31} ${gy + 7} Q${mid + w * 0.41} ${gy + 14} ${mid + w * 0.31} ${gy + 18}`;
       return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(249,115,22,.6)" : "rgba(108,44,8,.22)", strokeWidth: "2.8", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: active ? "rgba(255,205,150,.45)" : "rgba(180,140,90,.14)", strokeWidth: "0.8", strokeLinecap: "round", transform: "translate(0,-0.9)" }), /* @__PURE__ */ React.createElement("circle", { cx: mid + 6, cy: gy + 6, r: "1.7", fill: active ? "rgba(249,115,22,.55)" : "rgba(80,40,10,.4)", stroke: active ? "rgba(255,205,150,.4)" : "rgba(150,100,60,.25)", strokeWidth: "0.4" }), /* @__PURE__ */ React.createElement("circle", { cx: mid + w * 0.31, cy: gy + 18, r: "1.7", fill: active ? "rgba(249,115,22,.55)" : "rgba(80,40,10,.4)", stroke: active ? "rgba(255,205,150,.4)" : "rgba(150,100,60,.25)", strokeWidth: "0.4" }));
@@ -3698,7 +3774,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           strokeWidth: "0.5"
         }
       ), active && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("ellipse", { cx: bx + bw2 / 2, cy: y + h - 16, rx: bw2 / 2, ry: 4.5, fill: O + ".56)", className: "glow-pulse", style: { animationDelay: i * 0.12 + "s" } }), /* @__PURE__ */ React.createElement("ellipse", { cx: bx + bw2 / 2, cy: y + h - 18, rx: bw2 / 3, ry: 3.5, fill: "rgba(253,224,71,.64)", className: "glow-pulse", style: { animationDelay: i * 0.12 + 0.07 + "s" } })));
-    }), /* @__PURE__ */ React.createElement("text", { x: mid + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: active ? "rgba(249,115,22,.75)" : S + ".6)", fontSize: "13", fontFamily: "monospace" }, "HEAT EXCH."), /* @__PURE__ */ React.createElement(
+    }), /* @__PURE__ */ React.createElement("text", { x: mid + w * 0.25, y: y + h - 4, textAnchor: "middle", fill: active ? "rgba(249,115,22,.75)" : S + ".6)", fontSize: "13", fontFamily: "monospace" }, CT("HEAT EXCH.", lang2)), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x: mid,
@@ -3707,8 +3783,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         h,
         vw,
         vh,
-        title: partInfo("heat_exchanger", lang).title,
-        text: partInfo("heat_exchanger", lang).text,
+        title: partInfo("heat_exchanger", lang2).title,
+        text: partInfo("heat_exchanger", lang2).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
     ), (() => {
@@ -3740,7 +3816,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "11.5",
           fontFamily: "monospace"
         },
-        is90 ? "PVC" : "B-VENT"
+        is90 ? CT("PVC", lang2) : CT("B-VENT", lang2)
       )), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -3751,13 +3827,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 2,
           vw,
           vh,
-          title: partInfo("flue_pipe", lang).title,
-          text: partInfo("flue_pipe", lang).text,
+          title: partInfo("flue_pipe", lang2).title,
+          text: partInfo("flue_pipe", lang2).text,
           ringPath: flueD,
           ringStrokeWidth: pW + 6
         }
       ));
-    })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x + 4, y: y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: x + 7, y: y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement("rect", { x: mid + 4, y: y + 11, width: 36, height: "8", rx: "2", fill: is90 ? "rgba(35,137,224,.13)" : G + ".07)", stroke: is90 ? B + ".24)" : G + ".16)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: mid + 22, y: y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "11", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
+    })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x + 4, y: y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: x + 7, y: y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, CT("COMMUNICATING", lang2))), /* @__PURE__ */ React.createElement("rect", { x: mid + 4, y: y + 11, width: 36, height: "8", rx: "2", fill: is90 ? "rgba(35,137,224,.13)" : G + ".07)", stroke: is90 ? B + ".24)" : G + ".16)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("text", { x: mid + 22, y: y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "11", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x: mid + 2,
@@ -3767,13 +3843,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: 2,
         vw,
         vh,
-        title: partInfo("afue_badge", lang).title,
-        text: partInfo("afue_badge", lang).text,
+        title: partInfo("afue_badge", lang2).title,
+        text: partInfo("afue_badge", lang2).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
     ));
   }
-  function CapFan({ x, y, w, h, active, bladeColor, slatFill, slatCount, ringColor, onEditStep, lang, vw, vh }) {
+  function CapFan({ x, y, w, h, active, bladeColor, slatFill, slatCount, ringColor, onEditStep, lang: lang2, vw, vh }) {
     const guardRings = Math.max(2, Math.min(5, Math.round((slatCount || 6) / 3)));
     const cx = x + w / 2, cy = y + h / 2;
     const fanRx = w * 0.46;
@@ -3907,13 +3983,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: 4,
         vw,
         vh,
-        title: partInfo("condenser_fan", lang).title,
-        text: partInfo("condenser_fan", lang).text,
+        title: partInfo("condenser_fan", lang2).title,
+        text: partInfo("condenser_fan", lang2).text,
         onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
       }
     ));
   }
-  function Condenser({ x, y, w, h, active, tierKey, condC, refReversed, line1C, line2C, fanSpeedMode, onEditStep, lang, vw, vh }) {
+  function Condenser({ x, y, w, h, active, tierKey, condC, refReversed, line1C, line2C, fanSpeedMode, onEditStep, lang: lang2, vw, vh }) {
     const isMini = tierKey === "mid_ge15";
     const isBig = tierKey === "high_ge18";
     const isFed = tierKey === "fedmin";
@@ -3928,8 +4004,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: 9,
         vw,
         vh,
-        title: partInfo("condenser_cabinet", lang).title,
-        text: partInfo("condenser_cabinet", lang).text,
+        title: partInfo("condenser_cabinet", lang2).title,
+        text: partInfo("condenser_cabinet", lang2).text,
         onClick: onEditStep ? () => onEditStep("cond_tier") : void 0
       }
     ), isFed && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
@@ -3989,7 +4065,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           ringColor: "rgba(120,125,135,.55)",
           slatCount: Math.max(3, Math.floor((capH - 2) * 0.7 / 6.5)),
           onEditStep,
-          lang,
+          lang: lang2,
           vw,
           vh
         }
@@ -4135,7 +4211,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "11",
           fontFamily: "monospace"
         },
-        "COMP."
+        CT("COMP.", lang2)
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -4146,8 +4222,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 3,
           vw,
           vh,
-          title: partInfo("compressor", lang).title,
-          text: partInfo("compressor", lang).text,
+          title: partInfo("compressor", lang2).title,
+          text: partInfo("compressor", lang2).text,
           onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
           highlight: true
         }
@@ -4244,7 +4320,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           active,
           speedMode: fanSpeedMode,
           onEditStep,
-          lang,
+          lang: lang2,
           vw,
           vh
         }
@@ -4359,8 +4435,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 4,
           vw,
           vh,
-          title: partInfo("compressor", lang).title,
-          text: partInfo("compressor", lang).text,
+          title: partInfo("compressor", lang2).title,
+          text: partInfo("compressor", lang2).text,
           onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
           highlight: true
         }
@@ -4447,7 +4523,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           ringColor: active ? cc : "rgba(100,105,115,.55)",
           slatCount: Math.max(9, Math.floor((capH - 4) * 0.72 / 2.6)),
           onEditStep,
-          lang,
+          lang: lang2,
           vw,
           vh
         }
@@ -4644,7 +4720,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "11",
           fontFamily: "monospace"
         },
-        "COMP."
+        CT("COMP.", lang2)
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -4655,15 +4731,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 3,
           vw,
           vh,
-          title: partInfo("compressor", lang).title,
-          text: partInfo("compressor", lang).text,
+          title: partInfo("compressor", lang2).title,
+          text: partInfo("compressor", lang2).text,
           onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
           highlight: true
         }
       ));
     })()));
   }
-  function AuxHeatKit({ x, y, w, h, auxHeat, segCount }) {
+  function AuxHeatKit({ x, y, w, h, auxHeat, segCount, lang: lang2 }) {
     segCount = segCount || 4;
     const rectY = y, rectH = h * 0.62;
     const rectX = x + w * 0.03, rectW = w * 0.94;
@@ -4718,10 +4794,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         fontSize: Math.min(12, h * 0.22),
         fontFamily: "monospace"
       },
-      "AUX HEAT KIT"
+      CT("AUX HEAT KIT", lang2)
     ));
   }
-  function AirHandlerH({ x, y, w, h, active, auxHeat, evapC, evapC2, hasUV, acoilInfoKey, blowerActive, blowerMotorLabel, refReversed, onEditStep, lang, vw, vh }) {
+  function AirHandlerH({ x, y, w, h, active, auxHeat, evapC, evapC2, hasUV, acoilInfoKey, blowerActive, blowerMotorLabel, refReversed, onEditStep, lang: lang2, vw, vh }) {
     const coilW = w * 0.5, blowerW = w * 0.35, auxW = w * 0.15;
     const c1 = x + coilW, c2 = x + coilW + blowerW;
     return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
@@ -4734,8 +4810,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: 4,
         vw,
         vh,
-        title: partInfo("air_handler_cabinet", lang).title,
-        text: partInfo("air_handler_cabinet", lang).text,
+        title: partInfo("air_handler_cabinet", lang2).title,
+        text: partInfo("air_handler_cabinet", lang2).text,
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
     ), /* @__PURE__ */ React.createElement(
@@ -4776,11 +4852,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         hasUV,
         infoKey: acoilInfoKey,
         onEditStep,
-        lang,
+        lang: lang2,
         vw,
         vh
       }
-    ), /* @__PURE__ */ React.createElement("text", { x: x + coilW / 2, y: y + h - 4, textAnchor: "middle", fill: active ? evapC : S + ".6)", fontSize: "13", fontFamily: "monospace" }, "A-COIL"), /* @__PURE__ */ React.createElement(
+    ), /* @__PURE__ */ React.createElement("text", { x: x + coilW / 2, y: y + h - 4, textAnchor: "middle", fill: active ? evapC : S + ".6)", fontSize: "13", fontFamily: "monospace" }, CT("A-COIL", lang2)), /* @__PURE__ */ React.createElement(
       BlowerWheel,
       {
         cx: c1 + blowerW / 2,
@@ -4789,11 +4865,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         spd: blowerActive ? 1.5 : 0.45,
         active: blowerActive,
         onEditStep,
-        lang,
+        lang: lang2,
         vw,
         vh
       }
-    ), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, "BLOWER"), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, blowerMotorLabel), /* @__PURE__ */ React.createElement("g", { transform: `translate(${c2 + 3} ${y + 8 + (h - 14)}) rotate(-90)` }, /* @__PURE__ */ React.createElement(AuxHeatKit, { x: 0, y: 0, w: h - 14, h: auxW - 6, auxHeat })), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.7" }));
+    ), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, CT("BLOWER", lang2)), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, blowerMotorLabel), /* @__PURE__ */ React.createElement("g", { transform: `translate(${c2 + 3} ${y + 8 + (h - 14)}) rotate(-90)` }, /* @__PURE__ */ React.createElement(AuxHeatKit, { x: 0, y: 0, w: h - 14, h: auxW - 6, auxHeat, lang: lang2 })), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.7" }));
   }
   function DuctRibbing({ x, y, w, h, vertical }) {
     vertical = vertical !== false;
@@ -4865,7 +4941,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
     ))) : /* @__PURE__ */ React.createElement("g", null, Array.from({ length: Math.floor(h / 10) }, (_, i) => /* @__PURE__ */ React.createElement("line", { key: i, x1: x + 3, y1: y + 5 + i * 10, x2: x + w - 3, y2: y + 5 + i * 10, stroke: G + ".07)", strokeWidth: "0.6" })), /* @__PURE__ */ React.createElement("path", { d: `M${x} ${y + h * 0.08} L${x + w * 0.55} ${y + h * 0.68}`, stroke: "rgba(224,228,238,.05)", strokeWidth: Math.max(5, h * 0.24), strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: `M${x + w * 0.42} ${y + h * 0.02} L${x + w} ${y + h * 0.46}`, stroke: "rgba(224,228,238,.04)", strokeWidth: Math.max(4, h * 0.16), strokeLinecap: "round" }), [x + w * 0.32, x + w * 0.68].map((sx, i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("rect", { x: sx - 4.5, y: y + 2, width: 9, height: h - 4, fill: "rgba(210,214,222,.045)", stroke: "rgba(210,214,222,.09)", strokeWidth: "0.4" }), /* @__PURE__ */ React.createElement("line", { x1: sx, y1: y + 2, x2: sx, y2: y + h - 2, stroke: "rgba(190,194,204,.15)", strokeWidth: "0.5", strokeDasharray: "1.6 1.6" }))));
   }
-  function RegisterGrille({ cx, y, w, dc, ds, label, lang, vw, vh }) {
+  function RegisterGrille({ cx, y, w, dc, ds, label, lang: lang2, vw, vh }) {
     const h = 9;
     return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("rect", { x: cx - w / 2, y, width: w, height: h, rx: "1.5", fill: "rgba(0,0,0,.78)", stroke: dc, strokeWidth: "1.2" }), /* @__PURE__ */ React.createElement("line", { x1: cx - w / 2 + 2, y1: y + 1, x2: cx + w / 2 - 2, y2: y + 1, stroke: "rgba(255,255,255,.16)", strokeWidth: "0.6" }), Array.from({ length: 5 }, (_, j) => {
       const lx = cx - w / 2 + 3 + j * (w - 6) / 4;
@@ -4880,13 +4956,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         rx: 2,
         vw,
         vh,
-        title: partInfo("supply_register", lang).title,
-        text: partInfo("supply_register", lang).text,
+        title: partInfo("supply_register", lang2).title,
+        text: partInfo("supply_register", lang2).text,
         group: "supply_register"
       }
     ));
   }
-  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, ervW, dehuW, hasDehu, hasERV, snap, lang, vw, vh }) {
+  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, ervW, dehuW, hasDehu, hasERV, snap, lang: lang2, vw, vh }) {
     if (!hasDehu && !hasERV) return null;
     const BW = 80, BH = 48;
     const boxes = [];
@@ -4909,7 +4985,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const pipe1X = BX + Math.round(boxW * 0.28), pipe2X = BX + Math.round(boxW * 0.68);
       const r1X = isDehu ? BX + boxW * 0.28 : BX + boxW * 0.08, r2X = isDehu ? BX + boxW * 0.72 : BX + boxW * 0.92;
       const ry = isDehu ? roofY : ervRoofY != null ? ervRoofY : roofY;
-      return /* @__PURE__ */ React.createElement("g", { key: type, className: snap ? "snap" : void 0, style: snap ? { animationDelay: 0.32 + i * 0.05 + "s" } : void 0 }, isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, hangKit(r1X, ry, "#22c55e"), hangKit(r2X, ry, "#22c55e")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: B + ".3)", stroke: B + ".5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 5, y: ry - 4, width: "11", height: 5, rx: "1", fill: B + ".35)", stroke: B + ".55)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: pipe1X, y: ry - 6, textAnchor: "middle", fill: B + ".6)", fontSize: "12", fontFamily: "monospace" }, "IN"), /* @__PURE__ */ React.createElement("rect", { x: pipe2X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: "rgba(249,115,22,.3)", stroke: "rgba(249,115,22,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (pipe2X - 4) + " " + (ry - 2) + " L" + pipe2X + " " + (ry - 9) + " L" + (pipe2X + 4) + " " + (ry - 2), fill: "rgba(249,115,22,.4)" }), /* @__PURE__ */ React.createElement("text", { x: pipe2X, y: ry - 11, textAnchor: "middle", fill: "rgba(249,115,22,.6)", fontSize: "12", fontFamily: "monospace" }, "OUT"), hangKit(r1X, ry, G + ".55)"), hangKit(r2X, ry, G + ".55)")), /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("g", { key: type, className: snap ? "snap" : void 0, style: snap ? { animationDelay: 0.32 + i * 0.05 + "s" } : void 0 }, isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, hangKit(r1X, ry, "#22c55e"), hangKit(r2X, ry, "#22c55e")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: B + ".3)", stroke: B + ".5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 5, y: ry - 4, width: "11", height: 5, rx: "1", fill: B + ".35)", stroke: B + ".55)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: pipe1X, y: ry - 6, textAnchor: "middle", fill: B + ".6)", fontSize: "12", fontFamily: "monospace" }, CT("IN", lang2)), /* @__PURE__ */ React.createElement("rect", { x: pipe2X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: "rgba(249,115,22,.3)", stroke: "rgba(249,115,22,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (pipe2X - 4) + " " + (ry - 2) + " L" + pipe2X + " " + (ry - 9) + " L" + (pipe2X + 4) + " " + (ry - 2), fill: "rgba(249,115,22,.4)" }), /* @__PURE__ */ React.createElement("text", { x: pipe2X, y: ry - 11, textAnchor: "middle", fill: "rgba(249,115,22,.6)", fontSize: "12", fontFamily: "monospace" }, CT("OUT", lang2)), hangKit(r1X, ry, G + ".55)"), hangKit(r2X, ry, G + ".55)")), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: BX,
@@ -4932,7 +5008,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fill: isDehu ? "rgba(34,197,94,.3)" : G + ".25)",
           stroke: "none"
         }
-      ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2 - 13, y: BY + BH / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "14", fontFamily: "monospace" }, "DEHU"), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2 + 17, y: BY + BH / 2 + 6, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + boxW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + boxW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + boxW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: boxW < 70 ? "12.5" : "14.5", fontFamily: "monospace" }, "ERV")), /* @__PURE__ */ React.createElement(
+      ), isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2 - 13, y: BY + BH / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "14", fontFamily: "monospace" }, CT("DEHU", lang2)), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2 + 17, y: BY + BH / 2 + 6, textAnchor: "middle", fill: "#22c55e", fontSize: "15.5" }, "\u{1F4A7}")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + 8) + " " + (BY + BH * 0.44) + " L" + (BX + boxW * 0.52) + " " + (BY + BH * 0.44), fill: "none", stroke: B + ".65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (BX + boxW - 8) + " " + (BY + BH * 0.64) + " L" + (BX + boxW * 0.48) + " " + (BY + BH * 0.64), fill: "none", stroke: "rgba(249,115,22,.65)", strokeWidth: "1.6", markerEnd: "url(#arr)" }), /* @__PURE__ */ React.createElement("text", { x: BX + boxW / 2, y: BY + BH * 0.3, textAnchor: "middle", fill: G + ".78)", fontSize: boxW < 70 ? "12.5" : "14.5", fontFamily: "monospace" }, CT("ERV", lang2))), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
           x: BX,
@@ -4942,8 +5018,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 4,
           vw,
           vh,
-          title: partInfo(isDehu ? "dehu_box" : "erv_box", lang).title,
-          text: partInfo(isDehu ? "dehu_box" : "erv_box", lang).text
+          title: partInfo(isDehu ? "dehu_box" : "erv_box", lang2).title,
+          text: partInfo(isDehu ? "dehu_box" : "erv_box", lang2).text
         }
       ));
     }));
@@ -4975,7 +5051,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     ];
     return [cool, { key: "heat", label: "HEAT", active: heatMode, color: "#f97316", onClick: () => setHeatMode(true) }];
   }
-  function ThermModeButtons({ modes, cx, y, totalW, gap, h, fontSize }) {
+  function ThermModeButtons({ modes, cx, y, totalW, gap, h, fontSize, lang: lang2 }) {
     const n = modes.length;
     const bw = (totalW - gap * (n - 1)) / n;
     const startX = cx - totalW / 2;
@@ -5010,7 +5086,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fill: m.active ? m.color : "rgba(255,255,255,.45)",
           style: { pointerEvents: "none" }
         },
-        m.label
+        CT(m.label, lang2)
       ));
     }));
   }
@@ -5118,8 +5194,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     return isProprietary ? "proprietary" : isWifi ? "wifi" : "basic";
   }
   var THERM_TARGET_SCALE = 1.09;
-  function Canvas({ a, stepIdx, activeSteps, onEditStep, lang }) {
-    const T = (key) => partInfo(key, lang);
+  function Canvas({ a, stepIdx, activeSteps, onEditStep, lang: lang2 }) {
+    const T = (key) => partInfo(key, lang2);
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
     const uvHoverH = (cx, cy, cw, ch) => {
       if (!hasUV) return null;
@@ -5569,7 +5645,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     const condC = heatMode && (!hasFurnace || isDualFuel && heatSubMode === "hp") ? "#2389e0" : "#ef4444";
     const line1C = refReversed ? "#2389e0" : "#ef4444";
     const line2C = refReversed ? "#ef4444" : "#2389e0";
-    const BLOWER_MOTOR = { fedmin: "ECM MOTOR", mid_ge15: "VARIABLE SPEED", high_ge18: "MOD. VAR. SPEED" }[a.cond_tier] || "";
+    const BLOWER_MOTOR = CT({ fedmin: "ECM MOTOR", mid_ge15: "VARIABLE SPEED", high_ge18: "MOD. VAR. SPEED" }[a.cond_tier] || "", lang2);
     const compactToggle = frameBox && frameBox.w > 0 && frameBox.w < 700;
     if (isAttic) {
       const LIVING_SPACE = 40;
@@ -5666,7 +5742,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const drainPastPad = 46;
       const drainEndX = Math.min(VW - 16, COND_X + COND_W + 10 + drainPastPad);
       const drainFullPath = `M${drainCoilCX} ${drainTopY} L${drainCoilCX} ${drainCrossY} L${drainWallX} ${drainCrossY2} L${drainWallX} ${drainGroundY} L${drainEndX} ${drainGroundY}`;
-      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME, lang: lang2 }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, preserveAspectRatio: "xMidYMid meet", className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: EXT_WALL_X,
@@ -5810,7 +5886,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           stroke: "rgba(88,68,32,.09)",
           strokeWidth: "1.5"
         }
-      )), /* @__PURE__ */ React.createElement("text", { x: "22", y: VH - 10, fill: W + ".09)", fontSize: "12", fontFamily: "monospace", letterSpacing: "0.8" }, "LIVING SPACE"), hasCoil && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("text", { x: "22", y: VH - 10, fill: W + ".09)", fontSize: "12", fontFamily: "monospace", letterSpacing: "0.8" }, CT("LIVING SPACE", lang2)), hasCoil && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: RET_X + RET_PLEN_W / 2 - 27,
@@ -5867,7 +5943,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "12.5",
           fontFamily: "monospace"
         },
-        "RETURN"
+        CT("RETURN", lang2)
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -5908,7 +5984,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontFamily: "monospace",
           transform: `rotate(-45,${RET_X + RET_PLEN_W / 2},${UNIT_Y + UNIT_H / 2})`
         },
-        "RETURN PLENUM"
+        CT("RETURN PLENUM", lang2)
       ), /* @__PURE__ */ React.createElement(
         "text",
         {
@@ -6007,7 +6083,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontFamily: "monospace",
           transform: `rotate(-90,${APR_X + APR_W / 2},${UNIT_Y + UNIT_H / 2})`
         },
-        "FILTRATION"
+        CT("FILTRATION", lang2)
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -6034,7 +6110,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             active: furnaceActive,
             roofY: flueRoofY,
             onEditStep,
-            lang,
+            lang: lang2,
             vw: SVG_VW,
             vh: SVG_VH,
             blowerActive,
@@ -6053,7 +6129,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "13.5",
           fontFamily: "monospace"
         },
-        "FURNACE"
+        CT("FURNACE", lang2)
       ), /* @__PURE__ */ React.createElement(
         "text",
         {
@@ -6064,13 +6140,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "12",
           fontFamily: "monospace"
         },
-        furnaceActive ? "GAS HEATING ACTIVE" : "STANDBY"
+        furnaceActive ? CT("GAS HEATING ACTIVE", lang2) : CT("STANDBY", lang2)
       )), hasCoil && hasFurnace && (() => {
         const gasX = FURN_X + FURN_W * 0.85;
         const gasTopY = UNIT_Y + UNIT_H;
         const teeY = gasTopY + 38, valveY = gasTopY + 65;
         const gasD = `M${gasX} ${gasTopY} L${gasX} ${DECK_Y}`;
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: gasX, cy: valveY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 6, y1: valveY, x2: gasX + 6, y2: valveY, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 5, y1: teeY, x2: gasX + 5, y2: teeY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: teeY, x2: gasX, y2: teeY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: gasX - 3.5, y: teeY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), teeY + 15 <= DECK_Y + 14 - 14 && /* @__PURE__ */ React.createElement("text", { x: gasX + 10, y: teeY + 15, textAnchor: "start", fill: "rgba(180,180,180,.5)", fontSize: "8", fontFamily: "monospace" }, "DRIP LEG"), /* @__PURE__ */ React.createElement("text", { x: gasX, y: DECK_Y + 14, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "11", fontFamily: "monospace" }, "GAS"), /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: DECK_Y, x2: gasX, y2: gasTopY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: gasX, cy: valveY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 6, y1: valveY, x2: gasX + 6, y2: valveY, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX - 5, y1: teeY, x2: gasX + 5, y2: teeY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX, y1: teeY, x2: gasX, y2: teeY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: gasX - 3.5, y: teeY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), teeY + 15 <= DECK_Y + 14 - 14 && /* @__PURE__ */ React.createElement("text", { x: gasX + 10, y: teeY + 15, textAnchor: "start", fill: "rgba(180,180,180,.5)", fontSize: "8", fontFamily: "monospace" }, CT("DRIP LEG", lang2)), /* @__PURE__ */ React.createElement("text", { x: gasX, y: DECK_Y + 14, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "11", fontFamily: "monospace" }, CT("GAS", lang2)), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: gasX - 11,
@@ -6114,7 +6190,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             stroke: "#555",
             strokeWidth: "0.5"
           }
-        ), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, CT("SERVICE", lang2)), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, CT("SWITCH", lang2)), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: swX - plateW / 2 - 3,
@@ -6194,7 +6270,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             hasUV,
             infoKey: acoilInfoKey(),
             onEditStep,
-            lang,
+            lang: lang2,
             vw: SVG_VW,
             vh: SVG_VH
           }
@@ -6208,7 +6284,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "13.5",
             fontFamily: "monospace"
           },
-          "A-COIL"
+          CT("A-COIL", lang2)
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -6220,7 +6296,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "10",
             fontFamily: "monospace"
           },
-          active ? refReversed ? "REJECTING HEAT" : "ABSORBING HEAT" : "STANDBY"
+          active ? refReversed ? CT("REJECTING HEAT", lang2) : CT("ABSORBING HEAT", lang2) : CT("STANDBY", lang2)
         ));
       })()), hasCoil && !hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ah" + a.cond_tier, filter: "url(#shadow)" }, /* @__PURE__ */ React.createElement(
         AirHandlerH,
@@ -6239,7 +6315,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           blowerMotorLabel: BLOWER_MOTOR,
           refReversed,
           onEditStep,
-          lang,
+          lang: lang2,
           vw: SVG_VW,
           vh: SVG_VH
         }
@@ -6254,7 +6330,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "13.5",
           fontFamily: "monospace"
         },
-        "AIR HANDLER"
+        CT("AIR HANDLER", lang2)
       ), /* @__PURE__ */ React.createElement(
         "text",
         {
@@ -6266,7 +6342,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "12",
           fontFamily: "monospace"
         },
-        evapActive ? refReversed ? "REJECTING HEAT" : "ABSORBING HEAT" : auxHeatActive ? "AUX HEAT ONLY" : "STANDBY"
+        evapActive ? refReversed ? CT("REJECTING HEAT", lang2) : CT("ABSORBING HEAT", lang2) : auxHeatActive ? CT("AUX HEAT ONLY", lang2) : CT("STANDBY", lang2)
       )), hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
         {
@@ -6312,7 +6388,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "12.5",
             fontFamily: "monospace"
           },
-          isExisting ? "EXISTING PLENUM" : isMetal ? "METAL PLENUM" : "DUCTBOARD PLENUM"
+          isExisting ? CT("EXISTING PLENUM", lang2) : isMetal ? CT("METAL PLENUM", lang2) : CT("DUCTBOARD PLENUM", lang2)
         ), !isExisting && /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -6377,7 +6453,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           const plenTop = SUP_PLEN_Y;
           const ionBulbY = plenTop - 14;
           const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: ionBulbY, r: 12, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 8, ry: 10, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 5, ry: 6.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: ionX - 2, y1: ionBulbY - 4, x2: ionX + 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: ionX + 2, y1: ionBulbY - 4, x2: ionX - 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: ionX - 6, y: plenTop - 6, width: 12, height: 8, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.22)", strokeWidth: 6, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.8)", strokeWidth: 2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: plenTop + ionRodLen, r: 2.5, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: ionX + 14, y: ionBulbY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"));
+          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: ionBulbY, r: 12, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 8, ry: 10, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("ellipse", { cx: ionX, cy: ionBulbY, rx: 5, ry: 6.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: ionX - 2, y1: ionBulbY - 4, x2: ionX + 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: ionX + 2, y1: ionBulbY - 4, x2: ionX - 2, y2: ionBulbY + 4, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: ionX - 6, y: plenTop - 6, width: 12, height: 8, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.22)", strokeWidth: 6, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: ionX, y1: plenTop, x2: ionX, y2: plenTop + ionRodLen, stroke: "rgba(253,224,71,.8)", strokeWidth: 2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: ionX, cy: plenTop + ionRodLen, r: 2.5, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: ionX + 14, y: ionBulbY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, CT("IONIZER", lang2)));
         })());
       })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
@@ -6427,7 +6503,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "12",
           fontFamily: "monospace"
         },
-        "DRAIN"
+        CT("DRAIN", lang2)
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -6450,7 +6526,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const GW = DW + 10;
         const pBot = SUP_PLEN_Y + SUP_PLEN_H;
         const FAN = 36;
-        const grille = (cx) => /* @__PURE__ */ React.createElement(RegisterGrille, { cx, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY", lang, vw: SVG_VW, vh: SVG_VH });
+        const grille = (cx) => /* @__PURE__ */ React.createElement(RegisterGrille, { cx, y: DECK_Y, w: GW, dc: DC, ds: DS, label: CT("SUPPLY", lang2), lang: lang2, vw: SVG_VW, vh: SVG_VH });
         const ductArrow = (d, key) => /* @__PURE__ */ React.createElement(
           "path",
           {
@@ -6633,7 +6709,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           line2C,
           G,
           W,
-          lang,
+          lang: lang2,
           vw: SVG_VW,
           vh: SVG_VH,
           linesetRingPath,
@@ -6652,7 +6728,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               line2C,
               fanSpeedMode: !heatMode ? "cool" : isMildHp ? "hp" : "off",
               onEditStep,
-              lang,
+              lang: lang2,
               vw: SVG_VW,
               vh: SVG_VH
             }
@@ -6827,7 +6903,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               totalW: THERM_ROW_W,
               gap: 4,
               h: 17,
-              fontSize: THERM_BTN_N === 3 ? 8.5 : 9.5
+              fontSize: THERM_BTN_N === 3 ? 8.5 : 9.5,
+              lang: lang2
             }
           ), /* @__PURE__ */ React.createElement(
             "text",
@@ -6852,7 +6929,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             x: dehuBX2 - 70,
             y: dehuBY2 - 28,
             pct: !heatMode ? 45 : isMildHp ? 55 : 50,
-            lang,
+            lang: lang2,
             vw: SVG_VW,
             vh: SVG_VH
           }
@@ -6876,7 +6953,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             hasDehu,
             hasERV,
             snap: true,
-            lang,
+            lang: lang2,
             vw: SVG_VW,
             vh: SVG_VH
           }
@@ -6998,7 +7075,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             stroke: "#555",
             strokeWidth: "0.5"
           }
-        ), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, CT("SERVICE", lang2)), /* @__PURE__ */ React.createElement("text", { x: swX, y: plateY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, CT("SWITCH", lang2)), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: swX - plateW / 2 - 3,
@@ -7025,7 +7102,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "12",
             fontFamily: "monospace"
           },
-          "FIBERGLASS INSULATION"
+          CT("FIBERGLASS INSULATION", lang2)
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
@@ -7059,7 +7136,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "12",
             fontFamily: "monospace"
           },
-          "SPRAY FOAM INSULATION"
+          CT("SPRAY FOAM INSULATION", lang2)
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
@@ -7076,7 +7153,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             ringStrokeWidth: 4
           }
         ));
-      })(), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: 20, fill: G + ".85)", fontSize: "12", fontWeight: "700", fontFamily: "monospace", letterSpacing: ".18em" }, "LIVE SYSTEM PREVIEW"), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, "Choose your location to begin building"), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, "Components assemble here in real time \u2192")), /* @__PURE__ */ React.createElement(
+      })(), loc && /* @__PURE__ */ React.createElement("text", { x: 12, y: 20, fill: G + ".85)", fontSize: "12", fontWeight: "700", fontFamily: "monospace", letterSpacing: ".18em" }, CT("LIVE SYSTEM PREVIEW", lang2)), !loc && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 - 10, textAnchor: "middle", fill: G + ".12)", fontSize: "15.5", fontFamily: "monospace" }, CT("Choose your location to begin building", lang2)), /* @__PURE__ */ React.createElement("text", { x: HOUSE_W / 2, y: VH / 2 + 8, textAnchor: "middle", fill: G + ".06)", fontSize: "13", fontFamily: "monospace" }, CT("Components assemble here in real time \u2192", lang2))), /* @__PURE__ */ React.createElement(
         StepFocusRing,
         {
           onEditStep,
@@ -7270,7 +7347,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const dehuRightMax = DEHU_ERV_RW - 10;
       const dehuW = Math.max(30, Math.min(DEHU_ERV_BW, dehuRightMax - dehuSafeLeft));
       const dehuX = Math.max(dehuSafeLeft, dehuRightMax - dehuW);
-      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement(HoverCtx.Provider, { value: setHoverPart }, /* @__PURE__ */ React.createElement(GroupCtx.Provider, { value: groupApi }, /* @__PURE__ */ React.createElement("div", { ref: wrapRef, style: { position: "absolute", inset: 0 } }, hasCoil && /* @__PURE__ */ React.createElement(ToggleUI, { style: { position: "absolute", top: 8, right: 8, zIndex: 10 }, compactToggle, isDualFuel, hasFurnace, heatMode, heatSubMode, setHeatMode, setHeatSubMode, monthName: CURRENT_MONTH_NAME, lang: lang2 }), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${VW} ${VH}`, className: "canvas-svg", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: VW, height: VH, fill: "#0b0d14" }), hasCond && /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: HOUSE_W,
@@ -7319,7 +7396,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontFamily: "monospace",
           letterSpacing: "1.5"
         },
-        "UTILITY CLOSET"
+        CT("UTILITY CLOSET", lang2)
       ), (() => {
         const rW = ROOF_W, rEave = ROOF_EAVE_Y, rRidge = ROOF_RIDGE_Y, rMid = ROOF_MID_X;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("line", { x1: "0", y1: rEave, x2: rMid, y2: rRidge, stroke: "rgba(160,152,128,.55)", strokeWidth: "3" }), /* @__PURE__ */ React.createElement("line", { x1: rMid, y1: rRidge, x2: rW, y2: rEave, stroke: "rgba(160,152,128,.55)", strokeWidth: "3" }), /* @__PURE__ */ React.createElement("polygon", { points: `0,${rEave} ${rMid},${rRidge} ${rW},${rEave}`, fill: "rgba(10,10,16,.55)" }), /* @__PURE__ */ React.createElement("rect", { x: rMid - 5, y: rRidge - 2, width: "10", height: "7", rx: "2", fill: "rgba(160,155,135,.17)" }), [rW * 0.15, rW * 0.32].map((rx, i) => /* @__PURE__ */ React.createElement("line", { key: "lr" + i, x1: rx, y1: DECK_Y, x2: rMid, y2: rRidge, stroke: "rgba(88,68,32,.1)", strokeWidth: "1.5" })), [rW * 0.68, rW * 0.85].map((rx, i) => /* @__PURE__ */ React.createElement("line", { key: "rr" + i, x1: rx, y1: DECK_Y, x2: rMid, y2: rRidge, stroke: "rgba(88,68,32,.1)", strokeWidth: "1.5" })));
@@ -7361,7 +7438,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               transform: `rotate(${ang},${sx},${sy + 8})`
             }
           );
-        }), /* @__PURE__ */ React.createElement("text", { x: "22", y: DECK_Y - 24, fill: "rgba(232,236,246,.3)", fontSize: "12", fontFamily: "monospace" }, "SPRAY FOAM"));
+        }), /* @__PURE__ */ React.createElement("text", { x: "22", y: DECK_Y - 24, fill: "rgba(232,236,246,.3)", fontSize: "12", fontFamily: "monospace" }, CT("SPRAY FOAM", lang2)));
       })()) : /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, Array.from({ length: Math.floor((hasCond ? HOUSE_W : VW - 8) / 17) }, (_, i) => /* @__PURE__ */ React.createElement(
         "ellipse",
         {
@@ -7374,7 +7451,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           stroke: "rgba(255,182,193,.19)",
           strokeWidth: ".4"
         }
-      )), /* @__PURE__ */ React.createElement("text", { x: "22", y: DECK_Y - 22, fill: "rgba(255,182,193,.3)", fontSize: "12", fontFamily: "monospace" }, "FIBERGLASS INSULATION"))), a.insulation && /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("text", { x: "22", y: DECK_Y - 22, fill: "rgba(255,182,193,.3)", fontSize: "12", fontFamily: "monospace" }, CT("FIBERGLASS INSULATION", lang2)))), a.insulation && /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
           x: 16,
@@ -7411,7 +7488,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           stroke: "rgba(108,82,36,.12)",
           strokeWidth: "0.4"
         }
-      )), /* @__PURE__ */ React.createElement("text", { x: "22", y: "16", fill: W + ".14)", fontSize: "12", fontFamily: "monospace", letterSpacing: "0.8" }, "ATTIC"), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "spl" }, (() => {
+      )), /* @__PURE__ */ React.createElement("text", { x: "22", y: "16", fill: W + ".14)", fontSize: "12", fontFamily: "monospace", letterSpacing: "0.8" }, CT("ATTIC", lang2)), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "spl" }, (() => {
         const isExisting = a.plenum === "none";
         const isMetal = a.plenum === "metal";
         const pFill = isExisting ? "rgba(30,30,44,.97)" : isMetal ? "#1a1c24" : "#141108";
@@ -7464,7 +7541,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "11",
             fontFamily: "monospace"
           },
-          isExisting ? "EXISTING PLENUM" : isMetal ? "METAL PLENUM" : "DUCTBOARD PLENUM"
+          isExisting ? CT("EXISTING PLENUM", lang2) : isMetal ? CT("METAL PLENUM", lang2) : CT("DUCTBOARD PLENUM", lang2)
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -7508,16 +7585,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             y: PLEN_TOP + PLEN_ABOVE * 0.92,
             textAnchor: "middle",
             fill: G + ".3)",
-            fontSize: "12",
+            fontSize: lang2 === "es" ? "9" : "12",
             fontFamily: "monospace"
           },
-          "SUPPLY"
+          CT("SUPPLY", lang2)
         ))), hasIonizer && (() => {
           const rodLen = Math.round(PLEN_W * 0.62);
           const bulbX = UNIT_X + PLEN_W + 12;
           const rodY = PLEN_TOP + PLEN_TOTAL * 0.88;
           const rodTip = UNIT_X + PLEN_W - rodLen;
-          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: bulbX, cy: rodY, r: 16, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 10, ry: 12, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 6, ry: 7.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 3, y1: rodY - 5, x2: bulbX + 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX + 3, y1: rodY - 5, x2: bulbX - 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W - 2, y: rodY - 5, width: 16, height: 10, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.22)", strokeWidth: 8, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.8)", strokeWidth: 2.2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: rodTip, cy: rodY, r: 3, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: bulbX + 18, y: rodY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, "IONIZER"));
+          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("circle", { cx: bulbX, cy: rodY, r: 16, fill: "rgba(253,224,71,.07)", stroke: "rgba(253,224,71,.18)", strokeWidth: "0.5", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 10, ry: 12, fill: "rgba(251,191,36,.18)", stroke: "rgba(253,224,71,.75)", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("ellipse", { cx: bulbX, cy: rodY, rx: 6, ry: 7.5, fill: "rgba(253,224,71,.32)", stroke: "none", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 3, y1: rodY - 5, x2: bulbX + 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX + 3, y1: rodY - 5, x2: bulbX - 3, y2: rodY + 5, stroke: "rgba(253,224,71,.9)", strokeWidth: "1.2", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W - 2, y: rodY - 5, width: 16, height: 10, rx: "2", fill: "rgba(180,130,20,.45)", stroke: "rgba(253,224,71,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.22)", strokeWidth: 8, strokeLinecap: "round", filter: "url(#glow-uv)" }), /* @__PURE__ */ React.createElement("line", { x1: UNIT_X + PLEN_W, y1: rodY, x2: rodTip, y2: rodY, stroke: "rgba(253,224,71,.8)", strokeWidth: 2.2, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("circle", { cx: rodTip, cy: rodY, r: 3, fill: "rgba(253,224,71,.9)", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("text", { x: bulbX + 18, y: rodY + 4, textAnchor: "start", fill: "rgba(253,224,71,.45)", fontSize: "11", fontFamily: "monospace" }, CT("IONIZER", lang2)));
         })());
       })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
         EditZone,
@@ -7621,7 +7698,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             ringPath: `M${UNIT_X - 3} ${exitY + DW / 2} L${leftDropX + DW / 2} ${exitY + DW / 2} L${leftDropX + DW / 2} ${DECK_Y - 4}`,
             ringStrokeWidth: DW + 8
           }
-        ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: leftDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY", lang, vw: SVG_VW, vh: SVG_VH }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W, y: exitY, width: rightDropX - (UNIT_X + PLEN_W) + DW, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: UNIT_X + PLEN_W, y: exitY, w: rightDropX - (UNIT_X + PLEN_W) + DW, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: rightDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: rightDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X + PLEN_W + 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: rightDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X + PLEN_W + 3},${exitY + DW / 2} L${rightDropX + DW / 2},${exitY + DW / 2} L${rightDropX + DW / 2},${DECK_Y - 4}`, "ra"), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: leftDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: CT("SUPPLY", lang2), lang: lang2, vw: SVG_VW, vh: SVG_VH }), /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + PLEN_W, y: exitY, width: rightDropX - (UNIT_X + PLEN_W) + DW, height: DW, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: UNIT_X + PLEN_W, y: exitY, w: rightDropX - (UNIT_X + PLEN_W) + DW, h: DW, vertical: false }), /* @__PURE__ */ React.createElement("rect", { x: rightDropX, y: exitY, width: DW, height: DECK_Y - exitY, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: rightDropX, y: exitY, w: DW, h: DECK_Y - exitY, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: UNIT_X + PLEN_W + 3, y: exitY, h: DW, vertical: false }), /* @__PURE__ */ React.createElement(DuctClamp, { x: rightDropX, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(`M${UNIT_X + PLEN_W + 3},${exitY + DW / 2} L${rightDropX + DW / 2},${exitY + DW / 2} L${rightDropX + DW / 2},${DECK_Y - 4}`, "ra"), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: UNIT_X + PLEN_W,
@@ -7653,7 +7730,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             ringPath: `M${UNIT_X + PLEN_W + 3} ${exitY + DW / 2} L${rightDropX + DW / 2} ${exitY + DW / 2} L${rightDropX + DW / 2} ${DECK_Y - 4}`,
             ringStrokeWidth: DW + 8
           }
-        ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: rightDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: "SUPPLY", lang, vw: SVG_VW, vh: SVG_VH }));
+        ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: rightDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: CT("SUPPLY", lang2), lang: lang2, vw: SVG_VW, vh: SVG_VH }));
       })()), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac-c" + a.cond_tier, style: { animationDelay: ".07s" } }, (() => {
         const active = evapActive;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
@@ -7720,7 +7797,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             hasUV,
             infoKey: acoilInfoKey(),
             onEditStep,
-            lang,
+            lang: lang2,
             vw: SVG_VW,
             vh: SVG_VH
           }
@@ -7746,7 +7823,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             strokeWidth: "0.9",
             strokeDasharray: "4 3"
           }
-        ), /* @__PURE__ */ React.createElement(AuxHeatKit, { x: UNIT_X + 14, y: ACOIL_Y + ACOIL_H * 0.09, w: UNIT_W - 28, h: ACOIL_H * 0.14, auxHeat: auxHeatActive }), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement(AuxHeatKit, { x: UNIT_X + 14, y: ACOIL_Y + ACOIL_H * 0.09, w: UNIT_W - 28, h: ACOIL_H * 0.14, auxHeat: auxHeatActive, lang: lang2 }), /* @__PURE__ */ React.createElement(
           BlowerWheel,
           {
             cx: UNIT_X + UNIT_W / 2,
@@ -7755,7 +7832,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             spd: blowerActive ? 1.4 : 0.4,
             active: blowerActive,
             onEditStep,
-            lang,
+            lang: lang2,
             vw: SVG_VW,
             vh: SVG_VH
           }
@@ -7769,7 +7846,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "12.5",
             fontFamily: "monospace"
           },
-          "BLOWER"
+          CT("BLOWER", lang2)
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -7794,7 +7871,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             hasUV,
             infoKey: acoilInfoKey(),
             onEditStep,
-            lang,
+            lang: lang2,
             vw: SVG_VW,
             vh: SVG_VH
           }
@@ -7854,7 +7931,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "12",
             fontFamily: "monospace"
           },
-          active ? refReversed ? "REJECTING HEAT" : "ABSORBING HEAT" : auxHeatActive ? "AUX HEAT ONLY" : "STANDBY"
+          active ? refReversed ? CT("REJECTING HEAT", lang2) : CT("ABSORBING HEAT", lang2) : auxHeatActive ? CT("AUX HEAT ONLY", lang2) : CT("STANDBY", lang2)
         ));
       })()), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "fu-c" + a.stage }, /* @__PURE__ */ React.createElement(
         HoverInfo,
@@ -7906,7 +7983,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fill: "url(#silver)",
           opacity: ".72"
         }
-      ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: FURN_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: FURN_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: FURN_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: FURN_Y + 3.5, w: 14 }), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 6, y: FURN_Y + 11, width: 78, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 9, y: FURN_Y + 19.5, fill: "#fff", fontSize: "9", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement(
+      ), /* @__PURE__ */ React.createElement(CabinetStripBrushing, { x: UNIT_X, y: FURN_Y, w: UNIT_W }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + 8, cy: FURN_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetRivet, { cx: UNIT_X + UNIT_W - 8, cy: FURN_Y + 3.5 }), /* @__PURE__ */ React.createElement(CabinetLatch, { cx: UNIT_X + UNIT_W / 2, cy: FURN_Y + 3.5, w: 14 }), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 6, y: FURN_Y + 11, width: 78, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 9, y: FURN_Y + 19.5, fill: "#fff", fontSize: "9", fontFamily: "monospace" }, CT("COMMUNICATING", lang2))), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: UNIT_X + UNIT_W - 46,
@@ -7994,7 +8071,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "12.5",
           fontFamily: "monospace"
         },
-        "HEAT EXCH."
+        CT("HEAT EXCH.", lang2)
       ), /* @__PURE__ */ React.createElement(
         "text",
         {
@@ -8005,7 +8082,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "9.5",
           fontFamily: "monospace"
         },
-        furnaceActive ? "GAS HEATING ACTIVE" : "STANDBY"
+        furnaceActive ? CT("GAS HEATING ACTIVE", lang2) : CT("STANDBY", lang2)
       ), /* @__PURE__ */ React.createElement(
         BlowerWheel,
         {
@@ -8015,7 +8092,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           spd: blowerActive ? 1.55 : 0.5,
           active: blowerActive,
           onEditStep,
-          lang,
+          lang: lang2,
           vw: SVG_VW,
           vh: SVG_VH
         }
@@ -8029,7 +8106,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "12.5",
           fontFamily: "monospace"
         },
-        "BLOWER"
+        CT("BLOWER", lang2)
       ), /* @__PURE__ */ React.createElement(
         "text",
         {
@@ -8131,7 +8208,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "11.5",
             fontFamily: "monospace"
           },
-          is90 ? "PVC" : "B-VENT"
+          is90 ? CT("PVC", lang2) : CT("B-VENT", lang2)
         )), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
@@ -8163,7 +8240,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             ringStrokeWidth: PIPE_W + 6
           }
         ));
-      })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 4, y: FURN_Y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 7, y: FURN_Y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, "COMMUNICATING")), /* @__PURE__ */ React.createElement(
+      })(), isComm && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: UNIT_X + 4, y: FURN_Y + 10, width: 82, height: "11", rx: "2", fill: "url(#blue)" }), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + 7, y: FURN_Y + 18.5, fill: "#fff", fontSize: "9.5", fontFamily: "monospace" }, CT("COMMUNICATING", lang2))), /* @__PURE__ */ React.createElement(
         "text",
         {
           x: Math.max(UNIT_X + UNIT_W / 2, flueExitX + 8 + 6 + 20),
@@ -8173,12 +8250,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontSize: "9.5",
           fontFamily: "monospace"
         },
-        "FURNACE"
+        CT("FURNACE", lang2)
       )), hasCoil && hasFurnace && (() => {
         const gasY = FURN_Y + 50;
         const gasX1 = UNIT_X + UNIT_W, gasX2 = gasX1 + 62;
         const teeX = gasX1 + 34, valveX = gasX1 + 48;
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY - 5, x2: teeX, y2: gasY + 5, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY, x2: teeX, y2: gasY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: teeX - 3.5, y: gasY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("circle", { cx: valveX, cy: gasY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: valveX, y1: gasY - 6, x2: valveX, y2: gasY + 6, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("text", { x: gasX1 + 18, y: gasY - 9, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "8.5", fontFamily: "monospace" }, "GAS"), /* @__PURE__ */ React.createElement("text", { x: teeX, y: gasY + 24, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "DRIP LEG"), /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".14s" } }, /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: gasX1, y1: gasY, x2: gasX2, y2: gasY, stroke: "#5a5a5a", strokeWidth: "1", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY - 5, x2: teeX, y2: gasY + 5, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("line", { x1: teeX, y1: gasY, x2: teeX, y2: gasY + 11, stroke: "#3a3a3a", strokeWidth: "3", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("rect", { x: teeX - 3.5, y: gasY + 11, width: "7", height: "3.5", rx: "1", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement("circle", { cx: valveX, cy: gasY, r: "4.2", fill: "#242424", stroke: "#5a5a5a", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: valveX, y1: gasY - 6, x2: valveX, y2: gasY + 6, stroke: "#c0392b", strokeWidth: "2.4", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("text", { x: gasX1 + 18, y: gasY - 9, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "8.5", fontFamily: "monospace" }, CT("GAS", lang2)), /* @__PURE__ */ React.createElement("text", { x: teeX, y: gasY + 24, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, CT("DRIP LEG", lang2)), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: gasX1 - 2,
@@ -8220,7 +8297,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             stroke: "#555",
             strokeWidth: "0.5"
           }
-        ), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, CT("SERVICE", lang2)), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, CT("SWITCH", lang2)), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: plateX - 3,
@@ -8262,7 +8339,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             stroke: "#555",
             strokeWidth: "0.5"
           }
-        ), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, "SERVICE"), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, "SWITCH"), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 11, textAnchor: "middle", fill: "rgba(180,180,180,.55)", fontSize: "6.5", fontFamily: "monospace" }, CT("SERVICE", lang2)), /* @__PURE__ */ React.createElement("text", { x: plateX + plateW / 2, y: swY + plateH / 2 + 19, textAnchor: "middle", fill: "rgba(180,180,180,.5)", fontSize: "6.5", fontFamily: "monospace" }, CT("SWITCH", lang2)), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: plateX - 3,
@@ -8326,7 +8403,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           fontWeight: "700",
           fontFamily: "monospace"
         },
-        "FILTRATION CABINET"
+        CT("FILTRATION CABINET", lang2)
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -8427,7 +8504,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "11.5",
             fontFamily: "monospace"
           },
-          "2\xD74 RETURN AIR CHASE"
+          CT("2\xD74 RETURN AIR CHASE", lang2)
         ), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
@@ -8529,7 +8606,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           line2C,
           G,
           W,
-          lang,
+          lang: lang2,
           vw: SVG_VW,
           vh: SVG_VH,
           linesetRingPath,
@@ -8548,7 +8625,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               line2C,
               fanSpeedMode: !heatMode ? "cool" : isMildHp ? "hp" : "off",
               onEditStep,
-              lang,
+              lang: lang2,
               vw: SVG_VW,
               vh: SVG_VH
             }
@@ -8684,7 +8761,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             fontSize: "11.5",
             fontFamily: "monospace"
           },
-          "DRAIN"
+          CT("DRAIN", lang2)
         ), /* @__PURE__ */ React.createElement(
           "line",
           {
@@ -8778,7 +8855,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               totalW: THERM_ROW_W_C,
               gap: 4,
               h: 17,
-              fontSize: THERM_BTN_N_C === 3 ? 8.5 : 9.5
+              fontSize: THERM_BTN_N_C === 3 ? 8.5 : 9.5,
+              lang: lang2
             }
           ), /* @__PURE__ */ React.createElement(
             "text",
@@ -8804,7 +8882,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             y: midY - H / 2,
             scale: DEHUMIDISTAT_SCALE_C,
             pct: !heatMode ? 45 : isMildHp ? 55 : 50,
-            lang,
+            lang: lang2,
             vw: SVG_VW,
             vh: SVG_VH
           }
@@ -8821,7 +8899,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           hasDehu,
           hasERV,
           snap: true,
-          lang,
+          lang: lang2,
           vw: SVG_VW,
           vh: SVG_VH
         }
@@ -9063,24 +9141,24 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       setPricingFlow((f) => f === "sizing" || f === "result" ? "sizing" : f);
       setPricingSubStep(0);
     }, [tonnageOptionsForTier, pricingAnswers.tonnageChoice]);
-    const [lang, setLang] = useState2(() => {
+    const [lang2, setLang] = useState2(() => {
       try {
         return localStorage.getItem("gesLang_v1") === "es" ? "es" : "en";
       } catch (e) {
         return "en";
       }
     });
-    const tr = (en, es) => lang === "es" && es !== void 0 ? es : en;
+    const tr = (en, es) => lang2 === "es" && es !== void 0 ? es : en;
     React.useEffect(() => {
       try {
-        localStorage.setItem("gesLang_v1", lang);
+        localStorage.setItem("gesLang_v1", lang2);
       } catch (e) {
       }
       try {
-        document.documentElement.lang = lang;
+        document.documentElement.lang = lang2;
       } catch (e) {
       }
-    }, [lang]);
+    }, [lang2]);
     const [leadUnlocked, setLeadUnlocked] = useState2(() => !GATE_CONFIG.gravityFormId || hasSubmittedLead());
     React.useEffect(() => {
       if (!GATE_CONFIG.gravityFormId || leadUnlocked) return;
@@ -9272,21 +9350,21 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     }, [answers, stepIdx, done, resumePending, pricingFlow, pricingSubStep, pricingAnswers]);
     const opts = useMemo2(() => {
       const base = cur ? getOpts(cur.id, answers) : [];
-      if (lang !== "es") return base;
+      if (lang2 !== "es") return base;
       const overrides = OPTS_ES[cur.id] || {};
       return base.map((o) => {
         const ov = overrides[o.v];
         if (!ov) return o;
         return { ...o, ...typeof ov === "function" ? ov(answers) : ov };
       });
-    }, [cur, answers, lang]);
-    const curQ = cur ? lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].q : cur.q : "";
-    const curHint = cur ? cur.id === "insulation" && answers.indoor_type !== "furnace" ? tr("Determines your attic's construction and your system's efficiency.", "Determina la construcci\xF3n de su \xE1tico y la eficiencia de su sistema.") : lang === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].hint : cur.hint : "";
+    }, [cur, answers, lang2]);
+    const curQ = cur ? lang2 === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].q : cur.q : "";
+    const curHint = cur ? cur.id === "insulation" && answers.indoor_type !== "furnace" ? tr("Determines your attic's construction and your system's efficiency.", "Determina la construcci\xF3n de su \xE1tico y la eficiencia de su sistema.") : lang2 === "es" && STEPS_ES[cur.id] ? STEPS_ES[cur.id].hint : cur.hint : "";
     const stepCountText = cur && cur.id !== "location" ? tr("STEP", "PASO") + " " + stepIdx + (totalKnown ? " " + tr("OF", "DE") + " " + totalSteps : "") : "";
-    const chapterNames = lang === "es" ? CHAPTERS_ES : CHAPTERS;
+    const chapterNames = lang2 === "es" ? CHAPTERS_ES : CHAPTERS;
     const liveMessage = done ? tr("Your system is built. Review your selections below.", "Su sistema est\xE1 construido. Revise sus selecciones abajo.") : cur && cur.id !== "location" ? (stepCountText ? stepCountText + ". " : "") + curQ : "";
     const reviewItems = useMemo2(() => {
-      const es = lang === "es";
+      const es = lang2 === "es";
       return [
         { step: "location", label: tr("Location", "Ubicaci\xF3n"), val: answers.location === "attic" ? tr("Attic horizontal", "\xC1tico horizontal") : answers.location === "closet" ? tr("Upflow closet", "Cl\xF3set ascendente") : null },
         { step: "indoor_type", label: tr("Indoor unit", "Unidad interior"), val: answers.indoor_type === "furnace" ? tr("Gas furnace", "Horno a gas") : answers.indoor_type === "ah" ? tr("Air handler", "Manejador de aire") : null },
@@ -9336,9 +9414,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           short: answers.dehu.map((v) => v === "dehu" ? tr("Dehu", "Deshu") : v === "erv" ? "ERV" : v).join(" + ")
         } : null
       ].filter(Boolean);
-    }, [answers, lang]);
+    }, [answers, lang2]);
     const trLineLabel = (line) => {
-      if (lang !== "es") return line.label;
+      if (lang2 !== "es") return line.label;
       switch (line.key) {
         case "tonnage": {
           const tierEs = (OPTS_ES.cond_tier[line.tier] || {}).label;
@@ -9457,7 +9535,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       dehu: "La humedad de Austin hace que su hogar se sienta m\xE1s caliente de lo que marca el termostato. Un deshumidificador para toda la casa se conecta a sus ductos y funciona autom\xE1ticamente - solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio. Agregue cualquiera, ambos, o ninguno."
     };
     const infoTextId = cur && cur.id === "insulation" && answers.indoor_type !== "furnace" ? "insulation_ah" : cur && cur.id === "thermostat" && answers.cond_tier === "high_ge18" ? "thermostat_high" : cur && cur.id;
-    const infoText = infoTextId && (lang === "es" ? INFO_TEXT_ES[infoTextId] || INFO_TEXT[infoTextId] : INFO_TEXT[infoTextId]);
+    const infoText = infoTextId && (lang2 === "es" ? INFO_TEXT_ES[infoTextId] || INFO_TEXT[infoTextId] : INFO_TEXT[infoTextId]);
     const REACTION = {
       // indoor_type has no entry here on purpose - its hint is forced to 3
       // lines (see STEPS above), already 2 lines taller than every other
@@ -9539,7 +9617,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, /* @__PURE__ */ React.createElement("svg", { width: "0", height: "0", style: { position: "absolute" }, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null)), /* @__PURE__ */ React.createElement("div", { "aria-live": "polite", "aria-atomic": "true", className: "sr-only" }, liveMessage), resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, tr("WELCOME BACK", "BIENVENIDO DE NUEVO")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
       const savedCur = savedSteps[savedBuild.stepIdx];
-      const savedQ = savedCur && (lang === "es" && STEPS_ES[savedCur.id] ? STEPS_ES[savedCur.id].q : savedCur.q);
+      const savedQ = savedCur && (lang2 === "es" && STEPS_ES[savedCur.id] ? STEPS_ES[savedCur.id].q : savedCur.q);
       return savedBuild.done ? tr("You already finished building a system. Pick up right where you left off?", "Ya termin\xF3 de armar un sistema. \xBFContinuamos donde lo dej\xF3?") : savedCur ? tr(
         /* @__PURE__ */ React.createElement(React.Fragment, null, "You were on ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.85)" } }, '"', savedQ, '"'), " - want to keep going?"),
         /* @__PURE__ */ React.createElement(React.Fragment, null, "Estaba en ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.85)" } }, '"', savedQ, '"'), " - \xBFdesea continuar?")
@@ -9594,8 +9672,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         "aria-label": tr("Switch to Spanish", "Cambiar a ingl\xE9s"),
         style: { animationDelay: ".3s", fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
       },
-      lang === "es" ? "EN" : "ES"
-    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su sistema se guarda autom\xE1ticamente mientras avanza."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, stepCountText), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, stepCountText && " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
+      lang2 === "es" ? "EN" : "ES"
+    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su sistema se guarda autom\xE1ticamente mientras avanza."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang: lang2 }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, stepCountText), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, stepCountText && " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
@@ -9611,7 +9689,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         }
       },
       "i"
-    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), stepCountText && ` ${stepCountText}`), infoText && /* @__PURE__ */ React.createElement(
+    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang: lang2 }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), stepCountText && ` ${stepCountText}`), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
@@ -9627,7 +9705,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         }
       },
       "i"
-    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" })), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
+    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang: lang2 })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" })), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang2 === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
       const closetVisibleCount = reviewItems.filter((it) => it && it.val).length;
       let closetRenderedIdx = 0;
       const reviewGrid = (leadCell) => /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, leadCell, reviewItems.map((item, i) => {
@@ -9654,7 +9732,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             "span",
             {
               className: "review-val",
-              style: lang === "es" ? { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "visible", whiteSpace: "normal" } : { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+              style: lang2 === "es" ? { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "visible", whiteSpace: "normal" } : { color: "rgba(255,255,255,.9)", fontFamily: "var(--fb)", fontSize: "var(--fs-review-val)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
               title: item.val
             },
             item.short || item.val

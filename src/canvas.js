@@ -238,7 +238,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           stroke="rgba(90,80,45,.2)" strokeWidth="0.7"/>
       ))}
       <text x={wallX+zoneW/2} y={groundY+18} textAnchor="middle"
-        fill="rgba(110,95,55,.45)" fontSize="12.5" fontFamily="monospace">GROUND LEVEL</text>
+        fill="rgba(110,95,55,.45)" fontSize="12.5" fontFamily="monospace">{CT('GROUND LEVEL',lang)}</text>
     </g>
 
     {/* ── SNOW - furnace/aux-heat cold-snap mode only. Fades in/out
@@ -336,7 +336,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           stroke="rgba(190,185,168,.1)" strokeWidth="0.5"/>
       ))}
       <text x={condX+condW/2} y={padY+10} textAnchor="middle"
-        fill="rgba(170,160,140,.4)" fontSize="12.5" fontFamily="monospace">CONCRETE PAD</text>
+        fill="rgba(170,160,140,.4)" fontSize="12.5" fontFamily="monospace">{CT('CONCRETE PAD',lang)}</text>
     </g>
 
     {/* ── WALL CROSS-SECTION ── proper side view of exterior wall.
@@ -414,7 +414,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         {bushing(lineY1,lineY2,'busTop')}
         {bushing(exitY1,exitY2,'busBot')}
         <text x={sidingX+wallThick/2} y={exitY2+16} textAnchor="middle"
-          fill="rgba(150,110,40,.5)" fontSize="11.5" fontFamily="monospace">LINESET</text>
+          fill="rgba(150,110,40,.5)" fontSize="11.5" fontFamily="monospace">{CT('LINESET',lang)}</text>
         {/* Foam sleeve on pipes - down inside the wall, then into the condenser */}
         <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
           fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
@@ -503,7 +503,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         <rect x={DX+3} y={DY+4} width={DW-6} height={16} rx="2"
           fill={G+'.14)'} stroke={G+'.32)'} strokeWidth="0.8"/>
         <text x={DX+DW/2} y={DY+15.5} textAnchor="middle"
-          fill={G+'.82)'} fontSize="12" fontFamily="monospace" fontWeight="700">DISC.</text>
+          fill={G+'.82)'} fontSize="12" fontFamily="monospace" fontWeight="700">{CT('DISC.',lang)}</text>
         {/* Corner mounting screws - a real disconnect is through-bolted to
             the wall at its four corners, not just floating in front of
             it. */}
@@ -584,12 +584,12 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           <rect x={DX+3} y={DY+DH+10} width={DW-6} height={15} rx="2"
             fill="rgba(249,115,22,.12)" stroke="#f97316" strokeWidth="0.7"/>
           <text x={DX+DW/2} y={DY+DH+21.5} textAnchor="middle"
-            fill="#f97316" fontSize="12" fontFamily="monospace" fontWeight="700">SURGE</text>
+            fill="#f97316" fontSize="12" fontFamily="monospace" fontWeight="700">{CT('SURGE',lang)}</text>
           {/* Lightning bolt */}
           <text x={DX+DW/2} y={DY+DH+40} textAnchor="middle"
             fill="#f97316" fontSize="22">⚡</text>
           <text x={DX+DW/2} y={DY+DH+54} textAnchor="middle"
-            fill="rgba(249,115,22,.6)" fontSize="7" fontFamily="monospace">PROTECTOR</text>
+            fill="rgba(249,115,22,.6)" fontSize="7" fontFamily="monospace">{CT('PROTECTOR',lang)}</text>
           {/* No EditZone covers this - free-standing hover, no onClick. */}
           <HoverInfo x={DX} y={DY+DH+6} w={DW} h={52} rx={4} vw={vw} vh={vh}
             title={partInfo('surge_protector',lang).title} text={partInfo('surge_protector',lang).text}/>
@@ -637,7 +637,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         every tier's cabinet height instead of just the taller ones. */}
     <text className="phase-color" x={wallX+zoneW-30} y={condY-24} textAnchor="end"
       fill={active?condC:(G+'.55)')} fontSize="13" fontFamily="monospace">
-      {active?"CONDENSER · ACTIVE":"CONDENSER · STANDBY"}
+      {active?CT('CONDENSER · ACTIVE',lang):CT('CONDENSER · STANDBY',lang)}
     </text>
     {/* Mirrors the indoor coil's own ABSORBING/REJECTING HEAT status
         line - the outdoor coil is always doing the opposite of whatever
@@ -647,12 +647,12 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         absorbing it from the outside air instead. */}
     {active&&<text className="phase-color" x={wallX+zoneW-30} y={condY-9} textAnchor="end"
       fill={refReversed?'rgba(35,137,224,.5)':'rgba(239,68,68,.5)'} fontSize="12" fontFamily="monospace">
-      {refReversed?"ABSORBING HEAT":"RELEASING HEAT"}
+      {refReversed?CT('ABSORBING HEAT',lang):CT('RELEASING HEAT',lang)}
     </text>}
 
     {/* OUTSIDE label */}
     <text x={wallX+zoneW/2} y={12} textAnchor="middle"
-      fill={W+'.2)'} fontSize="11.5" fontFamily="monospace" letterSpacing="1.2">OUTSIDE</text>
+      fill={W+'.2)'} fontSize="11.5" fontFamily="monospace" letterSpacing="1.2">{CT('OUTSIDE',lang)}</text>
   </g>;
 }
 
@@ -678,7 +678,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
 // splash-screen/attic-layout/closet-layout/done-screen in app.js, just for
 // a genuine unmount here instead of a merely-hidden one. Takes every
 // Canvas-scoped value it used to close over as an explicit prop instead.
-function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode,monthName}){
+function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode,monthName,lang}){
     if(compactToggle){
       const modes=isDualFuel?[
         {key:'cool',temp:'95°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
@@ -692,7 +692,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
         {key:'cool',temp:'95°',active:!heatMode,color:'#5ba8f5',bg:'rgba(35,137,224,.18)',onClick:()=>setHeatMode(false)},
         {key:'heat',temp:'32°',active:heatMode,color:'#f97316',bg:'rgba(249,115,22,.18)',onClick:()=>setHeatMode(true)},
       ];
-      return <div className="no-print" title="Not a control - tap to see how this system behaves in each mode" style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',borderRadius:3,overflow:'hidden',...style}}>
+      return <div className="no-print" title={CT("Not a control - tap to see how this system behaves in each mode",lang)} style={{display:'flex',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',borderRadius:3,overflow:'hidden',...style}}>
         {modes.map((m,i)=>
           <button key={m.key} onClick={m.onClick} style={{
             padding:'6px 9px',border:'none',borderLeft:i>0?'1px solid rgba(215,183,64,.18)':'none',cursor:'pointer',
@@ -705,7 +705,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
       </div>;
     }
     return (
-    <div className="fadein no-print" title="Not a control - click to see how this system behaves in each mode" style={{display:'flex',flexDirection:'column',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden',...style}}>
+    <div className="fadein no-print" title={CT("Not a control - click to see how this system behaves in each mode",lang)} style={{display:'flex',flexDirection:'column',background:'#0c0c0c',border:'1px solid rgba(215,183,64,.22)',overflow:'hidden',...style}}>
       {/* Used to float above the box with no backing of its own, so its
           contrast rode on whatever part of the diagram happened to be
           behind it - fine over the near-black sky, illegible over
@@ -718,7 +718,7 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             direct feedback. The per-button (JUN)/(OCT)/(FEB) labels below
             are a different thing (which month is REPRESENTATIVE of that
             mode's outside temp) and stay. */}
-        ▸ preview how your system runs
+        ▸ {CT("preview how your system runs",lang)}
       </div>
       <button onClick={()=>setHeatMode(false)} style={{
         padding:'8px 14px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
@@ -731,9 +731,9 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             flame icons dropped per direct feedback - the temp + mode label
             already say what this is without them. */}
         <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>(JUN)</span>
-        <span>COOL MODE</span>
+        <span>{CT("COOL MODE",lang)}</span>
         <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:!heatMode?1:0.55}}>95°</span>
-        <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>OUTSIDE TEMP</span>
+        <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:!heatMode?.75:0.5}}>{CT('OUTSIDE TEMP',lang)}</span>
       </button>
       <div style={{height:'1px',background:'rgba(215,183,64,.22)'}}/>
       {isDualFuel
@@ -744,9 +744,9 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
-            <span>HEAT PUMP</span>
+            <span>{CT("HEAT PUMP",lang)}</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>60°</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>{CT('OUTSIDE TEMP',lang)}</span>
           </button>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('furnace');}} style={{
             padding:'8px 12px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
@@ -754,9 +754,9 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             color:heatMode&&heatSubMode==='furnace'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>(FEB)</span>
-            <span>FURNACE</span>
+            <span>{CT("FURNACE",lang)}</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='furnace'?1:0.55}}>32°</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>OUTSIDE TEMP</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='furnace'?.75:0.5}}>{CT('OUTSIDE TEMP',lang)}</span>
           </button>
         </>
         :!hasFurnace
@@ -767,9 +767,9 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             color:heatMode&&heatSubMode==='hp'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5,borderBottom:'1px solid rgba(215,183,64,.12)'}}>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>(OCT)</span>
-            <span>HEAT PUMP</span>
+            <span>{CT("HEAT PUMP",lang)}</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='hp'?1:0.55}}>60°</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>OUTSIDE TEMP</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='hp'?.75:0.5}}>{CT('OUTSIDE TEMP',lang)}</span>
           </button>
           <button onClick={()=>{setHeatMode(true);setHeatSubMode('aux');}} style={{
             padding:'8px 12px',border:'none',cursor:'pointer',fontFamily:'monospace',fontSize:'var(--fs-toggle-label)',letterSpacing:'.08em',
@@ -777,9 +777,9 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
             color:heatMode&&heatSubMode==='aux'?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
             display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
             <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>(FEB)</span>
-            <span>AUX HEAT</span>
+            <span>{CT("AUX HEAT",lang)}</span>
             <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode&&heatSubMode==='aux'?1:0.55}}>32°</span>
-            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>OUTSIDE TEMP</span>
+            <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode&&heatSubMode==='aux'?.75:0.5}}>{CT('OUTSIDE TEMP',lang)}</span>
           </button>
         </>
         :<button onClick={()=>setHeatMode(true)} style={{
@@ -788,9 +788,9 @@ function ToggleUI({style,compactToggle,isDualFuel,hasFurnace,heatMode,heatSubMod
           color:heatMode?'#f97316':'rgba(255,255,255,.58)',transition:'all .2s',
           display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
           <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>(FEB)</span>
-          <span>HEAT MODE</span>
+          <span>{CT("HEAT MODE",lang)}</span>
           <span style={{fontSize:'var(--fs-toggle-temp)',fontWeight:700,opacity:heatMode?1:0.55}}>32°</span>
-          <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>OUTSIDE TEMP</span>
+          <span style={{fontSize:'var(--fs-toggle-caption)',letterSpacing:'.04em',opacity:heatMode?.75:0.5}}>{CT('OUTSIDE TEMP',lang)}</span>
         </button>}
     </div>
     );
@@ -833,7 +833,7 @@ function DehumidistatWall({x,y,pct=45,lang,vw,vh,scale=1}){
       <rect x={0} y={0} width={W} height={6} rx="4" fill="rgba(34,197,94,.3)"/>
       <text x={W*0.32} y={H/2+5} textAnchor="middle" fill="#22c55e" fontSize="15">💧</text>
       <text className="phase-color" x={W*0.68} y={H/2+5} textAnchor="middle" fill="#22c55e" fontSize="13" fontFamily="monospace" fontWeight="700">{pct}%</text>
-      <text x={W/2} y={H+9} textAnchor="middle" fill="rgba(34,197,94,.6)" fontSize="6.2" fontFamily="monospace">DEHUMIDISTAT</text>
+      <text x={W/2} y={H+9} textAnchor="middle" fill="rgba(34,197,94,.6)" fontSize="6.2" fontFamily="monospace">{CT('DEHUMIDISTAT',lang)}</text>
     </g>
     {/* No EditZone ever covers this control (search confirms no
         stepId="dehu" EditZone exists) so this hover never has an
@@ -1215,6 +1215,56 @@ function partInfo(key,lang){
   if(!e)return{title:'',text:''};
   return(lang==='es'&&e.es)?e.es:e.en;
 }
+
+// QA FIX - the diagram's own permanent on-canvas labels (BLOWER, A-COIL,
+// CONDENSER · ACTIVE, the mode-preview panel, etc.) used to stay hardcoded
+// English even under the Spanish toggle, unlike every hover tooltip
+// (partInfo above) which already had full EN/ES pairs - a Spanish-speaking
+// homeowner only discovered the Spanish part names one hover/tap at a
+// time. Same overlay-lookup idea as partInfo, just keyed by the literal
+// English string already used as each label's own on-canvas text (most of
+// these functions already receive `lang` as a prop for their own partInfo
+// calls, so this reuses that same value rather than adding a new one).
+// Kept short/abbreviated on purpose to fit the same fixed-width label
+// slots the English versions were tuned for - a literal word-for-word
+// translation would overflow several of these (e.g. "FIBERGLASS
+// INSULATION" already runs close to its own box edge in English).
+const CANVAS_ES={
+  'BLOWER':'SOPLADOR','A-COIL':'SERPENTÍN','HEAT EXCH.':'INTERCAMB.',
+  'FURNACE':'HORNO','AIR HANDLER':'MANEJADOR','FILTRATION':'FILTRACIÓN',
+  'FILTRATION CABINET':'GABINETE DE FILTRO','RETURN':'RETORNO',
+  'RETURN PLENUM':'PLENUM DE RETORNO','SUPPLY':'SUMINISTRO',
+  'DUCTBOARD PLENUM':'PLENUM DUCTBOARD','METAL PLENUM':'PLENUM METÁLICO',
+  'EXISTING PLENUM':'PLENUM EXISTENTE',
+  'DISC.':'DESC.','COMP.':'COMP.','SERVICE':'SERVICIO','SWITCH':'INTERRUPTOR',
+  'GAS':'GAS','DRIP LEG':'PIERNA DE GOTEO','IONIZER':'IONIZADOR',
+  'DEHU':'DESHUM','DEHUMIDISTAT':'DESHUMIDISTATO','ERV':'ERV',
+  'DRAIN':'DRENAJE','LINESET':'LÍNEAS','GROUND LEVEL':'NIVEL DEL SUELO',
+  'CONCRETE PAD':'BASE DE CONCRETO','LIVING SPACE':'ESPACIO HABITABLE',
+  'ATTIC':'ÁTICO','UTILITY CLOSET':'CLÓSET DE SERVICIO','OUTSIDE':'EXTERIOR',
+  'FIBERGLASS INSULATION':'AISLAMIENTO DE FIBRA','SPRAY FOAM INSULATION':'AISLAMIENTO DE ESPUMA',
+  'SPRAY FOAM':'ESPUMA AISLANTE','COMMUNICATING':'COMUNICANTE',
+  'LIVE SYSTEM PREVIEW':'VISTA PREVIA DEL SISTEMA',
+  'Choose your location to begin building':'Elija su ubicación para comenzar',
+  'Components assemble here in real time →':'Los componentes se arman aquí en tiempo real →',
+  'IN':'ENT','OUT':'SAL','AUX HEAT KIT':'KIT DE CALOR AUX',
+  'ACTIVE':'ACTIVO','STANDBY':'EN ESPERA','RELEASING HEAT':'LIBERANDO CALOR',
+  'ABSORBING HEAT':'ABSORBIENDO CALOR','REJECTING HEAT':'EXPULSANDO CALOR',
+  'AUX HEAT ONLY':'SOLO CALOR AUX','GAS HEATING ACTIVE':'CALEFACCIÓN A GAS ACTIVA',
+  'PVC':'PVC','B-VENT':'VENTEO-B','ECM MOTOR':'MOTOR ECM',
+  'VARIABLE SPEED':'VELOCIDAD VARIABLE','MOD. VAR. SPEED':'VEL. VAR. MOD.',
+  'preview how your system runs':'vista previa de cómo funciona su sistema',
+  'COOL MODE':'MODO FRÍO','HEAT PUMP':'BOMBA DE CALOR','AUX HEAT':'CALOR AUX',
+  'OUTSIDE TEMP':'TEMP. EXTERIOR','COOL':'FRÍO','HEAT':'CALOR',
+  'HP':'BC','AUX':'AUX','FURN':'HRN',
+  'SURGE':'SOBREVOLT.','PROTECTOR':'PROTECTOR',
+  'CONDENSER · ACTIVE':'CONDENSADOR · ACTIVO','CONDENSER · STANDBY':'CONDENSADOR · EN ESPERA',
+  'HEAT MODE':'MODO CALOR',
+  'Not a control - tap to see how this system behaves in each mode':'No es un control - toque para ver cómo se comporta este sistema en cada modo',
+  'Not a control - click to see how this system behaves in each mode':'No es un control - haga clic para ver cómo se comporta este sistema en cada modo',
+  '2×4 RETURN AIR CHASE':'2×4 DUCTO DE RETORNO',
+};
+function CT(en,lang){ return lang==='es'&&CANVAS_ES[en]?CANVAS_ES[en]:en; }
 
 // Clickable overlay on a finished diagram piece - only wired up on the done
 // screen (onEditStep is undefined during the wizard itself, where jumping
@@ -1888,7 +1938,7 @@ function FurnaceH({x,y,w,h,active,roofY,onEditStep,lang,vw,vh,blowerActive,is90,
     <BlowerWheel cx={x+w*0.25} cy={y+h*0.42} r={Math.min(w*0.21,h*0.29)}
       spd={blowerActive?1.6:0.5} active={blowerActive}
       onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
-    <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+    <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">{CT('BLOWER',lang)}</text>
     <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{blowerMotorLabel}</text>
     {/* Clamshell HX tubes - each is a stamped-steel cell, not a flat
         orange squiggle: a thin highlight riding the curve's upper edge
@@ -1919,7 +1969,7 @@ function FurnaceH({x,y,w,h,active,roofY,onEditStep,lang,vw,vh,blowerActive,is90,
         </>}
       </g>;
     })}
-    <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="13" fontFamily="monospace">HEAT EXCH.</text>
+    <text x={mid+w*0.25} y={y+h-4} textAnchor="middle" fill={active?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="13" fontFamily="monospace">{CT('HEAT EXCH.',lang)}</text>
     <HoverInfo x={mid} y={y} w={w/2} h={h} vw={vw} vh={vh}
       title={partInfo('heat_exchanger',lang).title} text={partInfo('heat_exchanger',lang).text}
       onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
@@ -1952,7 +2002,7 @@ function FurnaceH({x,y,w,h,active,roofY,onEditStep,lang,vw,vh,blowerActive,is90,
             :<path d={'M'+(fX-pW-2)+' '+(pipeTop+5)+' L'+fX+' '+(pipeTop-3)+' L'+(fX+pW+2)+' '+(pipeTop+5)} fill={pC} stroke={pS} strokeWidth="0.5"/>
           }
           <text x={fX+6} y={y-8} textAnchor="start"
-            fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">{is90?'PVC':'B-VENT'}</text>
+            fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">{is90?CT('PVC',lang):CT('B-VENT',lang)}</text>
         </g>
         {/* Flue hover - this run doesn't cross any other hover zone (see
             this block's own comment above), so it's safe to hit-test the
@@ -1962,7 +2012,7 @@ function FurnaceH({x,y,w,h,active,roofY,onEditStep,lang,vw,vh,blowerActive,is90,
           ringPath={flueD} ringStrokeWidth={pW+6}/>
       </>;
     })()}
-    {isComm&&<><rect x={x+4} y={y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={x+7} y={y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">COMMUNICATING</text></>}
+    {isComm&&<><rect x={x+4} y={y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={x+7} y={y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">{CT('COMMUNICATING',lang)}</text></>}
     <rect x={mid+4} y={y+11} width={36} height="8" rx="2" fill={is90?"rgba(35,137,224,.13)":(G+'.07)')} stroke={is90?(B+'.24)'):(G+'.16)')} strokeWidth="0.5"/>
     <text x={mid+22} y={y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="11" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
     <HoverInfo x={mid+2} y={y+9} w={40} h={12} rx={2} vw={vw} vh={vh}
@@ -2236,7 +2286,7 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanSp
               entirely, where it overlapped the outside-zone's "CONCRETE
               PAD"/"GROUND LEVEL" text underneath it. */}
           <text x={cX+cW/2} y={y+h-22} textAnchor="middle"
-            fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
+            fill={active?'rgba(180,80,80,.6)':"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">{CT('COMP.',lang)}</text>
           <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3}
             vw={vw} vh={vh} title={partInfo('compressor',lang).title} text={partInfo('compressor',lang).text}
             onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
@@ -2499,7 +2549,7 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanSp
               why the unclamped cY+cH+domeH+10 offset always falls domeH
               px below the cabinet's own bottom edge. */}
           <text x={cX+cW/2} y={y+h-22} textAnchor="middle"
-            fill={active?cc:"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">COMP.</text>
+            fill={active?cc:"rgba(80,85,95,.45)"} fontSize="11" fontFamily="monospace">{CT('COMP.',lang)}</text>
           <HoverInfo x={cX-6} y={cY-6} w={cW+12} h={cH+domeH+12} rx={3}
             vw={vw} vh={vh} title={partInfo('compressor',lang).title} text={partInfo('compressor',lang).text}
             onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
@@ -2523,7 +2573,7 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanSp
 // This one has zero closure dependencies beyond its own params (S is
 // already module-scope), so it was always trivially hoistable; it only
 // stayed nested because its one caller did.
-function AuxHeatKit({x,y,w,h,auxHeat,segCount}){
+function AuxHeatKit({x,y,w,h,auxHeat,segCount,lang}){
   segCount=segCount||4;
   const rectY=y, rectH=h*0.62;
   const rectX=x+w*0.03, rectW=w*0.94;
@@ -2544,7 +2594,7 @@ function AuxHeatKit({x,y,w,h,auxHeat,segCount}){
       </g>;
     })}
     <text x={x+w/2} y={y+h*0.92} textAnchor="middle"
-      fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize={Math.min(12,h*0.22)} fontFamily="monospace">AUX HEAT KIT</text>
+      fill={auxHeat?"rgba(249,115,22,.78)":(S+'.6)')} fontSize={Math.min(12,h*0.22)} fontFamily="monospace">{CT('AUX HEAT KIT',lang)}</text>
   </g>;
 }
 
@@ -2603,11 +2653,11 @@ function AirHandlerH({x,y,w,h,active,auxHeat,evapC,evapC2,hasUV,acoilInfoKey,blo
     <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}
       evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey}
       onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
-    <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(S+'.6)')} fontSize="13" fontFamily="monospace">A-COIL</text>
+    <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(S+'.6)')} fontSize="13" fontFamily="monospace">{CT('A-COIL',lang)}</text>
     <BlowerWheel cx={c1+blowerW/2} cy={y+h*0.42} r={Math.min(blowerW*0.32,h*0.29)}
       spd={blowerActive?1.5:0.45} active={blowerActive}
       onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
-    <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+    <text x={c1+blowerW/2} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">{CT('BLOWER',lang)}</text>
     <text x={c1+blowerW/2} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{blowerMotorLabel}</text>
     {/* Literally the same AuxHeatKit artwork the closet layout uses
         below (just called with this column's own width/height, since
@@ -2618,7 +2668,7 @@ function AirHandlerH({x,y,w,h,active,auxHeat,evapC,evapC2,hasUV,acoilInfoKey,blo
         instead of wide. See the AuxHeatKit comment for the rotation
         math this translate+rotate pair relies on. */}
     <g transform={`translate(${c2+3} ${y+8+(h-14)}) rotate(-90)`}>
-      <AuxHeatKit x={0} y={0} w={h-14} h={auxW-6} auxHeat={auxHeat}/>
+      <AuxHeatKit x={0} y={0} w={h-14} h={auxW-6} auxHeat={auxHeat} lang={lang}/>
     </g>
     <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
   </g>;
@@ -2673,7 +2723,7 @@ function Ionizer({bulbX, bulbY, rodLen}){
     {/* Plasma tip at rod end */}
     <circle cx={bulbX} cy={rodBot} r={3} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
     <text x={bulbX+14} y={bulbY} textAnchor="start"
-      fill="rgba(253,224,71,.48)" fontSize="11" fontFamily="monospace">IONIZER</text>
+      fill="rgba(253,224,71,.48)" fontSize="11" fontFamily="monospace">{CT('IONIZER',lang)}</text>
   </g>;
 }
 
@@ -2912,10 +2962,10 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,
               at the roofline (ry), not the literal top of the canvas. */}
           <rect x={pipe1X-2} y={ry} width={5} height={Math.max(0,BY-ry)} rx="1" fill={B+'.3)'} stroke={B+'.5)'} strokeWidth="0.8"/>
           <rect x={pipe1X-5} y={ry-4} width="11" height={5} rx="1" fill={B+'.35)'} stroke={B+'.55)'} strokeWidth="0.8"/>
-          <text x={pipe1X} y={ry-6} textAnchor="middle" fill={B+'.6)'} fontSize="12" fontFamily="monospace">IN</text>
+          <text x={pipe1X} y={ry-6} textAnchor="middle" fill={B+'.6)'} fontSize="12" fontFamily="monospace">{CT('IN',lang)}</text>
           <rect x={pipe2X-2} y={ry} width={5} height={Math.max(0,BY-ry)} rx="1" fill="rgba(249,115,22,.3)" stroke="rgba(249,115,22,.5)" strokeWidth="0.8"/>
           <path d={'M'+(pipe2X-4)+' '+(ry-2)+' L'+pipe2X+' '+(ry-9)+' L'+(pipe2X+4)+' '+(ry-2)} fill="rgba(249,115,22,.4)"/>
-          <text x={pipe2X} y={ry-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="12" fontFamily="monospace">OUT</text>
+          <text x={pipe2X} y={ry-11} textAnchor="middle" fill="rgba(249,115,22,.6)" fontSize="12" fontFamily="monospace">{CT('OUT',lang)}</text>
           {hangKit(r1X,ry,G+'.55)')}
           {hangKit(r2X,ry,G+'.55)')}
         </>
@@ -2930,13 +2980,13 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,
         // its RIGHT, one row, per direct feedback (matches the
         // DehumidistatWall's own droplet-and-reading layout change above).
         ?<>
-          <text x={BX+boxW/2-13} y={BY+BH/2+5} textAnchor="middle" fill="#22c55e" fontSize="14" fontFamily="monospace">DEHU</text>
+          <text x={BX+boxW/2-13} y={BY+BH/2+5} textAnchor="middle" fill="#22c55e" fontSize="14" fontFamily="monospace">{CT('DEHU',lang)}</text>
           <text x={BX+boxW/2+17} y={BY+BH/2+6} textAnchor="middle" fill="#22c55e" fontSize="15.5">💧</text>
         </>
         :<>
           <path d={'M'+(BX+8)+' '+(BY+BH*0.44)+' L'+(BX+boxW*0.52)+' '+(BY+BH*0.44)} fill="none" stroke={B+'.65)'} strokeWidth="1.6" markerEnd="url(#arr)"/>
           <path d={'M'+(BX+boxW-8)+' '+(BY+BH*0.64)+' L'+(BX+boxW*0.48)+' '+(BY+BH*0.64)} fill="none" stroke="rgba(249,115,22,.65)" strokeWidth="1.6" markerEnd="url(#arr)"/>
-          <text x={BX+boxW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize={boxW<70?"12.5":"14.5"} fontFamily="monospace">ERV</text>
+          <text x={BX+boxW/2} y={BY+BH*0.3} textAnchor="middle" fill={G+'.78)'} fontSize={boxW<70?"12.5":"14.5"} fontFamily="monospace">{CT('ERV',lang)}</text>
         </>
       }
       {/* No EditZone ever covers dehu/erv (StepFocusRing during the
@@ -3030,7 +3080,7 @@ function thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHe
 // and spans totalW total (individual button width = (totalW-gap*(n-1))/n)
 // so callers can grow the row for a 3rd button without touching the
 // thermostat face's own hardcoded coordinates.
-function ThermModeButtons({modes,cx,y,totalW,gap,h,fontSize}){
+function ThermModeButtons({modes,cx,y,totalW,gap,h,fontSize,lang}){
   const n=modes.length;
   const bw=(totalW-gap*(n-1))/n;
   const startX=cx-totalW/2;
@@ -3045,7 +3095,7 @@ function ThermModeButtons({modes,cx,y,totalW,gap,h,fontSize}){
           style={{cursor:'pointer'}} onClick={m.onClick}/>
         <text className="phase-color" x={bx+bw/2} y={y+h/2} textAnchor="middle" dominantBaseline="central"
           fontFamily="monospace" fontWeight="700" fontSize={fontSize}
-          fill={m.active?m.color:'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>{m.label}</text>
+          fill={m.active?m.color:'rgba(255,255,255,.45)'} style={{pointerEvents:'none'}}>{CT(m.label,lang)}</text>
       </React.Fragment>;
     })}
   </g>;
@@ -3584,7 +3634,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // communicates with the modulating gas valve / inverter compressor for
   // fine-grained staging. Shown as a small subtext line under "BLOWER",
   // the same convention already used for the furnace's AFUE badge.
-  const BLOWER_MOTOR={fedmin:'ECM MOTOR',mid_ge15:'VARIABLE SPEED',high_ge18:'MOD. VAR. SPEED'}[a.cond_tier]||'';
+  const BLOWER_MOTOR=CT({fedmin:'ECM MOTOR',mid_ge15:'VARIABLE SPEED',high_ge18:'MOD. VAR. SPEED'}[a.cond_tier]||'',lang);
 
   // ── SUB-COMPONENTS ──────────────────────────────────────────
   // BlowerWheel now lives at module scope, above Canvas - see its own
@@ -4005,7 +4055,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       <HoverCtx.Provider value={setHoverPart}>
       <GroupCtx.Provider value={groupApi}>
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
-        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME}/>}
+        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME} lang={lang}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid meet" className="canvas-svg" aria-hidden="true">
 
           {/* Full canvas background */}
@@ -4119,7 +4169,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {/* Moved down near the floor (was DECK_Y+18) - faint/decorative
               (9% opacity) background label, sits clear of the return
               grille/caption above it regardless of LIVING_SPACE's size. */}
-          <text x="22" y={VH-10} fill={W+'.09)'} fontSize="12" fontFamily="monospace" letterSpacing="0.8">LIVING SPACE</text>
+          <text x="22" y={VH-10} fill={W+'.09)'} fontSize="12" fontFamily="monospace" letterSpacing="0.8">{CT('LIVING SPACE',lang)}</text>
 
           {/* Return grille - duct trunk connects it down to the return plenum
               above instead of floating on its own ── */}
@@ -4140,7 +4190,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 stroke="rgba(255,182,193,.4)" strokeWidth="0.9"/>
             ))}
             <text x={RET_X+RET_PLEN_W/2} y={DECK_Y+21} textAnchor="middle"
-              fill="rgba(255,182,193,.6)" fontSize="12.5" fontFamily="monospace">RETURN</text>
+              fill="rgba(255,182,193,.6)" fontSize="12.5" fontFamily="monospace">{CT('RETURN',lang)}</text>
             {/* No EditZone covers this - free-standing hover, no onClick. */}
             <HoverInfo x={RET_X} y={DECK_Y-3} w={RET_PLEN_W} h={30} rx={3} vw={SVG_VW} vh={SVG_VH}
               title={T('return_grille').title} text={T('return_grille').text}/>
@@ -4157,7 +4207,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             })}
             <text x={RET_X+RET_PLEN_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
               fill="rgba(255,182,193,.52)" fontSize="13" fontFamily="monospace"
-              transform={`rotate(-45,${RET_X+RET_PLEN_W/2},${UNIT_Y+UNIT_H/2})`}>RETURN PLENUM</text>
+              transform={`rotate(-45,${RET_X+RET_PLEN_W/2},${UNIT_Y+UNIT_H/2})`}>{CT('RETURN PLENUM',lang)}</text>
             {/* Return-air temp - room-temp reading, opposite heat/cool
                 coloring from the supply-side temp on purpose, same
                 reasoning as this plenum's own airflow arrow below (this
@@ -4222,7 +4272,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             ))}
             <text x={APR_X+APR_W/2} y={UNIT_Y+UNIT_H/2+3} textAnchor="middle"
               fill="#22c55e" fontSize="13" fontFamily="monospace"
-              transform={`rotate(-90,${APR_X+APR_W/2},${UNIT_Y+UNIT_H/2})`}>FILTRATION</text>
+              transform={`rotate(-90,${APR_X+APR_W/2},${UNIT_Y+UNIT_H/2})`}>{CT('FILTRATION',lang)}</text>
             {/* No EditZone covers this - free-standing hover, no onClick. */}
             <HoverInfo x={APR_X} y={UNIT_Y} w={APR_W} h={UNIT_H} rx={2} vw={SVG_VW} vh={SVG_VH}
               title={T('filtration_cabinet').title} text={T('filtration_cabinet').text}/>
@@ -4249,10 +4299,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 blowerActive={blowerActive} is90={is90} isComm={isComm} blowerMotorLabel={BLOWER_MOTOR}/>;
             })()}
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+13} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="13.5" fontFamily="monospace">FURNACE</text>
+              fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="13.5" fontFamily="monospace">{CT('FURNACE',lang)}</text>
             <text x={FURN_X+FURN_W/2} y={UNIT_Y+UNIT_H+24} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="12" fontFamily="monospace">
-              {furnaceActive?"GAS HEATING ACTIVE":"STANDBY"}
+              {furnaceActive?CT('GAS HEATING ACTIVE',lang):CT('STANDBY',lang)}
             </text>
           </g>}
 
@@ -4294,8 +4344,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   there's enough of the run left to actually separate the
                   two - the hover tooltip (below) still covers this part
                   either way, so nothing is lost when it's hidden. */}
-              {teeY+15<=DECK_Y+14-14&&<text x={gasX+10} y={teeY+15} textAnchor="start" fill="rgba(180,180,180,.5)" fontSize="8" fontFamily="monospace">DRIP LEG</text>}
-              <text x={gasX} y={DECK_Y+14} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="11" fontFamily="monospace">GAS</text>
+              {teeY+15<=DECK_Y+14-14&&<text x={gasX+10} y={teeY+15} textAnchor="start" fill="rgba(180,180,180,.5)" fontSize="8" fontFamily="monospace">{CT('DRIP LEG',lang)}</text>}
+              <text x={gasX} y={DECK_Y+14} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="11" fontFamily="monospace">{CT('GAS',lang)}</text>
               <HoverInfo x={gasX-11} y={gasTopY-2} w={22} h={DECK_Y-gasTopY+18} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}
                 ringPath={gasD} ringStrokeWidth={9}/>
@@ -4320,8 +4370,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 fill="#e8e4da" stroke="#8a8578" strokeWidth="0.8"/>
               <rect x={swX-2.6} y={plateY-8} width="5.2" height="11" rx="1.4"
                 fill="#2a2a2a" stroke="#555" strokeWidth="0.5"/>
-              <text x={swX} y={plateY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">SERVICE</text>
-              <text x={swX} y={plateY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">SWITCH</text>
+              <text x={swX} y={plateY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">{CT('SERVICE',lang)}</text>
+              <text x={swX} y={plateY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">{CT('SWITCH',lang)}</text>
               <HoverInfo x={swX-plateW/2-3} y={plateY-plateH/2-3} w={plateW+6} h={plateH+22} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('service_switch').title} text={T('service_switch').text}/>
             </g>;
@@ -4367,7 +4417,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     for the supply ducts to drop straight down with nothing
                     in their way */}
                 <text x={ACOIL_X+ACOIL_W/2} y={UNIT_Y-16} textAnchor="middle"
-                  fill={active?evapC:(S+'.6)')} fontSize="13.5" fontFamily="monospace">A-COIL</text>
+                  fill={active?evapC:(S+'.6)')} fontSize="13.5" fontFamily="monospace">{CT('A-COIL',lang)}</text>
                 {/* Kept at the original 10px, unlike its sibling status
                     lines elsewhere in the diagram (font-size legibility
                     pass). This label is centered over a narrow coil box
@@ -4389,7 +4439,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     dead center. */}
                 <text className="phase-color" x={ACOIL_X+ACOIL_W/2+6} y={UNIT_Y-5} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):'rgba(255,255,255,.14)'} fontSize="10" fontFamily="monospace">
-                  {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):"STANDBY"}
+                  {active?(refReversed?CT('REJECTING HEAT',lang):CT('ABSORBING HEAT',lang)):CT('STANDBY',lang)}
                 </text>
               </>;
             })()}
@@ -4404,10 +4454,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             {/* Label above the unit, same as A-COIL - keeps the space below
                 clear for the condensate drain/pump instead of crowding it */}
             <text className="phase-color" x={AH_X+AH_W/2} y={UNIT_Y-16} textAnchor="middle"
-              fill={evapActive?evapC:(S+'.65)')} fontSize="13.5" fontFamily="monospace">AIR HANDLER</text>
+              fill={evapActive?evapC:(S+'.65)')} fontSize="13.5" fontFamily="monospace">{CT('AIR HANDLER',lang)}</text>
             <text className="phase-color" x={AH_X+AH_W/2} y={UNIT_Y-5} textAnchor="middle"
               fill={evapActive?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):(auxHeatActive?'rgba(249,115,22,.65)':'rgba(255,255,255,.14)')} fontSize="12" fontFamily="monospace">
-              {evapActive?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
+              {evapActive?(refReversed?CT('REJECTING HEAT',lang):CT('ABSORBING HEAT',lang)):(auxHeatActive?CT('AUX HEAT ONLY',lang):CT('STANDBY',lang))}
             </text>
           </g>}
           {hasCoil&&<EditZone stepId="indoor_type" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
@@ -4431,7 +4481,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 {!isExisting&&<PlenumMaterial x={SUP_X} y={SUP_PLEN_Y} w={SUP_PLEN_W} h={SUP_PLEN_H} isMetal={isMetal}/>}
                 <text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+3} textAnchor="middle"
                   fill={isExisting?(G+'.55)'):(G+'.52)')} fontSize="12.5" fontFamily="monospace">
-                  {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
+                  {isExisting?CT('EXISTING PLENUM',lang):isMetal?CT('METAL PLENUM',lang):CT('DUCTBOARD PLENUM',lang)}
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+16} textAnchor="middle"
                   fill={G+'.32)'} fontSize="11.5" fontFamily="monospace">4–8 FT SUPPLY</text>}
@@ -4477,7 +4527,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <line x1={ionX} y1={plenTop} x2={ionX} y2={plenTop+ionRodLen} stroke="rgba(253,224,71,.22)" strokeWidth={6} strokeLinecap="round" filter="url(#glow-uv)"/>
                     <line x1={ionX} y1={plenTop} x2={ionX} y2={plenTop+ionRodLen} stroke="rgba(253,224,71,.8)" strokeWidth={2} strokeLinecap="round"/>
                     <circle cx={ionX} cy={plenTop+ionRodLen} r={2.5} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
-                    <text x={ionX+14} y={ionBulbY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="11" fontFamily="monospace">IONIZER</text>
+                    <text x={ionX+14} y={ionBulbY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="11" fontFamily="monospace">{CT('IONIZER',lang)}</text>
                   </g>;
                 })()}
               </>;
@@ -4507,7 +4557,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <line x1={drainCoilCX} y1={drainCrossY} x2={drainWallX} y2={drainCrossY2}
               stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
             <text x={drainCoilCX+7} y={drainTopY+14} textAnchor="start"
-              fill={B+'.4)'} fontSize="12" fontFamily="monospace">DRAIN</text>
+              fill={B+'.4)'} fontSize="12" fontFamily="monospace">{CT('DRAIN',lang)}</text>
             {/* No EditZone covers this line run - free-standing hover, no
                 onClick. Loose bounding rect for the hit-test, ringPath
                 traces the real bent route for the visible ring, same
@@ -4532,7 +4582,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               const GW=DW+10;
               const pBot=SUP_PLEN_Y+SUP_PLEN_H;
               const FAN=36;
-              const grille=cx=><RegisterGrille cx={cx} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY" lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
+              const grille=cx=><RegisterGrille cx={cx} y={DECK_Y} w={GW} dc={DC} ds={DS} label={CT('SUPPLY',lang)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
               // Airflow arrow down the center of a duct stem - same idea as
               // the supply plenum's own internal arrows just above, so flow
               // reads continuously from plenum through the duct to the
@@ -4912,7 +4962,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 underneath it - see EditZone's own onClick above. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
               <ThermModeButtons modes={thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode)}
-                cx={38} y={THERM_BTN_Y[variant]} totalW={THERM_ROW_W} gap={4} h={17} fontSize={THERM_BTN_N===3?8.5:9.5}/>
+                cx={38} y={THERM_BTN_Y[variant]} totalW={THERM_ROW_W} gap={4} h={17} fontSize={THERM_BTN_N===3?8.5:9.5} lang={lang}/>
               {/* Caption moved below the COOL/HEAT row per direct feedback
                   ("wifi smart is in between the thermostat and the
                   buttons... that could go below too", "'Basic' wording can
@@ -5189,8 +5239,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 fill="#e8e4da" stroke="#8a8578" strokeWidth="0.8"/>
               <rect x={swX-2.6} y={plateY-8} width="5.2" height="11" rx="1.4"
                 fill="#2a2a2a" stroke="#555" strokeWidth="0.5"/>
-              <text x={swX} y={plateY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">SERVICE</text>
-              <text x={swX} y={plateY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">SWITCH</text>
+              <text x={swX} y={plateY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">{CT('SERVICE',lang)}</text>
+              <text x={swX} y={plateY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">{CT('SWITCH',lang)}</text>
               <HoverInfo x={swX-plateW/2-3} y={plateY-plateH/2-3} w={plateW+6} h={plateH+22} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('service_switch').title} text={T('service_switch').text}/>
             </g>;
@@ -5237,7 +5287,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const fibX=(!hasFurnace&&!hasCond)?HOUSE_W*0.32:HOUSE_W/2;
             if(!isSpray)return <g>
               <text x={fibX} y={VH-10} textAnchor="middle" style={{pointerEvents:'none'}}
-                fill="rgba(255,182,193,.6)" fontSize="12" fontFamily="monospace">FIBERGLASS INSULATION</text>
+                fill="rgba(255,182,193,.6)" fontSize="12" fontFamily="monospace">{CT('FIBERGLASS INSULATION',lang)}</text>
               <HoverInfo x={fibX-70} y={VH-10-12} w={140} h={18} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('insulation').title} text={T('insulation').text}/>
             </g>;
@@ -5284,7 +5334,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   cabinet tint elsewhere in this file - see their own
                   comments). */}
               <text x={sfX} y={sfY} textAnchor="middle" style={{pointerEvents:'none'}}
-                fill="rgba(232,236,246,.6)" fontSize="12" fontFamily="monospace">SPRAY FOAM INSULATION</text>
+                fill="rgba(232,236,246,.6)" fontSize="12" fontFamily="monospace">{CT('SPRAY FOAM INSULATION',lang)}</text>
               {/* No EditZone covers this - free-standing hover, no onClick.
                   ringPath (see sfRingPath's own comment above) makes the
                   visible ring match the tilted label; the hit-rect itself
@@ -5302,12 +5352,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               opacity) up into the clear sky band above the roof entirely,
               and bolded so it reads as an actual heading instead of a
               barely-there watermark. */}
-          {loc&&<text x={12} y={20} fill={G+'.85)'} fontSize="12" fontWeight="700" fontFamily="monospace" letterSpacing=".18em">LIVE SYSTEM PREVIEW</text>}
+          {loc&&<text x={12} y={20} fill={G+'.85)'} fontSize="12" fontWeight="700" fontFamily="monospace" letterSpacing=".18em">{CT('LIVE SYSTEM PREVIEW',lang)}</text>}
 
           {/* Empty state */}
           {!loc&&<g>
-            <text x={HOUSE_W/2} y={VH/2-10} textAnchor="middle" fill={G+'.12)'} fontSize="15.5" fontFamily="monospace">Choose your location to begin building</text>
-            <text x={HOUSE_W/2} y={VH/2+8} textAnchor="middle" fill={G+'.06)'} fontSize="13" fontFamily="monospace">Components assemble here in real time →</text>
+            <text x={HOUSE_W/2} y={VH/2-10} textAnchor="middle" fill={G+'.12)'} fontSize="15.5" fontFamily="monospace">{CT('Choose your location to begin building',lang)}</text>
+            <text x={HOUSE_W/2} y={VH/2+8} textAnchor="middle" fill={G+'.06)'} fontSize="13" fontFamily="monospace">{CT('Components assemble here in real time →',lang)}</text>
           </g>}
 
           {/* ── CURRENT-STEP SPOTLIGHT - see StepFocusRing's own comment
@@ -5531,7 +5581,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       <HoverCtx.Provider value={setHoverPart}>
       <GroupCtx.Provider value={groupApi}>
       <div ref={wrapRef} style={{position:'absolute',inset:0}}>
-        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME}/>}
+        {hasCoil&&<ToggleUI style={{position:'absolute',top:8,right:8,zIndex:10}} compactToggle={compactToggle} isDualFuel={isDualFuel} hasFurnace={hasFurnace} heatMode={heatMode} heatSubMode={heatSubMode} setHeatMode={setHeatMode} setHeatSubMode={setHeatSubMode} monthName={CURRENT_MONTH_NAME} lang={lang}/>}
         <svg viewBox={`0 0 ${VW} ${VH}`} className="canvas-svg" aria-hidden="true">
           <rect x="0" y="0" width={VW} height={VH} fill="#0b0d14"/>
           {/* Outside zone - brightest sunny, dimmer overcast, darkest cold,
@@ -5560,7 +5610,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           <rect x={UNIT_X-28} y={DECK_Y} width="4" height={VH-DECK_Y} fill="#0d0d0d"/>
           <rect x={UNIT_X+UNIT_W+28} y={DECK_Y} width="4" height={VH-DECK_Y} fill="#0d0d0d"/>
           <text x={UNIT_X+UNIT_W/2} y={DECK_Y+14} textAnchor="middle"
-            fill={W+'.1)'} fontSize="12" fontFamily="monospace" letterSpacing="1.5">UTILITY CLOSET</text>
+            fill={W+'.1)'} fontSize="12" fontFamily="monospace" letterSpacing="1.5">{CT('UTILITY CLOSET',lang)}</text>
 
           {/* ── LOW-PITCH ROOF - spans attic width ── */}
           {(()=>{
@@ -5609,7 +5659,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                       fill="rgba(234,238,246,.14)" stroke="rgba(234,238,246,.2)" strokeWidth=".5"
                       transform={`rotate(${ang},${sx},${sy+8})`}/>;
                   })}
-                  <text x="22" y={DECK_Y-24} fill="rgba(232,236,246,.3)" fontSize="12" fontFamily="monospace">SPRAY FOAM</text>
+                  <text x="22" y={DECK_Y-24} fill="rgba(232,236,246,.3)" fontSize="12" fontFamily="monospace">{CT('SPRAY FOAM',lang)}</text>
                 </>;
               })()}
             </g>
@@ -5618,7 +5668,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-8} rx={11} ry={7}
                   fill="rgba(255,182,193,.15)" stroke="rgba(255,182,193,.19)" strokeWidth=".4"/>
               ))}
-              <text x="22" y={DECK_Y-22} fill="rgba(255,182,193,.3)" fontSize="12" fontFamily="monospace">FIBERGLASS INSULATION</text>
+              <text x="22" y={DECK_Y-22} fill="rgba(255,182,193,.3)" fontSize="12" fontFamily="monospace">{CT('FIBERGLASS INSULATION',lang)}</text>
             </g>
           )}
           {/* No EditZone covers this - free-standing hover, no onClick.
@@ -5634,7 +5684,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <rect key={i} x={38+i*68} y={DECK_Y-2} width="10" height="7" rx="1"
               fill="rgba(90,68,32,.2)" stroke="rgba(108,82,36,.12)" strokeWidth="0.4"/>
           ))}
-          <text x="22" y="16" fill={W+'.14)'} fontSize="12" fontFamily="monospace" letterSpacing="0.8">ATTIC</text>
+          <text x="22" y="16" fill={W+'.14)'} fontSize="12" fontFamily="monospace" letterSpacing="0.8">{CT('ATTIC',lang)}</text>
 
 
 
@@ -5685,7 +5735,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     either label back down. */}
                 <text x={UNIT_X+PLEN_W/2} y={PLEN_TOP+PLEN_TOTAL*0.38+3} textAnchor="middle"
                   fill={isExisting?(G+'.55)'):(G+'.5)')} fontSize="11" fontFamily="monospace">
-                  {isExisting?'EXISTING PLENUM':isMetal?'METAL PLENUM':'DUCTBOARD PLENUM'}
+                  {isExisting?CT('EXISTING PLENUM',lang):isMetal?CT('METAL PLENUM',lang):CT('DUCTBOARD PLENUM',lang)}
                 </text>
                 {/* Supply-air temp - same mode-dependent reading as the
                     attic layout's own supply plenum. Shares this label's
@@ -5705,7 +5755,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                       strokeDasharray="6 4" className="airflow" style={{strokeDashoffset:0}}
                       markerEnd="url(#arr)"/>
                     <text x={ax} y={PLEN_TOP+PLEN_ABOVE*0.92} textAnchor="middle"
-                      fill={G+'.3)'} fontSize="12" fontFamily="monospace">SUPPLY</text>
+                      fill={G+'.3)'} fontSize={lang==='es'?"9":"12"} fontFamily="monospace">{CT('SUPPLY',lang)}</text>
                   </g>
                 ))}
                 {/* Ionizer - horizontal from right. Shows regardless of
@@ -5729,7 +5779,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <line x1={UNIT_X+PLEN_W} y1={rodY} x2={rodTip} y2={rodY} stroke="rgba(253,224,71,.22)" strokeWidth={8} strokeLinecap="round" filter="url(#glow-uv)"/>
                     <line x1={UNIT_X+PLEN_W} y1={rodY} x2={rodTip} y2={rodY} stroke="rgba(253,224,71,.8)" strokeWidth={2.2} strokeLinecap="round"/>
                     <circle cx={rodTip} cy={rodY} r={3} fill="rgba(253,224,71,.9)" className="glow-pulse"/>
-                    <text x={bulbX+18} y={rodY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="11" fontFamily="monospace">IONIZER</text>
+                    <text x={bulbX+18} y={rodY+4} textAnchor="start" fill="rgba(253,224,71,.45)" fontSize="11" fontFamily="monospace">{CT('IONIZER',lang)}</text>
                   </g>;
                 })()}
               </>;
@@ -5844,7 +5894,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <HoverInfo x={leftDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
                   vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
                   ringPath={`M${UNIT_X-3} ${exitY+DW/2} L${leftDropX+DW/2} ${exitY+DW/2} L${leftDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
-                <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY" lang={lang} vw={SVG_VW} vh={SVG_VH}/>
+                <RegisterGrille cx={leftDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label={CT('SUPPLY',lang)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
 
                 {/* ── RIGHT DUCT ── */}
                 {/* Horizontal run from plenum right face outward */}
@@ -5862,7 +5912,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <HoverInfo x={rightDropX-2} y={exitY} w={DW+4} h={DECK_Y-exitY} rx={2}
                   vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
                   ringPath={`M${UNIT_X+PLEN_W+3} ${exitY+DW/2} L${rightDropX+DW/2} ${exitY+DW/2} L${rightDropX+DW/2} ${DECK_Y-4}`} ringStrokeWidth={DW+8}/>
-                <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label="SUPPLY" lang={lang} vw={SVG_VW} vh={SVG_VH}/>
+                <RegisterGrille cx={rightDropX+DW/2} y={DECK_Y} w={GW} dc={DC} ds={DS} label={CT('SUPPLY',lang)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
               </>;
             })()}
           </g>}
@@ -5926,13 +5976,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                       stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
                     <line x1={UNIT_X} y1={ACOIL_Y+ACOIL_H*0.53} x2={UNIT_X+UNIT_W} y2={ACOIL_Y+ACOIL_H*0.53}
                       stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
-                    <AuxHeatKit x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.09} w={UNIT_W-28} h={ACOIL_H*0.14} auxHeat={auxHeatActive}/>
+                    <AuxHeatKit x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.09} w={UNIT_W-28} h={ACOIL_H*0.14} auxHeat={auxHeatActive} lang={lang}/>
                     <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.33}
                       r={Math.min(UNIT_W*0.24,ACOIL_H*0.105)}
                       spd={blowerActive?1.4:0.4} active={blowerActive}
                       onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.465} textAnchor="middle"
-                      fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+                      fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">{CT('BLOWER',lang)}</text>
                     <text x={UNIT_X+UNIT_W/2} y={ACOIL_Y+ACOIL_H*0.50} textAnchor="middle"
                       fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
                     <ACoilV x={UNIT_X+8} y={COIL_BOX_Y} w={UNIT_W-16} h={COIL_BOX_H} active={active}
@@ -5966,7 +6016,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     blower graphic. */}
                 <text className="phase-color" x={UNIT_X+UNIT_W/2} y={hasFurnace?(ACOIL_Y+ACOIL_H+APR_H+27):(ACOIL_Y+20)} textAnchor="middle"
                   fill={active?(refReversed?'rgba(239,68,68,.5)':'rgba(35,137,224,.46)'):(auxHeatActive?'rgba(249,115,22,.65)':'rgba(255,255,255,.14)')} fontSize="12" fontFamily="monospace">
-                  {active?(refReversed?"REJECTING HEAT":"ABSORBING HEAT"):(auxHeatActive?"AUX HEAT ONLY":"STANDBY")}
+                  {active?(refReversed?CT('REJECTING HEAT',lang):CT('ABSORBING HEAT',lang)):(auxHeatActive?CT('AUX HEAT ONLY',lang):CT('STANDBY',lang))}
                 </text>
               </>;
             })()}
@@ -6006,7 +6056,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 version's badge already overlaps its own HX curves) rather
                 than fight it for space. */}
             {isComm&&<><rect x={UNIT_X+6} y={FURN_Y+11} width={78} height="11" rx="2" fill="url(#blue)"/>
-              <text x={UNIT_X+9} y={FURN_Y+19.5} fill="#fff" fontSize="9" fontFamily="monospace">COMMUNICATING</text></>}
+              <text x={UNIT_X+9} y={FURN_Y+19.5} fill="#fff" fontSize="9" fontFamily="monospace">{CT('COMMUNICATING',lang)}</text></>}
             <rect x={UNIT_X+UNIT_W-46} y={FURN_Y+11} width={40} height="9" rx="2"
               fill={is90?"rgba(35,137,224,.13)":(G+'.07)')} stroke={is90?(B+'.24)'):(G+'.16)')} strokeWidth="0.5"/>
             <text x={UNIT_X+UNIT_W-26} y={FURN_Y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="9.5" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
@@ -6040,7 +6090,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 fill={O+'.55)'} className="glow-pulse" style={{animationDelay:i*0.12+'s'}}/>
             ))}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H/4+6} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="12.5" fontFamily="monospace">HEAT EXCH.</text>
+              fill={furnaceActive?'rgba(249,115,22,.75)':(S+'.6)')} fontSize="12.5" fontFamily="monospace">{CT('HEAT EXCH.',lang)}</text>
             {/* GAS HEATING ACTIVE / STANDBY status line - the attic
                 layout's FurnaceH has always shown this under its FURNACE
                 label; this closet furnace never did, so a straight-cool or
@@ -6055,7 +6105,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 widen. */}
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H/4+20} textAnchor="middle"
               fill={furnaceActive?'rgba(249,115,22,.44)':'rgba(255,255,255,.15)'} fontSize="9.5" fontFamily="monospace">
-              {furnaceActive?"GAS HEATING ACTIVE":"STANDBY"}
+              {furnaceActive?CT('GAS HEATING ACTIVE',lang):CT('STANDBY',lang)}
             </text>
             {/* BOTTOM: blower */}
             <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={FURN_Y+FURN_H*0.70}
@@ -6063,7 +6113,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               spd={blowerActive?1.55:0.5} active={blowerActive}
               onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-15} textAnchor="middle"
-              fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">BLOWER</text>
+              fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">{CT('BLOWER',lang)}</text>
             <text x={UNIT_X+UNIT_W/2} y={FURN_Y+FURN_H-6} textAnchor="middle"
               fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{BLOWER_MOTOR}</text>
             {/* Flue - 45° elbow routing:
@@ -6145,7 +6195,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   {!is90&&<path d={`M${HORIZ_X-PIPE_W-2} ${TOP_Y+4} L${HORIZ_X} ${TOP_Y-2} L${HORIZ_X+PIPE_W+2} ${TOP_Y+4}`} fill={PIPE_C}/>}
                   <text x={HORIZ_X} y={TOP_Y-6} textAnchor="middle"
                     fill={is90?"rgba(147,197,253,.5)":"rgba(148,148,148,.44)"} fontSize="11.5" fontFamily="monospace">
-                    {is90?'PVC':'B-VENT'}
+                    {is90?CT('PVC',lang):CT('B-VENT',lang)}
                   </text>
                 </g>
                 {/* Flue hover - only the two vertical segments (stub near
@@ -6161,7 +6211,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   ringPath={riserD} ringStrokeWidth={PIPE_W+6}/>
               </>;
             })()}
-            {isComm&&<><rect x={UNIT_X+4} y={FURN_Y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={UNIT_X+7} y={FURN_Y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">COMMUNICATING</text></>}
+            {isComm&&<><rect x={UNIT_X+4} y={FURN_Y+10} width={82} height="11" rx="2" fill="url(#blue)"/><text x={UNIT_X+7} y={FURN_Y+18.5} fill="#fff" fontSize="9.5" fontFamily="monospace">{CT('COMMUNICATING',lang)}</text></>}
             {/* Kept at the original 9.5px, unlike its sibling "FURNACE"
                 label in the attic layout - enlarging it widens the overlap
                 below.
@@ -6177,7 +6227,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 sliding right off dead-center only on the narrow layouts
                 where the two would actually collide. */}
             <text x={Math.max(UNIT_X+UNIT_W/2,flueExitX+8+6+20)} y={FURN_Y-13} textAnchor="middle"
-              fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="9.5" fontFamily="monospace">FURNACE</text>
+              fill={furnaceActive?'rgba(249,115,22,.78)':(S+'.65)')} fontSize="9.5" fontFamily="monospace">{CT('FURNACE',lang)}</text>
           </g>}
 
           {/* Gas line + drip leg - closet version enters from the wall on
@@ -6207,8 +6257,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               {/* Shutoff valve, toward the wall/supply side */}
               <circle cx={valveX} cy={gasY} r="4.2" fill="#242424" stroke="#5a5a5a" strokeWidth="0.8"/>
               <line x1={valveX} y1={gasY-6} x2={valveX} y2={gasY+6} stroke="#c0392b" strokeWidth="2.4" strokeLinecap="round"/>
-              <text x={gasX1+18} y={gasY-9} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="8.5" fontFamily="monospace">GAS</text>
-              <text x={teeX} y={gasY+24} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">DRIP LEG</text>
+              <text x={gasX1+18} y={gasY-9} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="8.5" fontFamily="monospace">{CT('GAS',lang)}</text>
+              <text x={teeX} y={gasY+24} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">{CT('DRIP LEG',lang)}</text>
               <HoverInfo x={gasX1-2} y={gasY-12} w={gasX2-gasX1+4} h={38} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}/>
             </g>;
@@ -6232,8 +6282,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 fill="#e8e4da" stroke="#8a8578" strokeWidth="0.8"/>
               <rect x={plateX+plateW/2-2.6} y={swY-8} width="5.2" height="11" rx="1.4"
                 fill="#2a2a2a" stroke="#555" strokeWidth="0.5"/>
-              <text x={plateX+plateW/2} y={swY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">SERVICE</text>
-              <text x={plateX+plateW/2} y={swY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">SWITCH</text>
+              <text x={plateX+plateW/2} y={swY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">{CT('SERVICE',lang)}</text>
+              <text x={plateX+plateW/2} y={swY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">{CT('SWITCH',lang)}</text>
               <HoverInfo x={plateX-3} y={swY-plateH/2-3} w={plateW+6} h={plateH+22} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('service_switch').title} text={T('service_switch').text}/>
             </g>;
@@ -6258,8 +6308,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 fill="#e8e4da" stroke="#8a8578" strokeWidth="0.8"/>
               <rect x={plateX+plateW/2-2.6} y={swY-8} width="5.2" height="11" rx="1.4"
                 fill="#2a2a2a" stroke="#555" strokeWidth="0.5"/>
-              <text x={plateX+plateW/2} y={swY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">SERVICE</text>
-              <text x={plateX+plateW/2} y={swY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">SWITCH</text>
+              <text x={plateX+plateW/2} y={swY+plateH/2+11} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="6.5" fontFamily="monospace">{CT('SERVICE',lang)}</text>
+              <text x={plateX+plateW/2} y={swY+plateH/2+19} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">{CT('SWITCH',lang)}</text>
               <HoverInfo x={plateX-3} y={swY-plateH/2-3} w={plateW+6} h={plateH+22} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('service_switch').title} text={T('service_switch').text}/>
             </g>;
@@ -6281,7 +6331,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 stroke="#22c55e" strokeWidth="0.6" opacity="0.52"/>
             ))}
             <text x={UNIT_X+UNIT_W/2} y={APR_Y+APR_H/2+3} textAnchor="middle"
-              fill="#22c55e" fontSize="12" fontWeight="700" fontFamily="monospace">FILTRATION CABINET</text>
+              fill="#22c55e" fontSize="12" fontWeight="700" fontFamily="monospace">{CT('FILTRATION CABINET',lang)}</text>
             {/* No EditZone covers this - free-standing hover, no onClick. */}
             <HoverInfo x={UNIT_X} y={APR_Y} w={UNIT_W} h={APR_H} rx={2} vw={SVG_VW} vh={SVG_VH}
               title={T('filtration_cabinet').title} text={T('filtration_cabinet').text}/>
@@ -6335,7 +6385,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               {returnTemp}°
             </text>
             <text x={UNIT_X+UNIT_W/2} y={VH-8} textAnchor="middle"
-              fill="rgba(138,98,42,.62)" fontSize="11.5" fontFamily="monospace">2×4 RETURN AIR CHASE</text>
+              fill="rgba(138,98,42,.62)" fontSize="11.5" fontFamily="monospace">{CT('2×4 RETURN AIR CHASE',lang)}</text>
             {/* No EditZone covers this - free-standing hover, no onClick.
                 Sized to the chase's own full visual box (CHASE_Y to VH,
                 matching the outer rect drawn above) rather than just a
@@ -6539,7 +6589,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 rx={3} vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
                 ringPath={drainD} ringStrokeWidth={9}/>}
               <text x={wallX2+6} y={slopeY-6} textAnchor="start"
-                fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">DRAIN</text>
+                fill={B+'.4)'} fontSize="11.5" fontFamily="monospace">{CT('DRAIN',lang)}</text>
               {/* Open terminus - a short downward drip stub + a dark
                   discharge point, same "this is where it lets out" cue the
                   old indoor terminus used, relocated to the actual outdoor
@@ -6612,7 +6662,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 underneath it - see EditZone's own onClick above. */}
             <g transform={`translate(${TX} ${TY}) scale(${THERM_TARGET_SCALE})`}>
               <ThermModeButtons modes={thermModes(isDualFuel,hasFurnace,heatMode,heatSubMode,setHeatMode,setHeatSubMode)}
-                cx={38} y={THERM_BTN_Y[variantC]} totalW={THERM_ROW_W_C} gap={4} h={17} fontSize={THERM_BTN_N_C===3?8.5:9.5}/>
+                cx={38} y={THERM_BTN_Y[variantC]} totalW={THERM_ROW_W_C} gap={4} h={17} fontSize={THERM_BTN_N_C===3?8.5:9.5} lang={lang}/>
               {/* Caption moved below the COOL/HEAT row - see the attic
                   thermostat's own identical comment above; same shared
                   THERM_CAP_Y/THERM_CAP_TEXT keeps this in lockstep with it. */}
