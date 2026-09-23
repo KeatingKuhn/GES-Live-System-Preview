@@ -950,7 +950,24 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    technicality. `!important` is required here since it's the only way a
    stylesheet rule outranks an inline style. */
 .attic-layout.out *{pointer-events:none!important}
-.attic-canvas-area{flex:1;min-height:0;position:relative;overflow:hidden}
+/* QA FIX - flex:1 alone means this ALWAYS eats exactly "container height
+   minus the bar's fixed 230px", and since .attic-layout is position:
+   absolute;inset:0, its container height IS the iframe's own rendered
+   box - so on the WordPress embed (height:100vh capped at a tall
+   max-height, e.g. 1150px) the canvas balloons to fill however much of
+   that the browser window doesn't already show, pushing .attic-bar's real
+   content down past the visible fold with no way to scroll to it (this
+   layout is deliberately non-scrolling - see .attic-bar-body/.attic-info's
+   own overflow:hidden comments). Confirmed via a live screenshot: the
+   indoor_type step's info-panel text ran off the bottom of the browser
+   window entirely. A fixed max-height keeps the canvas generously sized
+   without letting it grow in lockstep with an ever-taller iframe -
+   min-height:0 still lets it shrink below this on a genuinely short
+   container, same as before. Mobile already caps this via its own
+   height:auto/aspect-ratio/52vh rule below (max-width:1024px), which
+   fully overrides this at that breakpoint - this only affects desktop/
+   tablet-landscape. */
+.attic-canvas-area{flex:1;min-height:0;max-height:560px;position:relative;overflow:hidden}
 /* Fixed height (not min-height) on purpose - the bottom question bar reads
    as one stable panel across every step of the wizard, so its height
    shouldn't visibly shift depending on which question is showing or
