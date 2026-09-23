@@ -8043,6 +8043,27 @@
         setLeadUnlocked(true);
         trackLead({ form_id: GATE_CONFIG.gravityFormId });
       };
+      const stripParam = (loc2) => {
+        try {
+          const url = new URL(loc2.href);
+          if (!url.searchParams.has("ges_lead")) return;
+          url.searchParams.delete("ges_lead");
+          loc2 === window.location ? window.history.replaceState(null, "", url.pathname + url.search + url.hash) : window.parent.history.replaceState(null, "", url.pathname + url.search + url.hash);
+        } catch (e) {
+        }
+      };
+      if (new URLSearchParams(window.location.search).get("ges_lead") === "1") {
+        unlock();
+        stripParam(window.location);
+      } else {
+        try {
+          if (window.parent && window.parent !== window && new URLSearchParams(window.parent.location.search).get("ges_lead") === "1") {
+            unlock();
+            stripParam(window.parent.location);
+          }
+        } catch (e) {
+        }
+      }
       let parentJQ = null;
       try {
         if (window.parent && window.parent !== window && window.parent.jQuery) parentJQ = window.parent.jQuery;
@@ -8693,7 +8714,7 @@
       {
       }
       return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: isAtticMode ? 4 : 8, fontFamily: "var(--fm)" } }, tr("PRICING", "PRECIO"), " \xB7 ", tr("STEP", "PASO"), " ", pricingSubStep + 1, " ", tr("OF", "DE"), " ", subSteps.length), /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-row" : void 0, style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? tr("Get My Estimate", "Obtener Mi Estimado") : tr("Next", "Siguiente"))));
-    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, tr("Almost there - just one quick step", "Ya casi termina - solo un paso r\xE1pido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 12 } }, tr("Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else.", "Complete el formulario breve en esta p\xE1gina para desbloquear los precios - continuar\xE1 aqu\xED autom\xE1ticamente, sin necesidad de hacer clic en nada m\xE1s.")), /* @__PURE__ */ React.createElement(
+    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, tr("Almost there - just one quick step", "Ya casi termina - solo un paso r\xE1pido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 12 } }, tr("Scroll down on this page to find the short form - fill it out to unlock pricing. It continues right here automatically, no need to click anything else.", "Despl\xE1cese hacia abajo en esta p\xE1gina para encontrar el formulario breve - compl\xE9telo para desbloquear los precios. Continuar\xE1 aqu\xED autom\xE1ticamente, sin necesidad de hacer clic en nada m\xE1s.")), /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "btn-back",

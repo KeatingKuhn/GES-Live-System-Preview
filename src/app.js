@@ -205,14 +205,13 @@ function App(){
   // leadUnlocked is checked in the Get Pricing button's onClick below.
   // Skipped entirely (leadUnlocked stays true) when
   // GATE_CONFIG.gravityFormId is unset - see the comment on GATE_CONFIG
-  // in data.js. Two independent detection paths listen for the Gravity
-  // Forms submission, since this widget is an iframe embed and the form
-  // itself lives on the PARENT WordPress page, not inside this document:
-  //  1) Same-origin direct access - if the iframe and the WordPress page
-  //     are on the same domain, the browser allows reaching into
-  //     window.parent directly, so this binds Gravity Forms' own
-  //     gform_confirmation_loaded jQuery event straight off the parent
-  //     document.
+  // in data.js. THREE independent detection paths listen for the
+  // Gravity Forms submission:
+  //  1) Same-origin direct access - if this widget is embedded via
+  //     <iframe> on the same domain as the WordPress page, the browser
+  //     allows reaching into window.parent directly, so this binds
+  //     Gravity Forms' own gform_confirmation_loaded jQuery event
+  //     straight off the parent document.
   //  2) postMessage - works regardless of same/cross-origin, but needs a
   //     small snippet added to the WordPress page (NOT part of this
   //     repo) that relays that same gform_confirmation_loaded event into
@@ -224,10 +223,51 @@ function App(){
   //       });
   //     Add that inside a Script tag/Custom HTML block on the same page
   //     as the Gravity Forms form and this widget's iframe.
+  //  3) QA FIX - a redirect query param, checked once on mount. Paths 1
+  //     and 2 both depend on Gravity Forms submitting via AJAX, so its
+  //     confirmation HTML swaps in without a real page navigation and
+  //     that jQuery event actually fires. Direct feedback from a live
+  //     deploy: "filled it out, the page refreshed, and still wont let
+  //     me through" - confirmed the form was NOT in AJAX mode there, so
+  //     gform_confirmation_loaded never fires at all, no matter how this
+  //     widget is embedded, and the gate is stuck permanently (the
+  //     unlock that persists it to localStorage never runs). This path
+  //     needs no AJAX, no iframe, no same-origin access and no WordPress
+  //     snippet - only a native Gravity Forms setting: set Form 9's
+  //     Confirmation to "Redirect to a URL" -> the SAME page's URL with
+  //     `?ges_lead=1` appended (e.g. https://yoursite.com/build/?ges_lead=1).
+  //     On load, a real navigation to that URL is checked directly via
+  //     window.location.search (covers this widget being pasted straight
+  //     into the page, not just iframed) and, same-origin, via
+  //     window.parent.location.search (covers the iframe case, where the
+  //     redirect lands on the PARENT page carrying the iframe, which then
+  //     reloads too since the whole parent document navigated). Also
+  //     works as a graceful assist even WHEN AJAX is on on, so it's safe
+  //     to always check, not just as a fallback.
   const [leadUnlocked,setLeadUnlocked]=useState(()=>!GATE_CONFIG.gravityFormId||hasSubmittedLead());
   React.useEffect(()=>{
     if(!GATE_CONFIG.gravityFormId||leadUnlocked)return;
     const unlock=()=>{markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});};
+    const stripParam=loc=>{
+      try{
+        const url=new URL(loc.href);
+        if(!url.searchParams.has('ges_lead'))return;
+        url.searchParams.delete('ges_lead');
+        loc===window.location?
+          window.history.replaceState(null,'',url.pathname+url.search+url.hash):
+          window.parent.history.replaceState(null,'',url.pathname+url.search+url.hash);
+      }catch(e){/* replaceState best-effort only - never block the unlock over it */}
+    };
+    if(new URLSearchParams(window.location.search).get('ges_lead')==='1'){
+      unlock();stripParam(window.location);
+    }else{
+      try{
+        if(window.parent&&window.parent!==window&&
+          new URLSearchParams(window.parent.location.search).get('ges_lead')==='1'){
+          unlock();stripParam(window.parent.location);
+        }
+      }catch(e){/* cross-origin - window.parent.location access throws */}
+    }
     let parentJQ=null;
     try{
       if(window.parent&&window.parent!==window&&window.parent.jQuery) parentJQ=window.parent.jQuery;
@@ -1750,7 +1790,7 @@ function App(){
               {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
                 <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
                 <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
-                  {tr('Fill out the short form on this page to unlock pricing - it continues right here automatically, no need to click anything else.','Complete el formulario breve en esta página para desbloquear los precios - continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
+                  {tr('Scroll down on this page to find the short form - fill it out to unlock pricing. It continues right here automatically, no need to click anything else.','Desplácese hacia abajo en esta página para encontrar el formulario breve - complételo para desbloquear los precios. Continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
                 </div>
                 <button className="btn-back" style={{padding:isAtticMode?"6px 16px":"8px 16px",fontSize:isAtticMode?14:"var(--fs-pricing-fine)"}}
                   onClick={()=>setPricingFlow(null)}>‹ {tr('Back','Atrás')}</button>
