@@ -248,6 +248,25 @@ function App(){
   React.useEffect(()=>{
     if(!GATE_CONFIG.gravityFormId||leadUnlocked)return;
     const unlock=()=>{markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});};
+    // QA FIX - direct feedback from a live deploy: the ?ges_lead=1 path
+    // (see path 3's own comment above) means a REAL full-page reload just
+    // happened, which wipes React state - autosave had already captured
+    // the in-progress build (including pricingFlow:'leadgate') right
+    // before the Gravity Forms navigation away, so on remount that saved
+    // build is sitting behind the "Resume My Build?" prompt (resumePending
+    // starts true whenever a saved build exists - see its own useState
+    // above). The customer never actually abandoned anything; they just
+    // did exactly what the gate asked. Making them click ANOTHER button
+    // to get back to where they were read, in practice, as "it's just
+    // stuck" - resumeBuild() runs the exact same restore resumePending's
+    // own button would, so this skips straight past that extra prompt
+    // only for this specific "just returned from the lead form" case (the
+    // jQuery/postMessage paths below never trigger a real reload, so
+    // there's no stray prompt to skip for those).
+    const unlockAndResume=()=>{
+      unlock();
+      if(resumePending)resumeBuild();
+    };
     const stripParam=loc=>{
       try{
         const url=new URL(loc.href);
@@ -259,12 +278,12 @@ function App(){
       }catch(e){/* replaceState best-effort only - never block the unlock over it */}
     };
     if(new URLSearchParams(window.location.search).get('ges_lead')==='1'){
-      unlock();stripParam(window.location);
+      unlockAndResume();stripParam(window.location);
     }else{
       try{
         if(window.parent&&window.parent!==window&&
           new URLSearchParams(window.parent.location.search).get('ges_lead')==='1'){
-          unlock();stripParam(window.parent.location);
+          unlockAndResume();stripParam(window.parent.location);
         }
       }catch(e){/* cross-origin - window.parent.location access throws */}
     }

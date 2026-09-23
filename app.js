@@ -8043,6 +8043,10 @@
         setLeadUnlocked(true);
         trackLead({ form_id: GATE_CONFIG.gravityFormId });
       };
+      const unlockAndResume = () => {
+        unlock();
+        if (resumePending) resumeBuild();
+      };
       const stripParam = (loc2) => {
         try {
           const url = new URL(loc2.href);
@@ -8053,12 +8057,12 @@
         }
       };
       if (new URLSearchParams(window.location.search).get("ges_lead") === "1") {
-        unlock();
+        unlockAndResume();
         stripParam(window.location);
       } else {
         try {
           if (window.parent && window.parent !== window && new URLSearchParams(window.parent.location.search).get("ges_lead") === "1") {
-            unlock();
+            unlockAndResume();
             stripParam(window.parent.location);
           }
         } catch (e) {
