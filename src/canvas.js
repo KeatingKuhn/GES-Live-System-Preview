@@ -5154,7 +5154,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const ionBulbY=SUP_PLEN_Y-14;
             const ionRodLen=Math.round(SUP_PLEN_H*0.55);
             const ionRingPath=`M${ionX} ${ionBulbY} L${ionX} ${SUP_PLEN_Y+ionRodLen}`;
-            return <HoverInfo x={ionX-14} y={ionBulbY-14} w={14+72} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
+            // QA FIX - direct feedback "hover marker too big for the ionizer"
+            // on this (horizontal/attic) layout specifically. Measured the
+            // real rendered glyph (getBBox on every bulb/rod/label shape):
+            // the "IONIZER" label starts at ionX+14 and is ~47px wide, so
+            // its right edge sits at ~ionX+61 - but this box's right edge
+            // was ionX+72, an 11px empty strip past the label with nothing
+            // in it. Trimmed to ionX+64 (still ~3px of clearance past the
+            // label's real edge, same margin the top/left sides already
+            // carry - see ionBulbY-14 vs. the bulb's own r=12 glow). Left/
+            // top/bottom sides were already tight against the real glyph
+            // (measured 1-2px of padding) so only the width changed - the
+            // box must still reach the full rod length (ionRodLen) or the
+            // plenum's own hover (painted just before this one) wins back
+            // the rod's lower stretch, reintroducing the very bug the
+            // comment block above this one already fixed.
+            return <HoverInfo x={ionX-14} y={ionBulbY-14} w={14+64} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
               ringPath={ionRingPath} ringStrokeWidth={10}/>;
           })()}
@@ -6236,9 +6251,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const rodY=PLEN_TOP+PLEN_TOTAL*0.88;
             const rodTip=UNIT_X+PLEN_W-rodLen;
             const ionRingPath=`M${rodTip} ${rodY} L${bulbX} ${rodY}`;
+            // QA FIX - direct feedback "ionizer needs a bit more of a glow
+            // box on hover." ringStrokeWidth is the actual width of the
+            // soft halo HoverPanel's own ring() traces along ringPath (see
+            // that function's own comment on the wide/translucent pass vs.
+            // the thin/crisp pass on top) - it's the one knob that controls
+            // how much glow this ring reads as, so bumped 10 -> 14 (the
+            // hit-box itself is untouched; this is purely the visible
+            // highlight getting a bit thicker/more visible on hover).
             return <HoverInfo x={rodTip-4} y={rodY-18} w={(bulbX+82)-(rodTip-4)} h={36} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
-              ringPath={ionRingPath} ringStrokeWidth={10}/>;
+              ringPath={ionRingPath} ringStrokeWidth={14}/>;
           })()}
 
           {/* Upflow supply ducts - exit plenum sides, run long, drop to ceiling grille.

@@ -5390,7 +5390,7 @@
           {
             x: ionX - 14,
             y: ionBulbY - 14,
-            w: 14 + 72,
+            w: 14 + 64,
             h: SUP_PLEN_Y + ionRodLen - (ionBulbY - 14),
             rx: 3,
             vw: SVG_VW,
@@ -6392,7 +6392,7 @@
             title: T("ionizer").title,
             text: T("ionizer").text,
             ringPath: ionRingPath,
-            ringStrokeWidth: 10
+            ringStrokeWidth: 14
           }
         );
       })(), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "upflow-ducts", style: { animationDelay: ".2s" } }, (() => {
