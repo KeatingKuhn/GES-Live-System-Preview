@@ -1775,12 +1775,25 @@ function CondenserFan({cx,cy,r,active,speedMode,onEditStep,lang,vw,vh}){
 function ACoilH({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh}){
   const peakX=x+w, peakY=y+h/2; const n=8;
   const tc=active?evapC:'rgba(48,48,78,.8)';
-  const distX=peakX-5, distY=peakY+4;
+  // QA FIX - direct feedback "a-coil itself doesn't seem centered... both
+  // vertical and horizontal", after an earlier margin-only fix (centering
+  // the cabinet box around the coil) didn't resolve it. Root cause: each
+  // panel's own tip vertex pair was peakY/peakY+8 - both panels sharing
+  // the SAME two points - so the notch between the two chevron panels sat
+  // entirely BELOW peakY (the true vertical center), never symmetric
+  // around it. Measured via getBBox() on a real render: the top panel's
+  // own bbox was 8px taller than the bottom panel's (50.5 vs 42.5px),
+  // even though peakY is exactly y+h/2. Splitting the same 8px gap into
+  // peakY-4/peakY+4 makes each panel's own bbox equal (verified equal
+  // after this fix) and puts the visual notch - where a human's eye
+  // actually reads "center" - back on the true centerline, matching the
+  // UV rod's y (which was already exactly y+h/2 and needed no change).
+  const distX=peakX-5, distY=peakY;
   return <g>
-    <polygon points={`${x},${y} ${peakX},${peakY} ${peakX},${peakY+8} ${x},${y+12}`}
+    <polygon points={`${x},${y} ${peakX},${peakY-4} ${peakX},${peakY+4} ${x},${y+12}`}
       fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"}
       stroke={active?(evapC+'88'):(G+'.22)')} strokeWidth="0.9"/>
-    <polygon points={`${x},${y+h} ${peakX},${peakY} ${peakX},${peakY+8} ${x},${y+h-12}`}
+    <polygon points={`${x},${y+h} ${peakX},${peakY-4} ${peakX},${peakY+4} ${x},${y+h-12}`}
       fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"}
       stroke={active?(evapC2+'80'):(G+'.18)')} strokeWidth="0.9"/>
     {/* Aluminum fin pack - denser and a touch brighter than before (14
@@ -1847,13 +1860,22 @@ function ACoilH({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
 function ACoilV({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh}){
   const peakX=x+w/2, peakY=y; const n=7;
   const tc=active?evapC:'rgba(48,48,78,.8)';
-  const distX=peakX+4, distY=peakY+6;
+  // QA FIX - same root cause as ACoilH's own comment above, mirrored
+  // horizontally: both panels' tip vertices were peakX/peakX+8 (shared
+  // points), putting the notch between them entirely to the RIGHT of
+  // peakX (the true horizontal center) instead of straddling it.
+  // Measured via getBBox(): the left panel's own bbox was 8px wider than
+  // the right panel's (78 vs 70px), even though peakX is exactly
+  // x+w/2. Splitting into peakX-4/peakX+4 makes both panels' bboxes
+  // equal and recenters the visual notch on the true centerline, where
+  // the UV rod (already exactly x+w/2, unchanged) actually sits.
+  const distX=peakX, distY=peakY+6;
   const angL=Math.atan2(peakY-(y+h),peakX-x)*180/Math.PI;
   const angR=Math.atan2(peakY-(y+h),peakX-(x+w))*180/Math.PI;
   return <g>
-    <polygon points={`${x},${y+h} ${peakX},${peakY} ${peakX+8},${peakY} ${x+12},${y+h}`}
+    <polygon points={`${x},${y+h} ${peakX-4},${peakY} ${peakX+4},${peakY} ${x+12},${y+h}`}
       fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"} stroke={active?(evapC+'88'):(G+'.22)')} strokeWidth="0.9"/>
-    <polygon points={`${x+w},${y+h} ${peakX},${peakY} ${peakX+8},${peakY} ${x+w-12},${y+h}`}
+    <polygon points={`${x+w},${y+h} ${peakX-4},${peakY} ${peakX+4},${peakY} ${x+w-12},${y+h}`}
       fill={active?"rgba(4,10,28,.9)":"rgba(7,7,20,.9)"} stroke={active?(evapC2+'80'):(G+'.18)')} strokeWidth="0.9"/>
     {/* Aluminum fin pack - see ACoilH's own comment on the same density/
         brightness bump, mirrored here for the vertical A-frame. */}

@@ -2180,11 +2180,11 @@
     const peakX = x + w, peakY = y + h / 2;
     const n = 8;
     const tc = active ? evapC : "rgba(48,48,78,.8)";
-    const distX = peakX - 5, distY = peakY + 4;
+    const distX = peakX - 5, distY = peakY;
     return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
       "polygon",
       {
-        points: `${x},${y} ${peakX},${peakY} ${peakX},${peakY + 8} ${x},${y + 12}`,
+        points: `${x},${y} ${peakX},${peakY - 4} ${peakX},${peakY + 4} ${x},${y + 12}`,
         fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
         stroke: active ? evapC + "88" : G + ".22)",
         strokeWidth: "0.9"
@@ -2192,7 +2192,7 @@
     ), /* @__PURE__ */ React.createElement(
       "polygon",
       {
-        points: `${x},${y + h} ${peakX},${peakY} ${peakX},${peakY + 8} ${x},${y + h - 12}`,
+        points: `${x},${y + h} ${peakX},${peakY - 4} ${peakX},${peakY + 4} ${x},${y + h - 12}`,
         fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
         stroke: active ? evapC2 + "80" : G + ".18)",
         strokeWidth: "0.9"
@@ -2258,13 +2258,13 @@
     const peakX = x + w / 2, peakY = y;
     const n = 7;
     const tc = active ? evapC : "rgba(48,48,78,.8)";
-    const distX = peakX + 4, distY = peakY + 6;
+    const distX = peakX, distY = peakY + 6;
     const angL = Math.atan2(peakY - (y + h), peakX - x) * 180 / Math.PI;
     const angR = Math.atan2(peakY - (y + h), peakX - (x + w)) * 180 / Math.PI;
     return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
       "polygon",
       {
-        points: `${x},${y + h} ${peakX},${peakY} ${peakX + 8},${peakY} ${x + 12},${y + h}`,
+        points: `${x},${y + h} ${peakX - 4},${peakY} ${peakX + 4},${peakY} ${x + 12},${y + h}`,
         fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
         stroke: active ? evapC + "88" : G + ".22)",
         strokeWidth: "0.9"
@@ -2272,7 +2272,7 @@
     ), /* @__PURE__ */ React.createElement(
       "polygon",
       {
-        points: `${x + w},${y + h} ${peakX},${peakY} ${peakX + 8},${peakY} ${x + w - 12},${y + h}`,
+        points: `${x + w},${y + h} ${peakX - 4},${peakY} ${peakX + 4},${peakY} ${x + w - 12},${y + h}`,
         fill: active ? "rgba(4,10,28,.9)" : "rgba(7,7,20,.9)",
         stroke: active ? evapC2 + "80" : G + ".18)",
         strokeWidth: "0.9"
