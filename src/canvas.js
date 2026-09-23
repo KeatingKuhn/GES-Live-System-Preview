@@ -1846,11 +1846,22 @@ function ACoilH({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
     {/* UV-specific hover, painted AFTER (so it wins hover priority over)
         the whole-coil hover just above, matching the ringPath/priority
         convention used elsewhere in this file - otherwise hovering
-        directly over the rod just showed the generic A-coil copy. */}
+        directly over the rod just showed the generic A-coil copy.
+        QA FIX - direct feedback "center the hover ring on the UV light,
+        shrink both ring paths by 10%". The hit-zone's own y (rodCY-6,
+        h=16) put its vertical center at rodCY+2 - 2px below the rod's
+        real center - because the box was never re-centered after an
+        earlier width-only tweak. Added an explicit ringBox (the same
+        override the ionizer's own ring uses) so the ring can be
+        centered exactly on (rodCX,rodCY) and sized independently of
+        the hit-zone: 90% of the hit-zone's own w/h, same center. */}
     {hasUV&&(()=>{
       const rodLen=Math.min(w*0.70,w-12), rodCX=x+w*0.5, rodCY=y+h/2;
+      const ringW=(rodLen+8)*0.9, ringH=16*0.9;
+      const uvRingBox={x:rodCX-ringW/2,y:rodCY-ringH/2,w:ringW,h:ringH,rx:2.7};
       return <HoverInfo x={rodCX-rodLen/2-4} y={rodCY-6} w={rodLen+8} h={16} rx={3}
-        vw={vw} vh={vh} title={partInfo('uv_light',lang).title} text={partInfo('uv_light',lang).text}/>;
+        vw={vw} vh={vh} title={partInfo('uv_light',lang).title} text={partInfo('uv_light',lang).text}
+        ringBox={uvRingBox}/>;
     })()}
   </g>;
 }
@@ -1930,11 +1941,18 @@ function ACoilV({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
       title={partInfo(infoKey,lang).title} text={partInfo(infoKey,lang).text}
       onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
     {/* UV-specific hover, painted AFTER the whole-coil hover just above
-        so it wins - see ACoilH's own comment on this same pattern. */}
+        so it wins - see ACoilH's own comment on this same pattern.
+        QA FIX - "center the hover ring on the UV light, shrink both
+        ring paths by 10%" - this box was already centered exactly on
+        (rodCX,rodCY), so just an explicit ringBox at 90% of the
+        hit-zone's own w/h, same center, matching ACoilH's sibling fix. */}
     {hasUV&&(()=>{
       const rodCX=x+w*0.5, rodLen2=Math.min(h*0.75,h-12), rodCY=y+h/2;
+      const ringW=16*0.9, ringH=(rodLen2+8)*0.9;
+      const uvRingBox={x:rodCX-ringW/2,y:rodCY-ringH/2,w:ringW,h:ringH,rx:2.7};
       return <HoverInfo x={rodCX-8} y={rodCY-rodLen2/2-4} w={16} h={rodLen2+8} rx={3}
-        vw={vw} vh={vh} title={partInfo('uv_light',lang).title} text={partInfo('uv_light',lang).text}/>;
+        vw={vw} vh={vh} title={partInfo('uv_light',lang).title} text={partInfo('uv_light',lang).text}
+        ringBox={uvRingBox}/>;
     })()}
   </g>;
 }
@@ -5230,8 +5248,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const ionX=SUP_X+Math.round(SUP_PLEN_W*0.18);
             const ionBulbY=SUP_PLEN_Y-14;
             const ionRodLen=Math.round(SUP_PLEN_H*0.55);
-            const ionRingBox={x:ionX-12,y:ionBulbY-12,w:24,
-              h:(SUP_PLEN_Y+ionRodLen+3)-(ionBulbY-12),rx:8};
+            const ionBoxH=(SUP_PLEN_Y+ionRodLen+3)-(ionBulbY-12);
+            const ionBoxCY=(ionBulbY-12)+ionBoxH/2;
+            const ringW=24*0.9, ringH=ionBoxH*0.9;
+            const ionRingBox={x:ionX-ringW/2,y:ionBoxCY-ringH/2,w:ringW,h:ringH,rx:7.2};
             return <HoverInfo x={ionX-14} y={ionBulbY-14} w={78} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
               ringBox={ionRingBox}/>;
@@ -6322,8 +6342,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const bulbX=UNIT_X+PLEN_W+12;
             const rodY=PLEN_TOP+PLEN_TOTAL*0.88;
             const rodTip=UNIT_X+PLEN_W-rodLen;
-            const ionRingBox={x:rodTip-3,y:rodY-16,w:(bulbX+19)-(rodTip-3),
-              h:32,rx:8};
+            const ionBoxW=(bulbX+19)-(rodTip-3);
+            const ionBoxCX=(rodTip-3)+ionBoxW/2;
+            const ringW2=ionBoxW*0.9, ringH2=32*0.9;
+            const ionRingBox={x:ionBoxCX-ringW2/2,y:rodY-ringH2/2,w:ringW2,h:ringH2,rx:7.2};
             return <HoverInfo x={rodTip-4} y={rodY-18} w={(bulbX+82)-(rodTip-4)} h={36} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
               ringBox={ionRingBox}/>;

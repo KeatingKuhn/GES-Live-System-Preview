@@ -3656,6 +3656,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
     ), hasUV && (() => {
       const rodLen = Math.min(w * 0.7, w - 12), rodCX = x + w * 0.5, rodCY = y + h / 2;
+      const ringW = (rodLen + 8) * 0.9, ringH = 16 * 0.9;
+      const uvRingBox = { x: rodCX - ringW / 2, y: rodCY - ringH / 2, w: ringW, h: ringH, rx: 2.7 };
       return /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -3667,7 +3669,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           vw,
           vh,
           title: partInfo("uv_light", lang2).title,
-          text: partInfo("uv_light", lang2).text
+          text: partInfo("uv_light", lang2).text,
+          ringBox: uvRingBox
         }
       );
     })());
@@ -3741,6 +3744,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
     ), hasUV && (() => {
       const rodCX = x + w * 0.5, rodLen2 = Math.min(h * 0.75, h - 12), rodCY = y + h / 2;
+      const ringW = 16 * 0.9, ringH = (rodLen2 + 8) * 0.9;
+      const uvRingBox = { x: rodCX - ringW / 2, y: rodCY - ringH / 2, w: ringW, h: ringH, rx: 2.7 };
       return /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -3752,7 +3757,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           vw,
           vh,
           title: partInfo("uv_light", lang2).title,
-          text: partInfo("uv_light", lang2).text
+          text: partInfo("uv_light", lang2).text,
+          ringBox: uvRingBox
         }
       );
     })());
@@ -6812,13 +6818,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
         const ionBulbY = SUP_PLEN_Y - 14;
         const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-        const ionRingBox = {
-          x: ionX - 12,
-          y: ionBulbY - 12,
-          w: 24,
-          h: SUP_PLEN_Y + ionRodLen + 3 - (ionBulbY - 12),
-          rx: 8
-        };
+        const ionBoxH = SUP_PLEN_Y + ionRodLen + 3 - (ionBulbY - 12);
+        const ionBoxCY = ionBulbY - 12 + ionBoxH / 2;
+        const ringW = 24 * 0.9, ringH = ionBoxH * 0.9;
+        const ionRingBox = { x: ionX - ringW / 2, y: ionBoxCY - ringH / 2, w: ringW, h: ringH, rx: 7.2 };
         return /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
@@ -7811,13 +7814,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const bulbX = UNIT_X + PLEN_W + 12;
         const rodY = PLEN_TOP + PLEN_TOTAL * 0.88;
         const rodTip = UNIT_X + PLEN_W - rodLen;
-        const ionRingBox = {
-          x: rodTip - 3,
-          y: rodY - 16,
-          w: bulbX + 19 - (rodTip - 3),
-          h: 32,
-          rx: 8
-        };
+        const ionBoxW = bulbX + 19 - (rodTip - 3);
+        const ionBoxCX = rodTip - 3 + ionBoxW / 2;
+        const ringW2 = ionBoxW * 0.9, ringH2 = 32 * 0.9;
+        const ionRingBox = { x: ionBoxCX - ringW2 / 2, y: rodY - ringH2 / 2, w: ringW2, h: ringH2, rx: 7.2 };
         return /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
