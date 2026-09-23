@@ -5153,25 +5153,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const ionX=SUP_X+Math.round(SUP_PLEN_W*0.18);
             const ionBulbY=SUP_PLEN_Y-14;
             const ionRodLen=Math.round(SUP_PLEN_H*0.55);
-            const ionRingPath=`M${ionX} ${ionBulbY} L${ionX} ${SUP_PLEN_Y+ionRodLen}`;
-            // QA FIX - direct feedback "hover marker too big for the ionizer"
-            // on this (horizontal/attic) layout specifically. Measured the
-            // real rendered glyph (getBBox on every bulb/rod/label shape):
-            // the "IONIZER" label starts at ionX+14 and is ~47px wide, so
-            // its right edge sits at ~ionX+61 - but this box's right edge
-            // was ionX+72, an 11px empty strip past the label with nothing
-            // in it. Trimmed to ionX+64 (still ~3px of clearance past the
-            // label's real edge, same margin the top/left sides already
-            // carry - see ionBulbY-14 vs. the bulb's own r=12 glow). Left/
-            // top/bottom sides were already tight against the real glyph
-            // (measured 1-2px of padding) so only the width changed - the
-            // box must still reach the full rod length (ionRodLen) or the
-            // plenum's own hover (painted just before this one) wins back
-            // the rod's lower stretch, reintroducing the very bug the
-            // comment block above this one already fixed.
-            return <HoverInfo x={ionX-14} y={ionBulbY-14} w={14+64} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
+            // QA FIX - direct feedback "hover marker too big for the
+            // ionizer" persisted even after trimming the hit-box width
+            // (previous QA FIX, now superseded) - because a ringPath draws
+            // a thin TRACED LINE the full length of the rod, which reads
+            // as a long glowing wire running deep into the plenum, nothing
+            // like the small tight ring every other hoverable part (e.g.
+            // the UV rod on ACoilH, a few hundred lines up - see its own
+            // small `w={rodLen+8} h={16}` hover box with NO ringPath/
+            // ringBox override at all) shows. Direct feedback: "make the
+            // outline identical to the uv light just over the ionizer."
+            // Switched to a `ringBox` override instead of `ringPath`: the
+            // invisible HIT-BOX below is UNCHANGED (still spans the full
+            // rod length, x/y/w/h as before) - it has to, or the plenum's
+            // own hover (painted just before this one) wins back the
+            // rod's lower stretch, reintroducing the two-fixes-ago bug -
+            // but the RING drawn on hover now traces a small rect hugging
+            // just the bulb+label glyph (matching UV's own tight-box
+            // style exactly), not the rod's full reach into the plenum.
+            const ionRingBox={x:ionX-14,y:ionBulbY-14,w:78,h:28};
+            return <HoverInfo x={ionX-14} y={ionBulbY-14} w={78} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
-              ringPath={ionRingPath} ringStrokeWidth={10}/>;
+              ringBox={ionRingBox}/>;
           })()}
 
           {/* Secondary float switch - QA FIX, the pan shape got tried

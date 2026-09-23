@@ -5384,21 +5384,20 @@
         const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
         const ionBulbY = SUP_PLEN_Y - 14;
         const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-        const ionRingPath = `M${ionX} ${ionBulbY} L${ionX} ${SUP_PLEN_Y + ionRodLen}`;
+        const ionRingBox = { x: ionX - 14, y: ionBulbY - 14, w: 78, h: 28 };
         return /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: ionX - 14,
             y: ionBulbY - 14,
-            w: 14 + 64,
+            w: 78,
             h: SUP_PLEN_Y + ionRodLen - (ionBulbY - 14),
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("ionizer").title,
             text: T("ionizer").text,
-            ringPath: ionRingPath,
-            ringStrokeWidth: 10
+            ringBox: ionRingBox
           }
         );
       })(), hasCoil && hasCond && (() => {
