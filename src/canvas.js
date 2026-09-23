@@ -5213,24 +5213,21 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // just the bulb+label glyph (matching UV's own tight-box
             // style exactly), not the rod's full reach into the plenum.
             //
-            // QA FIX - "still too big" persisted even after the switch to
-            // ringBox, because this box (h=28) was sized to fully enclose
-            // the bulb's own OUTER diffuse glow circle (r=12, drawn at
-            // ionBulbY, so it spans ionBulbY-12..+12) - but UV's own box
-            // does NOT do that: measured via getBBox, UV's rod has a 22px-
-            // wide outer glow line that its own h=16 box doesn't fully
-            // contain either (it hugs the rod's core body/end-caps only
-            // and lets the soft outer glow bleed a few px past the ring,
-            // same as every other soft-glow part in this file). Re-measured
-            // this box the same way: the bulb's own CORE shape (the solid
-            // ellipse, not its outer glow ring) plus the label span
-            // ionBulbY-10..+10 (20px), not the outer glow's -12..+12
-            // (24px) - collapsing this box to that same core-only
-            // convention drops h from 28 to 22, letting the outer glow
-            // bleed past the ring exactly the same way UV's already does,
-            // instead of this being the one part whose box was sized to
-            // the glow instead of the glyph.
-            const ionRingBox={x:ionX-14,y:ionBulbY-12,w:78,h:22};
+            // QA FIX - direct feedback: "the hover box pops up over the
+            // word ionizer." Both prior sizing attempts still included
+            // the "IONIZER" text label INSIDE the ring - but UV has no
+            // on-canvas text label at all (its info is hover-only), so
+            // "identical to the UV light" really means the ring should
+            // trace the physical glyph alone, the same way UV's own ring
+            // never touches any text. Shrunk ionRingBox to just the
+            // bulb's own core ellipse (rx=9,ry=11, drawn in this block's
+            // sibling code above) plus a couple px of margin - the label
+            // sits entirely outside the ring now, exactly like UV's rod
+            // ring never reaches out to any label either. The invisible
+            // HIT-BOX below is untouched (still the full bulb+label+rod
+            // footprint, so hovering the word "IONIZER" itself still
+            // triggers the tooltip) - only the drawn ring shrank.
+            const ionRingBox={x:ionX-11,y:ionBulbY-12,w:22,h:24};
             return <HoverInfo x={ionX-14} y={ionBulbY-14} w={78} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
               ringBox={ionRingBox}/>;

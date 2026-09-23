@@ -5394,7 +5394,7 @@
         const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
         const ionBulbY = SUP_PLEN_Y - 14;
         const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-        const ionRingBox = { x: ionX - 14, y: ionBulbY - 12, w: 78, h: 22 };
+        const ionRingBox = { x: ionX - 11, y: ionBulbY - 12, w: 22, h: 24 };
         return /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
