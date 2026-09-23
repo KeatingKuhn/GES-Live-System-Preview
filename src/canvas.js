@@ -1793,9 +1793,13 @@ function ACoilH({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
     {active&&<circle cx={distX} cy={distY} r={2.5} fill={evapC} opacity="0.85" className="glow-pulse"/>}
     <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.2)'} strokeWidth="0.7"/>
     {/* UV rod - centered exactly in the > coil:
-        horizontal midline = y+h/2, depth center = x + w*0.45
-        rod runs horizontal, length ~9" at scale (46px) */}
-    {hasUV&&<UVRod x={x+w*0.48-Math.min(w*0.70,w-12)/2} y={y+h/2} len={Math.min(w*0.70,w-12)}/>}
+        horizontal midline = y+h/2, depth center = x + w*0.5
+        rod runs horizontal, length ~9" at scale (46px)
+        QA FIX - direct feedback "center the UV light inside of the
+        A-coil": was x+w*0.48 (2% of the coil's own width off-center,
+        a stale leftover from an earlier w*0.45 comment/formula that had
+        already drifted once before), now exactly x+w*0.5. */}
+    {hasUV&&<UVRod x={x+w*0.5-Math.min(w*0.70,w-12)/2} y={y+h/2} len={Math.min(w*0.70,w-12)}/>}
     {/* Sits inside the indoor_type EditZone box, same onClick-forwarding
         reasoning as BlowerWheel's own hover above. */}
     <HoverInfo x={x} y={y} w={w} h={h} rx={3} vw={vw} vh={vh}
@@ -1806,7 +1810,7 @@ function ACoilH({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
         convention used elsewhere in this file - otherwise hovering
         directly over the rod just showed the generic A-coil copy. */}
     {hasUV&&(()=>{
-      const rodLen=Math.min(w*0.70,w-12), rodCX=x+w*0.48, rodCY=y+h/2;
+      const rodLen=Math.min(w*0.70,w-12), rodCX=x+w*0.5, rodCY=y+h/2;
       return <HoverInfo x={rodCX-rodLen/2-4} y={rodCY-6} w={rodLen+8} h={16} rx={3}
         vw={vw} vh={vh} title={partInfo('uv_light',lang).title} text={partInfo('uv_light',lang).text}/>;
     })()}
@@ -2669,7 +2673,12 @@ function AirHandlerH({x,y,w,h,active,auxHeat,evapC,evapC2,hasUV,acoilInfoKey,blo
         stroke={S+'.38)'} strokeWidth="3" strokeLinecap="round"/>
     ))}
     <rect x={x+3} y={y+8} width={coilW-6} height={h-14} rx="2" fill={active?"rgba(4,8,22,.7)":"rgba(6,6,16,.7)"}/>
-    <ACoilH x={x+9} y={y+12} w={coilW-19} h={h-22} active={active}
+    {/* QA FIX - direct feedback "make sure the a-coil is symmetrical
+        and centered in its cabinet" - within this sub-cabinet
+        (x+3..x+coilW-3), the coil box's left/right margins were 6/7 (an
+        uneven 1px split); now 6.5/6.5 so it's dead-center left-to-right
+        (top/bottom were already exactly 4/4). */}
+    <ACoilH x={x+9.5} y={y+12} w={coilW-19} h={h-22} active={active}
       evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey}
       onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
     <text x={x+coilW/2} y={y+h-4} textAnchor="middle" fill={active?evapC:(S+'.6)')} fontSize="13" fontFamily="monospace">{CT('A-COIL',lang)}</text>
@@ -4463,7 +4472,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <CabinetRivet cx={ACOIL_X+18} cy={UNIT_Y+3.5}/>
                 <CabinetRivet cx={ACOIL_X+ACOIL_W-7} cy={UNIT_Y+3.5}/>
                 <CabinetLatch cx={ACOIL_X+ACOIL_W/2+5} cy={UNIT_Y+3.5} w={12}/>
-                <ACoilH x={ACOIL_X+8} y={UNIT_Y+12} w={ACOIL_W-16} h={UNIT_H-20} active={active}
+                {/* QA FIX - direct feedback "make sure the a-coil is
+                    symmetrical and centered in its cabinet" - the coil
+                    box's vertical margins were 12 top / 8 bottom (an
+                    uneven 4px split of the same -20 total height
+                    reduction); now split evenly at 10/10 so the coil
+                    sits dead-center in this cabinet top-to-bottom (the
+                    left/right margins were already exactly 8/8). */}
+                <ACoilH x={ACOIL_X+8} y={UNIT_Y+10} w={ACOIL_W-16} h={UNIT_H-20} active={active}
                   evapC={evapC} evapC2={evapC2} hasUV={hasUV} infoKey={acoilInfoKey()}
                   onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>
                 <rect x={ACOIL_X} y={UNIT_Y+UNIT_H-2} width={ACOIL_W} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.6"/>

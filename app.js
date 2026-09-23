@@ -2212,7 +2212,7 @@
     }), Array.from({ length: n }, (_, i) => {
       const t = (i + 0.5) / n, tx = x + (peakX - x) * t + 3, ty = y + h + (peakY - (y + h)) * t - 3;
       return /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement(CoilTube, { cx: tx, cy: ty, rotate: 22, fill: active ? evapC2 + "22" : "rgba(14,14,34,.8)", stroke: active ? evapC2 : tc, glow: evapC2, active, delay: (i + n) * 0.1 }), active && i % 3 === 2 && /* @__PURE__ */ React.createElement(CoilSweat, { cx: tx - 1.5, cy: ty + 3, delay: (i + n) * 0.3 }));
-    }), /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 5.5, fill: "#06061c", stroke: active ? evapC : G + ".3)", strokeWidth: "1.3" }), active && /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 2.5, fill: evapC, opacity: "0.85", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".2)", strokeWidth: "0.7" }), hasUV && /* @__PURE__ */ React.createElement(UVRod, { x: x + w * 0.48 - Math.min(w * 0.7, w - 12) / 2, y: y + h / 2, len: Math.min(w * 0.7, w - 12) }), /* @__PURE__ */ React.createElement(
+    }), /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 5.5, fill: "#06061c", stroke: active ? evapC : G + ".3)", strokeWidth: "1.3" }), active && /* @__PURE__ */ React.createElement("circle", { cx: distX, cy: distY, r: 2.5, fill: evapC, opacity: "0.85", className: "glow-pulse" }), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".2)", strokeWidth: "0.7" }), hasUV && /* @__PURE__ */ React.createElement(UVRod, { x: x + w * 0.5 - Math.min(w * 0.7, w - 12) / 2, y: y + h / 2, len: Math.min(w * 0.7, w - 12) }), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x,
@@ -2227,7 +2227,7 @@
         onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
       }
     ), hasUV && (() => {
-      const rodLen = Math.min(w * 0.7, w - 12), rodCX = x + w * 0.48, rodCY = y + h / 2;
+      const rodLen = Math.min(w * 0.7, w - 12), rodCX = x + w * 0.5, rodCY = y + h / 2;
       return /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -3482,7 +3482,7 @@
     )), /* @__PURE__ */ React.createElement("rect", { x: x + 3, y: y + 8, width: coilW - 6, height: h - 14, rx: "2", fill: active ? "rgba(4,8,22,.7)" : "rgba(6,6,16,.7)" }), /* @__PURE__ */ React.createElement(
       ACoilH,
       {
-        x: x + 9,
+        x: x + 9.5,
         y: y + 12,
         w: coilW - 19,
         h: h - 22,
@@ -4903,7 +4903,7 @@
           ACoilH,
           {
             x: ACOIL_X + 8,
-            y: UNIT_Y + 12,
+            y: UNIT_Y + 10,
             w: ACOIL_W - 16,
             h: UNIT_H - 20,
             active,
