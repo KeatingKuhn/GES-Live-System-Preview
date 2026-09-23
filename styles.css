@@ -154,6 +154,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    inline so the max-width:1024px block below can put it back to full
    width once the layout stacks. */
 .done-screen.closet-mode>.sidebar{width:384px}
+/* Attic's counterpart: a fixed-height bar under the full-width diagram
+   (was inline in app.js, where it beat the max-width:1024px override
+   below and left stacked tablets/phones with a 240px scroll box). */
+.done-screen.attic-mode>.sidebar{height:240px;flex-shrink:0}
+/* The embedded lead-capture form (GATE_CONFIG.embedFormUrl) is ~370px
+   tall on its own - inside the 240px bar only its first field showed,
+   with the rest (and Submit) behind a nested scroll, at the single most
+   important step of the funnel. The bar grows while that form is up
+   (the diagram shrinks to fit, same flex:1 trade as the 240px itself)
+   and drops straight back to 240px once pricing unlocks. */
+.done-screen.attic-mode.lead-form-open>.sidebar{height:min(560px,62%)}
 /* Clicking an EDIT chip drops `done` back to false to jump into the
    wizard - previously an instant unmount with nothing for a CSS
    transition to animate. App.js now keeps this screen mounted for one
@@ -1124,6 +1135,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   /* Undo the desktop 384px review-panel width once stacked (same
      specificity as the base rule, later in the file, so this wins). */
   .done-screen.closet-mode>.sidebar{width:100%}
+  /* Attic, stacked: the diagram frame above is capped to its own aspect
+     (see .done-canvas-frame below), so the review panel takes whatever
+     height is left instead of a fixed 240px - that fixed box left ~430px
+     of dead black space under it on a 768x1024 tablet (Financing/Save/
+     Start Over hidden in a tiny scroller), and on a 844x390 landscape
+     phone it ran ~30px past the bottom of the screen, clipping Start
+     Over. min-height:0 lets it shrink and scroll when space is tight. */
+  .done-screen.attic-mode>.sidebar,.done-screen.attic-mode.lead-form-open>.sidebar{height:auto;flex:1 1 auto;min-height:0;max-height:none}
   /* Attic's done-screen canvas wrapper (.done-canvas-frame) has no height
      rule of its own - unlike the wizard's .attic-canvas-area above, it's
      bare flex:1 (see app.js), which happily fills whatever's left after

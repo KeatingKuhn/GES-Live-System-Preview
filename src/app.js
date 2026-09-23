@@ -245,9 +245,25 @@ function App(){
   //     works as a graceful assist even WHEN AJAX is on on, so it's safe
   //     to always check, not just as a fallback.
   const [leadUnlocked,setLeadUnlocked]=useState(()=>!GATE_CONFIG.gravityFormId||hasSubmittedLead());
+  // QA FIX - direct feedback: a SECOND ?ges_lead=1 arrival (the customer
+  // re-submits the form from the sizing/result screen, or re-opens the
+  // redirect URL/email link after already unlocking) used to hit the
+  // effect below's own `||leadUnlocked` early return before the param was
+  // even checked - leadUnlocked initializes true from hasSubmittedLead()
+  // on this remount, so the check, the resume, and stripParam all got
+  // skipped, leaving the stale param in the address bar and "Resume My
+  // Build?" showing again instead of silently landing back on the build.
+  // This ref makes the param check itself run exactly once per page load
+  // regardless of unlock state - unlock()/trackLead below still only fire
+  // when not already unlocked, so a repeat arrival never double-reports.
+  const gesLeadCheckedRef=useRef(false);
   React.useEffect(()=>{
-    if(!GATE_CONFIG.gravityFormId||leadUnlocked)return;
-    const unlock=()=>{markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});};
+    if(!GATE_CONFIG.gravityFormId||gesLeadCheckedRef.current)return;
+    gesLeadCheckedRef.current=true;
+    const unlock=()=>{
+      if(hasSubmittedLead())return;
+      markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});
+    };
     // QA FIX - direct feedback from a live deploy: the ?ges_lead=1 path
     // (see path 3's own comment above) means a REAL full-page reload just
     // happened, which wipes React state - autosave had already captured
@@ -287,6 +303,10 @@ function App(){
         }
       }catch(e){/* cross-origin - window.parent.location access throws */}
     }
+  },[]);
+  React.useEffect(()=>{
+    if(!GATE_CONFIG.gravityFormId||leadUnlocked)return;
+    const unlock=()=>{markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});};
     let parentJQ=null;
     try{
       if(window.parent&&window.parent!==window&&window.parent.jQuery) parentJQ=window.parent.jQuery;
@@ -649,7 +669,7 @@ function App(){
       {step:"plenum",label:tr("Plenum","Plenum"),val:answers.plenum==="ductboard"?tr("New ductboard plenum","Nuevo plenum de ductboard"):answers.plenum==="metal"?tr("New sheet metal plenum","Nuevo plenum de lámina metálica"):answers.plenum==="none"?tr("Keep existing plenum","Conservar el plenum actual"):null},
       {step:"thermostat",label:tr("Thermostat","Termostato"),
         val:answers.thermostat==="wifi"?tr("Wi-Fi smart thermostat","Termostato inteligente Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating Thermostat","Termostato comunicante"):null,
-        short:answers.thermostat==="wifi"?tr("Wifi","Wifi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating","Comunicante"):null},
+        short:answers.thermostat==="wifi"?tr("Wi-Fi smart","Wi-Fi inteligente"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating","Comunicante"):null},
       Array.isArray(answers.purif)&&answers.purif.length>0?{step:"purif",label:tr("Add-ons","Complementos"),
         val:answers.purif.map(v=>v==="aprilaire"?tr("Enhanced Filtration Cabinet","Gabinete de filtración mejorada"):v==="uv"?tr("UV Light","Luz UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge protector","Protector de sobrevoltaje"):v).join(" + "),
         // Aggressively shortened vs. val above - by the review grid, the
@@ -1407,7 +1427,7 @@ function App(){
           entirely (doneVisible false), so there's no stray Tab stop to guard
           against outside that one closing beat. Same reasoning as the
           .splash-screen comment above. */}
-      {doneVisible&&<div ref={doneScreenRef} className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
+      {doneVisible&&<div ref={doneScreenRef} className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(pricingFlow==='leadgate'&&GATE_CONFIG.embedFormUrl?" lead-form-open":"")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
         {/* flex itself lives in styles.css (.done-canvas-frame), not here -
             an inline style always wins over any stylesheet rule regardless
             of specificity, which silently defeated the mobile height cap
@@ -1435,8 +1455,12 @@ function App(){
             max-width:1024px media query's .sidebar{width:100%}, which
             left the stacked tablet/phone layout stuck with a 384px-wide
             panel (half-width on a 768px tablet, clipped past the edge on
-            a 375px phone). */}
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"240px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+            a 375px phone). Attic's 240px height moved to styles.css
+            (.done-screen.attic-mode>.sidebar) for the same reason: inline,
+            it beat every media query, so a stacked tablet/phone kept a
+            240px scroll box with dead black space below it (768x1024) or
+            ran past the bottom of the screen (844x390 landscape). */}
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           {/* PRINT LETTERHEAD - invisible on-screen (.print-letterhead is
               display:none outside @media print, see styles.css), a sibling
               of .done-wrap rather than a child of it specifically so it
@@ -2089,14 +2113,14 @@ function App(){
                   office + a copy to yourself" - this one stays the original
                   blank-recipient mailto (opens the customer's own mail app,
                   nothing pre-addressed) for the "copy to yourself" half. */}
-              <a href={buildEmailHref()} onClick={()=>trackEvent('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box"}}>✉ {tr('Email a Copy to Yourself','Enviar Copia a Mi Correo')}</a>
+              <a href={buildEmailHref()} onClick={()=>trackEvent('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Email a Copy to Yourself','Enviar Copia a Mi Correo')}</a>
               {/* QA FIX - "send to our office" half of the same pair - mailto:
                   pre-addressed to OFFICE_EMAIL (data.js), same build content
                   as the button above via the same buildEmailHref(). Ships
                   hidden (same "no config = no button" convention as
                   FINANCING_OPTIONS) until the site owner fills in the real
                   office inbox. */}
-              {OFFICE_EMAIL&&<a href={buildEmailHref(OFFICE_EMAIL)} onClick={()=>trackEvent('email_office_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box"}}>✉ {tr('Send to Our Office','Enviar a Nuestra Oficina')}</a>}
+              {OFFICE_EMAIL&&<a href={buildEmailHref(OFFICE_EMAIL)} onClick={()=>trackEvent('email_office_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Send to Our Office','Enviar a Nuestra Oficina')}</a>}
               {/* QA FIX - this drops back into the wizard's last step, same
                   as goBack's own "past step 1" branch and pickLocation/
                   restart/cancelQuickEdit all do - but unlike every one of
