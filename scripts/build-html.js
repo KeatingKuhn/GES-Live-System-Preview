@@ -20,9 +20,14 @@ const js = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 const safeCss = css.replace(/<\/style>/gi, '<\\/style>');
 const safeJs = js.replace(/<\/script>/gi, '<\\/script>');
 
+// Function replacers, not plain strings: a string replacement treats
+// `$$`, `$&`, `$'` and `` $` `` inside it as special patterns, which
+// silently collapsed every `$${...}` template literal in the bundle
+// (e.g. `(+$${price})`) to `${...}` - dropping the dollar sign from the
+// labor-warranty/maintenance-plan checkboxes and the emailed estimate.
 const out = template
-  .replace('/*__STYLES__*/', safeCss)
-  .replace('/*__SCRIPT__*/', safeJs);
+  .replace('/*__STYLES__*/', () => safeCss)
+  .replace('/*__SCRIPT__*/', () => safeJs);
 
 fs.writeFileSync(path.join(root, 'index.html'), out);
 console.log(`index.html  ${(out.length / 1024).toFixed(1)}kb (self-contained)`);

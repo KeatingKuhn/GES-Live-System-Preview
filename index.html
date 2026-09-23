@@ -1288,6 +1288,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      at its own aspect ratio (not stretched to fill the page) so the
      equipment layout still reads correctly instead of distorting. */
   .done-canvas-frame{display:block!important;width:100%!important;height:auto!important;aspect-ratio:2.5;max-height:80vh;page-break-after:always;margin-bottom:8px;border:1px solid #999}
+  /* Closet's diagram is the tall/narrow one - squeezed into attic's wide
+     2.5 frame it printed tiny with its bottom (blower/return chase/ground
+     line) cropped off. A squarer frame fits the whole upflow stack. */
+  .done-screen.closet-mode .done-canvas-frame{aspect-ratio:1.25}
   /* .prog-chapters (the gold segmented step-progress bar) sits at the App
      root, position:absolute, outside every element this block already
      hides - so it was never caught by those rules and printed as a stray
@@ -1297,6 +1301,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      on-screen wizard-progress chrome with no meaning on a printed price
      sheet, same category as the nav buttons already hidden below. */
   .prog-chapters{display:none!important}
+  /* PRINT QA FIX - body::after is the full-viewport CRT scanline overlay
+     (z-index:9999, a repeating-linear-gradient background). With the
+     print dialog's "Background graphics" unchecked - Chrome's default -
+     Chromium drops the gradient but still paints that box as solid
+     white, on top of everything, on every page: Save/Print produced a
+     completely blank PDF (text still selectable underneath, nothing
+     visible). Screen-only texture, so it simply doesn't print. */
+  body::after{display:none!important}
   .sidebar{border:none!important}
   .done-wrap{animation:none!important}
   .btn-back,.btn-next,.btn-skip,.info-btn,.done-restart,.no-print{display:none!important}
@@ -9744,9 +9756,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         if (est) {
           lines.push("");
           lines.push(tr("Price breakdown:", "Desglose de precio:"));
-          est.lines.forEach((l) => lines.push(`  ${trLineLabel(l)}: ~${l.display.toLocaleString()}`));
+          est.lines.forEach((l) => lines.push(`  ${trLineLabel(l)}: ~$${l.display.toLocaleString()}`));
           lines.push("");
-          lines.push(tr(`Estimated total: ~${est.display.toLocaleString()}`, `Total estimado: ~${est.display.toLocaleString()}`));
+          lines.push(tr(`Estimated total: ~$${est.display.toLocaleString()}`, `Total estimado: ~$${est.display.toLocaleString()}`));
         }
       }
       lines.push("");
@@ -10138,14 +10150,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           checked: !!pricingAnswers.wantLaborWarranty,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantLaborWarranty: e.target.checked }))
         }
-      ), tr(`Add a 10-year labor warranty (+${PRICING.laborWarranty10yr.toLocaleString()})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+${PRICING.laborWarranty10yr.toLocaleString()})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add a 10-year labor warranty (+$${PRICING.laborWarranty10yr.toLocaleString()})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+$${PRICING.laborWarranty10yr.toLocaleString()})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantMaintenancePlan,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantMaintenancePlan: e.target.checked }))
         }
-      ), tr(`Add our annual maintenance plan (+${PRICING.maintenancePlanAnnual.toLocaleString()}/yr)`, `Agregar nuestro plan de mantenimiento anual (+${PRICING.maintenancePlanAnnual.toLocaleString()}/a\xF1o)`)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", lineHeight: 1.5, margin: "3px 0 10px 24px" } }, tr(
+      ), tr(`Add our annual maintenance plan (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/yr)`, `Agregar nuestro plan de mantenimiento anual (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/a\xF1o)`)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", lineHeight: 1.5, margin: "3px 0 10px 24px" } }, tr(
         "Includes 2 seasonal tune-ups (AC + heating), priority scheduling, 10% off repairs, waived consultation fees, a free coil cleaning & drain flush, and one free service call for friends or family.",
         "Incluye 2 afinaciones estacionales (A/C y calefacci\xF3n), programaci\xF3n prioritaria, 10% de descuento en reparaciones, consultas sin cargo, limpieza de serpent\xEDn y purga de drenaje gratis, y una visita de servicio gratis para amigos o familiares."
       )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
