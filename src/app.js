@@ -1217,7 +1217,20 @@ function App(){
               {quickEdit?(quickEditWillFinish?tr("Save & Return →","Guardar y volver →"):tr("Next →","Siguiente →")):(stepIdx===activeSteps.length-1?tr("Finish →","Finalizar →"):tr("Next →","Siguiente →"))}
             </button>
           </div>
-          <div className={"info-collapse attic-info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
+          {/* QA FIX - showInfo/infoText are shared state, but BOTH layouts'
+              info-collapse render unconditionally (only their shared
+              ancestor's opacity/pointer-events hide whichever one isn't
+              active - see the .attic-layout/.closet-layout comment above).
+              Gating "open" here on isAtticMode too (not just showInfo&&
+              infoText) stops this hidden-but-still-classed "open" state
+              from carrying over: without it, tapping/focusing the info
+              button on one layout and then switching layouts at the same
+              step (no stepIdx change, so the step-change reset just above
+              never fires) landed on the OTHER layout already showing its
+              info panel open - a real, if narrow, version of the exact
+              "auto-open unprompted" bug already fixed once for the normal
+              per-step case (see this file's showInfo state comment). */}
+          <div className={"info-collapse attic-info-collapse"+(isAtticMode&&showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
             {infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)"}}>{infoText}</div>}
           </div></div>
         </div>
@@ -1272,7 +1285,11 @@ function App(){
               .step-hdr instead, it only pushes .opts down slightly in
               normal flow - .opts already scrolls independently. */}
           {reactionText&&<div key={reactionText} className="reaction-line" style={{padding:"4px 18px 0"}}>✓ {reactionText}</div>}
-          <div className={"info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
+          {/* QA FIX - see the attic layout's own .attic-info-collapse
+              comment above: gated on isClosetMode too so this hidden
+              layout's copy can't carry an "open" class over from the
+              other layout when they're swapped at the same step. */}
+          <div className={"info-collapse"+(isClosetMode&&showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
             {infoText&&<div className="info-expand"><div className="info-body">{infoText}</div></div>}
           </div></div>
           <div key={"opts-"+stepIdx} className="opts fadein">{opts.map(opt=>makeOpt(opt,false))}</div>

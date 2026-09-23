@@ -159,6 +159,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    done-screen's own entrance (canvasPowerOn/done-wrap's snap), which
    still fires exactly as before on the way IN. */
 .done-screen.done-leaving{opacity:0;transform:scale(.985) translateY(4px);pointer-events:none}
+/* QA FIX - same leaked-hover-zone bug as .attic-layout.out/.closet-layout.out
+   (see their own comments): the done screen's own diagram hit-rects set
+   pointer-events:all directly on themselves, which wins over this
+   container's pointer-events:none during the brief done-leaving crossfade,
+   so the fading-out diagram could still intercept a hover meant for the
+   wizard fading in underneath it. */
+.done-screen.done-leaving *{pointer-events:none!important}
 
 /* Review-selections grid. Has to be a class, not the inline style it
    replaces - an inline style always beats a stylesheet rule, so a media
@@ -881,6 +888,27 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 /* Attic: canvas fills all, step bar on bottom */
 .attic-layout{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
 .attic-layout.out{opacity:0;pointer-events:none;transform:translateY(8px)}
+/* QA FIX - pointer-events:none above only reaches descendants that don't
+   set their OWN pointer-events - and nearly every interactive part of the
+   diagram (every HoverInfo hit-rect, EditZone, the thermostat mode
+   buttons...) sets style={{pointerEvents:'all'}} directly on itself
+   (canvas.js), which is how they stay hoverable/clickable while mounted -
+   CSS pointer-events is a normal inherited property, so a descendant's own
+   explicit value always wins over an ancestor's, .out included. This
+   layout stays MOUNTED (just faded out) the entire time the done screen is
+   showing (see app.js's own comment: "splash-screen/attic-layout/closet-
+   layout/done-screen all stay mounted"), so its ~60 invisible hit-rects
+   kept sitting there fully mouse-interactive, right underneath the visible
+   done-screen diagram, competing for hit-testing based on nothing more
+   than DOM paint order - confirmed live: computed pointer-events read
+   "all" on the majority of them even while class="out". Landing on top of
+   the wrong pixel, one of these silently ate a hover meant for the done
+   screen's own equivalent part (its own popup lives inside THIS hidden,
+   opacity:0 tree, so nothing visible ever showed) - a real, on-screen
+   "hover this real part, nothing happens" bug, not just a hidden-DOM
+   technicality. `!important` is required here since it's the only way a
+   stylesheet rule outranks an inline style. */
+.attic-layout.out *{pointer-events:none!important}
 .attic-canvas-area{flex:1;min-height:0;position:relative;overflow:hidden}
 /* Fixed height (not min-height) on purpose - the bottom question bar reads
    as one stable panel across every step of the wizard, so its height
@@ -952,6 +980,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 /* Closet: canvas left, sidebar right (unchanged) */
 .closet-layout{position:absolute;inset:0;display:flex;flex-direction:row;transition:opacity .35s,transform .35s}
 .closet-layout.out{opacity:0;pointer-events:none;transform:translateX(8px)}
+/* QA FIX - same leaked-hover-zone bug as .attic-layout.out just above (see
+   its own comment for the full explanation): this layout's own hit-rects
+   set pointer-events:all directly on themselves, which otherwise wins over
+   this ancestor's pointer-events:none the entire time the done screen (or
+   the other layout) is showing instead. */
+.closet-layout.out *{pointer-events:none!important}
 .closet-canvas-area{flex:1;min-width:0;position:relative;overflow:hidden}
 
 /* Option cards stay capped at 280px even when there's acres of row left
