@@ -4912,15 +4912,32 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               INSIDE the plenum box) losing out to the plenum's hover since
               that box paints later/on top. Moved here (after the plenum's
               own hover, same "wins the overlap strip" fix already applied
-              to the lineset/plenum pair above) and widened to also cover
-              the label reliably beats the plenum in their shared area
-              while still reading "SUPPLY PLENUM" everywhere else on it. */}
+              to the lineset/plenum pair above).
+              QA FIX - that fix originally used ONE box spanning bulb-to-
+              label horizontally AND the full rod length vertically, per
+              direct feedback ("ionizer hover box still huge on
+              horizontal") - since the rod itself is only a thin 6px-wide
+              line hugging ionX while the label sits ~60px further right,
+              a single rect covering both read as a big mostly-empty
+              rectangle for most of its own height (everywhere below the
+              label, the box was still full-width but the rod is a thin
+              sliver at its left edge). Split into two tight zones instead,
+              same "several hit-zones, each hugging its own part of the
+              glyph" convention already used elsewhere in this file (e.g.
+              the lineset's own 4 narrow segments) - one hugging just the
+              bulb+label (where the box's own width IS justified), one
+              hugging just the rod (thin, matching its real 6px glow
+              width). Both still open the same IONIZER tooltip. */}
           {hasIonizer&&(()=>{
             const ionX=SUP_X+Math.round(SUP_PLEN_W*0.18);
             const ionBulbY=SUP_PLEN_Y-14;
             const ionRodLen=Math.round(SUP_PLEN_H*0.55);
-            return <HoverInfo x={ionX-14} y={ionBulbY-14} w={14+58} h={SUP_PLEN_Y+ionRodLen-(ionBulbY-14)+6} rx={3}
-              vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>;
+            return <>
+              <HoverInfo x={ionX-14} y={ionBulbY-14} w={14+58} h={32} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
+              <HoverInfo x={ionX-5} y={SUP_PLEN_Y-8} w={10} h={ionRodLen+12} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
+            </>;
           })()}
 
           {/* Secondary float switch - QA FIX, the pan shape got tried
@@ -5958,16 +5975,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               sliver of the ionizer genuinely hoverable (and its "IONIZER"
               label, starting 2px past the old box's own right edge, wasn't
               covered at all). Moved here (after the plenum's hover, same
-              fix as the attic layout's equivalent block) and widened to
-              the label's real width so it reliably reads IONIZER along its
-              whole rod + bulb + label, not just a thin strip of it. */}
+              fix as the attic layout's equivalent block).
+              QA FIX - that fix used ONE box spanning the rod's full
+              horizontal run AND tall enough for the bulb+label, which (per
+              the attic layout's identical complaint - "ionizer hover box
+              still huge") reads as an oversized box since the rod itself
+              is a thin ~8px-tall line running through the middle of a
+              32px-tall box. Split into two tight zones instead, same
+              convention as the attic layout's own fix just above: one
+              hugging the rod's own thin strip, one hugging the bulb+label
+              (where the extra height genuinely is needed). Both still open
+              the same IONIZER tooltip. */}
           {hasIonizer&&(()=>{
             const rodLen=Math.round(PLEN_W*0.62);
             const bulbX=UNIT_X+PLEN_W+12;
             const rodY=PLEN_TOP+PLEN_TOTAL*0.88;
             const rodTip=UNIT_X+PLEN_W-rodLen;
-            return <HoverInfo x={rodTip-4} y={rodY-16} w={bulbX+58-rodTip} h={32} rx={3}
-              vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>;
+            return <>
+              <HoverInfo x={rodTip-4} y={rodY-6} w={(bulbX-16)-(rodTip-4)} h={12} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
+              <HoverInfo x={bulbX-16} y={rodY-18} w={98} h={36} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
+            </>;
           })()}
 
           {/* Upflow supply ducts - exit plenum sides, run long, drop to ceiling grille.

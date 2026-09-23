@@ -6745,20 +6745,33 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
         const ionBulbY = SUP_PLEN_Y - 14;
         const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-        return /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: ionX - 14,
             y: ionBulbY - 14,
             w: 14 + 58,
-            h: SUP_PLEN_Y + ionRodLen - (ionBulbY - 14) + 6,
+            h: 32,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("ionizer").title,
             text: T("ionizer").text
           }
-        );
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: ionX - 5,
+            y: SUP_PLEN_Y - 8,
+            w: 10,
+            h: ionRodLen + 12,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("ionizer").title,
+            text: T("ionizer").text
+          }
+        ));
       })(), hasCoil && hasCond && (() => {
         const cabX = hasFurnace ? ACOIL_X : AH_X, cabW = hasFurnace ? ACOIL_W : AH_W;
         const portX = cabX + cabW * 0.5;
@@ -7736,20 +7749,33 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const bulbX = UNIT_X + PLEN_W + 12;
         const rodY = PLEN_TOP + PLEN_TOTAL * 0.88;
         const rodTip = UNIT_X + PLEN_W - rodLen;
-        return /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: rodTip - 4,
-            y: rodY - 16,
-            w: bulbX + 58 - rodTip,
-            h: 32,
+            y: rodY - 6,
+            w: bulbX - 16 - (rodTip - 4),
+            h: 12,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("ionizer").title,
             text: T("ionizer").text
           }
-        );
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: bulbX - 16,
+            y: rodY - 18,
+            w: 98,
+            h: 36,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("ionizer").title,
+            text: T("ionizer").text
+          }
+        ));
       })(), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "upflow-ducts", style: { animationDelay: ".2s" } }, (() => {
         const DW = 13;
         const DC = G + ".30)";
