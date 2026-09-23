@@ -1846,6 +1846,7 @@
     "OUTSIDE TEMP": "TEMP. EXTERIOR",
     "COOL": "FR\xCDO",
     "HEAT": "CALOR",
+    "AUTO": "AUTO",
     "HP": "BC",
     "AUX": "AUX",
     "FURN": "HRN",
@@ -3726,7 +3727,7 @@
       ));
     }));
   }
-  function ThermostatFace({ TX, TY, isProprietary, isWifi, thermostatTemp, showRange, heatMode, G: G2, B: B2 }) {
+  function ThermostatFace({ TX, TY, isProprietary, isWifi, thermostatTemp, showRange, heatMode, G: G2, B: B2, lang: lang2 }) {
     const tempDisplay = showRange ? /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp - 2, "\xB0-", thermostatTemp + 2, "\xB0") : /* @__PURE__ */ React.createElement(React.Fragment, null, thermostatTemp, "\xB0");
     const modeColor = heatMode ? "#f97316" : "#2389e0";
     return isProprietary ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: TX, y: TY, width: 76, height: 68, rx: "10", fill: "#0a0a0d", stroke: G2 + ".62)", strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 3, y: TY + 3, width: 70, height: 52, rx: "7", fill: "#050810", stroke: B2 + ".3)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement(
@@ -3751,8 +3752,9 @@
         fontSize: "9",
         fontFamily: "monospace"
       },
-      heatMode ? "HEAT" : "COOL",
-      " \xB7 AUTO"
+      CT(heatMode ? "HEAT" : "COOL", lang2),
+      " \xB7 ",
+      CT("AUTO", lang2)
     ), /* @__PURE__ */ React.createElement("circle", { cx: TX + 67, cy: TY + 11, r: 1.9, fill: B2 + ".55)" }), /* @__PURE__ */ React.createElement("rect", { x: TX + 6, y: TY + 59, width: 64, height: "3.5", rx: "1.75", fill: modeColor, opacity: "0.8" })) : isWifi ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 36, fill: "#0d0d0d", stroke: G2 + ".62)", strokeWidth: "1.8" }), /* @__PURE__ */ React.createElement("circle", { cx: TX + 38, cy: TY + 38, r: 28, fill: "#060e1c", stroke: B2 + ".42)", strokeWidth: "1.1" }), /* @__PURE__ */ React.createElement(
       "text",
       {
@@ -5306,13 +5308,13 @@
           text: T("supply_plenum").text,
           onClick: onEditStep ? () => onEditStep("plenum") : void 0
         }
-      ), hasCoil && hasCond && /* @__PURE__ */ React.createElement(
+      ), hasCoil && hasCond && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
-          x: Math.min(drainCoilCX, drainWallX) - 6,
+          x: drainCoilCX - 7,
           y: drainTopY - 4,
-          w: Math.abs(drainWallX - drainCoilCX) + 12,
-          h: Math.max(drainCrossY, drainCrossY2) - drainTopY + 8,
+          w: 14,
+          h: drainCrossY - drainTopY + 8,
           rx: 3,
           vw: SVG_VW,
           vh: SVG_VH,
@@ -5321,7 +5323,22 @@
           ringPath: drainFullPath,
           ringStrokeWidth: 7
         }
-      ), hasCoil && hasCond && (() => {
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: Math.min(drainCoilCX, drainWallX) - 6,
+          y: Math.min(drainCrossY, drainCrossY2) - 5,
+          w: Math.abs(drainWallX - drainCoilCX) + 12,
+          h: Math.abs(drainCrossY2 - drainCrossY) + 10,
+          rx: 3,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("condensate_drain").title,
+          text: T("condensate_drain").text,
+          ringPath: drainFullPath,
+          ringStrokeWidth: 7
+        }
+      )), hasCoil && hasCond && (() => {
         const tR = 6.5, loopTopY = drainTopY + 18, loopBotY = loopTopY + tR * 2;
         return /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5579,7 +5596,8 @@
               showRange,
               heatMode,
               G,
-              B
+              B,
+              lang: lang2
             }
           )),
           /* @__PURE__ */ React.createElement(
@@ -6645,9 +6663,10 @@
             textAnchor: "middle",
             fill: active ? evapC : S + ".45)",
             fontSize: "12",
-            fontFamily: "monospace"
+            fontFamily: "monospace",
+            style: { pointerEvents: "none" }
           },
-          hasFurnace ? "A-COIL" : "AIR HANDLER"
+          hasFurnace ? CT("A-COIL", lang2) : CT("AIR HANDLER", lang2)
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -7605,7 +7624,8 @@
               showRange: showRangeC,
               heatMode,
               G,
-              B
+              B,
+              lang: lang2
             }
           )),
           /* @__PURE__ */ React.createElement(

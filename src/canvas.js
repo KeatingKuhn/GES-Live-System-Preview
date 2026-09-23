@@ -1272,7 +1272,7 @@ const CANVAS_ES={
   'VARIABLE SPEED':'VELOCIDAD VARIABLE','MOD. VAR. SPEED':'VEL. VAR. MOD.',
   'preview how your system runs':'vista previa de cómo funciona su sistema',
   'COOL MODE':'MODO FRÍO','HEAT PUMP':'BOMBA DE CALOR','AUX HEAT':'CALOR AUX',
-  'OUTSIDE TEMP':'TEMP. EXTERIOR','COOL':'FRÍO','HEAT':'CALOR',
+  'OUTSIDE TEMP':'TEMP. EXTERIOR','COOL':'FRÍO','HEAT':'CALOR','AUTO':'AUTO',
   'HP':'BC','AUX':'AUX','FURN':'HRN',
   'SURGE':'SOBREVOLT.','PROTECTOR':'PROTECTOR',
   'CONDENSER · ACTIVE':'CONDENSADOR · ACTIVO','CONDENSER · STANDBY':'CONDENSADOR · EN ESPERA',
@@ -3130,7 +3130,7 @@ function ThermModeButtons({modes,cx,y,totalW,gap,h,fontSize,lang}){
 // Caption text is NOT drawn here - see THERM_CAP_Y/THERM_BTN_Y below for
 // why that moved out to its own call-site-painted line under the
 // COOL/HEAT row.
-function ThermostatFace({TX,TY,isProprietary,isWifi,thermostatTemp,showRange,heatMode,G,B}){
+function ThermostatFace({TX,TY,isProprietary,isWifi,thermostatTemp,showRange,heatMode,G,B,lang}){
   const tempDisplay=showRange?<>{thermostatTemp-2}°-{thermostatTemp+2}°</>:<>{thermostatTemp}°</>;
   const modeColor=heatMode?"#f97316":"#2389e0";
   return isProprietary
@@ -3144,7 +3144,7 @@ function ThermostatFace({TX,TY,isProprietary,isWifi,thermostatTemp,showRange,hea
       <text x={TX+38} y={TY+35} textAnchor="middle" fill={B+'.95)'} fontSize={showRange?"14.5":"23.5"}
         fontFamily="monospace" filter="url(#glow)">{tempDisplay}</text>
       <text x={TX+38} y={TY+48} textAnchor="middle" fill={B+'.55)'} fontSize="9"
-        fontFamily="monospace">{heatMode?'HEAT':'COOL'} · AUTO</text>
+        fontFamily="monospace">{CT(heatMode?'HEAT':'COOL',lang)} · {CT('AUTO',lang)}</text>
       <circle cx={TX+67} cy={TY+11} r={1.9} fill={B+'.55)'}/>
       <rect x={TX+6} y={TY+59} width={64} height="3.5" rx="1.75" fill={modeColor} opacity="0.8"/>
     </>
@@ -4846,13 +4846,43 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               block way above (see that block's own comment) and painted
               here so the P-trap hover right below can win the one small
               spot it overlaps (same "later sibling wins" convention used
-              everywhere else in this file). Same box/ringPath this always
-              had - only its paint-order position changed. */}
-          {hasCoil&&hasCond&&<HoverInfo x={Math.min(drainCoilCX,drainWallX)-6} y={drainTopY-4}
-            w={Math.abs(drainWallX-drainCoilCX)+12} h={Math.max(drainCrossY,drainCrossY2)-drainTopY+8} rx={3}
-            vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
-            ringPath={drainFullPath}
-            ringStrokeWidth={7}/>}
+              everywhere else in this file).
+              QA FIX - this used to be one big loose box spanning the whole
+              coil-to-wall width AND the full duct-drop height (drainTopY
+              down to drainCrossY2), on the reasoning that a single rect
+              can't hug a diagonal/bent run without spanning its full rise
+              somewhere - the exact same reasoning already written out (and
+              already fixed) for the lineset's own equally-wide roofline
+              hover just above this block. That full-height box put the
+              drain on top of the ENTIRE right-side supply duct + balancing
+              damper hit-zones underneath it (this run is drawn crossing
+              BEHIND the ducts, so it geometrically has to pass through
+              their footprint) - confirmed via a hover-grid sweep: hovering
+              anywhere on the right supply duct's drop, including dead
+              center, read back as "CONDENSATE DRAIN" instead. Split into
+              the same two tight boxes the drain's own real shape already
+              suggests - a narrow vertical stub at the coil, then a narrow
+              horizontal band only as tall as the actual crossing slope
+              (drainCrossY..drainCrossY2, ~1/6 the old box's height) -
+              leaves the rest of each duct's own hover territory alone.
+              The horizontal band still crosses the ducts' own X range (by
+              design - the drain really does run behind them there), so a
+              thin strip of true overlap remains right at the crossing
+              height; same "later sibling wins the one small spot" trade-off
+              already accepted for the P-trap/drain and drain/condenser
+              overlaps elsewhere in this file, just far smaller now than
+              the full-height swallow it replaces. Both boxes keep the same
+              shared ringPath/ringStrokeWidth as before, so hovering either
+              still traces the whole connected run. */}
+          {hasCoil&&hasCond&&<>
+            <HoverInfo x={drainCoilCX-7} y={drainTopY-4} w={14} h={drainCrossY-drainTopY+8} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+              ringPath={drainFullPath} ringStrokeWidth={7}/>
+            <HoverInfo x={Math.min(drainCoilCX,drainWallX)-6} y={Math.min(drainCrossY,drainCrossY2)-5}
+              w={Math.abs(drainWallX-drainCoilCX)+12} h={Math.abs(drainCrossY2-drainCrossY)+10} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('condensate_drain').title} text={T('condensate_drain').text}
+              ringPath={drainFullPath} ringStrokeWidth={7}/>
+          </>}
 
           {/* P-trap hover zone - split out and painted last so it wins
               over the drain's big loose-bounding-box HoverInfo (just
@@ -5079,7 +5109,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 fallback, none in the closet layout) differs. */}
             <g transform={`translate(${THERM_TX} ${THERM_TY}) scale(${THERM_SCALE})`}>
               <ThermostatFace TX={0} TY={0} isProprietary={isProprietary} isWifi={isWifi}
-                thermostatTemp={thermostatTemp} showRange={showRange} heatMode={heatMode} G={G} B={B}/>
+                thermostatTemp={thermostatTemp} showRange={showRange} heatMode={heatMode} G={G} B={B} lang={lang}/>
             </g>
             <EditZone stepId="thermostat" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
               x={THERM_ROW_X-2} y={THERM_TY-2} w={THERM_W+4} h={THERM_H+4}/>
@@ -6137,9 +6167,25 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     {refReversed?'←':'→'}
                   </text>}
                 </>}
+                {/* QA FIX - this title text sits right above ACOIL_Y, which
+                    for the standalone air-handler case (no furnace) lands
+                    close enough to the coil's own top edge to overlap the
+                    ionizer's rod (it runs low across the plenum, near the
+                    unit's own top) - painted after the ionizer's hover zone,
+                    its own glyph ink (default SVG text pointer-events:
+                    visiblePainted) locally swallowed hover there, confirmed
+                    via a hover-grid sweep (a strip of the ionizer's rod read
+                    back as no tooltip at all). Same "decorative shape
+                    painted on top of a HoverInfo zone" bug already fixed
+                    elsewhere in this file for the flue/airflow-pulse
+                    classes - this text is purely informational (the same
+                    "A-COIL"/"AIR HANDLER" name is already the hover
+                    tooltip's own title), so pointer-events:none costs
+                    nothing and lets whatever HoverInfo sits underneath it
+                    work everywhere again. */}
                 <text className="phase-color" x={UNIT_X+UNIT_W/2} y={ACOIL_Y-6} textAnchor="middle"
-                  fill={active?evapC:(S+'.45)')} fontSize="12" fontFamily="monospace">
-                  {hasFurnace?"A-COIL":"AIR HANDLER"}
+                  fill={active?evapC:(S+'.45)')} fontSize="12" fontFamily="monospace" style={{pointerEvents:'none'}}>
+                  {hasFurnace?CT('A-COIL',lang):CT('AIR HANDLER',lang)}
                 </text>
                 {/* ACOIL_H means two different things here: a small coil-only
                     height for furnace systems (this status line sits below
@@ -6854,7 +6900,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               fill="transparent" style={{pointerEvents:'all'}}/>
             <g transform={`translate(${TX} ${TY}) scale(${THERM_TARGET_SCALE})`}>
               <ThermostatFace TX={0} TY={0} isProprietary={isProprietaryC} isWifi={isWifiC}
-                thermostatTemp={thermostatTemp} showRange={showRangeC} heatMode={heatMode} G={G} B={B}/>
+                thermostatTemp={thermostatTemp} showRange={showRangeC} heatMode={heatMode} G={G} B={B} lang={lang}/>
             </g>
             <EditZone stepId="thermostat" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
               x={THERM_ROW_X_C-2} y={TY-2} w={THERM_W_C+4} h={THERM_H_C+4}/>
