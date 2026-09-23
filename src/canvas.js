@@ -84,7 +84,7 @@ function useLerpedNumber(target,duration=2500){
 // skips recomputation when only unrelated wizard state changed.
 function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, lineY2, active,
   heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl, tierKey, eaveY,
-  lang, vw, vh, linesetRingPath, outsideLabelLeft}){
+  lang, vw, vh, linesetRingPath}){
   const groundY=zoneH-28;
   const padY=groundY-10;
   const wallThick=18;   // visible wall cross-section width
@@ -551,8 +551,11 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         {/* Generic electrical rating placard - the kind of spec stamp
             every real disconnect carries (amperage/voltage/enclosure
             rating), without inventing a brand name for it. */}
+        {/* fontSize 5.2 (was 6): at 6 the 10-char stamp ran 36 units
+            wide, straight across both bottom corner screws (DX+4 and
+            DX+DW-4, same baseline row) - 5.2 keeps it between them. */}
         <text x={DX+DW/2} y={DY+DH-2.5} textAnchor="middle"
-          fill={G+'.34)'} fontSize="6" fontFamily="monospace">60A·NEMA3R</text>
+          fill={G+'.34)'} fontSize="5.2" fontFamily="monospace">60A·NEMA3R</text>
         {/* Conduit to unit - drawn at the disconnect box's own fixed mid-
             height, which only actually lands on the condenser cabinet for
             the taller fedmin/high-efficiency units. Condensers are bottom-
@@ -653,11 +656,13 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
       {refReversed?CT('ABSORBING HEAT',lang):CT('RELEASING HEAT',lang)}
     </text>}
 
-    {/* OUTSIDE label - centered by default. outsideLabelLeft (closet
-        only) anchors it just right of the exterior wall instead: closet's
-        outside zone is narrow enough that its center sits directly under
-        the fixed top-right mode-preview toggle, which hid all but "OUT". */}
-    <text x={outsideLabelLeft?wallX+26:wallX+zoneW/2} y={12} textAnchor={outsideLabelLeft?'start':'middle'}
+    {/* OUTSIDE label - left-aligned just past the wall (same corner
+        placement as the closet's own ATTIC label) rather than centered
+        in the zone: centered, it landed right under the mode-preview
+        panel (ToggleUI, absolutely positioned top-right over the SVG in
+        both layouts), which hid its back half and left a truncated
+        "OUTSID" poking out from behind the panel. */}
+    <text x={sidingX+wallThick+10} y={12} textAnchor="start"
       fill={W+'.2)'} fontSize="11.5" fontFamily="monospace" letterSpacing="1.2">{CT('OUTSIDE',lang)}</text>
   </g>;
 }
@@ -1307,7 +1312,7 @@ const CANVAS_ES={
   'CONCRETE PAD':'BASE DE CONCRETO','LIVING SPACE':'ESPACIO HABITABLE',
   'ATTIC':'ÁTICO','UTILITY CLOSET':'CLÓSET DE SERVICIO','OUTSIDE':'EXTERIOR',
   'FIBERGLASS INSULATION':'AISLAMIENTO DE FIBRA','SPRAY FOAM INSULATION':'AISLAMIENTO DE ESPUMA',
-  'SPRAY FOAM':'ESPUMA AISLANTE','COMMUNICATING':'COMUNICANTE',
+  'SPRAY FOAM':'ESPUMA AISLANTE','FIBERGLASS':'FIBRA DE VIDRIO','COMMUNICATING':'COMUNICANTE',
   'LIVE SYSTEM PREVIEW':'VISTA PREVIA DEL SISTEMA',
   'Choose your location to begin building':'Elija su ubicación para comenzar',
   'Components assemble here in real time →':'Los componentes se arman aquí en tiempo real →',
@@ -2064,9 +2069,21 @@ function FurnaceH({x,y,w,h,active,roofY,onEditStep,lang,vw,vh,blowerActive,is90,
       <line key={i} x1={x+3} y1={y+12+i*(h-18)/7} x2={x+3} y2={y+18+i*(h-18)/7}
         stroke={S+'.42)'} strokeWidth="3" strokeLinecap="round"/>
     ))}
-    <BlowerWheel cx={x+w*0.25} cy={y+h*0.42} r={Math.min(w*0.21,h*0.29)}
-      spd={blowerActive?1.6:0.5} active={blowerActive}
-      onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>
+    {(()=>{
+      // The COMMUNICATING badge (isComm, drawn below at y+10..y+21 over
+      // x+4..x+86) sits right on top of the wheel's upper rim at full size
+      // - measured ~11 units of overlap, the badge visibly cropping the
+      // top of the wheel. There's no room to push the wheel down (its
+      // bottom already sits just above the BLOWER caption), so on comm
+      // builds only, trim the wheel from the top: same bottom edge, top
+      // pulled down to clear the badge. top/bot are the VISUAL extent,
+      // which includes BlowerWheel's own r+4 housing ring.
+      const r0=Math.min(w*0.21,h*0.29), cy0=y+h*0.42;
+      const top=isComm?Math.max(cy0-r0-4,y+23):cy0-r0-4, bot=cy0+r0+4;
+      return <BlowerWheel cx={x+w*0.25} cy={(top+bot)/2} r={(bot-top)/2-4}
+        spd={blowerActive?1.6:0.5} active={blowerActive}
+        onEditStep={onEditStep} lang={lang} vw={vw} vh={vh}/>;
+    })()}
     <text x={x+w*0.25} y={y+h-13} textAnchor="middle" fill={S+'.65)'} fontSize="12.5" fontFamily="monospace">{CT('BLOWER',lang)}</text>
     <text x={x+w*0.25} y={y+h-4} textAnchor="middle" fill={S+'.5)'} fontSize="9.5" fontFamily="monospace">{blowerMotorLabel}</text>
     {/* Clamshell HX tubes - each is a stamped-steel cell, not a flat
@@ -4497,7 +4514,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasCoil&&hasFurnace&&(()=>{
             const gasX=FURN_X+FURN_W*0.85;
             const gasTopY=UNIT_Y+UNIT_H;
-            const teeY=gasTopY+38, valveY=gasTopY+65;
+            // Fixed +38/+65 offsets assume the full-height run (~110 units
+            // once a tier is picked). On the pre-tier steps the run is only
+            // ~42 units, so the valve landed ~23 units BELOW DECK_Y - off
+            // the end of the pipe, floating under the GAS label on top of
+            // the FIBERGLASS INSULATION caption (and the drip leg poked
+            // through the deck too). Clamp both into the run: valve just
+            // above the deck, tee + drip leg (14.5 tall) clear above it.
+            // Full-height runs are unaffected (both mins pick the +38/+65).
+            const valveY=Math.min(gasTopY+65,DECK_Y-8), teeY=Math.min(gasTopY+38,valveY-20);
             const gasD=`M${gasX} ${gasTopY} L${gasX} ${DECK_Y}`;
             return <g className="snap" style={{animationDelay:'.14s'}}>
               <line x1={gasX} y1={DECK_Y} x2={gasX} y2={gasTopY} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
@@ -4537,7 +4562,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           {hasCoil&&hasFurnace&&(()=>{
             const swX=FURN_X+FURN_W*0.15;
             const swTopY=UNIT_Y+UNIT_H;
-            const plateW=16, plateH=26, plateY=swTopY+38+plateH/2;
+            // Same short pre-tier run as the gas line's own comment above:
+            // at a fixed +38 the plate hung mostly below DECK_Y, straddling
+            // the attic floor. Clamp it to end just above the deck.
+            const plateW=16, plateH=26, plateY=Math.min(swTopY+38,DECK_Y-2-plateH)+plateH/2;
             return <g className="snap" style={{animationDelay:'.16s'}}>
               <line x1={swX} y1={swTopY} x2={swX} y2={plateY-plateH/2} stroke="#3a3a3a" strokeWidth="2" strokeLinecap="round"/>
               <rect x={swX-plateW/2} y={plateY-plateH/2} width={plateW} height={plateH} rx="2"
@@ -5838,7 +5866,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // it slopes toward the wall, and at the old offset this
             // plate's own label text sat close enough underneath it to
             // read as touching.
-            const plateW=16, plateH=26, plateY=swTopY+28+plateH/2;
+            // Clamped to end just above DECK_Y on the short pre-tier run,
+            // same as the furnace branch's own switch (it otherwise hung
+            // across the attic floor there).
+            const plateW=16, plateH=26, plateY=Math.min(swTopY+28,DECK_Y-2-plateH)+plateH/2;
             return <g className="snap" style={{animationDelay:'.16s'}}>
               <line x1={swX} y1={swTopY} x2={swX} y2={plateY-plateH/2} stroke="#3a3a3a" strokeWidth="2" strokeLinecap="round"/>
               <rect x={swX-plateW/2} y={plateY-plateH/2} width={plateW} height={plateH} rx="2"
@@ -6274,7 +6305,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <ellipse key={i} cx={8+i*17} cy={DECK_Y-8} rx={11} ry={7}
                   fill="rgba(255,182,193,.15)" stroke="rgba(255,182,193,.19)" strokeWidth=".4"/>
               ))}
-              <text x="22" y={DECK_Y-22} fill="rgba(255,182,193,.3)" fontSize="12" fontFamily="monospace">{CT('FIBERGLASS INSULATION',lang)}</text>
+              {/* Short "FIBERGLASS" (not "FIBERGLASS INSULATION"), matching
+                  the spray-foam branch's own short "SPRAY FOAM" label just
+                  above - the long form ran ~150 units, straight under the
+                  left supply duct's drop and (furnace builds) the B-vent,
+                  which painted over and truncated it to "INSULATIO". */}
+              <text x="22" y={DECK_Y-22} fill="rgba(255,182,193,.3)" fontSize="12" fontFamily="monospace">{CT('FIBERGLASS',lang)}</text>
             </g>
           )}
           {/* No EditZone covers this - free-standing hover, no onClick.
@@ -7173,7 +7209,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
 
           {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}
           {hasCond&&<OutsideZone
-            wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH} outsideLabelLeft
+            wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH}
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={LS_Y1} lineY2={LS_Y2}
             active={condenserActive} tierKey={a.cond_tier} eaveY={ROOF_EAVE_Y}
