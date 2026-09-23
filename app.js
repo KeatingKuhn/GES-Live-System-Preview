@@ -1454,7 +1454,17 @@
   }
   function HoverPanel({ part, groupBoxes }) {
     const { x, y, w, h, rx, vw, vh, title, text, highlight, group } = part;
-    const siblings = group && groupBoxes && groupBoxes[group] ? Object.values(groupBoxes[group]).filter((b) => part.ringPath && b.ringPath === part.ringPath ? false : !(b.x === x && b.y === y && b.w === w && b.h === h)) : [];
+    const siblings = group && groupBoxes && groupBoxes[group] ? (() => {
+      const seen = /* @__PURE__ */ new Set();
+      return Object.values(groupBoxes[group]).filter((b) => {
+        if (part.ringPath && b.ringPath === part.ringPath) return false;
+        if (!part.ringPath && b.x === x && b.y === y && b.w === w && b.h === h) return false;
+        const key = b.ringPath || `${b.x},${b.y},${b.w},${b.h}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    })() : [];
     const ring = (box, bright) => {
       if (box.ringPath) {
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
@@ -5384,7 +5394,7 @@
         const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
         const ionBulbY = SUP_PLEN_Y - 14;
         const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-        const ionRingBox = { x: ionX - 14, y: ionBulbY - 14, w: 78, h: 28 };
+        const ionRingBox = { x: ionX - 14, y: ionBulbY - 12, w: 78, h: 22 };
         return /* @__PURE__ */ React.createElement(
           HoverInfo,
           {

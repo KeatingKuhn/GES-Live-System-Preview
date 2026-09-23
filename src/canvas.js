@@ -940,9 +940,34 @@ function HoverPanel({part,groupBoxes}){
   // ducts read brighter than the single-hit-zone straight middle one on
   // hover, confirmed via a hover sweep. Deduping on ringPath too (when
   // present) collapses that double-paint back to one ring per pipe.
+  //
+  // QA FIX - the above only excluded a sibling that matches the HOVERED
+  // box's own ringPath - it never deduped two OTHER siblings against each
+  // other. A duct with two registered hit-zones (e.g. an angled elbow's
+  // leg+drop, both sharing one ringPath) still contributed BOTH of its
+  // entries whenever some OTHER duct was the one actually hovered, so
+  // that two-zone duct's dim sibling ring got drawn twice - two stacked
+  // translucent gold washes on the same pixels - while a duct with only
+  // one registered zone (the straight middle run) only ever got one.
+  // That is exactly why the angled left/right ducts kept reading brighter
+  // than the middle one even after the same-duct self-dedup fix above:
+  // this was a sibling-vs-sibling collision, not a sibling-vs-hovered-part
+  // one. Deduped here by collapsing to one entry per distinct ringPath (or
+  // per distinct x/y/w/h for boxes with no ringPath), so a multi-zone run
+  // contributes exactly one dim ring no matter how many hit-zones it
+  // registered under the group.
   const siblings=(group&&groupBoxes&&groupBoxes[group])
-    ?Object.values(groupBoxes[group]).filter(b=>
-        part.ringPath&&b.ringPath===part.ringPath?false:!(b.x===x&&b.y===y&&b.w===w&&b.h===h))
+    ?(()=>{
+        const seen=new Set();
+        return Object.values(groupBoxes[group]).filter(b=>{
+          if(part.ringPath&&b.ringPath===part.ringPath)return false;
+          if(!part.ringPath&&b.x===x&&b.y===y&&b.w===w&&b.h===h)return false;
+          const key=b.ringPath||`${b.x},${b.y},${b.w},${b.h}`;
+          if(seen.has(key))return false;
+          seen.add(key);
+          return true;
+        });
+      })()
     :[];
   // A ring normally just traces its box's own x/y/w/h as a rect, which
   // looks right for anything actually rectangular - but a hit-box that's
@@ -5187,7 +5212,25 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // but the RING drawn on hover now traces a small rect hugging
             // just the bulb+label glyph (matching UV's own tight-box
             // style exactly), not the rod's full reach into the plenum.
-            const ionRingBox={x:ionX-14,y:ionBulbY-14,w:78,h:28};
+            //
+            // QA FIX - "still too big" persisted even after the switch to
+            // ringBox, because this box (h=28) was sized to fully enclose
+            // the bulb's own OUTER diffuse glow circle (r=12, drawn at
+            // ionBulbY, so it spans ionBulbY-12..+12) - but UV's own box
+            // does NOT do that: measured via getBBox, UV's rod has a 22px-
+            // wide outer glow line that its own h=16 box doesn't fully
+            // contain either (it hugs the rod's core body/end-caps only
+            // and lets the soft outer glow bleed a few px past the ring,
+            // same as every other soft-glow part in this file). Re-measured
+            // this box the same way: the bulb's own CORE shape (the solid
+            // ellipse, not its outer glow ring) plus the label span
+            // ionBulbY-10..+10 (20px), not the outer glow's -12..+12
+            // (24px) - collapsing this box to that same core-only
+            // convention drops h from 28 to 22, letting the outer glow
+            // bleed past the ring exactly the same way UV's already does,
+            // instead of this being the one part whose box was sized to
+            // the glow instead of the glyph.
+            const ionRingBox={x:ionX-14,y:ionBulbY-12,w:78,h:22};
             return <HoverInfo x={ionX-14} y={ionBulbY-14} w={78} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
               ringBox={ionRingBox}/>;
