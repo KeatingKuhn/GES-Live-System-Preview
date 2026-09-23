@@ -1225,7 +1225,7 @@
           text: partInfo("disconnect", lang2).text
         }
       ));
-    })(), condenserEl, /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity 2.5s ease" } }, (() => {
+    })(), condenserEl, /* @__PURE__ */ React.createElement("g", { style: { opacity: heatMode && !isMildHp ? 1 : 0, transition: "opacity 2.5s ease", pointerEvents: "none" } }, (() => {
       const segs = 6;
       let d = `M${condX} ${condY}`;
       for (let i = 0; i <= segs; i++) {
@@ -1551,7 +1551,7 @@
       lines.map((ln, i) => /* @__PURE__ */ React.createElement("text", { key: i, x: PANEL_W / 2, y: TITLE_H + 9 + i * LINE_H, textAnchor: "middle", fill: "rgba(240,242,248,.86)", fontSize: FONT, fontFamily: "sans-serif" }, ln))
     ));
   }
-  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick, highlight = true, group, ringPath, ringStrokeWidth, ringBox }) {
+  function HoverInfo({ x, y, w, h, rx, vw, vh, title, text, onClick, highlight = true, group, ringPath, ringStrokeWidth, ringBox, hit }) {
     const setHover = React.useContext(HoverCtx);
     const groupApi = React.useContext(GroupCtx);
     const idRef = React.useRef(null);
@@ -1563,13 +1563,14 @@
     }, [group, groupApi, x, y, w, h, rx, ringPath, ringStrokeWidth, ringBox]);
     if (!title) return null;
     const part = { x, y, w, h, rx, vw, vh, title, text, highlight, group, ringPath, ringStrokeWidth, ringBox };
+    const hb = hit || { x, y, w, h };
     return /* @__PURE__ */ React.createElement("g", { className: "hover-info-zone" }, /* @__PURE__ */ React.createElement(
       "rect",
       {
-        x,
-        y,
-        width: w,
-        height: h,
+        x: hb.x,
+        y: hb.y,
+        width: hb.w,
+        height: hb.h,
         rx: rx || 3,
         fill: "transparent",
         style: { pointerEvents: "all", cursor: onClick ? "pointer" : "default" },
@@ -1950,6 +1951,7 @@
   var W = "rgba(255,255,255,";
   var O = "rgba(249,115,22,";
   var S = "rgba(148,158,172,";
+  var CABINET_ART_NO_HIT = { pointerEvents: "none" };
   function CabinetRivet({ cx, cy }) {
     return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("circle", { cx, cy, r: "2.3", fill: "rgba(35,38,44,.85)", stroke: S + ".55)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: cx - 1.2, y1: cy - 0.3, x2: cx + 1.2, y2: cy + 0.3, stroke: S + ".75)", strokeWidth: "0.55", strokeLinecap: "round" }));
   }
@@ -2347,7 +2349,7 @@
   }
   function FurnaceH({ x, y, w, h, active, roofY, onEditStep, lang: lang2, vw, vh, blowerActive, is90, isComm, blowerMotorLabel }) {
     const mid = x + w / 2;
-    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", { style: CABINET_ART_NO_HIT }, /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x,
@@ -2650,7 +2652,7 @@
     const isBig = tierKey === "high_ge18";
     const isFed = tierKey === "fedmin";
     const cc = active ? condC : refReversed ? "rgba(18,18,55,.5)" : "rgba(55,18,18,.5)";
-    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", { style: CABINET_ART_NO_HIT }, /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x,
@@ -3456,7 +3458,7 @@
   function AirHandlerH({ x, y, w, h, active, auxHeat, evapC, evapC2, hasUV, acoilInfoKey, blowerActive, blowerMotorLabel, refReversed, onEditStep, lang: lang2, vw, vh }) {
     const coilW = w * 0.5, blowerW = w * 0.35, auxW = w * 0.15;
     const c1 = x + coilW, c2 = x + coilW + blowerW;
-    return /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", { style: CABINET_ART_NO_HIT }, /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x,
@@ -4862,7 +4864,7 @@
             text: T("service_switch").text
           }
         ));
-      })(), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac" + a.cond_tier, style: { animationDelay: ".08s" }, filter: "url(#shadow)" }, (() => {
+      })(), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac" + a.cond_tier, style: { animationDelay: ".08s", ...CABINET_ART_NO_HIT }, filter: "url(#shadow)" }, (() => {
         const active = evapActive;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -5420,13 +5422,17 @@
         const ionBoxCY = ionBulbY - 12 + ionBoxH / 2;
         const ringW = 24 * 0.9, ringH = ionBoxH * 0.9;
         const ionRingBox = { x: ionX - ringW / 2, y: ionBoxCY - ringH / 2, w: ringW, h: ringH, rx: 7.2 };
-        return /* @__PURE__ */ React.createElement(
+        const ionZone = { x: ionX - 14, y: ionBulbY - 14, w: 78, h: SUP_PLEN_Y + ionRodLen - (ionBulbY - 14) };
+        const ionHits = [
+          { x: ionX - 14, y: ionBulbY - 14, w: 78, h: 28 },
+          { x: ionX - 14, y: ionBulbY + 14, w: 28, h: SUP_PLEN_Y + ionRodLen - (ionBulbY + 14) }
+        ];
+        return ionHits.map((hb, i) => /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: ionX - 14,
-            y: ionBulbY - 14,
-            w: 78,
-            h: SUP_PLEN_Y + ionRodLen - (ionBulbY - 14),
+            key: "ion-hit" + i,
+            ...ionZone,
+            hit: hb,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -5434,7 +5440,7 @@
             text: T("ionizer").text,
             ringBox: ionRingBox
           }
-        );
+        ));
       })(), hasCoil && hasCond && (() => {
         const cabX = hasFurnace ? ACOIL_X : AH_X, cabW = hasFurnace ? ACOIL_W : AH_W;
         const portX = hasFurnace ? cabX + cabW * 0.22 : cabX + cabW * 0.08;
@@ -6545,7 +6551,7 @@
             text: T("balancing_damper").text
           }
         ), /* @__PURE__ */ React.createElement(RegisterGrille, { cx: rightDropX + DW / 2, y: DECK_Y, w: GW, dc: DC, ds: DS, label: CT("SUPPLY", lang2), lang: lang2, vw: SVG_VW, vh: SVG_VH }));
-      })()), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac-c" + a.cond_tier, style: { animationDelay: ".07s" } }, (() => {
+      })()), hasCoil && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "ac-c" + a.cond_tier, style: { animationDelay: ".07s", ...CABINET_ART_NO_HIT } }, (() => {
         const active = evapActive;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           HoverInfo,
@@ -6748,7 +6754,7 @@
           },
           active ? refReversed ? CT("REJECTING HEAT", lang2) : CT("ABSORBING HEAT", lang2) : auxHeatActive ? CT("AUX HEAT ONLY", lang2) : CT("STANDBY", lang2)
         ));
-      })()), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "fu-c" + a.stage }, /* @__PURE__ */ React.createElement(
+      })()), hasCoil && hasFurnace && /* @__PURE__ */ React.createElement("g", { className: "snap", key: "fu-c" + a.stage, style: CABINET_ART_NO_HIT }, /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
           x: UNIT_X,
@@ -6811,20 +6817,6 @@
           strokeWidth: "0.5"
         }
       ), /* @__PURE__ */ React.createElement("text", { x: UNIT_X + UNIT_W - 26, y: FURN_Y + 18, textAnchor: "middle", fill: is90 ? "#5ba8f5" : G + ".6)", fontSize: "9.5", fontFamily: "monospace" }, is90 ? "90%" : "80%", " AFUE"), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: UNIT_X + UNIT_W - 48,
-          y: FURN_Y + 9,
-          w: 44,
-          h: 13,
-          rx: 2,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("afue_badge").title,
-          text: T("afue_badge").text,
-          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
-        }
-      ), /* @__PURE__ */ React.createElement(
         "line",
         {
           x1: UNIT_X,
@@ -6846,6 +6838,20 @@
           vh: SVG_VH,
           title: T("heat_exchanger").title,
           text: T("heat_exchanger").text,
+          onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
+        }
+      ), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X + UNIT_W - 48,
+          y: FURN_Y + 9,
+          w: 44,
+          h: 13,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("afue_badge").title,
+          text: T("afue_badge").text,
           onClick: onEditStep ? () => onEditStep("indoor_type") : void 0
         }
       ), Array.from({ length: 5 }, (_, i) => {

@@ -608,8 +608,11 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
     {condenserEl}
     {/* Snow drift along the condenser's top edge, same cold-snap mode and
         uneven-pile language as the ground blanket, so a real dusting on
-        the outdoor unit itself sells the season along with the ground. */}
-    <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity 2.5s ease'}}>
+        the outdoor unit itself sells the season along with the ground.
+        QA FIX - pointer-events:none: painted after the condenser, this
+        drift (still hit-tested even at opacity:0 in cool mode) swallowed
+        the CONDENSER FAN hover along the cabinet's whole top edge. */}
+    <g style={{opacity:(heatMode&&!isMildHp)?1:0,transition:'opacity 2.5s ease',pointerEvents:'none'}}>
       {(()=>{
         const segs=6;
         let d=`M${condX} ${condY}`;
@@ -1093,7 +1096,14 @@ function HoverPanel({part,groupBoxes}){
 // ringPath/ringStrokeWidth/ringBox (all optional) - override what
 // HoverPanel draws for THIS box's own ring, instead of tracing its literal
 // x/y/w/h hit-rect (see HoverPanel's own `ring()` comment for when/why).
-function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick,highlight=true,group,ringPath,ringStrokeWidth,ringBox}){
+//
+// hit (optional) - {x,y,w,h} for the invisible hit-rect ONLY, when it has
+// to be a different shape than the x/y/w/h box the tooltip panel anchors
+// to. Lets a non-rectangular glyph (the attic ionizer's bulb+label row
+// plus its thin rod) be covered by two tight hit-rects that both pass the
+// SAME x/y/w/h + ringBox, so either one shows the identical panel in the
+// identical spot with the identical ring - one hover, not two.
+function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick,highlight=true,group,ringPath,ringStrokeWidth,ringBox,hit}){
   const setHover=React.useContext(HoverCtx);
   const groupApi=React.useContext(GroupCtx);
   const idRef=React.useRef(null);
@@ -1105,8 +1115,9 @@ function HoverInfo({x,y,w,h,rx,vw,vh,title,text,onClick,highlight=true,group,rin
   },[group,groupApi,x,y,w,h,rx,ringPath,ringStrokeWidth,ringBox]);
   if(!title)return null;
   const part={x,y,w,h,rx,vw,vh,title,text,highlight,group,ringPath,ringStrokeWidth,ringBox};
+  const hb=hit||{x,y,w,h};
   return <g className="hover-info-zone">
-    <rect x={x} y={y} width={w} height={h} rx={rx||3} fill="transparent"
+    <rect x={hb.x} y={hb.y} width={hb.w} height={hb.h} rx={rx||3} fill="transparent"
       style={{pointerEvents:'all',cursor:onClick?'pointer':'default'}} onClick={onClick}
       onMouseEnter={()=>setHover&&setHover(part)}
       onMouseLeave={()=>setHover&&setHover(null)}/>
@@ -1449,6 +1460,22 @@ const O='rgba(249,115,22,';
 // plenum, spec/tier badges, and the blower WHEEL itself (the moving
 // assembly - kept gold on purpose, it reads well while spinning).
 const S='rgba(148,158,172,';
+
+// QA FIX - wizard-mode hover dead zones. Every equipment cabinet (FurnaceH,
+// AirHandlerH, Condenser, and the attic/closet A-coil and closet furnace
+// cabinets drawn inline in Canvas) paints its general "whole cabinet"
+// HoverInfo FIRST, so the more specific sub-part hovers painted later win
+// their own areas. But the cabinet's own opaque housing rect (plus its
+// strips, rivets, labels, fins...) is painted right AFTER that hover, and
+// under SVG's default pointer-events:visiblePainted it hit-tests on top of
+// it, so the general hover never received the mouse. A live hover sweep
+// found FURNACE and CONDENSER unreachable anywhere during the wizard, and
+// the A-coil cabinet frame dead, in both layouts. (The done screen hid
+// this because EditZone re-adds those hovers on top.) Applied to each
+// cabinet's outer <g>: pointer-events is inherited, so all the decorative
+// artwork inside stops hit-testing, while every HoverInfo rect inside
+// still sets pointer-events:all inline on itself and keeps working.
+const CABINET_ART_NO_HIT={pointerEvents:'none'};
 
 // ── CABINET EXTERIOR DETAIL KIT ─────────────────────────────
 // Small shared bits reused by all four furnace/air-handler cabinet
@@ -1980,7 +2007,11 @@ function ACoilV({x,y,w,h,active,evapC,evapC2,hasUV,infoKey,onEditStep,lang,vw,vh
 // convention as BlowerWheel/ACoilH/ACoilV above.
 function FurnaceH({x,y,w,h,active,roofY,onEditStep,lang,vw,vh,blowerActive,is90,isComm,blowerMotorLabel}){
   const mid=x+w/2;
-  return <g>
+  // QA FIX - pointer-events:none on this whole group (see
+  // CABINET_ART_NO_HIT's own comment) - the opaque cabinet rect painted
+  // right after the general cabinet hover below used to swallow it
+  // everywhere, so during the wizard the FURNACE tooltip was unreachable.
+  return <g style={CABINET_ART_NO_HIT}>
     {/* General cabinet hover - painted first/bottommost so the more
         specific heat-exchanger/AFUE hovers added further down (painted
         later, i.e. on top) win their own smaller areas; BlowerWheel adds
@@ -2231,7 +2262,10 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanSp
   const isFed=tierKey==='fedmin';
   const cc=active?condC:(refReversed?'rgba(18,18,55,.5)':'rgba(55,18,18,.5)');
 
-  return <g>
+  // QA FIX - see CABINET_ART_NO_HIT: every tier's opaque body rect is
+  // painted right after the cabinet hover below and used to swallow it
+  // completely, so CONDENSER had no reachable tooltip during the wizard.
+  return <g style={CABINET_ART_NO_HIT}>
     {/* General "what is this" cabinet hover - painted FIRST/bottommost
         in this <g> on purpose, so the more specific fan/compressor/SEER
         hovers added below (each painted later, i.e. on top) win hover
@@ -2703,7 +2737,9 @@ function AuxHeatKit({x,y,w,h,auxHeat,segCount,lang}){
 function AirHandlerH({x,y,w,h,active,auxHeat,evapC,evapC2,hasUV,acoilInfoKey,blowerActive,blowerMotorLabel,refReversed,onEditStep,lang,vw,vh}){
   const coilW=w*0.50, blowerW=w*0.35, auxW=w*0.15;
   const c1=x+coilW, c2=x+coilW+blowerW;
-  return <g>
+  // QA FIX - see CABINET_ART_NO_HIT (same swallowed-cabinet-hover bug as
+  // FurnaceH's own).
+  return <g style={CABINET_ART_NO_HIT}>
     {/* General cabinet hover - painted first/bottommost, same reasoning
         as FurnaceH's own. ACoilH/BlowerWheel each add their own more
         specific hover internally, which (painted later, on top of this)
@@ -4506,7 +4542,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           })()}
 
           {/* A-coil (horizontal, right of furnace) */}
-          {hasCoil&&hasFurnace&&<g className="snap" key={'ac'+a.cond_tier} style={{animationDelay:'.08s'}} filter="url(#shadow)">
+          {hasCoil&&hasFurnace&&<g className="snap" key={'ac'+a.cond_tier} style={{animationDelay:'.08s',...CABINET_ART_NO_HIT}} filter="url(#shadow)">
             {(()=>{
               const active=evapActive;
               return <>
@@ -5286,9 +5322,24 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const ionBoxCY=(ionBulbY-12)+ionBoxH/2;
             const ringW=24*0.9, ringH=ionBoxH*0.9;
             const ionRingBox={x:ionX-ringW/2,y:ionBoxCY-ringH/2,w:ringW,h:ringH,rx:7.2};
-            return <HoverInfo x={ionX-14} y={ionBulbY-14} w={78} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
+            // QA FIX - the one 78-wide hit-rect above (sized to reach the
+            // "IONIZER" label) also ran the rod's full length DOWN into
+            // the supply plenum, so a ~50x70 patch of plenum interior to
+            // the right of the rod (the left half of its "56°"/"EXISTING
+            // PLENUM" labels) showed IONIZER instead of SUPPLY PLENUM -
+            // found via hover sweep. Now two hit-rects via `hit`: the
+            // bulb+label row above the plenum, and a bulb-width strip down
+            // the rod. Both share the same x/y/w/h + ringBox, so the panel
+            // position and the ring are exactly what they were before and
+            // identical whichever one is under the cursor.
+            const ionZone={x:ionX-14,y:ionBulbY-14,w:78,h:(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)};
+            const ionHits=[
+              {x:ionX-14,y:ionBulbY-14,w:78,h:28},
+              {x:ionX-14,y:ionBulbY+14,w:28,h:(SUP_PLEN_Y+ionRodLen)-(ionBulbY+14)},
+            ];
+            return ionHits.map((hb,i)=><HoverInfo key={'ion-hit'+i} {...ionZone} hit={hb} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
-              ringBox={ionRingBox}/>;
+              ringBox={ionRingBox}/>);
           })()}
 
           {/* Secondary float switch - QA FIX, the pan shape got tried
@@ -6500,7 +6551,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>}
 
           {/* A-coil / AH */}
-          {hasCoil&&<g className="snap" key={'ac-c'+a.cond_tier} style={{animationDelay:'.07s'}}>
+          {hasCoil&&<g className="snap" key={'ac-c'+a.cond_tier} style={{animationDelay:'.07s',...CABINET_ART_NO_HIT}}>
             {(()=>{
               const active=evapActive;
               return <>
@@ -6621,7 +6672,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>}
 
           {/* Furnace - HX top | blower bottom */}
-          {hasCoil&&hasFurnace&&<g className="snap" key={'fu-c'+a.stage}>
+          {hasCoil&&hasFurnace&&<g className="snap" key={'fu-c'+a.stage} style={CABINET_ART_NO_HIT}>
             {/* General cabinet hover - painted first/bottommost, same
                 "specific ones painted after win their own smaller area"
                 reasoning as the attic layout's FurnaceH. BlowerWheel adds
@@ -6658,13 +6709,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <rect x={UNIT_X+UNIT_W-46} y={FURN_Y+11} width={40} height="9" rx="2"
               fill={is90?"rgba(35,137,224,.13)":(G+'.07)')} stroke={is90?(B+'.24)'):(G+'.16)')} strokeWidth="0.5"/>
             <text x={UNIT_X+UNIT_W-26} y={FURN_Y+18} textAnchor="middle" fill={is90?"#5ba8f5":(G+'.6)')} fontSize="9.5" fontFamily="monospace">{is90?'90%':'80%'} AFUE</text>
-            <HoverInfo x={UNIT_X+UNIT_W-48} y={FURN_Y+9} w={44} h={13} rx={2} vw={SVG_VW} vh={SVG_VH}
-              title={T('afue_badge').title} text={T('afue_badge').text}
-              onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
             <line x1={UNIT_X} y1={FURN_Y+FURN_H/2} x2={UNIT_X+UNIT_W} y2={FURN_Y+FURN_H/2}
               stroke={S+'.28)'} strokeWidth="0.9" strokeDasharray="4 3"/>
             <HoverInfo x={UNIT_X} y={FURN_Y} w={UNIT_W} h={FURN_H/2} vw={SVG_VW} vh={SVG_VH}
               title={T('heat_exchanger').title} text={T('heat_exchanger').text}
+              onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
+            {/* QA FIX - AFUE badge hover used to be painted BEFORE the
+                heat-exchanger half-box hover just above, which fully
+                covers it - AFUE RATING was unreachable during the wizard
+                in this layout (the done screen's indoorSubHoversV already
+                paints it after HX, and the attic FurnaceH does too). */}
+            <HoverInfo x={UNIT_X+UNIT_W-48} y={FURN_Y+9} w={44} h={13} rx={2} vw={SVG_VW} vh={SVG_VH}
+              title={T('afue_badge').title} text={T('afue_badge').text}
               onClick={onEditStep?()=>onEditStep('indoor_type'):undefined}/>
             {/* TOP: HX - same clamshell-tube highlight/end-cap treatment
                 as the attic FurnaceH's own HX cells, so both layouts'
