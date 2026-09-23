@@ -5664,8 +5664,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     const thermostatTemp = !heatMode ? hasDehu ? 76 : 74 : (isDualFuel || !hasFurnace) && heatSubMode === "hp" ? 68 : 67;
     const returnTemp = thermostatTemp;
     const isHeatPumpHeating = heatMode && (isDualFuel || !hasFurnace) && heatSubMode === "hp";
-    const supplySplit = !heatMode ? 20 : isHeatPumpHeating ? 25 : 45;
-    const supplyTemp = !heatMode ? thermostatTemp - supplySplit : thermostatTemp + supplySplit;
+    const supplySplit = !heatMode ? 20 : isHeatPumpHeating ? 25 : null;
+    const supplyTemp = !heatMode ? thermostatTemp - supplySplit : isHeatPumpHeating ? thermostatTemp + supplySplit : furnaceHeatActive ? 125 : isLowAmbientHP ? 110 : 105;
     const evapC = refReversed ? "#ef4444" : "#2389e0";
     const evapC2 = refReversed ? "#fca5a5" : "#7dd3fc";
     const condC = heatMode && (!hasFurnace || isDualFuel && heatSubMode === "hp") ? "#2389e0" : "#ef4444";

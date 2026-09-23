@@ -3649,8 +3649,26 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // (dual-fuel or air-handler HEAT PUMP) get the 25F split; furnace mode
   // AND aux/emergency-strip mode both correctly get 45F.
   const isHeatPumpHeating=heatMode&&(isDualFuel||!hasFurnace)&&heatSubMode==='hp';
-  const supplySplit=!heatMode?20:(isHeatPumpHeating?25:45);
-  const supplyTemp=!heatMode?thermostatTemp-supplySplit:thermostatTemp+supplySplit;
+  // QA FIX - direct feedback: furnace heat should read a flat 125° supply,
+  // aux heat a flat 110°/105° - real numbers per mode instead of all
+  // sharing thermostatTemp+45 (which made furnace and aux read
+  // identically, even though gas combustion genuinely runs a hotter
+  // supply than electric resistance strips). Aux heat itself splits in
+  // two: a low-ambient (mid efficiency) heat pump's compressor never
+  // locks out, so its aux strip stages on ALONGSIDE the compressor's own
+  // heat (110°, still warmer than compressor-alone isHeatPumpHeating
+  // output) - a standard heat pump locks the compressor out entirely down
+  // here, leaving the strip carrying the full load completely alone
+  // (105°, cooler than the low-ambient case's combined output).
+  // furnaceHeatActive/auxHeatActive (above) are the only other reachable
+  // heatMode states besides isHeatPumpHeating, so no fallback split is
+  // needed for either.
+  const supplySplit=!heatMode?20:(isHeatPumpHeating?25:null);
+  const supplyTemp=!heatMode?thermostatTemp-supplySplit
+    :isHeatPumpHeating?thermostatTemp+supplySplit
+    :furnaceHeatActive?125
+    :isLowAmbientHP?110
+    :105;
 
   // Refrigerant colors - physically correct
   const evapC  = refReversed ? '#ef4444' : '#2389e0'; // evap: red=HP heat, blue=cool
