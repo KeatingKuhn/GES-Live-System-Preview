@@ -145,7 +145,19 @@ function App(){
   const [pricingSubStep,setPricingSubStep]=useState(0);
   const [pricingAnswers,setPricingAnswers]=useState({});
   const topRef=useRef(null);
-  const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50),[]);
+  // QA FIX - block:'start' forces topRef's top edge to align EXACTLY with
+  // its scrolling ancestor's top on every call, even when it's already
+  // fully in view - harmless when this app was the whole standalone page,
+  // but now that it's always iframed, .app-root has nothing to scroll
+  // WITHIN (the app's own layout is deliberately non-scrolling - see the
+  // .attic-bar-body/.attic-info overflow:hidden comments), so the browser
+  // escalates the request to the outer WordPress page instead, nudging
+  // the ENTIRE PAGE on every Next click even when the iframe was already
+  // fully visible - direct feedback: "when i push any button... it
+  // slightly drops the screen down". block:'nearest' only scrolls when
+  // something is actually out of view (e.g. the customer manually
+  // scrolled the outer page away), a true no-op otherwise.
+  const scrollTop=useCallback(()=>setTimeout(()=>topRef.current?.scrollIntoView({behavior:'smooth',block:'nearest'}),50),[]);
 
   // Half-ton sizes (1.5/2.5/3.5) are a Federal Minimum-only catalog option -
   // Mid/High Efficiency only stock full tons (see the sizing sub-step's own
