@@ -5305,8 +5305,8 @@
             }
           );
         }), (() => {
-          const bulbX = RL_START_X + 16, bulbY = ry2;
-          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("rect", { x: bulbX - 4, y: bulbY - 3, width: "8", height: "6", rx: "1.5", fill: "rgba(200,205,215,.75)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 5, y1: bulbY, x2: bulbX + 5, y2: bulbY, stroke: "rgba(180,184,192,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement(
+          const bulbX = RL_START_X + 5, bulbY = UNIT_Y - 14;
+          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("rect", { x: bulbX - 3, y: bulbY - 4, width: "6", height: "8", rx: "1.5", fill: "rgba(200,205,215,.75)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 5, y1: bulbY, x2: bulbX + 5, y2: bulbY, stroke: "rgba(180,184,192,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement(
             HoverInfo,
             {
               x: bulbX - 6,

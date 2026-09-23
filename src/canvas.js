@@ -4954,11 +4954,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     little clamp straddling line 2, right at the coil, not
                     a whole new diagram feature. Painted last in this
                     block so its own tiny hover wins the strip it shares
-                    with the general lineset hover above. */}
+                    with the general lineset hover above.
+                    QA FIX - originally sat right at (RL_START_X+16, ry2),
+                    inside the coil's own body - ACoilH's own UV rod
+                    (drawn at the coil's vertical midline, y+h/2, spanning
+                    much of the coil's width) lives in almost exactly that
+                    same spot, so the two hover zones overlapped directly
+                    (confirmed via screenshot: the two glyphs sat right on
+                    top of each other). Moved up onto the RISER instead -
+                    same X as the pipe's own vertical climb out of the
+                    coil (RL_START_X+5, matching line 2's own offset), at
+                    a Y clearly above the coil's own top edge (UNIT_Y-14)
+                    where the UV rod can never reach - still genuinely "on
+                    the lineset, right at the coil" (the riser's very
+                    first few px of climb), just clear of the coil's own
+                    interior glyphs. Drawn as a vertical clamp (strap
+                    perpendicular to the pipe) since the riser runs
+                    vertical here, unlike the horizontal indoor run. */}
                 {(()=>{
-                  const bulbX=RL_START_X+16, bulbY=ry2;
+                  const bulbX=RL_START_X+5, bulbY=UNIT_Y-14;
                   return <g className="fadein">
-                    <rect x={bulbX-4} y={bulbY-3} width="8" height="6" rx="1.5" fill="rgba(200,205,215,.75)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
+                    <rect x={bulbX-3} y={bulbY-4} width="6" height="8" rx="1.5" fill="rgba(200,205,215,.75)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
                     <line x1={bulbX-5} y1={bulbY} x2={bulbX+5} y2={bulbY} stroke="rgba(180,184,192,.5)" strokeWidth="0.8"/>
                     <HoverInfo x={bulbX-6} y={bulbY-6} w={12} h={12} rx={3}
                       vw={SVG_VW} vh={SVG_VH} title={T('txv_bulb').title} text={T('txv_bulb').text}/>
