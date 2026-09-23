@@ -1203,8 +1203,8 @@ const PART_INFO={
     es:{title:'INTERRUPTOR DE SERVICIO',text:"Permite a un técnico cortar la energía al motor soplador y la tarjeta de control antes de dar servicio a la unidad interior, aparte de la desconexión exterior del condensador."}},
   ionizer:{en:{title:'IONIZER',text:"Releases charged ions into the airstream that attach to dust, allergens, and odors so they clump and get caught by your filter."},
     es:{title:'IONIZADOR',text:"Libera iones cargados en la corriente de aire que se adhieren al polvo, alérgenos y olores para que se agrupen y sean atrapados por su filtro."}},
-  uv_light:{en:{title:'UV LIGHT',text:"A germicidal bulb mounted at the coil that kills mold and bacteria growing on it, keeping the coil clean and your airflow odor-free."},
-    es:{title:'LUZ UV',text:"Una lámpara germicida montada en el serpentín que elimina el moho y las bacterias que crecen en él, manteniendo el serpentín limpio y el flujo de aire libre de olores."}},
+  uv_light:{en:{title:'UV LIGHT',text:"A germicidal bulb mounted at the coil that kills bacteria and other growth on it, keeping the coil clean and your airflow odor-free."},
+    es:{title:'LUZ UV',text:"Una lámpara germicida montada en el serpentín que elimina bacterias y otros microorganismos que crecen en él, manteniendo el serpentín limpio y el flujo de aire libre de olores."}},
   // Universal to ANY coil in the airstream (furnace+A-coil combo or a
   // standalone air handler) - the blower's static pressure would
   // otherwise pull air backward through the drain line or blow water out
@@ -3632,7 +3632,22 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   //    in that normal band, clearly hotter than heat pump output the
   //    way a real system's would be.
   const returnTemp=thermostatTemp;
-  const supplySplit=!heatMode?20:(refReversed?25:45);
+  // QA FIX - this used to key off refReversed, but refReversed only tests
+  // !hasFurnace/heatMode (same limitation acoilInfoKey's own comment above
+  // already documents) - it stays true through a standard heat pump's aux
+  // lockout too, since the coil's own orientation flag doesn't care
+  // whether the compressor is actually running. On an air handler
+  // (!hasFurnace), that meant AUX HEAT ONLY (compressor locked out, pure
+  // resistance-strip heat) was silently getting the much COOLER 25F heat-
+  // pump split instead of the 45F resistance-heat split, so aux heat read
+  // as barely warmer than heat pump heat - backwards, since resistance
+  // heat runs hotter supply air than a heat pump's compressor heat in
+  // real systems. Keyed on heatSubMode directly instead: only the
+  // sub-modes that are genuinely the compressor actively heating
+  // (dual-fuel or air-handler HEAT PUMP) get the 25F split; furnace mode
+  // AND aux/emergency-strip mode both correctly get 45F.
+  const isHeatPumpHeating=heatMode&&(isDualFuel||!hasFurnace)&&heatSubMode==='hp';
+  const supplySplit=!heatMode?20:(isHeatPumpHeating?25:45);
   const supplyTemp=!heatMode?thermostatTemp-supplySplit:thermostatTemp+supplySplit;
 
   // Refrigerant colors - physically correct
@@ -4614,6 +4629,63 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               const pBot=SUP_PLEN_Y+SUP_PLEN_H;
               const FAN=36;
               const grille=cx=><RegisterGrille cx={cx} y={DECK_Y} w={GW} dc={DC} ds={DS} label={CT('SUPPLY',lang)} lang={lang} vw={SVG_VW} vh={SVG_VH}/>;
+              // QA FIX #2 (the elbow ducts "sticking into the supply
+              // plenum") - the angled ducts' own outline/fill <path>
+              // used strokeLinecap="square" and started EXACTLY at
+              // (topX,pBot), flush with the plenum's own bottom edge. A
+              // square cap extends a stroke by half its width BACKWARD
+              // along the tangent of its first segment - and that first
+              // segment was the diagonal elbow leg itself, so the
+              // backward extension at the start point ran diagonally UP
+              // AND INWARD, bleeding straight into the plenum box's own
+              // rectangle above pBot. The straight middle duct never had
+              // this: it's a plain <rect> (no stroke-cap geometry at
+              // all), flush with pBot by construction. Rendered large,
+              // the angled ducts' outline was visibly poking a triangular
+              // notch up into the plenum fill right at the top corner of
+              // each elbow - confirmed on screen, not just on paper.
+              // Fix: every duct - straight AND angled - now grows out of
+              // a short vertical "starter collar" stub, a plain <rect>
+              // flush with pBot exactly like the straight duct's own rect
+              // (a rect has no cap to bleed). STUB is sized to the
+              // OUTLINE stroke's own half-width, so even the angled
+              // path's square-cap backward bleed (which still exists,
+              // it's just been pushed stubH lower) can mathematically
+              // never reach back above pBot - it lands inside the stub's
+              // own footprint, painted in the same duct color, invisible
+              // as a seam. This also means all three ducts now share the
+              // exact same "flush rectangular collar at the plenum" look.
+              const STUB=(DW+2)/2;
+              // QA FIX #3 (the elbow ducts "glowing much differently than
+              // the middle") - NOT a dash-density or dash-brightness bug
+              // (the earlier QA FIX below, pathLength+round linejoin,
+              // already took care of that). The remaining difference is
+              // SPEED. .airflow's own @keyframes (styles.css) animates
+              // stroke-dashoffset by a fixed "-32" over a fixed "2s",
+              // and because pathLength="100" is set on these paths, that
+              // -32 is interpreted in the SAME 0-100 normalized space as
+              // the dasharray - NOT in real pixels. So every duct's dash
+              // pattern shifts by the same 32% of its own length every
+              // 2 seconds, regardless of how long that path really is.
+              // The angled ducts' path (diagonal elbow leg + straight
+              // drop) is measurably longer in real pixels than the
+              // middle duct's single straight drop, so the SAME 32%-per-
+              // 2s shift covers more real pixels for the angled ducts -
+              // their dashes visibly race past faster than the middle
+              // duct's, reading as more energetic/"brighter" even though
+              // color, opacity, width and dash density are all genuinely
+              // identical. Confirmed by comparing all three side by side
+              // at high zoom - the left/right dashes visibly outrun the
+              // middle duct's within the same couple of seconds. Fix:
+              // scale each duct's animation-duration (an inline style,
+              // which - same "inline wins over class" mechanism already
+              // used for strokeDasharray above - overrides .airflow's
+              // own fixed 2s without touching its dashoffset keyframe or
+              // anything else) proportionally to that duct's own real
+              // pixel length, so real-world dash speed (px/sec) comes out
+              // identical across all three regardless of path shape.
+              const BASE_DUR=2; // matches .airflow's own animation-duration in styles.css
+              const pxLen=pts=>{let L=0;for(let i=1;i<pts.length;i++)L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return L;};
               // Airflow arrow down the center of a duct stem - same idea as
               // the supply plenum's own internal arrows just above, so flow
               // reads continuously from plenum through the duct to the
@@ -4633,7 +4705,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // pixel-based dasharray - inline style wins over a
               // stylesheet class for any property the class doesn't
               // itself animate - while .airflow's animated dashoffset
-              // keyframe still drives the actual motion.
+              // keyframe still drives the actual motion (at the
+              // per-duct-scaled speed set up by animationDuration above).
               // QA FIX - strokeLinejoin defaulted to "miter", which on the
               // angled ducts' own bent path (a real corner, unlike the
               // straight duct's single unbroken segment) can spike a thin
@@ -4644,9 +4717,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // (pathLength-normalized, see the comment above) is
               // genuinely identical across all three. "round" caps the
               // join at the stroke's own width instead of amplifying it.
-              const ductArrow=(d,key)=>(
+              // (This fix was real and stays - it just wasn't the whole
+              // story; see the animationDuration fix above for the rest.)
+              const midLen=Math.max(1,(DECK_Y-4)-(pBot+3));
+              const ductArrow=(d,key,len)=>(
                 <path key={key} d={d} pathLength="100" fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
-                  strokeLinejoin="round" className="airflow" style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
+                  strokeLinejoin="round" className="airflow"
+                  style={{strokeDashoffset:0,strokeDasharray:'16 10',animationDuration:(BASE_DUR*(len/midLen))+'s'}} markerEnd="url(#arr)"/>
               );
               const straight=(cx,key)=>(
                 <g key={key}>
@@ -4654,7 +4731,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   <DuctRibbing x={cx-DW/2} y={pBot} w={DW} h={Math.max(0,DECK_Y-pBot)} vertical/>
                   <DuctClamp x={cx-DW/2} y={pBot+2} w={DW} vertical/>
                   <DuctClamp x={cx-DW/2} y={DECK_Y-5} w={DW} vertical/>
-                  {DECK_Y-pBot>10&&ductArrow(`M${cx},${pBot+3} L${cx},${DECK_Y-4}`,'arrow')}
+                  {DECK_Y-pBot>10&&ductArrow(`M${cx},${pBot+3} L${cx},${DECK_Y-4}`,'arrow',midLen)}
                   {/* No EditZone covers duct geometry - free-standing hover,
                       no onClick. Painted before the grille below so its own
                       more specific hover (RegisterGrille's built-in one)
@@ -4681,38 +4758,71 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 </g>
               );
               const angled=(topX,dir,key)=>{
-                const bendY=Math.min(pBot+FAN,DECK_Y-6);
-                const botX=topX+dir*(bendY-pBot);
-                const d=`M${topX},${pBot} L${botX},${bendY} L${botX},${DECK_Y}`;
+                // Elbow geometry now starts STUB px below pBot (see the
+                // STUB comment above) - the stub itself is a plain flush
+                // <rect>, drawn separately below, so it can never bleed
+                // above pBot the way a stroked-path cap could. The
+                // diagonal leg still spans the same FAN px of vertical
+                // travel it always did, so botX (and the overall look of
+                // the elbow) is unchanged - only the top STUB px changed
+                // from "part of the diagonal stroke" to "its own flush
+                // rect".
+                const bendY=Math.min(pBot+STUB+FAN,DECK_Y-6);
+                const botX=topX+dir*(bendY-(pBot+STUB));
+                const d=`M${topX},${pBot+STUB} L${botX},${bendY} L${botX},${DECK_Y}`;
+                // Hover ring traces the FULL visible run, stub included,
+                // so the ring drawn on hover still hugs the real pipe
+                // shape all the way up to the plenum edge.
+                const ringD=`M${topX},${pBot} L${topX},${pBot+STUB} L${botX},${bendY} L${botX},${DECK_Y}`;
+                // Arrow starts a few px into the diagonal leg (measured
+                // along the leg's own direction, not a raw y-offset -
+                // otherwise a fixed y-inset could land the arrow's start
+                // point back inside the stub and cut a visible diagonal
+                // line across it instead of riding the actual pipe).
+                const segDX=botX-topX, segDY=bendY-(pBot+STUB), segLen=Math.hypot(segDX,segDY)||1;
+                const inset=3;
+                const arrowStartX=topX+segDX/segLen*inset, arrowStartY=(pBot+STUB)+segDY/segLen*inset;
+                const arrowPts=[[arrowStartX,arrowStartY],[botX,bendY],[botX,DECK_Y-4]];
+                const arrowD=arrowPts.map(([x,y],i)=>`${i===0?'M':'L'}${x},${y}`).join(' ');
                 return (
                   <g key={key}>
+                    {/* Starter-collar stub - flush rect, zero cap bleed,
+                        same treatment as the straight duct's own rect so
+                        all three read as sharing one flush connection to
+                        the plenum's bottom edge. */}
+                    <rect x={topX-DW/2} y={pBot} width={DW} height={STUB} fill={DC} stroke={DS} strokeWidth="1"/>
+                    <DuctRibbing x={topX-DW/2} y={pBot} w={DW} h={STUB} vertical/>
                     <path d={d} fill="none" stroke={DS} strokeWidth={DW+2} strokeLinejoin="round" strokeLinecap="square"/>
                     <path d={d} fill="none" stroke={DC} strokeWidth={DW} strokeLinejoin="round" strokeLinecap="square"/>
                     {/* Flex-duct corrugation along both legs of the elbow -
                         a real drop like this is one continuous flex run
                         that just bends, not two different materials. */}
-                    <DuctRibbingPath x1={topX} y1={pBot+2} x2={botX} y2={bendY} width={DW-1}/>
+                    <DuctRibbingPath x1={topX} y1={pBot+STUB} x2={botX} y2={bendY} width={DW-1}/>
                     <DuctRibbingPath x1={botX} y1={bendY} x2={botX} y2={DECK_Y-4} width={DW-1}/>
-                    <DuctClamp x={topX-DW/2} y={pBot+2} w={DW} vertical/>
+                    {/* Clamp collar sits right at the stub/flex transition
+                        (was pBot+2, inside the old diagonal stroke's own
+                        bleed zone) - now the real joint between the rigid
+                        starter collar and the flex duct. */}
+                    <DuctClamp x={topX-DW/2} y={pBot+STUB-2} w={DW} vertical/>
                     <DuctClamp x={botX-DW/2} y={DECK_Y-5} w={DW} vertical/>
-                    {ductArrow(`M${topX},${pBot+3} L${botX},${bendY} L${botX},${DECK_Y-4}`,'arrow')}
+                    {ductArrow(arrowD,'arrow',pxLen(arrowPts))}
                     {/* Two boxes tracing the actual bent run (elbow leg,
                         then straight drop) rather than one bounding rect,
                         same reasoning as the lineset's own L-shaped hover
                         elsewhere in this file - a single rect spanning the
                         full diagonal would swallow whatever sits beside it.
-                        Both still share the SAME ringPath (this run's own
-                        `d`, the diagonal elbow + straight drop as one
-                        path) so whichever leg is actually under the
-                        cursor, the ring shown hugs the real bent pipe
+                        Both still share the SAME ringPath (ringD, the
+                        stub + diagonal elbow + straight drop as one path)
+                        so whichever leg is actually under the cursor, the
+                        ring shown hugs the real bent pipe - stub included -
                         instead of a blocky rect bounding-box around the
                         diagonal leg. */}
                     <HoverInfo x={Math.min(topX,botX)-DW/2-2} y={pBot-2} w={Math.abs(botX-topX)+DW+4} h={bendY-pBot+4} rx={2}
                       vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
-                      ringPath={d} ringStrokeWidth={DW+8}/>
+                      ringPath={ringD} ringStrokeWidth={DW+8}/>
                     <HoverInfo x={botX-DW/2-2} y={bendY} w={DW+4} h={Math.max(0,DECK_Y-bendY)} rx={2}
                       vw={SVG_VW} vh={SVG_VH} title={T('supply_duct').title} text={T('supply_duct').text} group="supply_duct"
-                      ringPath={d} ringStrokeWidth={DW+8}/>
+                      ringPath={ringD} ringStrokeWidth={DW+8}/>
                     {/* Balancing damper - same low-profile, hover-only
                         easter egg as the straight duct's own (see that
                         one's comment) - right on the clamp at the
@@ -4921,23 +5031,31 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               a single rect covering both read as a big mostly-empty
               rectangle for most of its own height (everywhere below the
               label, the box was still full-width but the rod is a thin
-              sliver at its left edge). Split into two tight zones instead,
-              same "several hit-zones, each hugging its own part of the
-              glyph" convention already used elsewhere in this file (e.g.
-              the lineset's own 4 narrow segments) - one hugging just the
-              bulb+label (where the box's own width IS justified), one
-              hugging just the rod (thin, matching its real 6px glow
-              width). Both still open the same IONIZER tooltip. */}
+              sliver at its left edge). Then split into two separate tight
+              zones (one hugging bulb+label, one hugging just the rod) -
+              but direct feedback on that version was "lighting up in 2
+              spots when hovering, needs to be one hover": two independent
+              hit-zones meant the gold ring shown depended on exactly
+              which one the cursor was over, reading as two disconnected
+              highlighted patches (the rod's own pill-shaped ring not
+              visually continuous with the bulb+label's separate ring)
+              rather than one glyph. Back to ONE hit-zone covering the
+              whole bulb+rod+label footprint (so there's only ever one
+              hover state, one tooltip trigger), but with a ringPath
+              override (same "trace the real shape instead of a boxy rect"
+              convention the lineset/duct-elbow hovers already use) tracing
+              just the rod's own vertical line from the bulb down to its
+              tip - so the ring itself reads as one continuous highlighted
+              wire touching the bulb, not a big empty rectangle stretching
+              out to the label. */}
           {hasIonizer&&(()=>{
             const ionX=SUP_X+Math.round(SUP_PLEN_W*0.18);
             const ionBulbY=SUP_PLEN_Y-14;
             const ionRodLen=Math.round(SUP_PLEN_H*0.55);
-            return <>
-              <HoverInfo x={ionX-14} y={ionBulbY-14} w={14+58} h={32} rx={3}
-                vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
-              <HoverInfo x={ionX-5} y={SUP_PLEN_Y-8} w={10} h={ionRodLen+12} rx={3}
-                vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
-            </>;
+            const ionRingPath=`M${ionX} ${ionBulbY} L${ionX} ${SUP_PLEN_Y+ionRodLen}`;
+            return <HoverInfo x={ionX-14} y={ionBulbY-14} w={14+72} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
+              ringPath={ionRingPath} ringStrokeWidth={10}/>;
           })()}
 
           {/* Secondary float switch - QA FIX, the pan shape got tried
@@ -4969,10 +5087,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               elements (right before OutsideZone), after finding some
               other hover in this stretch still out-competing it lower
               down the coil's own footprint - confirmed fixed via
-              elementFromPoint once nothing else paints after it. */}
+              elementFromPoint once nothing else paints after it.
+              QA FIX - on the no-furnace air handler specifically, direct
+              feedback was to move this to the OTHER side of the
+              condensate drain (drainCoilCX, ~22% of AH_W in) rather than
+              sitting to its right at dead-center - shifted to ~8% of
+              AH_W, comfortably left of the drain's own exit and still
+              clear of the cabinet's own left edge. The furnace-paired
+              case keeps the original dead-center 50% spot (its own drain
+              exits much further left, ~12% of ACOIL_W, with no real room
+              further left of that before the furnace/coil seam). */}
           {hasCoil&&hasCond&&(()=>{
             const cabX=hasFurnace?ACOIL_X:AH_X, cabW=hasFurnace?ACOIL_W:AH_W;
-            const portX=cabX+cabW*0.5;
+            const portX=hasFurnace?cabX+cabW*0.5:cabX+cabW*0.08;
             const portY0=UNIT_Y+UNIT_H;
             const stubLen=13;
             const portY1=portY0+stubLen;
@@ -5981,22 +6108,29 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               the attic layout's identical complaint - "ionizer hover box
               still huge") reads as an oversized box since the rod itself
               is a thin ~8px-tall line running through the middle of a
-              32px-tall box. Split into two tight zones instead, same
-              convention as the attic layout's own fix just above: one
-              hugging the rod's own thin strip, one hugging the bulb+label
-              (where the extra height genuinely is needed). Both still open
-              the same IONIZER tooltip. */}
+              32px-tall box. Then split into two tight zones instead (one
+              hugging the rod, one hugging the bulb+label) - but direct
+              feedback on that version was "ionizer on closet is lighting
+              up in 2 spots when hovering, needs to be one hover" (same
+              complaint, same root cause, as the attic layout's own
+              sibling fix above: two independent hit-zones meant whichever
+              one the cursor happened to be over got its own separate
+              ring, reading as two disconnected highlighted patches rather
+              than one glyph). Back to ONE hit-zone spanning the whole
+              rod+bulb+label footprint, with a ringPath override tracing
+              just the rod's own horizontal line (rodTip to bulbX) so the
+              visible ring is one continuous wire reaching the bulb,
+              instead of a big empty rectangle stretching out to the
+              label - same fix as the attic layout's own sibling. */}
           {hasIonizer&&(()=>{
             const rodLen=Math.round(PLEN_W*0.62);
             const bulbX=UNIT_X+PLEN_W+12;
             const rodY=PLEN_TOP+PLEN_TOTAL*0.88;
             const rodTip=UNIT_X+PLEN_W-rodLen;
-            return <>
-              <HoverInfo x={rodTip-4} y={rodY-6} w={(bulbX-16)-(rodTip-4)} h={12} rx={3}
-                vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
-              <HoverInfo x={bulbX-16} y={rodY-18} w={98} h={36} rx={3}
-                vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}/>
-            </>;
+            const ionRingPath=`M${rodTip} ${rodY} L${bulbX} ${rodY}`;
+            return <HoverInfo x={rodTip-4} y={rodY-18} w={(bulbX+82)-(rodTip-4)} h={36} rx={3}
+              vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
+              ringPath={ionRingPath} ringStrokeWidth={10}/>;
           })()}
 
           {/* Upflow supply ducts - exit plenum sides, run long, drop to ceiling grille.
@@ -6459,6 +6593,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const gasY=FURN_Y+50;
             const gasX1=UNIT_X+UNIT_W, gasX2=gasX1+62;
             const teeX=gasX1+34, valveX=gasX1+48;
+            // QA FIX - direct feedback: this hover read differently from
+            // the attic layout's own gas line ("gas line hover is
+            // different on closet vs horizontal. horizontal is just the
+            // line, closet is the valve and drip leg. choose one and
+            // stick to it") - this box had no ringPath override, so its
+            // default rect ring drew a box wrapping the whole tee+valve+
+            // drip-leg assembly, while the attic version already traced
+            // just the straight pipe via ringPath. Matched to the attic
+            // convention: same hit-box (still covers the tee/valve/drip
+            // leg for click/hover purposes), but ringPath now traces just
+            // the pipe's own line (gasX1 to gasX2) so both layouts show
+            // the identical "just the line" ring. */}
+            const gasD=`M${gasX1} ${gasY} L${gasX2} ${gasY}`;
             return <g className="snap" style={{animationDelay:'.14s'}}>
               <line x1={gasX1} y1={gasY} x2={gasX2} y2={gasY} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
               <line x1={gasX1} y1={gasY} x2={gasX2} y2={gasY} stroke="#5a5a5a" strokeWidth="1" strokeLinecap="round"/>
@@ -6472,7 +6619,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <text x={gasX1+18} y={gasY-9} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="8.5" fontFamily="monospace">{CT('GAS',lang)}</text>
               <text x={teeX} y={gasY+24} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">{CT('DRIP LEG',lang)}</text>
               <HoverInfo x={gasX1-2} y={gasY-12} w={gasX2-gasX1+4} h={38} rx={2}
-                vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}/>
+                vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}
+                ringPath={gasD} ringStrokeWidth={9}/>
             </g>;
           })()}
 
@@ -6670,41 +6818,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               ringPath={linesetRingPath} ringStrokeWidth={16}/>
           </g>}
 
-          {/* Secondary float switch - QA FIX, the pan shape got tried
-              twice on this layout too (see the attic layout's own sibling
-              block for the full "tried it twice, both times too
-              complicated" reasoning) - reverted to the coil's own
-              secondary drain port instead. Left side of the cabinet (the
-              lineset/gas line/primary drain/flue all already live on the
-              right at various heights - see those blocks' own comments),
-              at mid-coil height so it clears both the lineset's own entry
-              point (lands low, near the coil's bottom per LS_Y1/LS_Y2)
-              and the flue's horizontal elbow run (lands low too, at
-              FURN_Y-18, well below the coil). Sticks out past the
-              cabinet's own edge so it reads as a real port, same fix as
-              the attic layout's ("it needs to stick out slightly to show
-              truly"). ACOIL_Y/ACOIL_H already mean "just the coil"
-              (furnace-paired) or "the whole air handler" (standalone) via
-              the hasFurnace ternary upstream. QA FIX - moved down here,
-              painted dead last among the indoor elements (right before
-              OutsideZone), same "some other later hover still out-
-              competed it" fix the attic layout's sibling needed. */}
-          {hasCoil&&hasCond&&(()=>{
-            const portY=ACOIL_Y+ACOIL_H*0.5;
-            const stubLen=13;
-            const tipX=UNIT_X-stubLen;
-            const swX=tipX, swY=portY+3;
-            return <g key="closet-secondary-port">
-              <line x1={UNIT_X} y1={portY} x2={tipX} y2={portY}
-                stroke={B+'.5)'} strokeWidth="2" strokeLinecap="round"/>
-              <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
-              <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
-              <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
-              <HoverInfo x={tipX-4} y={portY-6} w={UNIT_X-tipX+8} h={30} rx={3}
-                vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
-            </g>;
-          })()}
-
           {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}
           {hasCond&&<OutsideZone
             wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH}
@@ -6874,6 +6987,56 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   vw={SVG_VW} vh={SVG_VH} title={T('p_trap').title} text={T('p_trap').text}/>;
               })()}
             </>;
+          })()}
+
+          {/* Secondary float switch - QA FIX, the pan shape got tried
+              twice on this layout too (see the attic layout's own sibling
+              block for the full "tried it twice, both times too
+              complicated" reasoning) - reverted to the coil's own
+              secondary drain port instead. Sticks out past the cabinet's
+              own edge so it reads as a real port, same fix as the attic
+              layout's ("it needs to stick out slightly to show truly").
+              ACOIL_Y/ACOIL_H already mean "just the coil" (furnace-paired)
+              or "the whole air handler" (standalone) via the hasFurnace
+              ternary upstream.
+              QA FIX - originally stuck out the LEFT side at mid-coil
+              height (clear of the lineset/gas line/primary drain/flue,
+              which all live on the right) per direct feedback that read
+              fine on its own, but direct feedback since then was that a
+              real coil's primary and secondary drain ports sit right next
+              to each other on the SAME pan - moved to the RIGHT side,
+              right next to the condensate drain's own exit point (same
+              exitX/exitY math the drain block above computes for itself,
+              recomputed here since that block's consts aren't hoisted),
+              offset a little above it so the two read as two adjacent
+              ports rather than one on top of the other.
+              QA FIX - originally lived right before OutsideZone (same
+              spot as the attic layout's own sibling), but OutsideZone is
+              actually called BEFORE this drain+P-trap block on the closet
+              layout (not after, unlike attic) - painted there, the
+              drain's own P-trap hover (a few pixels away, right at this
+              same exit point) still painted AFTER it and won the overlap,
+              confirmed via hover sweep landing on P-TRAP instead of
+              SECONDARY FLOAT SWITCH. Moved to right here instead, after
+              the entire drain+P-trap block, so this wins any remaining
+              overlap the way the attic sibling's own "paint dead last"
+              fix intended. */}
+          {hasCoil&&hasCond&&(()=>{
+            const exitX=UNIT_X+UNIT_W;
+            const drainExitY=Math.max(LS_Y2+14,ACOIL_Y+Math.round(ACOIL_H*0.85));
+            const portY=drainExitY-16;
+            const stubLen=13;
+            const tipX=exitX+stubLen;
+            const swX=tipX, swY=portY+3;
+            return <g key="closet-secondary-port">
+              <line x1={exitX} y1={portY} x2={tipX} y2={portY}
+                stroke={B+'.5)'} strokeWidth="2" strokeLinecap="round"/>
+              <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
+              <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
+              <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
+              <HoverInfo x={exitX-2} y={portY-6} w={tipX-exitX+8} h={30} rx={3}
+                vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
+            </g>;
           })()}
 
           {/* Thermostat - mounted on the interior wall, between the unit
