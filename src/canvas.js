@@ -4601,7 +4601,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             })()}
             <line x1={drainCoilCX} y1={drainCrossY} x2={drainWallX} y2={drainCrossY2}
               stroke={B+'.42)'} strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>
-            <text x={drainCoilCX+7} y={drainTopY+14} textAnchor="start"
+            {/* QA FIX - the secondary float switch (furnace-paired case,
+                drawn much later in this file, at ACOIL_X+ACOIL_W*0.22)
+                moved from dead-center to sit closer to this same drain
+                line - at the old +7 offset this label's own text started
+                right on top of where that switch's stub now lands
+                (confirmed via screenshot: the switch and the word "DRAIN"
+                were overlapping). Anchored off the switch's own position
+                instead of drainCoilCX, with enough clearance past its
+                glyph to read cleanly - only for the furnace-paired case
+                (the no-furnace air handler's switch sits on the OTHER
+                side of the drain, at 8%, so this label's original tight
+                +7 spacing there is still clear). */}
+            <text x={hasFurnace?ACOIL_X+ACOIL_W*0.22+30:drainCoilCX+7} y={drainTopY+14} textAnchor="start"
               fill={B+'.4)'} fontSize="12" fontFamily="monospace">{CT('DRAIN',lang)}</text>
             {/* No EditZone covers this line run - free-standing hover, no
                 onClick. Split out and moved down (below the supply
@@ -4657,35 +4669,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // exact same "flush rectangular collar at the plenum" look.
               const STUB=(DW+2)/2;
               // QA FIX #3 (the elbow ducts "glowing much differently than
-              // the middle") - NOT a dash-density or dash-brightness bug
-              // (the earlier QA FIX below, pathLength+round linejoin,
-              // already took care of that). The remaining difference is
-              // SPEED. .airflow's own @keyframes (styles.css) animates
-              // stroke-dashoffset by a fixed "-32" over a fixed "2s",
-              // and because pathLength="100" is set on these paths, that
-              // -32 is interpreted in the SAME 0-100 normalized space as
-              // the dasharray - NOT in real pixels. So every duct's dash
-              // pattern shifts by the same 32% of its own length every
-              // 2 seconds, regardless of how long that path really is.
-              // The angled ducts' path (diagonal elbow leg + straight
-              // drop) is measurably longer in real pixels than the
-              // middle duct's single straight drop, so the SAME 32%-per-
-              // 2s shift covers more real pixels for the angled ducts -
-              // their dashes visibly race past faster than the middle
-              // duct's, reading as more energetic/"brighter" even though
-              // color, opacity, width and dash density are all genuinely
-              // identical. Confirmed by comparing all three side by side
-              // at high zoom - the left/right dashes visibly outrun the
-              // middle duct's within the same couple of seconds. Fix:
-              // scale each duct's animation-duration (an inline style,
-              // which - same "inline wins over class" mechanism already
-              // used for strokeDasharray above - overrides .airflow's
-              // own fixed 2s without touching its dashoffset keyframe or
-              // anything else) proportionally to that duct's own real
-              // pixel length, so real-world dash speed (px/sec) comes out
-              // identical across all three regardless of path shape.
-              const BASE_DUR=2; // matches .airflow's own animation-duration in styles.css
-              const pxLen=pts=>{let L=0;for(let i=1;i<pts.length;i++)L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return L;};
+              // the middle") went through two prior attempts (a dash-
+              // density/linejoin fix, then a per-duct animation-speed
+              // fix) that were each real but didn't fully solve it - see
+              // ductArrow's own comment below for the actual cause
+              // (pathLength normalization + a corner for a dash to
+              // straddle) and the current fix (raw-pixel dashing, no
+              // pathLength, no corner - two straight-segment arrows per
+              // angled duct instead of one bent one).
               // Airflow arrow down the center of a duct stem - same idea as
               // the supply plenum's own internal arrows just above, so flow
               // reads continuously from plenum through the duct to the
@@ -4693,37 +4684,47 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // thin dashed line (no glow underlay) since these stems are
               // only 14px wide - the bold treatment used elsewhere would
               // overwhelm a duct this narrow.
-              // pathLength normalizes stroke-dasharray to a 0-100 scale
-              // regardless of the path's real pixel length - without it,
-              // the fixed-pixel "10 6" dash pattern from .airflow's own
-              // CSS tiles a different number of times across a short
-              // straight drop vs a longer angled run, so a shorter duct
-              // visibly shows fewer dash segments (reads as "dimmer") even
-              // though all of them share identical color/opacity/speed.
-              // The inline strokeDasharray here (in the same normalized
-              // 0-100 space pathLength sets up) overrides .airflow's own
-              // pixel-based dasharray - inline style wins over a
-              // stylesheet class for any property the class doesn't
-              // itself animate - while .airflow's animated dashoffset
-              // keyframe still drives the actual motion (at the
-              // per-duct-scaled speed set up by animationDuration above).
-              // QA FIX - strokeLinejoin defaulted to "miter", which on the
-              // angled ducts' own bent path (a real corner, unlike the
-              // straight duct's single unbroken segment) can spike a thin
-              // 1.6px dashed stroke into a disproportionately bright flare
-              // right at the joint whenever a dash happens to straddle it -
-              // reading as the angled ducts having a much stronger glow
-              // than the straight one, even though the dash pattern itself
-              // (pathLength-normalized, see the comment above) is
-              // genuinely identical across all three. "round" caps the
-              // join at the stroke's own width instead of amplifying it.
-              // (This fix was real and stays - it just wasn't the whole
-              // story; see the animationDuration fix above for the rest.)
-              const midLen=Math.max(1,(DECK_Y-4)-(pBot+3));
-              const ductArrow=(d,key,len)=>(
-                <path key={key} d={d} pathLength="100" fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
-                  strokeLinejoin="round" className="airflow"
-                  style={{strokeDashoffset:0,strokeDasharray:'16 10',animationDuration:(BASE_DUR*(len/midLen))+'s'}} markerEnd="url(#arr)"/>
+              // The inline strokeDasharray here overrides .airflow's own
+              // CSS dasharray - inline style wins over a stylesheet class
+              // for any property the class doesn't itself animate - while
+              // .airflow's animated dashoffset keyframe still drives the
+              // actual motion, in real raw pixels (see the comment above
+              // for why this doesn't use pathLength normalization).
+              // QA FIX - direct feedback after both the above fixes:
+              // "still glows way brighter than middle, not fixed." Both
+              // prior fixes were real but neither was the actual cause.
+              // The actual cause: pathLength="100" + a shared dasharray
+              // meant to keep the SAME NUMBER of dash cycles regardless of
+              // a path's real length - which by definition makes each
+              // individual dash LONGER in real pixels on a longer path.
+              // The angled ducts' path (elbow leg + straight drop, ~110px)
+              // is only ~7% longer than the middle's (~103px), which
+              // shouldn't be a dramatic difference on its own - but the
+              // angled path is ALSO one continuous path with a real corner
+              // in the middle of it, and a dash that happens to be
+              // straddling that corner at any given instant paints across
+              // BOTH the end of one leg and the start of the next with a
+              // rounded join stroking the corner itself - stacking extra
+              // coverage right at the bend that the middle duct's single
+              // unbroken straight run structurally cannot have, on top of
+              // the individually-longer dashes pathLength normalization
+              // already gives it. Dropped pathLength normalization
+              // entirely: dasharray/dashoffset now run in real raw pixels
+              // (no `pathLength` attribute), so every duct's dash is
+              // physically the same 16px/10px size and moves at the same
+              // real speed (the shared -32px keyframe shift, at the same
+              // shared animation-duration, works out to identical px/sec
+              // for any path length - no per-duct scaling needed at all).
+              // And the angled duct's arrow is now drawn as TWO separate
+              // straight-line paths (one per leg) instead of one bent
+              // path - each leg gets the exact same single-unbroken-
+              // segment treatment the middle duct's own arrow already
+              // uses, so there is no corner for a dash to straddle and
+              // nothing for a linejoin to reinforce, on any of the three.
+              const ductArrow=(d,key)=>(
+                <path key={key} d={d} fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
+                  strokeLinecap="round" className="airflow"
+                  style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
               );
               const straight=(cx,key)=>(
                 <g key={key}>
@@ -4731,7 +4732,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   <DuctRibbing x={cx-DW/2} y={pBot} w={DW} h={Math.max(0,DECK_Y-pBot)} vertical/>
                   <DuctClamp x={cx-DW/2} y={pBot+2} w={DW} vertical/>
                   <DuctClamp x={cx-DW/2} y={DECK_Y-5} w={DW} vertical/>
-                  {DECK_Y-pBot>10&&ductArrow(`M${cx},${pBot+3} L${cx},${DECK_Y-4}`,'arrow',midLen)}
+                  {DECK_Y-pBot>10&&ductArrow(`M${cx},${pBot+3} L${cx},${DECK_Y-4}`,'arrow')}
                   {/* No EditZone covers duct geometry - free-standing hover,
                       no onClick. Painted before the grille below so its own
                       more specific hover (RegisterGrille's built-in one)
@@ -4779,11 +4780,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 // otherwise a fixed y-inset could land the arrow's start
                 // point back inside the stub and cut a visible diagonal
                 // line across it instead of riding the actual pipe).
+                // QA FIX - drawn as TWO independent single-segment arrows
+                // (one per leg) instead of one path bent through the
+                // corner - see ductArrow's own comment for why: no corner
+                // means nothing for a dash to straddle or a linejoin to
+                // reinforce, the same structural guarantee the middle
+                // duct's own single-straight-segment arrow already has.
                 const segDX=botX-topX, segDY=bendY-(pBot+STUB), segLen=Math.hypot(segDX,segDY)||1;
                 const inset=3;
                 const arrowStartX=topX+segDX/segLen*inset, arrowStartY=(pBot+STUB)+segDY/segLen*inset;
-                const arrowPts=[[arrowStartX,arrowStartY],[botX,bendY],[botX,DECK_Y-4]];
-                const arrowD=arrowPts.map(([x,y],i)=>`${i===0?'M':'L'}${x},${y}`).join(' ');
+                const diagArrowD=`M${arrowStartX},${arrowStartY} L${botX},${bendY}`;
+                const straightArrowD=`M${botX},${bendY+3} L${botX},${DECK_Y-4}`;
                 return (
                   <g key={key}>
                     {/* Starter-collar stub - flush rect, zero cap bleed,
@@ -4805,7 +4812,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                         starter collar and the flex duct. */}
                     <DuctClamp x={topX-DW/2} y={pBot+STUB-2} w={DW} vertical/>
                     <DuctClamp x={botX-DW/2} y={DECK_Y-5} w={DW} vertical/>
-                    {ductArrow(arrowD,'arrow',pxLen(arrowPts))}
+                    {ductArrow(diagArrowD,'arrow1')}
+                    {ductArrow(straightArrowD,'arrow2')}
                     {/* Two boxes tracing the actual bent run (elbow leg,
                         then straight drop) rather than one bounding rect,
                         same reasoning as the lineset's own L-shaped hover
@@ -5093,13 +5101,20 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               condensate drain (drainCoilCX, ~22% of AH_W in) rather than
               sitting to its right at dead-center - shifted to ~8% of
               AH_W, comfortably left of the drain's own exit and still
-              clear of the cabinet's own left edge. The furnace-paired
-              case keeps the original dead-center 50% spot (its own drain
-              exits much further left, ~12% of ACOIL_W, with no real room
-              further left of that before the furnace/coil seam). */}
+              clear of the cabinet's own left edge.
+              QA FIX - the furnace-paired case originally kept the dead-
+              center 50% spot, but direct feedback was that it should sit
+              closer to the drain line (which exits at ~12% of ACOIL_W,
+              same as a real coil's primary/secondary ports being right
+              next to each other on one pan) - moved to 22%, comfortably
+              clear of the drain's own vertical run and loop but much
+              closer than dead-center. The DRAIN label itself (drawn
+              earlier, see drainCoilCX's own block) got shifted right to
+              clear this new position - see that text element's own
+              comment. */}
           {hasCoil&&hasCond&&(()=>{
             const cabX=hasFurnace?ACOIL_X:AH_X, cabW=hasFurnace?ACOIL_W:AH_W;
-            const portX=hasFurnace?cabX+cabW*0.5:cabX+cabW*0.08;
+            const portX=hasFurnace?cabX+cabW*0.22:cabX+cabW*0.08;
             const portY0=UNIT_Y+UNIT_H;
             const stubLen=13;
             const portY1=portY0+stubLen;
