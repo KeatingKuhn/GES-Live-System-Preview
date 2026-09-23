@@ -1191,6 +1191,8 @@ const PART_INFO={
     es:{title:'SUMINISTRO DEDICADO',text:"Envía el aire deshumidificado directamente a su propia rejilla en el tablaroca cercano, en lugar de conectarse al tronco de suministro principal."}},
   lineset:{en:{title:'LINE SET',text:"The two copper lines carrying refrigerant between the indoor coil and the outdoor condenser - the larger one wrapped in insulation to stop it from sweating."},
     es:{title:'LÍNEAS DE REFRIGERANTE',text:"Las dos líneas de cobre que transportan refrigerante entre el serpentín interior y el condensador exterior - la más grande está aislada para evitar la condensación."}},
+  txv_bulb:{en:{title:'TXV SENSING BULB',text:"Clamped onto the suction line right at the coil, this bulb reads the refrigerant's temperature and tells the expansion valve exactly how much refrigerant to let into the coil."},
+    es:{title:'BULBO SENSOR TXV',text:"Sujeto a la línea de succión justo en el serpentín, este bulbo mide la temperatura del refrigerante y le indica a la válvula de expansión cuánto refrigerante dejar entrar al serpentín."}},
   condensate_drain:{en:{title:'CONDENSATE DRAIN',text:"Carries the water that condenses off the coil safely out of the house - into a P-trap under a sink, near your outdoor condenser, or another suitable drain point."},
     es:{title:'DRENAJE DE CONDENSADO',text:"Lleva el agua que se condensa en el serpentín de forma segura fuera de la casa - a un sifón bajo un lavabo, cerca de su condensador exterior, u otro punto de drenaje adecuado."}},
   insulation:{en:{title:'ATTIC INSULATION',text:"Keeps conditioned air at the right temperature instead of leaking it away through the attic above your ductwork."},
@@ -4945,6 +4947,23 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
                     ringPath={linesetRingPath} ringStrokeWidth={16}/>;
                 })}
+                {/* TXV sensing bulb - a small detail every real coil
+                    install has: clamped straight onto the suction line
+                    just outside the coil, reporting refrigerant temp back
+                    to the expansion valve. Simple glyph on purpose - a
+                    little clamp straddling line 2, right at the coil, not
+                    a whole new diagram feature. Painted last in this
+                    block so its own tiny hover wins the strip it shares
+                    with the general lineset hover above. */}
+                {(()=>{
+                  const bulbX=RL_START_X+16, bulbY=ry2;
+                  return <g className="fadein">
+                    <rect x={bulbX-4} y={bulbY-3} width="8" height="6" rx="1.5" fill="rgba(200,205,215,.75)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
+                    <line x1={bulbX-5} y1={bulbY} x2={bulbX+5} y2={bulbY} stroke="rgba(180,184,192,.5)" strokeWidth="0.8"/>
+                    <HoverInfo x={bulbX-6} y={bulbY-6} w={12} h={12} rx={3}
+                      vw={SVG_VW} vh={SVG_VH} title={T('txv_bulb').title} text={T('txv_bulb').text}/>
+                  </g>;
+                })()}
               </>;
             })()}
           </g>}
@@ -6831,6 +6850,32 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             <HoverInfo x={UNIT_X+UNIT_W} y={Math.min(LS_Y1,LS_Y2)-6} w={EXT_WALL_X-(UNIT_X+UNIT_W)} h={Math.abs(LS_Y2-LS_Y1)+12}
               rx={3} vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
               ringPath={linesetRingPath} ringStrokeWidth={16}/>
+            {/* TXV sensing bulb - a small detail every real coil install
+                has: clamped straight onto the suction line (LS_Y2, per
+                this block's own "Suction line" comment above) just
+                outside the coil, reporting refrigerant temp back to the
+                expansion valve. Simple glyph on purpose - a little clamp
+                straddling the pipe, right at the coil, not a whole new
+                diagram feature. Painted last so its own tiny hover wins
+                the strip it shares with the general lineset hover.
+                QA FIX - the secondary float switch (drawn much later in
+                this file, after the drain+P-trap block) also lands right
+                at this same UNIT_X+UNIT_W corner now that it's been moved
+                closer to the drain - at +16 this bulb's own hover zone
+                sat inside the float switch's, so hovering it read back as
+                SECONDARY FLOAT SWITCH regardless of paint order. Moved
+                further out along the pipe (+45) to clear the switch's
+                own footprint entirely, still reading as "right at the
+                coil" against the pipe's real length. */}
+            {(()=>{
+              const bulbX=UNIT_X+UNIT_W+45, bulbY=LS_Y2;
+              return <g className="fadein">
+                <rect x={bulbX-3} y={bulbY-4} width="6" height="8" rx="1.5" fill="rgba(200,205,215,.75)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
+                <line x1={bulbX} y1={bulbY-5} x2={bulbX} y2={bulbY+5} stroke="rgba(180,184,192,.5)" strokeWidth="0.8"/>
+                <HoverInfo x={bulbX-6} y={bulbY-6} w={12} h={12} rx={3}
+                  vw={SVG_VW} vh={SVG_VH} title={T('txv_bulb').title} text={T('txv_bulb').text}/>
+              </g>;
+            })()}
           </g>}
 
           {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}

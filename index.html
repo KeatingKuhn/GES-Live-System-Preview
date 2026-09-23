@@ -3115,6 +3115,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       en: { title: "LINE SET", text: "The two copper lines carrying refrigerant between the indoor coil and the outdoor condenser - the larger one wrapped in insulation to stop it from sweating." },
       es: { title: "L\xCDNEAS DE REFRIGERANTE", text: "Las dos l\xEDneas de cobre que transportan refrigerante entre el serpent\xEDn interior y el condensador exterior - la m\xE1s grande est\xE1 aislada para evitar la condensaci\xF3n." }
     },
+    txv_bulb: {
+      en: { title: "TXV SENSING BULB", text: "Clamped onto the suction line right at the coil, this bulb reads the refrigerant's temperature and tells the expansion valve exactly how much refrigerant to let into the coil." },
+      es: { title: "BULBO SENSOR TXV", text: "Sujeto a la l\xEDnea de succi\xF3n justo en el serpent\xEDn, este bulbo mide la temperatura del refrigerante y le indica a la v\xE1lvula de expansi\xF3n cu\xE1nto refrigerante dejar entrar al serpent\xEDn." }
+    },
     condensate_drain: {
       en: { title: "CONDENSATE DRAIN", text: "Carries the water that condenses off the coil safely out of the house - into a P-trap under a sink, near your outdoor condenser, or another suitable drain point." },
       es: { title: "DRENAJE DE CONDENSADO", text: "Lleva el agua que se condensa en el serpent\xEDn de forma segura fuera de la casa - a un sif\xF3n bajo un lavabo, cerca de su condensador exterior, u otro punto de drenaje adecuado." }
@@ -6687,7 +6691,23 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               ringStrokeWidth: 16
             }
           );
-        }));
+        }), (() => {
+          const bulbX = RL_START_X + 16, bulbY = ry2;
+          return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("rect", { x: bulbX - 4, y: bulbY - 3, width: "8", height: "6", rx: "1.5", fill: "rgba(200,205,215,.75)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX - 5, y1: bulbY, x2: bulbX + 5, y2: bulbY, stroke: "rgba(180,184,192,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement(
+            HoverInfo,
+            {
+              x: bulbX - 6,
+              y: bulbY - 6,
+              w: 12,
+              h: 12,
+              rx: 3,
+              vw: SVG_VW,
+              vh: SVG_VH,
+              title: T("txv_bulb").title,
+              text: T("txv_bulb").text
+            }
+          ));
+        })());
       })()), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -8732,7 +8752,23 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           ringPath: linesetRingPath,
           ringStrokeWidth: 16
         }
-      )), hasCond && /* @__PURE__ */ React.createElement(
+      ), (() => {
+        const bulbX = UNIT_X + UNIT_W + 45, bulbY = LS_Y2;
+        return /* @__PURE__ */ React.createElement("g", { className: "fadein" }, /* @__PURE__ */ React.createElement("rect", { x: bulbX - 3, y: bulbY - 4, width: "6", height: "8", rx: "1.5", fill: "rgba(200,205,215,.75)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: bulbX, y1: bulbY - 5, x2: bulbX, y2: bulbY + 5, stroke: "rgba(180,184,192,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: bulbX - 6,
+            y: bulbY - 6,
+            w: 12,
+            h: 12,
+            rx: 3,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("txv_bulb").title,
+            text: T("txv_bulb").text
+          }
+        ));
+      })()), hasCond && /* @__PURE__ */ React.createElement(
         OutsideZone,
         {
           wallX: EXT_WALL_X,
