@@ -453,18 +453,29 @@ export const GATE_CONFIG={
   // notice it, scroll to find it, and submitting it depended on that
   // page's own Gravity Forms AJAX/confirmation settings staying correct
   // - a customer hit a real dead end when the confirmation wasn't in
-  // AJAX mode. embedFormUrl points at a WordPress page containing
-  // ONLY this Gravity Form (nothing else) - the leadgate screen below
-  // now embeds THAT page directly in its own <iframe>, so the form is
-  // literally part of this widget, same-origin, fully under this
-  // code's own control: no separate page element to find, no
-  // dependency on the OUTER WordPress page's own AJAX/confirmation
-  // settings. See the leadIframeRef effect in src/app.js for the
-  // same-origin detection that replaces the old jQuery/postMessage/
-  // ?ges_lead=1 paths (all three are KEPT as harmless legacy fallbacks
-  // in case this form ever gets placed elsewhere again, but none of
-  // them should be needed once this is set).
-  embedFormUrl:'https://goldeagleservices.com/build-your-system-submission-form/',
+  // AJAX mode. embedFormUrl pointed at a WordPress page containing ONLY
+  // this Gravity Form, embedded directly in an <iframe> right here - but
+  // that means an iframe nested inside THIS widget's own iframe (already
+  // embedded in the WordPress page), and live testing hit exactly the
+  // failure mode that setup risks: the whole browser tab force-navigated
+  // to the form's own URL and went blank - almost certainly a
+  // clickjacking-protection script on that page (common on WordPress,
+  // often added by a security plugin or the theme itself) detecting
+  // `window!==window.top` and forcing `top.location` to escape the
+  // frame, since same-origin X-Frame-Options alone wouldn't explain the
+  // tab's own URL changing. Turned back off rather than debugging
+  // WordPress-side security headers blind. Falls back to the "scroll
+  // down to find it" copy below, relying on the ?ges_lead=1 redirect
+  // path instead (see the leadgate detection effect in src/app.js) -
+  // this REQUIRES the actual [gravityform id="9"] shortcode to be
+  // placed somewhere on the SAME WordPress page as this widget's own
+  // iframe (not iframed itself, just placed directly in the page, the
+  // way it originally was), with that form's own Confirmation set to
+  // "Redirect to a URL" -> this page's own URL with ?ges_lead=1
+  // appended, exactly as originally configured before this embed
+  // detour. If that shortcode/confirmation isn't still in place, restore
+  // it - this widget alone can no longer host the form itself.
+  embedFormUrl:'',
 };
 // The office inbox the "Send to Our Office" quick-action (result screen,
 // src/app.js buildEmailHref) mailto:'s to, alongside the existing "Email

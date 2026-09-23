@@ -4552,7 +4552,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>}
 
           {/* Furnace */}
-          {hasCoil&&hasFurnace&&<g className="snap" key={'fu'+a.stage+a.furnace_eff} filter="url(#shadow)">
+          {/* QA FIX - key used to include a.furnace_eff (auto-derived from
+              insulation - see data.js), which unmounted+remounted this
+              whole group (replaying its .snap entrance animation) every
+              time the insulation answer changed, not just on the furnace's
+              own genuine first mount - direct feedback: "when you select
+              fiberglass vs spray foam, it makes the furnace jump in and
+              out". A stable key still fires .snap exactly once, on the
+              real mount (hasCoil&&hasFurnace turning true), and lets prop
+              changes (furnace_eff included) update in place afterward the
+              normal React way instead. a.stage was dead - no STEPS field
+              ever sets it - so it contributed nothing but always being
+              "undefined" in the key string; dropped rather than kept. */}
+          {hasCoil&&hasFurnace&&<g className="snap" key="fu" filter="url(#shadow)">
             {(()=>{
               // Roof surface height at the flue's actual X (mid+w*0.2 inside
               // FurnaceH) via the shared roofY(x) helper above - EAVE_Y
@@ -4660,7 +4672,13 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           })()}
 
           {/* A-coil (horizontal, right of furnace) */}
-          {hasCoil&&hasFurnace&&<g className="snap" key={'ac'+a.cond_tier} style={{animationDelay:'.08s',...CABINET_ART_NO_HIT}} filter="url(#shadow)">
+          {/* QA FIX - same remount-on-every-selection bug as the furnace
+              above, here keyed on a.cond_tier (efficiency tier): picking
+              between Federal Minimum/Mid/High Efficiency replayed .snap
+              every time instead of just on genuine mount - direct
+              feedback: "same visual bug at step 4 with the a-coil" (step 4
+              = "Pick your efficiency tier"). Stable key, same fix. */}
+          {hasCoil&&hasFurnace&&<g className="snap" key="ac" style={{animationDelay:'.08s',...CABINET_ART_NO_HIT}} filter="url(#shadow)">
             {(()=>{
               const active=evapActive;
               return <>
@@ -4735,7 +4753,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>}
 
           {/* Air handler */}
-          {hasCoil&&!hasFurnace&&<g className="snap" key={'ah'+a.cond_tier} filter="url(#shadow)">
+          {/* QA FIX - same remount-on-every-tier-click bug as the furnace/
+              A-coil above (see their own comments), here on the
+              air-handler cabinet variant. Stable key. */}
+          {hasCoil&&!hasFurnace&&<g className="snap" key="ah" filter="url(#shadow)">
             <AirHandlerH x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} active={evapActive} auxHeat={auxHeatActive}
               evapC={evapC} evapC2={evapC2} hasUV={hasUV} acoilInfoKey={acoilInfoKey()}
               blowerActive={blowerActive} blowerMotorLabel={BLOWER_MOTOR} refReversed={refReversed}
@@ -6711,7 +6732,10 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>}
 
           {/* A-coil / AH */}
-          {hasCoil&&<g className="snap" key={'ac-c'+a.cond_tier} style={{animationDelay:'.07s',...CABINET_ART_NO_HIT}}>
+          {/* QA FIX - same remount-on-every-tier-click bug as the attic
+              furnace/A-coil above (see their own comments), here on the
+              closet layout's A-coil. Stable key. */}
+          {hasCoil&&<g className="snap" key="ac-c" style={{animationDelay:'.07s',...CABINET_ART_NO_HIT}}>
             {(()=>{
               const active=evapActive;
               return <>
@@ -6832,7 +6856,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           </g>}
 
           {/* Furnace - HX top | blower bottom */}
-          {hasCoil&&hasFurnace&&<g className="snap" key={'fu-c'+a.stage} style={CABINET_ART_NO_HIT}>
+          {/* QA FIX - a.stage was dead (no STEPS field ever sets it, always
+              "undefined" in the key string) - harmless on its own, but
+              dropped for consistency with the same cleanup on the attic
+              furnace/A-coil above. */}
+          {hasCoil&&hasFurnace&&<g className="snap" key="fu-c" style={CABINET_ART_NO_HIT}>
             {/* General cabinet hover - painted first/bottommost, same
                 "specific ones painted after win their own smaller area"
                 reasoning as the attic layout's FurnaceH. BlowerWheel adds
