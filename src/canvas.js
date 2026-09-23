@@ -84,7 +84,7 @@ function useLerpedNumber(target,duration=2500){
 // skips recomputation when only unrelated wizard state changed.
 function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, lineY2, active,
   heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl, tierKey, eaveY,
-  lang, vw, vh, linesetRingPath}){
+  lang, vw, vh, linesetRingPath, outsideLabelLeft}){
   const groundY=zoneH-28;
   const padY=groundY-10;
   const wallThick=18;   // visible wall cross-section width
@@ -653,8 +653,11 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
       {refReversed?CT('ABSORBING HEAT',lang):CT('RELEASING HEAT',lang)}
     </text>}
 
-    {/* OUTSIDE label */}
-    <text x={wallX+zoneW/2} y={12} textAnchor="middle"
+    {/* OUTSIDE label - centered by default. outsideLabelLeft (closet
+        only) anchors it just right of the exterior wall instead: closet's
+        outside zone is narrow enough that its center sits directly under
+        the fixed top-right mode-preview toggle, which hid all but "OUT". */}
+    <text x={outsideLabelLeft?wallX+26:wallX+zoneW/2} y={12} textAnchor={outsideLabelLeft?'start':'middle'}
       fill={W+'.2)'} fontSize="11.5" fontFamily="monospace" letterSpacing="1.2">{CT('OUTSIDE',lang)}</text>
   </g>;
 }
@@ -1212,6 +1215,12 @@ const PART_INFO={
     es:{title:'DUCTO DE SUMINISTRO DEL DESHUMIDIFICADOR',text:"Envía el aire deshumidificado al plenum de suministro, donde se mezcla y llega a cada habitación por el mismo sistema de ductos."}},
   backdraft_damper:{en:{title:'BACKDRAFT DAMPER',text:"A one-way flap on the dehumidifier's supply duct that keeps the blower's much stronger airflow from pushing air backward through the dehumidifier when it isn't running."},
     es:{title:'COMPUERTA DE CONTRATIRO',text:"Una válvula de un solo sentido en el ducto de suministro del deshumidificador, que evita que el flujo de aire, mucho más fuerte, del soplador empuje el aire hacia atrás a través del deshumidificador cuando no está funcionando."}},
+  // Closet's own dehu box copy - the shared dehu_box above says it "ties
+  // into your ductwork", which the two dedicated-duct tooltips right next
+  // to it on the closet diagram directly contradict ("instead of tying
+  // into the main supply trunk").
+  dehu_box_dedicated:{en:{title:'DEHUMIDIFIER',text:"Pulls extra moisture out of your home's air through its own dedicated return and supply - runs automatically, just an occasional filter check, no buckets to empty."},
+    es:{title:'DESHUMIDIFICADOR',text:"Extrae el exceso de humedad del aire de su hogar a través de su propio retorno y suministro dedicados - funciona automáticamente, solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar."}},
   // Closet layout's dehu ducts are a different, independent design from
   // the attic's own dehu_return_duct/dehu_supply_duct (which tap the
   // SAME return/supply plenum the rest of the system uses, hence that
@@ -1318,6 +1327,7 @@ const CANVAS_ES={
   'Not a control - tap to see how this system behaves in each mode':'No es un control - toque para ver cómo se comporta este sistema en cada modo',
   'Not a control - click to see how this system behaves in each mode':'No es un control - haga clic para ver cómo se comporta este sistema en cada modo',
   '2×4 RETURN AIR CHASE':'2×4 DUCTO DE RETORNO',
+  '4–8 FT SUPPLY':'SUMINISTRO 4–8 PIES',
 };
 function CT(en,lang){ return lang==='es'&&CANVAS_ES[en]?CANVAS_ES[en]:en; }
 
@@ -4655,7 +4665,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                   {isExisting?CT('EXISTING PLENUM',lang):isMetal?CT('METAL PLENUM',lang):CT('DUCTBOARD PLENUM',lang)}
                 </text>
                 {!isExisting&&<text x={SUP_X+SUP_PLEN_W/2} y={SUP_PLEN_Y+SUP_PLEN_H/2+16} textAnchor="middle"
-                  fill={G+'.32)'} fontSize="11.5" fontFamily="monospace">4–8 FT SUPPLY</text>}
+                  fill={G+'.32)'} fontSize="11.5" fontFamily="monospace">{CT('4–8 FT SUPPLY',lang)}</text>}
                 {/* Supply-air temp reading - sits in the otherwise-empty gap
                     between the top flow arrow (28% down) and the plenum-type
                     label (center), so it never competes with either. See
@@ -7163,7 +7173,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
 
           {/* ── OUTSIDE ZONE - wall + condenser, condenser aligned with unit height ── */}
           {hasCond&&<OutsideZone
-            wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH}
+            wallX={EXT_WALL_X} zoneW={OUTSIDE_ZONE_W} zoneH={VH} outsideLabelLeft
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={LS_Y1} lineY2={LS_Y2}
             active={condenserActive} tierKey={a.cond_tier} eaveY={ROOF_EAVE_Y}

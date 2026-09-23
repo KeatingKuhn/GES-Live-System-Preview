@@ -376,7 +376,13 @@ function App(){
   // so the built system reads as something you can still reach into, not
   // an inert picture that only ever changes through the grid below it.
   const jumpToStep=useCallback(id=>{
-    const i=activeSteps.findIndex(s=>s.id===id);
+    let i=activeSteps.findIndex(s=>s.id===id);
+    // Mid Efficiency hides the system_for step (dual fuel is forced, see
+    // its showIf) but the review grid still shows the forced "Heat source"
+    // row with an EDIT button - which silently did nothing, since the step
+    // isn't in activeSteps. The tier pick is what actually decides it, so
+    // send that EDIT there instead.
+    if(i<0&&id==='system_for')i=activeSteps.findIndex(s=>s.id==='cond_tier');
     if(i>=0){trackEvent('quick_edit_used',{step_id:id});quickEditSnapshotRef.current=answers;setDone(false);setStepIdx(i);setQuickEdit(true);}
   },[activeSteps,answers]);
   // Splash-card pick - the real start of the funnel. Landing on the splash
@@ -1983,7 +1989,13 @@ function App(){
                     <div style={{marginBottom:10}}>
                       {est.lines.map((l,i)=>(
                         <div key={i} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,.05)",fontSize:"var(--fs-pricing-line)"}}>
-                          <span style={{color:"var(--dim)"}}>{trLineLabel(l)}</span>
+                          {/* textAlign:left - the panel's centered text-align
+                              otherwise inherits in here, so a label long
+                              enough to wrap (e.g. "3-ton system - Mid
+                              Efficiency - 18 SEER2" at closet's sidebar
+                              width) centered its lines while every other
+                              line item sat flush left. */}
+                          <span style={{color:"var(--dim)",textAlign:"left"}}>{trLineLabel(l)}</span>
                           <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>~${l.display.toLocaleString()}</span>
                         </div>
                       ))}

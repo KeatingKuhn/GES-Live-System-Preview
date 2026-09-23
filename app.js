@@ -517,7 +517,8 @@
     lang: lang2,
     vw,
     vh,
-    linesetRingPath
+    linesetRingPath,
+    outsideLabelLeft
   }) {
     const groundY = zoneH - 28;
     const padY = groundY - 10;
@@ -1275,9 +1276,9 @@
     ), /* @__PURE__ */ React.createElement(
       "text",
       {
-        x: wallX + zoneW / 2,
+        x: outsideLabelLeft ? wallX + 26 : wallX + zoneW / 2,
         y: 12,
-        textAnchor: "middle",
+        textAnchor: outsideLabelLeft ? "start" : "middle",
         fill: W2 + ".2)",
         fontSize: "11.5",
         fontFamily: "monospace",
@@ -1731,6 +1732,14 @@
       en: { title: "BACKDRAFT DAMPER", text: "A one-way flap on the dehumidifier's supply duct that keeps the blower's much stronger airflow from pushing air backward through the dehumidifier when it isn't running." },
       es: { title: "COMPUERTA DE CONTRATIRO", text: "Una v\xE1lvula de un solo sentido en el ducto de suministro del deshumidificador, que evita que el flujo de aire, mucho m\xE1s fuerte, del soplador empuje el aire hacia atr\xE1s a trav\xE9s del deshumidificador cuando no est\xE1 funcionando." }
     },
+    // Closet's own dehu box copy - the shared dehu_box above says it "ties
+    // into your ductwork", which the two dedicated-duct tooltips right next
+    // to it on the closet diagram directly contradict ("instead of tying
+    // into the main supply trunk").
+    dehu_box_dedicated: {
+      en: { title: "DEHUMIDIFIER", text: "Pulls extra moisture out of your home's air through its own dedicated return and supply - runs automatically, just an occasional filter check, no buckets to empty." },
+      es: { title: "DESHUMIDIFICADOR", text: "Extrae el exceso de humedad del aire de su hogar a trav\xE9s de su propio retorno y suministro dedicados - funciona autom\xE1ticamente, solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar." }
+    },
     // Closet layout's dehu ducts are a different, independent design from
     // the attic's own dehu_return_duct/dehu_supply_duct (which tap the
     // SAME return/supply plenum the rest of the system uses, hence that
@@ -1884,7 +1893,8 @@
     "HEAT MODE": "MODO CALOR",
     "Not a control - tap to see how this system behaves in each mode": "No es un control - toque para ver c\xF3mo se comporta este sistema en cada modo",
     "Not a control - click to see how this system behaves in each mode": "No es un control - haga clic para ver c\xF3mo se comporta este sistema en cada modo",
-    "2\xD74 RETURN AIR CHASE": "2\xD74 DUCTO DE RETORNO"
+    "2\xD74 RETURN AIR CHASE": "2\xD74 DUCTO DE RETORNO",
+    "4\u20138 FT SUPPLY": "SUMINISTRO 4\u20138 PIES"
   };
   function CT(en, lang2) {
     return lang2 === "es" && CANVAS_ES[en] ? CANVAS_ES[en] : en;
@@ -5072,7 +5082,7 @@
             fontSize: "11.5",
             fontFamily: "monospace"
           },
-          "4\u20138 FT SUPPLY"
+          CT("4\u20138 FT SUPPLY", lang2)
         ), /* @__PURE__ */ React.createElement(
           "text",
           {
@@ -7442,6 +7452,7 @@
           wallX: EXT_WALL_X,
           zoneW: OUTSIDE_ZONE_W,
           zoneH: VH,
+          outsideLabelLeft: true,
           condX: COND_X,
           condY: COND_Y,
           condW: COND_W,
@@ -8150,7 +8161,8 @@
       return n;
     }, [activeSteps, stepIdx, cur, curChapter]);
     const jumpToStep = useCallback2((id) => {
-      const i = activeSteps.findIndex((s) => s.id === id);
+      let i = activeSteps.findIndex((s) => s.id === id);
+      if (i < 0 && id === "system_for") i = activeSteps.findIndex((s) => s.id === "cond_tier");
       if (i >= 0) {
         trackEvent("quick_edit_used", { step_id: id });
         quickEditSnapshotRef.current = answers;
@@ -8792,7 +8804,7 @@
           onClick: () => trackEvent("financing_clicked", { lender: "wisetack", source: "price_reveal" })
         },
         tr("\u2192 Or prequalify online with Wisetack", "\u2192 O precalifique en l\xEDnea con Wisetack")
-      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, est.display.toLocaleString())), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr("Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).", "Incluye una garant\xEDa de f\xE1brica de 10 a\xF1os en piezas (requiere registro dentro de los 60 d\xEDas posteriores a la instalaci\xF3n).")), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, est.display.toLocaleString())), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr("Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).", "Incluye una garant\xEDa de f\xE1brica de 10 a\xF1os en piezas (requiere registro dentro de los 60 d\xEDas posteriores a la instalaci\xF3n).")), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)", textAlign: "left" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
