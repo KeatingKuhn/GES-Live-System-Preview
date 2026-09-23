@@ -4373,7 +4373,8 @@
       const RET_X = MARGIN_L;
       const THERM_IN_MARGIN = MARGIN_L >= 70;
       const THERM_CONTENT_W = 100, THERM_CONTENT_L = -12;
-      const THERM_SCALE = THERM_IN_MARGIN ? THERM_TARGET_SCALE : 0.5;
+      const THERM_GAP = 10;
+      const THERM_SCALE = THERM_IN_MARGIN ? Math.min(THERM_TARGET_SCALE, Math.max(0.3, (RET_X - THERM_GAP - 26) / 100)) : 0.5;
       const THERM_BTN_N = isDualFuel || !hasFurnace ? 3 : 2;
       const THERM_ROW_W = THERM_BTN_N === 3 ? 96 : 76;
       const THERM_W = THERM_ROW_W * THERM_SCALE, THERM_H = 120 * THERM_SCALE;

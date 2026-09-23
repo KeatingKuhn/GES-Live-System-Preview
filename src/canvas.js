@@ -4016,15 +4016,29 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // No UNIT_H-based height cap here (there used to be one, pegging the
     // thermostat to roughly the equipment cabinet's own real-world
     // height) - the open margin column has comfortably more vertical
-    // room than this needs. Targets THERM_TARGET_SCALE directly now (was
-    // capped at min(TARGET_SCALE,(MARGIN_L-16)/CONTENT_W) - a genuine
-    // margin-fit calculation back when the target was small enough to
-    // fit inside it) - per direct feedback the size itself matters more
-    // than staying inside that old column, so this now legitimately runs
-    // past MARGIN_L into the return plenum's own open left margin rather
-    // than shrinking back down to fit. The closet layout scales to this
-    // SAME target (see its own call site) so the two stay identical.
-    const THERM_SCALE=THERM_IN_MARGIN?THERM_TARGET_SCALE:0.5;
+    // room than this needs. Targets THERM_TARGET_SCALE whenever the margin
+    // is wide enough to actually hold it at that size (was uncapped
+    // outright per an earlier feedback round - "the size itself matters
+    // more than staying inside that old column" - but that comment's own
+    // premise was wrong: MARGIN_L/RET_X IS the return plenum box's own
+    // left edge, not a separate gap before it, so an uncapped target
+    // scale could genuinely run the thermostat's own content on top of
+    // the plenum box - direct feedback again: "the horizontal thermostat
+    // ... encroaching on the return plenum", hiding the "RE" of its
+    // diagonal RETURN PLENUM label. THERM_TX (below) always places the
+    // content's left edge at the fixed x=26 pad regardless of scale, so
+    // its right edge is exactly 26+100*SCALE - capping SCALE so that stays
+    // at least THERM_GAP px clear of RET_X reproduces the old margin-fit
+    // guarantee, but only actually shrinks the thermostat when the margin
+    // is genuinely too tight to hold it at full size - anywhere roomier
+    // still gets the full requested THERM_TARGET_SCALE. The closet layout
+    // scales to THERM_TARGET_SCALE directly (no such neighbor to clip
+    // against - see its own call site), so the two stay identical whenever
+    // the attic margin is wide enough not to need this cap.
+    const THERM_GAP=10;
+    const THERM_SCALE=THERM_IN_MARGIN
+      ?Math.min(THERM_TARGET_SCALE,Math.max(0.3,(RET_X-THERM_GAP-26)/100))
+      :0.5;
     // A heat-pump-only or dual-fuel system needs a 3rd thermostat button
     // (COOL/HP/FURN or COOL/HP/AUX, matching ToggleUI's own preview) -
     // same 96/76 row widths the closet layout's own thermostat uses, so
