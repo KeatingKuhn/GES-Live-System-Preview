@@ -4691,14 +4691,34 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // exact same "flush rectangular collar at the plenum" look.
               const STUB=(DW+2)/2;
               // QA FIX #3 (the elbow ducts "glowing much differently than
-              // the middle") went through two prior attempts (a dash-
-              // density/linejoin fix, then a per-duct animation-speed
-              // fix) that were each real but didn't fully solve it - see
-              // ductArrow's own comment below for the actual cause
-              // (pathLength normalization + a corner for a dash to
-              // straddle) and the current fix (raw-pixel dashing, no
-              // pathLength, no corner - two straight-segment arrows per
-              // angled duct instead of one bent one).
+              // the middle") went through three prior attempts (a dash-
+              // density/linejoin fix, a per-duct animation-speed fix,
+              // then a pathLength/single-bent-path fix splitting the
+              // angled arrow into two straight segments) that were each
+              // real but didn't fully solve it - see ductArrow's own
+              // comment below for the actual (4th) cause, found by
+              // sampling actual rendered pixel colors, not just DOM
+              // metadata: splitting the angled arrow into two <path>
+              // elements meant TWO markerEnd="url(#arr)" arrowheads per
+              // angled duct (one at the elbow bend, one at the grille
+              // end) vs the middle duct's single arrowhead. In this
+              // layout's actual geometry the elbow bend clamps very
+              // close to the deck line (short attic plenum-to-deck
+              // drop), so the second segment (the "straight drop" leg)
+              // is almost zero-length - its only real visual contribution
+              // is its own leftover arrowhead, stacked immediately next
+              // to the bend's own arrowhead. Measured directly: isolating
+              // just the arrow's own stroke color (not the duct body/
+              // ribbing/clamps also visible in the same crop) an angled
+              // duct's arrow ink came out ~22-28% brighter (more colored
+              // pixels) than the middle duct's, in EVERY animation frame
+              // sampled across a full 2s cycle - constant, not
+              // intermittent, which is why the dash-timing and corner-
+              // straddling fixes (both animation-phase-dependent) never
+              // actually fixed what the user was seeing. Fix: only the
+              // segment that ends at the duct's real visual terminus (the
+              // grille end) gets an arrowhead; the interior segment (ends
+              // at the bend, not a real flow endpoint) does not.
               // Airflow arrow down the center of a duct stem - same idea as
               // the supply plenum's own internal arrows just above, so flow
               // reads continuously from plenum through the duct to the
@@ -4743,10 +4763,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // segment treatment the middle duct's own arrow already
               // uses, so there is no corner for a dash to straddle and
               // nothing for a linejoin to reinforce, on any of the three.
-              const ductArrow=(d,key)=>(
+              // marker=true by default (a lone/terminal segment ends at
+              // the duct's real visual endpoint and should show the
+              // arrowhead there) - pass marker={false} for an interior
+              // segment of a multi-segment arrow chain (ends at a bend,
+              // not a real endpoint) so it doesn't paint its own extra
+              // arrowhead on top of/next to the chain's real terminal one.
+              const ductArrow=(d,key,marker=true)=>(
                 <path key={key} d={d} fill="none" stroke={(heatMode?O:B)+'.85)'} strokeWidth="1.6"
                   strokeLinecap="round" className="airflow"
-                  style={{strokeDashoffset:0,strokeDasharray:'16 10'}} markerEnd="url(#arr)"/>
+                  style={{strokeDashoffset:0,strokeDasharray:'16 10'}}
+                  markerEnd={marker?"url(#arr)":undefined}/>
               );
               const straight=(cx,key)=>(
                 <g key={key}>
@@ -4834,7 +4861,18 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                         starter collar and the flex duct. */}
                     <DuctClamp x={topX-DW/2} y={pBot+STUB-2} w={DW} vertical/>
                     <DuctClamp x={botX-DW/2} y={DECK_Y-5} w={DW} vertical/>
-                    {ductArrow(diagArrowD,'arrow1')}
+                    {/* Only the LAST segment (the one that actually
+                        reaches the grille) gets an arrowhead - the first
+                        segment ends at the bend, an interior point along
+                        the flow, not a real endpoint, so it stays
+                        marker=false. See the QA FIX comment above
+                        ductArrow's own definition for why this matters:
+                        without it, this duct paints a second arrowhead
+                        that (in this layout's actual geometry, where the
+                        bend clamps close to the deck) lands almost on top
+                        of the real one, measurably brighter than the
+                        middle duct's single arrowhead in every frame. */}
+                    {ductArrow(diagArrowD,'arrow1',false)}
                     {ductArrow(straightArrowD,'arrow2')}
                     {/* Two boxes tracing the actual bent run (elbow leg,
                         then straight drop) rather than one bounding rect,

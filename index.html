@@ -6531,7 +6531,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const FAN = 36;
         const grille = (cx) => /* @__PURE__ */ React.createElement(RegisterGrille, { cx, y: DECK_Y, w: GW, dc: DC, ds: DS, label: CT("SUPPLY", lang2), lang: lang2, vw: SVG_VW, vh: SVG_VH });
         const STUB = (DW + 2) / 2;
-        const ductArrow = (d, key) => /* @__PURE__ */ React.createElement(
+        const ductArrow = (d, key, marker = true) => /* @__PURE__ */ React.createElement(
           "path",
           {
             key,
@@ -6542,7 +6542,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
             strokeLinecap: "round",
             className: "airflow",
             style: { strokeDashoffset: 0, strokeDasharray: "16 10" },
-            markerEnd: "url(#arr)"
+            markerEnd: marker ? "url(#arr)" : void 0
           }
         );
         const straight = (cx, key) => /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("rect", { x: cx - DW / 2, y: pBot, width: DW, height: Math.max(0, DECK_Y - pBot), fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: cx - DW / 2, y: pBot, w: DW, h: Math.max(0, DECK_Y - pBot), vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: cx - DW / 2, y: pBot + 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: cx - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), DECK_Y - pBot > 10 && ductArrow(`M${cx},${pBot + 3} L${cx},${DECK_Y - 4}`, "arrow"), /* @__PURE__ */ React.createElement(
@@ -6585,7 +6585,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           const arrowStartX = topX + segDX / segLen * inset, arrowStartY = pBot + STUB + segDY / segLen * inset;
           const diagArrowD = `M${arrowStartX},${arrowStartY} L${botX},${bendY}`;
           const straightArrowD = `M${botX},${bendY + 3} L${botX},${DECK_Y - 4}`;
-          return /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("rect", { x: topX - DW / 2, y: pBot, width: DW, height: STUB, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: topX - DW / 2, y: pBot, w: DW, h: STUB, vertical: true }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DS, strokeWidth: DW + 2, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DC, strokeWidth: DW, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: topX, y1: pBot + STUB, x2: botX, y2: bendY, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: botX, y1: bendY, x2: botX, y2: DECK_Y - 4, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctClamp, { x: topX - DW / 2, y: pBot + STUB - 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: botX - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(diagArrowD, "arrow1"), ductArrow(straightArrowD, "arrow2"), /* @__PURE__ */ React.createElement(
+          return /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("rect", { x: topX - DW / 2, y: pBot, width: DW, height: STUB, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: topX - DW / 2, y: pBot, w: DW, h: STUB, vertical: true }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DS, strokeWidth: DW + 2, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DC, strokeWidth: DW, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: topX, y1: pBot + STUB, x2: botX, y2: bendY, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: botX, y1: bendY, x2: botX, y2: DECK_Y - 4, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctClamp, { x: topX - DW / 2, y: pBot + STUB - 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: botX - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(diagArrowD, "arrow1", false), ductArrow(straightArrowD, "arrow2"), /* @__PURE__ */ React.createElement(
             HoverInfo,
             {
               x: Math.min(topX, botX) - DW / 2 - 2,
