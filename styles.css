@@ -838,7 +838,18 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    was clipped off above the viewport with no way to reach it. Harmless
    here when content fits (the normal desktop case): no overflow, nothing
    to scroll. */
-.splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s;overflow-y:auto}
+/* QA FIX - gap trimmed from 28px: live-deployment feedback on the
+   WordPress iframe embed (height:100vh capped at a fixed max-height) - the
+   trailing "Takes about 2 minutes..." line sat right at the bottom edge of
+   the iframe whenever the browser window wasn't fully maximized, since a
+   fixed-height iframe doesn't shrink to fit however much of it actually
+   lands above the fold. 20px (6 gaps between the 7 direct children below)
+   reclaims ~48px of total height with no visual difference in text size -
+   still a full-strength gap, no more or less deliberate than picking 28px
+   was; the interactive cards themselves were never at risk (already the
+   first thing to become fully visible), only this reassurance line was
+   ever this close to the edge. */
+.splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s;overflow-y:auto}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
 /* Splash content (title + intro copy + trust bullets + both location
    cards + language toggle) is tall enough that on any viewport under
