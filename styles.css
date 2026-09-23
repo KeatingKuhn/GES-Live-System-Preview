@@ -149,6 +149,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .done-screen{display:flex;overflow:hidden;transition:opacity .22s ease,transform .22s ease}
 .done-screen.attic-mode{flex-direction:column}
 .done-screen.closet-mode{flex-direction:row}
+/* Done-screen review panel 20% wider than the wizard's 320px sidebar (see
+   the QA FIX comment on this sidebar in app.js). Kept here rather than
+   inline so the max-width:1024px block below can put it back to full
+   width once the layout stacks. */
+.done-screen.closet-mode>.sidebar{width:384px}
 /* Clicking an EDIT chip drops `done` back to false to jump into the
    wizard - previously an instant unmount with nothing for a CSS
    transition to animate. App.js now keeps this screen mounted for one
@@ -1116,6 +1121,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      why this used to be a no-op attribute-selector hack for the closet
      layout - flexDirection is no longer set inline at all. */
   .done-screen.attic-mode,.done-screen.closet-mode{flex-direction:column}
+  /* Undo the desktop 384px review-panel width once stacked (same
+     specificity as the base rule, later in the file, so this wins). */
+  .done-screen.closet-mode>.sidebar{width:100%}
   /* Attic's done-screen canvas wrapper (.done-canvas-frame) has no height
      rule of its own - unlike the wizard's .attic-canvas-area above, it's
      bare flex:1 (see app.js), which happily fills whatever's left after

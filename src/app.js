@@ -1394,8 +1394,14 @@ function App(){
             (column stack - diagram on top, panel below), closet's fixed
             width 320->384px (side-by-side - diagram left, panel right;
             overriding the base .sidebar{width:320px} rule shared with
-            the wizard's own per-step sidebar, which stays untouched). */}
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"240px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto",width:"384px"}}>
+            the wizard's own per-step sidebar, which stays untouched).
+            Closet's 384px lives in styles.css (.done-screen.closet-mode>
+            .sidebar), NOT inline here: an inline width beats the
+            max-width:1024px media query's .sidebar{width:100%}, which
+            left the stacked tablet/phone layout stuck with a 384px-wide
+            panel (half-width on a 768px tablet, clipped past the edge on
+            a 375px phone). */}
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"240px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           {/* PRINT LETTERHEAD - invisible on-screen (.print-letterhead is
               display:none outside @media print, see styles.css), a sibling
               of .done-wrap rather than a child of it specifically so it

@@ -4926,9 +4926,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               );
               const angled=(topX,dir,key)=>{
                 // Elbow geometry now starts STUB px below pBot (see the
-                // STUB comment above) - the stub itself is a plain flush
-                // <rect>, drawn separately below, so it can never bleed
-                // above pBot the way a stroked-path cap could. The
+                // STUB comment above) - the stub is the straight top
+                // segment of bodyD's filled outline below (no stroke cap),
+                // so it can never bleed above pBot. The
                 // diagonal leg still spans the same FAN px of vertical
                 // travel it always did, so botX (and the overall look of
                 // the elbow) is unchanged - only the top STUB px changed
@@ -4990,12 +4990,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 const arrowStartX=topX+segDX/segLen*inset, arrowStartY=(pBot+STUB)+segDY/segLen*inset;
                 const diagArrowD=`M${arrowStartX},${arrowStartY} L${botX},${bendY}`;
                 const straightArrowD=`M${botX},${bendY+3} L${botX},${DECK_Y-4}`;
+                // When bendY clamps to DECK_Y-6 (short plenum-to-deck drop -
+                // every wizard step before the condenser is picked, where
+                // the no-condenser zoom leaves only ~26-42px) the straight
+                // leg's arrow runs from DECK_Y-3 UP to DECK_Y-4: a 1px
+                // reversed path whose arrowhead pointed back up toward the
+                // plenum. Too short to carry its own arrow, so the
+                // diagonal leg takes the single arrowhead instead (still
+                // exactly one per duct).
+                const hasDropArrow=(DECK_Y-4)-(bendY+3)>=6;
                 return (
                   <g key={key}>
-                    {/* Starter-collar stub - flush rect, zero cap bleed,
-                        same treatment as the straight duct's own rect so
-                        all three read as sharing one flush connection to
-                        the plenum's bottom edge. */}
                     {/* Body = one filled outline (stub + elbow + drop),
                         same fill + 1px border paint as the straight duct's
                         <rect> - see QA FIX #5 above bodyD. */}
@@ -5023,8 +5028,8 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                         bend clamps close to the deck) lands almost on top
                         of the real one, measurably brighter than the
                         middle duct's single arrowhead in every frame. */}
-                    {ductArrow(diagArrowD,'arrow1',false)}
-                    {ductArrow(straightArrowD,'arrow2')}
+                    {ductArrow(diagArrowD,'arrow1',!hasDropArrow)}
+                    {hasDropArrow&&ductArrow(straightArrowD,'arrow2')}
                     {/* Two boxes tracing the actual bent run (elbow leg,
                         then straight drop) rather than one bounding rect,
                         same reasoning as the lineset's own L-shaped hover
