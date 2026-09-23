@@ -1384,7 +1384,18 @@ function App(){
           </div>
           <div className="done-canvas-sweep"/>
         </div>
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"200px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+        {/* QA FIX - direct feedback: shrink the diagram, grow the pricing/
+            review panel by 20%, on the final done screen only ("that's
+            like the golden ticket ending"). .done-canvas-frame is flex:1
+            (see its own comment above) - it fills whatever space this
+            sidebar doesn't take, so growing the sidebar's own fixed
+            dimension shrinks the diagram automatically, in both layouts,
+            with one inline change each: attic's fixed height 200->240px
+            (column stack - diagram on top, panel below), closet's fixed
+            width 320->384px (side-by-side - diagram left, panel right;
+            overriding the base .sidebar{width:320px} rule shared with
+            the wizard's own per-step sidebar, which stays untouched). */}
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",height:"240px",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto",width:"384px"}}>
           {/* PRINT LETTERHEAD - invisible on-screen (.print-letterhead is
               display:none outside @media print, see styles.css), a sibling
               of .done-wrap rather than a child of it specifically so it
