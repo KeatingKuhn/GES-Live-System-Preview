@@ -1256,7 +1256,7 @@ const CANVAS_ES={
   'DUCTBOARD PLENUM':'PLENUM DUCTBOARD','METAL PLENUM':'PLENUM METÁLICO',
   'EXISTING PLENUM':'PLENUM EXISTENTE',
   'DISC.':'DESC.','COMP.':'COMP.','SERVICE':'SERVICIO','SWITCH':'INTERRUPTOR',
-  'GAS':'GAS','DRIP LEG':'PIERNA DE GOTEO','IONIZER':'IONIZADOR',
+  'GAS':'GAS','IONIZER':'IONIZADOR',
   'DEHU':'DESHUM','DEHUMIDISTAT':'DESHUMIDISTATO','ERV':'ERV',
   'DRAIN':'DRENAJE','LINESET':'LÍNEAS','GROUND LEVEL':'NIVEL DEL SUELO',
   'CONCRETE PAD':'BASE DE CONCRETO','LIVING SPACE':'ESPACIO HABITABLE',
@@ -4367,18 +4367,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <line x1={gasX-5} y1={teeY} x2={gasX+5} y2={teeY} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
               <line x1={gasX} y1={teeY} x2={gasX} y2={teeY+11} stroke="#3a3a3a" strokeWidth="3" strokeLinecap="round"/>
               <rect x={gasX-3.5} y={teeY+11} width="7" height="3.5" rx="1" fill="#242424" stroke="#5a5a5a" strokeWidth="0.5"/>
-              {/* QA FIX - this run is only as long as gasTopY..DECK_Y, which
-                  shrinks a lot on the earlier wizard steps (before a
-                  condenser's picked, the attic has far less vertical room
-                  than it will once the diagram's own layout settles) - short
-                  enough there that this label (anchored to the tee, near the
-                  TOP of the run) and the GAS label below (anchored to
-                  DECK_Y, the BOTTOM) end up landing on the same baseline,
-                  reading as one glued "GASDRIP LEG" word. Only draws once
-                  there's enough of the run left to actually separate the
-                  two - the hover tooltip (below) still covers this part
-                  either way, so nothing is lost when it's hidden. */}
-              {teeY+15<=DECK_Y+14-14&&<text x={gasX+10} y={teeY+15} textAnchor="start" fill="rgba(180,180,180,.5)" fontSize="8" fontFamily="monospace">{CT('DRIP LEG',lang)}</text>}
+              {/* QA FIX - the static "DRIP LEG" label kept landing in the
+                  way of something else nearby (first the "GAS" label
+                  below it on short runs, then the condensate drain's own
+                  vertical drop after being recentered to dodge that) -
+                  direct feedback was simpler than another reposition:
+                  drop the static label entirely, since the gas line's own
+                  hover tooltip already names and explains the drip leg
+                  ("...with a shutoff valve and a drip leg to catch
+                  sediment..."). The drip-leg glyph itself (tee + short
+                  stub + end cap, just above) stays drawn either way. */}
               <text x={gasX} y={DECK_Y+14} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="11" fontFamily="monospace">{CT('GAS',lang)}</text>
               <HoverInfo x={gasX-11} y={gasTopY-2} w={22} h={DECK_Y-gasTopY+18} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}
@@ -6667,7 +6665,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               <circle cx={valveX} cy={gasY} r="4.2" fill="#242424" stroke="#5a5a5a" strokeWidth="0.8"/>
               <line x1={valveX} y1={gasY-6} x2={valveX} y2={gasY+6} stroke="#c0392b" strokeWidth="2.4" strokeLinecap="round"/>
               <text x={gasX1+18} y={gasY-9} textAnchor="middle" fill="rgba(180,180,180,.55)" fontSize="8.5" fontFamily="monospace">{CT('GAS',lang)}</text>
-              <text x={teeX} y={gasY+24} textAnchor="middle" fill="rgba(180,180,180,.5)" fontSize="6.5" fontFamily="monospace">{CT('DRIP LEG',lang)}</text>
+              {/* QA FIX - dropped the static "DRIP LEG" label (matching
+                  the attic layout's own sibling fix) - the gas line's own
+                  hover tooltip already names and explains it, and the
+                  label kept needing repositioning to dodge whatever else
+                  was nearby. The drip-leg glyph itself stays drawn. */}
               <HoverInfo x={gasX1-2} y={gasY-12} w={gasX2-gasX1+4} h={38} rx={2}
                 vw={SVG_VW} vh={SVG_VH} title={T('gas_line').title} text={T('gas_line').text}
                 ringPath={gasD} ringStrokeWidth={9}/>
