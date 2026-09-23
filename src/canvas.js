@@ -5216,43 +5216,28 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const ionX=SUP_X+Math.round(SUP_PLEN_W*0.18);
             const ionBulbY=SUP_PLEN_Y-14;
             const ionRodLen=Math.round(SUP_PLEN_H*0.55);
-            // QA FIX - direct feedback "hover marker too big for the
-            // ionizer" persisted even after trimming the hit-box width
-            // (previous QA FIX, now superseded) - because a ringPath draws
-            // a thin TRACED LINE the full length of the rod, which reads
-            // as a long glowing wire running deep into the plenum, nothing
-            // like the small tight ring every other hoverable part (e.g.
-            // the UV rod on ACoilH, a few hundred lines up - see its own
-            // small `w={rodLen+8} h={16}` hover box with NO ringPath/
-            // ringBox override at all) shows. Direct feedback: "make the
-            // outline identical to the uv light just over the ionizer."
-            // Switched to a `ringBox` override instead of `ringPath`: the
-            // invisible HIT-BOX below is UNCHANGED (still spans the full
-            // rod length, x/y/w/h as before) - it has to, or the plenum's
-            // own hover (painted just before this one) wins back the
-            // rod's lower stretch, reintroducing the two-fixes-ago bug -
-            // but the RING drawn on hover now traces a small rect hugging
-            // just the bulb+label glyph (matching UV's own tight-box
-            // style exactly), not the rod's full reach into the plenum.
-            //
-            // QA FIX - direct feedback: "the hover box pops up over the
-            // word ionizer." Both prior sizing attempts still included
-            // the "IONIZER" text label INSIDE the ring - but UV has no
-            // on-canvas text label at all (its info is hover-only), so
-            // "identical to the UV light" really means the ring should
-            // trace the physical glyph alone, the same way UV's own ring
-            // never touches any text. Shrunk ionRingBox to just the
-            // bulb's own core ellipse (rx=9,ry=11, drawn in this block's
-            // sibling code above) plus a couple px of margin - the label
-            // sits entirely outside the ring now, exactly like UV's rod
-            // ring never reaches out to any label either. The invisible
-            // HIT-BOX below is untouched (still the full bulb+label+rod
-            // footprint, so hovering the word "IONIZER" itself still
-            // triggers the tooltip) - only the drawn ring shrank.
-            const ionRingBox={x:ionX-11,y:ionBulbY-12,w:22,h:24};
+            // QA FIX - direct feedback: "it should also be around the bulb
+            // and the shaft on both closet and horizontal" - a bulb-only
+            // ring (previous QA FIX) left the shaft/rod part of the glyph
+            // unhighlighted, and diverged from the closet layout's own
+            // ring, which has always traced bulb-to-rod-tip via ringPath.
+            // Back to ringPath, from the bulb's own center (ionX,ionBulbY)
+            // down to the rod's real drawn tip (plenTop+ionRodLen, the
+            // exact same point the visible rod line/tip circle in this
+            // block's sibling draw-code ends at) - so the ring is one
+            // continuous highlight covering bulb+shaft, nothing past the
+            // rod tip and nothing reaching the "IONIZER" label off to the
+            // side (a ringPath only ever lights the path itself, never a
+            // bounding box around it). ringStrokeWidth=20 - a bit wider
+            // than the bulb's own outer glow circle (r=12, so a 24px
+            // diameter) so the ring's round line-cap at the bulb end
+            // visually wraps around the whole bulb glyph instead of just
+            // grazing its center, matching the closet layout's own
+            // (also-widened) ring below.
+            const ionRingPath=`M${ionX} ${ionBulbY} L${ionX} ${SUP_PLEN_Y+ionRodLen}`;
             return <HoverInfo x={ionX-14} y={ionBulbY-14} w={78} h={(SUP_PLEN_Y+ionRodLen)-(ionBulbY-14)} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
-              ringBox={ionRingBox}/>;
+              ringPath={ionRingPath} ringStrokeWidth={20}/>;
           })()}
 
           {/* Secondary float switch - QA FIX, the pan shape got tried
@@ -6333,16 +6318,23 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             const rodTip=UNIT_X+PLEN_W-rodLen;
             const ionRingPath=`M${rodTip} ${rodY} L${bulbX} ${rodY}`;
             // QA FIX - direct feedback "ionizer needs a bit more of a glow
-            // box on hover." ringStrokeWidth is the actual width of the
-            // soft halo HoverPanel's own ring() traces along ringPath (see
-            // that function's own comment on the wide/translucent pass vs.
-            // the thin/crisp pass on top) - it's the one knob that controls
-            // how much glow this ring reads as, so bumped 10 -> 14 (the
-            // hit-box itself is untouched; this is purely the visible
-            // highlight getting a bit thicker/more visible on hover).
+            // box on hover," then later "it should also be around the bulb
+            // and the shaft... isnt around the bulb." ringStrokeWidth is
+            // the actual width of the soft halo HoverPanel's own ring()
+            // traces along ringPath (see that function's own comment on
+            // the wide/translucent pass vs. the thin/crisp pass on top),
+            // and since the path's own endpoint sits exactly at the bulb's
+            // center (bulbX,rodY) with a round line-cap, this width also
+            // sets how big a circle the ring draws AROUND the bulb at that
+            // end - the earlier 10/14 values were both narrower than the
+            // bulb's own outer glow circle (r=16, 32px across), so the
+            // ring only grazed the bulb's center instead of wrapping the
+            // whole glyph. Bumped to 28 (close to that 32px diameter) so
+            // the ring genuinely surrounds the bulb, matching the attic
+            // layout's own equivalent fix.
             return <HoverInfo x={rodTip-4} y={rodY-18} w={(bulbX+82)-(rodTip-4)} h={36} rx={3}
               vw={SVG_VW} vh={SVG_VH} title={T('ionizer').title} text={T('ionizer').text}
-              ringPath={ionRingPath} ringStrokeWidth={14}/>;
+              ringPath={ionRingPath} ringStrokeWidth={28}/>;
           })()}
 
           {/* Upflow supply ducts - exit plenum sides, run long, drop to ceiling grille.

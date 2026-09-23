@@ -5394,7 +5394,7 @@
         const ionX = SUP_X + Math.round(SUP_PLEN_W * 0.18);
         const ionBulbY = SUP_PLEN_Y - 14;
         const ionRodLen = Math.round(SUP_PLEN_H * 0.55);
-        const ionRingBox = { x: ionX - 11, y: ionBulbY - 12, w: 22, h: 24 };
+        const ionRingPath = `M${ionX} ${ionBulbY} L${ionX} ${SUP_PLEN_Y + ionRodLen}`;
         return /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
@@ -5407,7 +5407,8 @@
             vh: SVG_VH,
             title: T("ionizer").title,
             text: T("ionizer").text,
-            ringBox: ionRingBox
+            ringPath: ionRingPath,
+            ringStrokeWidth: 20
           }
         );
       })(), hasCoil && hasCond && (() => {
@@ -6401,7 +6402,7 @@
             title: T("ionizer").title,
             text: T("ionizer").text,
             ringPath: ionRingPath,
-            ringStrokeWidth: 14
+            ringStrokeWidth: 28
           }
         );
       })(), hasPlenum && hasCoil && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "upflow-ducts", style: { animationDelay: ".2s" } }, (() => {
