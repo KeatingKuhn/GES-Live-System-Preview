@@ -7131,10 +7131,17 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               float switch sits in the drain pan. COIL_BOX_Y/COIL_BOX_H
               already branch on hasFurnace (see their own definitions
               above) so this one formula places it correctly for both the
-              furnace-paired and standalone-air-handler closet cases. */}
+              furnace-paired and standalone-air-handler closet cases.
+              QA FIX - direct feedback: "way too far left... needs to be
+              closer to the right side of that a-coil" - shifted back
+              toward the coil's RIGHT edge (coilRightX), but stopping 24px
+              short of it rather than flush against it, so it doesn't sit
+              directly under ACoilV's own lineset stub-outs (x+w-6, at
+              80%/88% of the box height) a few px away at nearly the same
+              Y. */}
           {hasCoil&&hasCond&&(()=>{
-            const coilLeftX=UNIT_X+8; // matches ACoilV's own x
-            const swX=coilLeftX+14, swY=COIL_BOX_Y+COIL_BOX_H*0.85;
+            const coilRightX=UNIT_X+UNIT_W-8; // matches ACoilV's own x+w
+            const swX=coilRightX-24, swY=COIL_BOX_Y+COIL_BOX_H*0.85;
             return <g key="closet-secondary-port">
               <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
               <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
