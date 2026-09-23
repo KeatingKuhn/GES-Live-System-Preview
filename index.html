@@ -6628,14 +6628,30 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const angled = (topX, dir, key) => {
           const bendY = Math.min(pBot + STUB + FAN, DECK_Y - 6);
           const botX = topX + dir * (bendY - (pBot + STUB));
-          const d = `M${topX},${pBot + STUB} L${botX},${bendY} L${botX},${DECK_Y}`;
           const ringD = `M${topX},${pBot} L${topX},${pBot + STUB} L${botX},${bendY} L${botX},${DECK_Y}`;
+          const bodyD = (() => {
+            const pts = [[topX, pBot], [topX, pBot + STUB], [botX, bendY], [botX, DECK_Y]].filter((p, i, a2) => i === 0 || Math.hypot(p[0] - a2[i - 1][0], p[1] - a2[i - 1][1]) > 0.01);
+            const h = DW / 2;
+            const nrm = (a2, b) => {
+              const dx = b[0] - a2[0], dy = b[1] - a2[1], l = Math.hypot(dx, dy) || 1;
+              return [-dy / l, dx / l];
+            };
+            const side = (s) => pts.map((p, i) => {
+              const n1 = nrm(pts[Math.max(0, i - 1)], pts[Math.max(1, i)]);
+              const n2 = nrm(pts[Math.min(i, pts.length - 2)], pts[Math.min(i + 1, pts.length - 1)]);
+              const mx = n1[0] + n2[0], my = n1[1] + n2[1], ml = Math.hypot(mx, my) || 1;
+              const k = h / (mx / ml * n1[0] + my / ml * n1[1]);
+              return [p[0] + s * mx / ml * k, p[1] + s * my / ml * k];
+            });
+            const ring = [...side(1), ...side(-1).reverse()];
+            return "M" + ring.map((p) => `${+p[0].toFixed(3)},${+p[1].toFixed(3)}`).join(" L") + " Z";
+          })();
           const segDX = botX - topX, segDY = bendY - (pBot + STUB), segLen = Math.hypot(segDX, segDY) || 1;
           const inset = 3;
           const arrowStartX = topX + segDX / segLen * inset, arrowStartY = pBot + STUB + segDY / segLen * inset;
           const diagArrowD = `M${arrowStartX},${arrowStartY} L${botX},${bendY}`;
           const straightArrowD = `M${botX},${bendY + 3} L${botX},${DECK_Y - 4}`;
-          return /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("rect", { x: topX - DW / 2, y: pBot, width: DW, height: STUB, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: topX - DW / 2, y: pBot, w: DW, h: STUB, vertical: true }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DS, strokeWidth: DW + 2, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement("path", { d, fill: "none", stroke: DC, strokeWidth: DW, strokeLinejoin: "round", strokeLinecap: "square" }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: topX, y1: pBot + STUB, x2: botX, y2: bendY, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: botX, y1: bendY, x2: botX, y2: DECK_Y - 4, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctClamp, { x: topX - DW / 2, y: pBot + STUB - 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: botX - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(diagArrowD, "arrow1", false), ductArrow(straightArrowD, "arrow2"), /* @__PURE__ */ React.createElement(
+          return /* @__PURE__ */ React.createElement("g", { key }, /* @__PURE__ */ React.createElement("path", { d: bodyD, fill: DC, stroke: DS, strokeWidth: "1" }), /* @__PURE__ */ React.createElement(DuctRibbing, { x: topX - DW / 2, y: pBot, w: DW, h: STUB, vertical: true }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: topX, y1: pBot + STUB, x2: botX, y2: bendY, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctRibbingPath, { x1: botX, y1: bendY, x2: botX, y2: DECK_Y - 4, width: DW - 1 }), /* @__PURE__ */ React.createElement(DuctClamp, { x: topX - DW / 2, y: pBot + STUB - 2, w: DW, vertical: true }), /* @__PURE__ */ React.createElement(DuctClamp, { x: botX - DW / 2, y: DECK_Y - 5, w: DW, vertical: true }), ductArrow(diagArrowD, "arrow1", false), ductArrow(straightArrowD, "arrow2"), /* @__PURE__ */ React.createElement(
             HoverInfo,
             {
               x: Math.min(topX, botX) - DW / 2 - 2,

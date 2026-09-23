@@ -4900,7 +4900,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 // rect".
                 const bendY=Math.min(pBot+STUB+FAN,DECK_Y-6);
                 const botX=topX+dir*(bendY-(pBot+STUB));
-                const d=`M${topX},${pBot+STUB} L${botX},${bendY} L${botX},${DECK_Y}`;
                 // Hover ring traces the FULL visible run, stub included,
                 // so the ring drawn on hover still hugs the real pipe
                 // shape all the way up to the plenum edge.
@@ -4916,6 +4915,40 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 // means nothing for a dash to straddle or a linejoin to
                 // reinforce, the same structural guarantee the middle
                 // duct's own single-straight-segment arrow already has.
+                // QA FIX #5 ("supply ducts still arent fixed on horizontal")
+                // - the four earlier rounds only ever touched the ARROW
+                // overlay. The duct BODY itself was the real remaining
+                // glow: it was drawn as two stacked translucent strokes
+                // (DS at DW+2 underneath, DC at DW on top) instead of the
+                // straight duct's single fill+1px-border <rect>. Two
+                // translucent layers composite, so every interior pixel
+                // got DC OVER DS (.32 + .18*(1-.32) = ~.44 alpha) where the
+                // middle duct's interior is just DC (.32). And the square
+                // start cap still bled back into the stub rect, stacking a
+                // THIRD layer there (~.61). Measured on isolated body paint
+                // (arrows/ribbing/clamps hidden, pure black background):
+                // interior alpha .433 vs .315, cross-section ink +38%, stub
+                // .611 vs .317. Fix: the whole run (stub + elbow + drop)
+                // is now ONE closed outline - the centerline offset by
+                // +/-DW/2 with mitered corners - filled with DC and
+                // bordered with a 1px DS stroke, exactly the paint model
+                // of the straight duct's own <rect>. One fill layer, no
+                // stacking, no caps, no seam between stub and elbow.
+                const bodyD=(()=>{
+                  const pts=[[topX,pBot],[topX,pBot+STUB],[botX,bendY],[botX,DECK_Y]]
+                    .filter((p,i,a)=>i===0||Math.hypot(p[0]-a[i-1][0],p[1]-a[i-1][1])>0.01);
+                  const h=DW/2;
+                  const nrm=(a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [-dy/l,dx/l];};
+                  const side=s=>pts.map((p,i)=>{
+                    const n1=nrm(pts[Math.max(0,i-1)],pts[Math.max(1,i)]);
+                    const n2=nrm(pts[Math.min(i,pts.length-2)],pts[Math.min(i+1,pts.length-1)]);
+                    const mx=n1[0]+n2[0], my=n1[1]+n2[1], ml=Math.hypot(mx,my)||1;
+                    const k=h/((mx/ml)*n1[0]+(my/ml)*n1[1]);
+                    return [p[0]+s*mx/ml*k, p[1]+s*my/ml*k];
+                  });
+                  const ring=[...side(1),...side(-1).reverse()];
+                  return 'M'+ring.map(p=>`${+p[0].toFixed(3)},${+p[1].toFixed(3)}`).join(' L')+' Z';
+                })();
                 const segDX=botX-topX, segDY=bendY-(pBot+STUB), segLen=Math.hypot(segDX,segDY)||1;
                 const inset=3;
                 const arrowStartX=topX+segDX/segLen*inset, arrowStartY=(pBot+STUB)+segDY/segLen*inset;
@@ -4927,10 +4960,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                         same treatment as the straight duct's own rect so
                         all three read as sharing one flush connection to
                         the plenum's bottom edge. */}
-                    <rect x={topX-DW/2} y={pBot} width={DW} height={STUB} fill={DC} stroke={DS} strokeWidth="1"/>
+                    {/* Body = one filled outline (stub + elbow + drop),
+                        same fill + 1px border paint as the straight duct's
+                        <rect> - see QA FIX #5 above bodyD. */}
+                    <path d={bodyD} fill={DC} stroke={DS} strokeWidth="1"/>
                     <DuctRibbing x={topX-DW/2} y={pBot} w={DW} h={STUB} vertical/>
-                    <path d={d} fill="none" stroke={DS} strokeWidth={DW+2} strokeLinejoin="round" strokeLinecap="square"/>
-                    <path d={d} fill="none" stroke={DC} strokeWidth={DW} strokeLinejoin="round" strokeLinecap="square"/>
                     {/* Flex-duct corrugation along both legs of the elbow -
                         a real drop like this is one continuous flex run
                         that just bends, not two different materials. */}
