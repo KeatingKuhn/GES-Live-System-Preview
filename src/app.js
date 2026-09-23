@@ -625,6 +625,12 @@ function App(){
   // instead of a second, driftable copy of it; left blank (as before) for
   // "Email a Copy to Yourself", which opens the customer's own mail app
   // with nothing pre-addressed.
+  // QA FIX - per direct feedback, whenever a customer emails themselves a
+  // copy, GES's office should automatically be cc'd too, so the office
+  // always sees the build even if the customer never uses the separate
+  // "Send to Our Office" button. Skipped when `to` is already OFFICE_EMAIL
+  // (the "Send to Our Office" button itself) to avoid a pointless
+  // self-cc.
   const buildEmailHref=(to='')=>{
     const lines=[tr('Here is the system I built with Gold Eagle Services:','Este es el sistema que armé con Gold Eagle Services:'),''];
     reviewItems.forEach(item=>{if(item&&item.val)lines.push(`${item.label}: ${item.val}`);});
@@ -642,59 +648,22 @@ function App(){
     lines.push(tr('Built with the Gold Eagle Services online system builder.','Creado con el configurador de sistemas en línea de Gold Eagle Services.'));
     const subject=encodeURIComponent(tr('My Gold Eagle Services HVAC Build','Mi Sistema HVAC de Gold Eagle Services'));
     const body=encodeURIComponent(lines.join('\n'));
-    return `mailto:${to}?subject=${subject}&body=${body}`;
+    const cc=(OFFICE_EMAIL&&to!==OFFICE_EMAIL)?`&cc=${encodeURIComponent(OFFICE_EMAIL)}`:'';
+    return `mailto:${to}?subject=${subject}&body=${body}${cc}`;
   };
 
   const [showInfo,setShowInfo]=React.useState(false);
-  // Auto-open the info panel the first time someone lands on step 1, so
-  // the info button gets discovered instead of ignored - only once per
-  // page load, so navigating back to step 1 later doesn't force it open
-  // again over a user who's already closed it.
-  const autoInfoShown=React.useRef(false);
-  // This auto-open is the one time the panel opens WITHOUT the user asking
-  // for it - every other open (hover/focus/tap on the info button) is a
-  // direct response to something they just did, so an animated reveal
-  // reads fine there. This one fires unprompted, right as the step's own
-  // option cards first become clickable, and by default animates open over
-  // .25s (.info-collapse's transition). In the closet layout, an open info
-  // panel just pushes .opts down in normal flow with no reserved space
-  // (unlike attic's pinned 52px, see the comment on .attic-info-collapse) -
-  // measured, that .25s reveal drags the whole option list down as much as
-  // ~90px underneath someone who has just been handed a mouse/finger and is
-  // likely to tap the first thing they see. A fast tap aimed at where a
-  // card visibly was lands in the gap between cards, or on nothing, for
-  // most of that window instead of selecting anything - the same "clicked
-  // right as something else moved" shape as the sticky-header/reaction-line
-  // bug elsewhere in this file, just triggered by an unprompted auto-open
-  // instead of the user's own click. Suppressing the transition for this
-  // one auto-triggered open (a "no-anim" class on .info-collapse, cleared a
-  // couple frames later) makes the panel appear already-open on the very
-  // first frame the options are interactive, so there's never a stale
-  // position to aim at. Every later toggle clears the flag first (it's
-  // only ever set true here) and animates normally, since those are all
-  // direct responses to something the user just did with their pointer,
-  // not a surprise sprung on it.
-  const autoInfoInstant=React.useRef(false);
+  // QA FIX - per direct feedback, the info panel used to auto-open on the
+  // first question, pushing the option cards down right as they became
+  // clickable ("too jumpy every time you ask a question"). The panel now
+  // never opens on its own - every open is a direct response to the user
+  // hovering/focusing/tapping the info button, and it always starts
+  // closed on a fresh step so the selector is the first thing visible.
+  // The info button itself carries a CSS glow (.info-btn, styles.css) to
+  // draw attention to it without forcing the panel open.
   React.useEffect(()=>{
-    if(stepIdx===1&&!autoInfoShown.current){
-      autoInfoShown.current=true;
-      autoInfoInstant.current=true;
-      setShowInfo(true);
-    }else{
-      setShowInfo(false);
-    }
+    setShowInfo(false);
   },[stepIdx]);
-  React.useEffect(()=>{
-    if(!autoInfoInstant.current)return;
-    // Double rAF: the first frame is when the browser actually paints the
-    // "open + no-anim" state (transition suppressed); only once that's
-    // committed is it safe to drop the flag, so a real toggle a moment
-    // later - which happens far later than two frames in practice - always
-    // animates normally instead of racing this cleanup.
-    let id2;
-    const id1=requestAnimationFrame(()=>{id2=requestAnimationFrame(()=>{autoInfoInstant.current=false;});});
-    return ()=>{cancelAnimationFrame(id1);if(id2)cancelAnimationFrame(id2);};
-  },[showInfo]);
   // On the mobile attic layout, .attic-bar-body is its own scrollable
   // region below the fixed-height eyebrow row (.attic-bar-top, which
   // isn't part of that scroll area). A step with enough option text to
@@ -851,6 +820,22 @@ function App(){
   // per hidden-able panel, each mirroring that panel's own "out"/
   // "done-leaving" condition exactly.
   const splashRef=useRef(null),atticLayoutRef=useRef(null),closetLayoutRef=useRef(null),doneScreenRef=useRef(null);
+  // QA FIX - direct feedback: focus recovery used to list .info-btn FIRST
+  // in one combined selector, but document.querySelector on a combined
+  // selector returns whichever match comes first in DOM ORDER, not
+  // selector-list order - and in the closet layout's own DOM, .info-btn
+  // (inside .step-hdr) sits BEFORE .opts, so it won this on nearly every
+  // step forward. Landing keyboard focus there also fired its onFocus
+  // handler, auto-opening the info panel right as the new step's options
+  // became visible - "too jumpy every time you ask a question." Explicit
+  // priority order instead: the answer options are the thing a user should
+  // land on and see first, the info button is a last-resort fallback only
+  // (a step with infoText but somehow no options/back button), never the
+  // first choice.
+  const focusFallbackTarget=(scope)=>
+    document.querySelector(`${scope} .attic-opt, ${scope} .opt`)
+    ||document.querySelector(`${scope} .btn-back`)
+    ||document.querySelector(`${scope} .info-btn`);
   // Moves focus to the newly-active layout's first real control. Used
   // right below when a panel that currently holds focus is about to go
   // inert - waiting for the browser's own "focus dropped to <body>" fallout
@@ -876,7 +861,7 @@ function App(){
     // calls .focus() the target layout's own inert has always already been
     // cleared, regardless of which effect happened to be declared first.
     queueMicrotask(()=>{
-      const target=document.querySelector(`${scope} .info-btn, ${scope} .btn-back, ${scope} .attic-opt, ${scope} .opt`);
+      const target=focusFallbackTarget(scope);
       target&&target.focus();
     });
   };
@@ -948,7 +933,7 @@ function App(){
     const id=requestAnimationFrame(()=>{
       if(document.activeElement!==document.body)return; // something else already claimed it
       const scope=isAtticMode?'.attic-layout':'.closet-layout';
-      const target=document.querySelector(`${scope} .info-btn, ${scope} .btn-back, ${scope} .attic-opt, ${scope} .opt`);
+      const target=focusFallbackTarget(scope);
       target&&target.focus();
     });
     return ()=>cancelAnimationFrame(id);
@@ -1232,7 +1217,7 @@ function App(){
               {quickEdit?(quickEditWillFinish?tr("Save & Return →","Guardar y volver →"):tr("Next →","Siguiente →")):(stepIdx===activeSteps.length-1?tr("Finish →","Finalizar →"):tr("Next →","Siguiente →"))}
             </button>
           </div>
-          <div className={"info-collapse attic-info-collapse"+(showInfo&&infoText?" open":"")+(autoInfoInstant.current?" no-anim":"")}><div className="info-collapse-inner">
+          <div className={"info-collapse attic-info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
             {infoText&&<div className="info-body" style={{padding:"4px 12px",borderBottom:"1px solid var(--border)"}}>{infoText}</div>}
           </div></div>
         </div>
@@ -1287,7 +1272,7 @@ function App(){
               .step-hdr instead, it only pushes .opts down slightly in
               normal flow - .opts already scrolls independently. */}
           {reactionText&&<div key={reactionText} className="reaction-line" style={{padding:"4px 18px 0"}}>✓ {reactionText}</div>}
-          <div className={"info-collapse"+(showInfo&&infoText?" open":"")+(autoInfoInstant.current?" no-anim":"")}><div className="info-collapse-inner">
+          <div className={"info-collapse"+(showInfo&&infoText?" open":"")}><div className="info-collapse-inner">
             {infoText&&<div className="info-expand"><div className="info-body">{infoText}</div></div>}
           </div></div>
           <div key={"opts-"+stepIdx} className="opts fadein">{opts.map(opt=>makeOpt(opt,false))}</div>

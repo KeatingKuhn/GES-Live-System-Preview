@@ -343,7 +343,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    infinite pulse after it, so an "active" part still visibly lights up,
    just without the endless breathing. */
 @media (prefers-reduced-motion:reduce){
-  .spin,.airflow,.line-pulse,.rotate-prompt-icon{animation:none!important}
+  .spin,.airflow,.line-pulse,.rotate-prompt-icon,.info-btn{animation:none!important}
   .rain-drop,.rain-splash,.snow-flake{display:none!important}
   .glow-pulse{animation:glowIn .22s ease-out both!important}
   .step-focus-ring{animation:glowIn .3s ease-out both!important}
@@ -466,8 +466,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    all for the first ~100ms a keyboard user landed here. Named properties
    leave the focus outline to snap in instantly, like every other control,
    while keeping the hover fade unchanged. */
-.info-btn{width:var(--info-btn-size);height:var(--info-btn-size);flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s}
-.info-btn:hover{border-color:var(--gl);color:var(--gl);background:rgba(215,183,64,.18)}
+.info-btn{width:var(--info-btn-size);height:var(--info-btn-size);flex-shrink:0;border-radius:50%;border:1.5px solid rgba(215,183,64,.55);background:rgba(215,183,64,.1);color:rgba(215,183,64,.9);font-family:var(--fm);font-size:var(--fs-info-btn);font-weight:700;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;animation:info-btn-glow 2.4s ease-in-out infinite}
+.info-btn:hover{border-color:var(--gl);color:var(--gl);background:rgba(215,183,64,.18);animation:none}
+/* QA FIX - replaces the old auto-open-the-panel behavior (see app.js):
+   instead of forcing the info panel open unprompted, the button itself
+   pulses a soft gold glow so it reads as "there's more here" without ever
+   moving anything else on the step. Stops on hover/focus so it doesn't
+   fight the :hover state above once someone's actually engaging with it. */
+@keyframes info-btn-glow{0%,100%{box-shadow:0 0 0 0 rgba(215,183,64,0)}50%{box-shadow:0 0 6px 2px rgba(215,183,64,.55)}}
+.info-btn:focus-visible{animation:none}
 /* Info panel open/close - was a plain showInfo&&<div> conditional mount,
    so it snapped open and vanished instantly on close with no transition
    to animate (an unmounted element has nothing to transition from). Kept
@@ -482,16 +489,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    what already had to make room for this content in normal flow). */
 .info-collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease;flex-shrink:0}
 .info-collapse.open{grid-template-rows:1fr}
-/* Suppresses the transition above for exactly one open - the unprompted
-   auto-open on someone's first-ever visit to step 1 (see the app.js
-   comment on autoInfoInstant). That animated reveal otherwise drags the
-   option list down underneath a user who's likely about to tap the first
-   card they see, for most of the .25s it takes; jumping straight to the
-   final open height instead means the options are already exactly where
-   they'll stay by the very first frame they're interactive. Every
-   user-triggered toggle (hover/tap/focus) clears this class first and
-   keeps the normal animated feel. */
-.info-collapse.no-anim{transition:none}
 .info-collapse-inner{overflow:hidden;min-height:0}
 /* Desktop attic only: fixed open height instead of the shared 1fr
    (content-hugging) rule above. .attic-bar is a true fixed height there

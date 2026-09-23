@@ -4375,7 +4375,7 @@
         pts.push([EXT_WALL_X + 9, COND_Y + COND_H * 0.82], [COND_X, COND_Y + COND_H * 0.82]);
         return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
       })();
-      const drainCoilCX = hasFurnace ? ACOIL_X + ACOIL_W * 0.12 : AH_X + Math.round(AH_W * 0.22);
+      const drainCoilCX = hasFurnace ? ACOIL_X + ACOIL_W * 0.12 : AH_X + Math.round(AH_W * 0.16);
       const drainTopY = UNIT_Y + UNIT_H + 4;
       const drainCrossY = DECK_Y - 25;
       const drainCrossY2 = drainCrossY + 22;
@@ -7591,30 +7591,15 @@
           );
         })());
       })(), hasCoil && hasCond && (() => {
-        const exitX = UNIT_X + UNIT_W;
-        const drainExitY = Math.max(LS_Y2 + 14, ACOIL_Y + Math.round(ACOIL_H * 0.85));
-        const portY = drainExitY - 16;
-        const stubLen = 13;
-        const tipX = exitX + stubLen;
-        const swX = tipX, swY = portY + 3;
-        return /* @__PURE__ */ React.createElement("g", { key: "closet-secondary-port" }, /* @__PURE__ */ React.createElement(
-          "line",
-          {
-            x1: exitX,
-            y1: portY,
-            x2: tipX,
-            y2: portY,
-            stroke: B + ".5)",
-            strokeWidth: "2",
-            strokeLinecap: "round"
-          }
-        ), /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
+        const coilLeftX = UNIT_X + 8;
+        const swX = coilLeftX + 14, swY = COIL_BOX_Y + COIL_BOX_H * 0.85;
+        return /* @__PURE__ */ React.createElement("g", { key: "closet-secondary-port" }, /* @__PURE__ */ React.createElement("rect", { x: swX - 4, y: swY, width: "8", height: "7", rx: "1.4", fill: "rgba(226,232,240,.6)", stroke: "rgba(15,23,42,.6)", strokeWidth: "0.6" }), /* @__PURE__ */ React.createElement("line", { x1: swX, y1: swY + 7, x2: swX, y2: swY + 13, stroke: "rgba(226,232,240,.55)", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: swX, cy: swY + 13, r: "2.2", fill: "rgba(239,68,68,.55)", stroke: "rgba(255,255,255,.5)", strokeWidth: "0.5" }), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x: exitX - 2,
-            y: portY - 6,
-            w: tipX - exitX + 8,
-            h: 30,
+            x: swX - 8,
+            y: swY - 4,
+            w: 16,
+            h: 22,
             rx: 3,
             vw: SVG_VW,
             vh: SVG_VH,
@@ -8314,33 +8299,13 @@
       lines.push(tr("Built with the Gold Eagle Services online system builder.", "Creado con el configurador de sistemas en l\xEDnea de Gold Eagle Services."));
       const subject = encodeURIComponent(tr("My Gold Eagle Services HVAC Build", "Mi Sistema HVAC de Gold Eagle Services"));
       const body = encodeURIComponent(lines.join("\n"));
-      return `mailto:${to}?subject=${subject}&body=${body}`;
+      const cc = OFFICE_EMAIL && to !== OFFICE_EMAIL ? `&cc=${encodeURIComponent(OFFICE_EMAIL)}` : "";
+      return `mailto:${to}?subject=${subject}&body=${body}${cc}`;
     };
     const [showInfo, setShowInfo] = React.useState(false);
-    const autoInfoShown = React.useRef(false);
-    const autoInfoInstant = React.useRef(false);
     React.useEffect(() => {
-      if (stepIdx === 1 && !autoInfoShown.current) {
-        autoInfoShown.current = true;
-        autoInfoInstant.current = true;
-        setShowInfo(true);
-      } else {
-        setShowInfo(false);
-      }
+      setShowInfo(false);
     }, [stepIdx]);
-    React.useEffect(() => {
-      if (!autoInfoInstant.current) return;
-      let id2;
-      const id1 = requestAnimationFrame(() => {
-        id2 = requestAnimationFrame(() => {
-          autoInfoInstant.current = false;
-        });
-      });
-      return () => {
-        cancelAnimationFrame(id1);
-        if (id2) cancelAnimationFrame(id2);
-      };
-    }, [showInfo]);
     React.useEffect(() => {
       document.querySelector(".attic-bar-body")?.scrollTo(0, 0);
     }, [stepIdx]);
@@ -8408,11 +8373,12 @@
     const isAtticMode = loc === "attic";
     const isClosetMode = loc === "closet";
     const splashRef = useRef2(null), atticLayoutRef = useRef2(null), closetLayoutRef = useRef2(null), doneScreenRef = useRef2(null);
+    const focusFallbackTarget = (scope) => document.querySelector(`${scope} .attic-opt, ${scope} .opt`) || document.querySelector(`${scope} .btn-back`) || document.querySelector(`${scope} .info-btn`);
     const focusActiveModeControl = () => {
       const scope = isAtticMode ? ".attic-layout" : isClosetMode ? ".closet-layout" : null;
       if (!scope) return;
       queueMicrotask(() => {
-        const target = document.querySelector(`${scope} .info-btn, ${scope} .btn-back, ${scope} .attic-opt, ${scope} .opt`);
+        const target = focusFallbackTarget(scope);
         target && target.focus();
       });
     };
@@ -8447,7 +8413,7 @@
       const id = requestAnimationFrame(() => {
         if (document.activeElement !== document.body) return;
         const scope = isAtticMode ? ".attic-layout" : ".closet-layout";
-        const target = document.querySelector(`${scope} .info-btn, ${scope} .btn-back, ${scope} .attic-opt, ${scope} .opt`);
+        const target = focusFallbackTarget(scope);
         target && target.focus();
       });
       return () => cancelAnimationFrame(id);
@@ -8538,7 +8504,7 @@
         }
       },
       "i"
-    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang: lang2 }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), stepCountText && ` ${stepCountText}`), infoText && /* @__PURE__ */ React.createElement(
+    ), stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return \u2192", "Guardar y volver \u2192") : tr("Next \u2192", "Siguiente \u2192") : stepIdx === activeSteps.length - 1 ? tr("Finish \u2192", "Finalizar \u2192") : tr("Next \u2192", "Siguiente \u2192"))), /* @__PURE__ */ React.createElement("div", { className: "info-collapse attic-info-collapse" + (showInfo && infoText ? " open" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-body", style: { padding: "4px 12px", borderBottom: "1px solid var(--border)" } }, infoText))))), /* @__PURE__ */ React.createElement("div", { ref: closetLayoutRef, className: "closet-layout" + (!isClosetMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "closet-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang: lang2 }))), /* @__PURE__ */ React.createElement("div", { className: "sidebar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { key: "hdr-" + stepIdx, className: "step-hdr fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-eyebrow" }, /* @__PURE__ */ React.createElement("span", null, cur && /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), stepCountText && ` ${stepCountText}`), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
@@ -8554,7 +8520,7 @@
         }
       },
       "i"
-    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") + (autoInfoInstant.current ? " no-anim" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang: lang2 })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" })), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang2 === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
+    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (showInfo && infoText ? " open" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang: lang2 })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" })), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", height: "200px", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang2 === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
       const closetVisibleCount = reviewItems.filter((it) => it && it.val).length;
       let closetRenderedIdx = 0;
       const reviewGrid = (leadCell) => /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, leadCell, reviewItems.map((item, i) => {

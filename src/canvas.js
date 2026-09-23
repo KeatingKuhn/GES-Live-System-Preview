@@ -4038,7 +4038,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // the lineset's own wall-drop, along the ground past the condenser
     // pad, and on into the yard - per direct feedback ("cross behind the
     // supply ducts and run with the line-sets down the wall").
-    const drainCoilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.22);
+    // QA FIX - direct feedback: "shift horizontal condensate line on air
+    // handler left slightly" - was 22% of AH_W, nudged to 16%, still
+    // comfortably clear of the secondary float switch (8%, well to its
+    // left) and the SERVICE SWITCH plate (67.5%, far to its right).
+    const drainCoilCX=hasFurnace?ACOIL_X+ACOIL_W*0.12:AH_X+Math.round(AH_W*0.16);
     const drainTopY=UNIT_Y+UNIT_H+4;
     // Within the supply ducts' own hang band (pBot..DECK_Y, see the
     // ductwork block's own pBot/DW/DECK_Y) rather than at their exact
@@ -7098,21 +7102,26 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               SECONDARY FLOAT SWITCH. Moved to right here instead, after
               the entire drain+P-trap block, so this wins any remaining
               overlap the way the attic sibling's own "paint dead last"
-              fix intended. */}
+              fix intended.
+              QA FIX - direct feedback: shift it to the LEFT, just inside
+              the A-coil cabinet, instead of hanging off the unit's right
+              edge by the primary drain (the two crowded that edge
+              together with the lineset/gas/flue). Mirrors ACoilV's own
+              lineset stub-outs (x+w-6, on the coil's right edge) but on
+              the coil's LEFT edge (x+8, matching ACoilV's own x prop)
+              instead, near the base of the coil where a real secondary
+              float switch sits in the drain pan. COIL_BOX_Y/COIL_BOX_H
+              already branch on hasFurnace (see their own definitions
+              above) so this one formula places it correctly for both the
+              furnace-paired and standalone-air-handler closet cases. */}
           {hasCoil&&hasCond&&(()=>{
-            const exitX=UNIT_X+UNIT_W;
-            const drainExitY=Math.max(LS_Y2+14,ACOIL_Y+Math.round(ACOIL_H*0.85));
-            const portY=drainExitY-16;
-            const stubLen=13;
-            const tipX=exitX+stubLen;
-            const swX=tipX, swY=portY+3;
+            const coilLeftX=UNIT_X+8; // matches ACoilV's own x
+            const swX=coilLeftX+14, swY=COIL_BOX_Y+COIL_BOX_H*0.85;
             return <g key="closet-secondary-port">
-              <line x1={exitX} y1={portY} x2={tipX} y2={portY}
-                stroke={B+'.5)'} strokeWidth="2" strokeLinecap="round"/>
               <rect x={swX-4} y={swY} width="8" height="7" rx="1.4" fill="rgba(226,232,240,.6)" stroke="rgba(15,23,42,.6)" strokeWidth="0.6"/>
               <line x1={swX} y1={swY+7} x2={swX} y2={swY+13} stroke="rgba(226,232,240,.55)" strokeWidth="1"/>
               <circle cx={swX} cy={swY+13} r="2.2" fill="rgba(239,68,68,.55)" stroke="rgba(255,255,255,.5)" strokeWidth="0.5"/>
-              <HoverInfo x={exitX-2} y={portY-6} w={tipX-exitX+8} h={30} rx={3}
+              <HoverInfo x={swX-8} y={swY-4} w={16} h={22} rx={3}
                 vw={SVG_VW} vh={SVG_VH} title={T('secondary_drain_pan').title} text={T('secondary_drain_pan').text}/>
             </g>;
           })()}
