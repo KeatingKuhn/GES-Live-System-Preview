@@ -414,7 +414,8 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         {bushing(lineY1,lineY2,'busTop')}
         {bushing(exitY1,exitY2,'busBot')}
         <text x={sidingX+wallThick/2} y={exitY2+16} textAnchor="middle"
-          fill="rgba(150,110,40,.5)" fontSize="11.5" fontFamily="monospace">{CT('LINESET',lang)}</text>
+          fill="rgba(150,110,40,.5)" fontSize="11.5" fontFamily="monospace"
+          style={{pointerEvents:'none'}}>{CT('LINESET',lang)}</text>
         {/* Foam sleeve on pipes - down inside the wall, then into the condenser */}
         <path d={`M${px1} ${lineY1} L${px1} ${exitY1} L${condX} ${exitY1}`}
           fill="none" stroke="rgba(30,30,50,.65)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
@@ -484,6 +485,28 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
           w={condX-Math.min(px1,px2)+6} h={Math.abs(exitY2-exitY1)+12}
           rx={3} vw={vw} vh={vh} title={partInfo('lineset',lang).title} text={partInfo('lineset',lang).text}
           ringPath={linesetRingPath} ringStrokeWidth={16}/>
+        {/* QA FIX - the "LINESET" caption under the lower wall bushing
+            (see the <text> above) sits on top of the condensate drain's
+            own floor-run hit-box, where it caught the pointer itself: the
+            word naming the lineset showed no tooltip on its glyphs and
+            CONDENSATE DRAIN between them, and blinked the drain's
+            tooltip off while sweeping along that run (hover sweep, both
+            layouts). A tight hit over just the caption's cap-height band
+            (monospace, ~0.6em per glyph) - same anchor box/ringPath as the
+            exit segment just above, via `hit`, like the ionizer's own
+            label hit - so it reads as the lineset, and the drain line
+            itself (drawn just below the glyphs) stays the drain's. The
+            <text> itself is pointer-events:none: Chrome hit-tests text by
+            its full em box, which reached past the glyphs onto that drain
+            line. */}
+        {(()=>{
+          const capTxt=CT('LINESET',lang), capW=capTxt.length*11.5*0.6;
+          return <HoverInfo x={Math.min(px1,px2)-6} y={Math.min(exitY1,exitY2)-6}
+            w={condX-Math.min(px1,px2)+6} h={Math.abs(exitY2-exitY1)+12}
+            hit={{x:sidingX+wallThick/2-capW/2-2,y:exitY2+16-9,w:capW+4,h:9}}
+            rx={3} vw={vw} vh={vh} title={partInfo('lineset',lang).title} text={partInfo('lineset',lang).text}
+            ringPath={linesetRingPath} ringStrokeWidth={16}/>;
+        })()}
       </>;
     })()}
 
@@ -2963,9 +2986,15 @@ function DuctClamp({x,y,w,h,vertical}){
 // faced (FSK) board with taped panel seams for ductboard - instead of
 // two boxes distinguished only by a caption and a handful of near-
 // invisible hairlines.
+// QA FIX - purely decorative, so it never hit-tests: each sheen band's
+// round linecap pokes up to half its strokeWidth past the plenum's own left edge, onto the
+// A-coil cabinet next to it, where it was swallowing the A-COIL hover in
+// a small patch at the coil's top-right corner (found via a wizard-step
+// elementFromPoint sweep) - the same "opaque art on top of a hover
+// zone" bug CABINET_ART_NO_HIT fixes for the cabinets.
 function PlenumMaterial({x,y,w,h,isMetal}){
   return isMetal
-    ?<g>
+    ?<g style={{pointerEvents:'none'}}>
       {Array.from({length:Math.floor(h/8)},(_,i)=>(
         <line key={i} x1={x+2} y1={y+4+i*8} x2={x+w-2} y2={y+4+i*8} stroke={W+'.05)'} strokeWidth="0.3"/>
       ))}
@@ -2980,7 +3009,7 @@ function PlenumMaterial({x,y,w,h,isMetal}){
           fill="none" stroke="rgba(210,214,222,.28)" strokeWidth="1"/>
       ))}
     </g>
-    :<g>
+    :<g style={{pointerEvents:'none'}}>
       {/* Faint fiber striations (very low-density board weave). */}
       {Array.from({length:Math.floor(h/10)},(_,i)=>(
         <line key={i} x1={x+3} y1={y+5+i*10} x2={x+w-3} y2={y+5+i*10} stroke={G+'.07)'} strokeWidth="0.6"/>
@@ -3379,15 +3408,37 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // wins back over ACoilH's own UV-specific hover underneath - confirmed
   // via a hover sweep (hovering the UV rod there showed "A-COIL", not
   // "UV LIGHT"). Needs its own entry here, in the same coordinate space
-  // ACoilH's caller actually renders it in (x+8/y+12/w-16/h-20 for the
-  // furnace branch, x+9/y+12/w-19/h-22 for AirHandlerH's own embedded
+  // ACoilH's caller actually renders it in (x+8/y+10/w-16/h-20 for the
+  // furnace branch, x+9.5/y+12/w-19/h-22 for AirHandlerH's own embedded
   // call - see each one's own call site for those exact offsets).
+  // QA FIX - this copy missed the wizard-side "center the UV hover ring,
+  // shrink it 10%" fix (ACoilH/ACoilV's own uvRingBox): it still used the
+  // old off-center rodCX (cw*0.48) with no ringBox, and the furnace call
+  // passed y+12 instead of ACoilH's real y+10, so on the done screen the
+  // UV ring sat left of and below the rod and 10% bigger than mid-wizard
+  // (ring-bbox comparison, wizard vs done). Now mirrors ACoilH exactly.
   const uvHoverH=(cx,cy,cw,ch)=>{
     if(!hasUV)return null;
-    const rodLen=Math.min(cw*0.70,cw-12), rodCX=cx+cw*0.48, rodCY=cy+ch/2;
+    const rodLen=Math.min(cw*0.70,cw-12), rodCX=cx+cw*0.5, rodCY=cy+ch/2;
+    const ringW=(rodLen+8)*0.9, ringH=16*0.9;
+    const uvRingBox={x:rodCX-ringW/2,y:rodCY-ringH/2,w:ringW,h:ringH,rx:2.7};
     return <HoverInfo x={rodCX-rodLen/2-4} y={rodCY-6} w={rodLen+8} h={16} rx={3} vw={SVG_VW} vh={SVG_VH}
-      title={T('uv_light').title} text={T('uv_light').text}/>;
+      title={T('uv_light').title} text={T('uv_light').text} ringBox={uvRingBox}/>;
   };
+  // QA FIX - the blower (and air-handler A-coil) sub-hovers here used to
+  // be coarse half/44% splits of the whole cabinet box instead of the
+  // real footprint BlowerWheel/ACoilH/ACoilV hover over during the wizard.
+  // Painted on top of the full-cabinet hover, those splits left the
+  // FURNACE / AIR HANDLER tooltip with nothing (closet furnace, both air
+  // handlers) or a ~13-unit sliver (attic furnace) on the done screen,
+  // and labeled the attic air handler's aux-heat column "BLOWER" - a
+  // done-screen-only dead zone confirmed via a hover sweep. blowerHover
+  // reproduces BlowerWheel's own hit-box (cx-r-5, (r+5)*2, rx r+5) from the
+  // same cx/cy/r each BlowerWheel call site passes, so the cabinet stays
+  // hoverable around the wheel exactly like it is mid-wizard.
+  const blowerHover=(cx,cy,r,go)=>
+    <HoverInfo x={cx-r-5} y={cy-r-5} w={(r+5)*2} h={(r+5)*2} rx={r+5} vw={SVG_VW} vh={SVG_VH}
+      title={T('blower').title} text={T('blower').text} onClick={go}/>;
   const indoorSubHoversH=(hasFurnaceLocal,FURN_X,FURN_W,ACOIL_X,ACOIL_W,AH_X,AH_W,UNIT_Y,UNIT_H)=>{
     const go=()=>onEditStep('indoor_type');
     if(hasFurnaceLocal){
@@ -3395,25 +3446,27 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       return <>
         <HoverInfo x={FURN_X} y={UNIT_Y} w={FURN_W} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
           title={T('furnace_cabinet').title} text={T('furnace_cabinet').text} onClick={go}/>
-        <HoverInfo x={FURN_X} y={UNIT_Y} w={FURN_W*0.44} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
-          title={T('blower').title} text={T('blower').text} onClick={go}/>
+        {/* FurnaceH's own BlowerWheel cx/cy/r. */}
+        {blowerHover(FURN_X+FURN_W*0.25,UNIT_Y+UNIT_H*0.42,Math.min(FURN_W*0.21,UNIT_H*0.29),go)}
         <HoverInfo x={mid} y={UNIT_Y} w={FURN_W/2} h={UNIT_H} vw={SVG_VW} vh={SVG_VH}
           title={T('heat_exchanger').title} text={T('heat_exchanger').text} onClick={go}/>
         <HoverInfo x={mid+2} y={UNIT_Y+9} w={40} h={12} rx={2} vw={SVG_VW} vh={SVG_VH}
           title={T('afue_badge').title} text={T('afue_badge').text} onClick={go}/>
         <HoverInfo x={ACOIL_X} y={UNIT_Y} w={ACOIL_W} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
           title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
-        {uvHoverH(ACOIL_X+8,UNIT_Y+12,ACOIL_W-16,UNIT_H-20)}
+        {uvHoverH(ACOIL_X+8,UNIT_Y+10,ACOIL_W-16,UNIT_H-20)}
       </>;
     }
+    // AirHandlerH's own ACoilH box (x+9.5/y+12/coilW-19/h-22) and
+    // BlowerWheel cx/cy/r (coilW=w*0.50, blowerW=w*0.35).
+    const blowerW=AH_W*0.35;
     return <>
       <HoverInfo x={AH_X} y={UNIT_Y} w={AH_W} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
         title={T('air_handler_cabinet').title} text={T('air_handler_cabinet').text} onClick={go}/>
-      <HoverInfo x={AH_X} y={UNIT_Y} w={AH_W*0.5} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
+      <HoverInfo x={AH_X+9.5} y={UNIT_Y+12} w={AH_W*0.5-19} h={UNIT_H-22} rx={3} vw={SVG_VW} vh={SVG_VH}
         title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
-      <HoverInfo x={AH_X+AH_W*0.5} y={UNIT_Y} w={AH_W*0.5} h={UNIT_H} rx={4} vw={SVG_VW} vh={SVG_VH}
-        title={T('blower').title} text={T('blower').text} onClick={go}/>
-      {uvHoverH(AH_X+9,UNIT_Y+12,AH_W*0.5-19,UNIT_H-22)}
+      {blowerHover(AH_X+AH_W*0.5+blowerW/2,UNIT_Y+UNIT_H*0.42,Math.min(blowerW*0.32,UNIT_H*0.29),go)}
+      {uvHoverH(AH_X+9.5,UNIT_Y+12,AH_W*0.5-19,UNIT_H-22)}
     </>;
   };
   // Closet/vertical equivalent - furnace sits BELOW the A-coil (HX on top
@@ -3425,12 +3478,15 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // Vertical counterpart of uvHoverH above - same "done screen's own
   // EditZone sub-hover otherwise wins back over ACoilV's own UV hover"
   // reasoning, using ACoilV's own rodCX/rodCY/rodLen formula (vertical
-  // rod) instead of ACoilH's horizontal one.
+  // rod) instead of ACoilH's horizontal one. Same missed-ringBox QA FIX as
+  // uvHoverH above (ACoilV's own 90%-sized uvRingBox).
   const uvHoverV=(cx,cy,cw,ch)=>{
     if(!hasUV)return null;
     const rodCX=cx+cw*0.5, rodLen2=Math.min(ch*0.75,ch-12), rodCY=cy+ch/2;
+    const ringW=16*0.9, ringH=(rodLen2+8)*0.9;
+    const uvRingBox={x:rodCX-ringW/2,y:rodCY-ringH/2,w:ringW,h:ringH,rx:2.7};
     return <HoverInfo x={rodCX-8} y={rodCY-rodLen2/2-4} w={16} h={rodLen2+8} rx={3} vw={SVG_VW} vh={SVG_VH}
-      title={T('uv_light').title} text={T('uv_light').text}/>;
+      title={T('uv_light').title} text={T('uv_light').text} ringBox={uvRingBox}/>;
   };
   const indoorSubHoversV=(hasFurnaceLocal,UNIT_X,UNIT_W,ACOIL_Y,ACOIL_H,FURN_Y,FURN_H)=>{
     const go=()=>onEditStep('indoor_type');
@@ -3448,17 +3504,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           title={T('heat_exchanger').title} text={T('heat_exchanger').text} onClick={go}/>
         <HoverInfo x={UNIT_X+UNIT_W-48} y={FURN_Y+9} w={44} h={13} rx={2} vw={SVG_VW} vh={SVG_VH}
           title={T('afue_badge').title} text={T('afue_badge').text} onClick={go}/>
-        <HoverInfo x={UNIT_X} y={FURN_Y+FURN_H/2} w={UNIT_W} h={FURN_H/2} rx={5} vw={SVG_VW} vh={SVG_VH}
-          title={T('blower').title} text={T('blower').text} onClick={go}/>
+        {/* The closet furnace's own BOTTOM BlowerWheel cx/cy/r - see
+            blowerHover's QA FIX comment above. */}
+        {blowerHover(UNIT_X+UNIT_W/2,FURN_Y+FURN_H*0.70,Math.min(UNIT_W*0.32,FURN_H*0.155),go)}
         {uvHoverV(UNIT_X+8,coilBoxY,UNIT_W-16,coilBoxH)}
       </>;
     }
+    // Standalone air handler's own BlowerWheel cx/cy/r and ACoilV box
+    // (UNIT_X+8/COIL_BOX_Y/UNIT_W-16/COIL_BOX_H).
     return <>
       <HoverInfo x={UNIT_X} y={ACOIL_Y} w={UNIT_W} h={ACOIL_H} rx={5} vw={SVG_VW} vh={SVG_VH}
         title={T('air_handler_cabinet').title} text={T('air_handler_cabinet').text} onClick={go}/>
-      <HoverInfo x={UNIT_X} y={ACOIL_Y} w={UNIT_W} h={ACOIL_H*0.5} rx={5} vw={SVG_VW} vh={SVG_VH}
-        title={T('blower').title} text={T('blower').text} onClick={go}/>
-      <HoverInfo x={UNIT_X} y={ACOIL_Y+ACOIL_H*0.5} w={UNIT_W} h={ACOIL_H*0.5} rx={5} vw={SVG_VW} vh={SVG_VH}
+      {blowerHover(UNIT_X+UNIT_W/2,ACOIL_Y+ACOIL_H*0.33,Math.min(UNIT_W*0.24,ACOIL_H*0.105),go)}
+      <HoverInfo x={UNIT_X+8} y={coilBoxY} w={UNIT_W-16} h={coilBoxH} rx={3} vw={SVG_VW} vh={SVG_VH}
         title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
       {uvHoverV(UNIT_X+8,coilBoxY,UNIT_W-16,coilBoxH)}
     </>;
@@ -3477,6 +3535,14 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       {isMini
         ?(()=>{
           const fanAreaW=Math.round(w*0.68), fanAreaH=h-Math.round(h*0.1)-4, fanAreaY=y+Math.round(h*0.1)+2;
+          // QA FIX - the fan hover used to span the whole fan AREA (68% of
+          // the cabinet, nearly full height), which left CONDENSER itself
+          // only the thin top grille strip on the done screen. Mirrors
+          // CondenserFan's own round hit-box instead (Condenser's own
+          // fCX/fCY/fR, then CondenserFan's cx-r-4/(r+4)*2), same as the
+          // wizard - see blowerHover's comment for the matching indoor fix.
+          const fCX=x+fanAreaW/2, fCY=fanAreaY+fanAreaH/2;
+          const fR=Math.round(Math.min(fanAreaW,fanAreaH)*0.41);
           // Compressor hover - see the mid-tier's own comment inside
           // Condenser itself for why this cabinet has no visible dome to
           // trace: it's behind the service-access panel on the right
@@ -3484,7 +3550,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
           const panelX=x+Math.round(w*0.7), panelW=w-Math.round(w*0.7)-2;
           const panelY=y+Math.round(h*0.1)+4, panelH=h-Math.round(h*0.1)-8;
           return <>
-            <HoverInfo x={x} y={fanAreaY} w={fanAreaW} h={fanAreaH} rx={4} vw={SVG_VW} vh={SVG_VH}
+            <HoverInfo x={fCX-fR-4} y={fCY-fR-4} w={(fR+4)*2} h={(fR+4)*2} rx={fR+4} vw={SVG_VW} vh={SVG_VH}
               title={T('condenser_fan').title} text={T('condenser_fan').text} onClick={go}/>
             <HoverInfo x={panelX-4} y={panelY-4} w={panelW+8} h={panelH+8} rx={4} vw={SVG_VW} vh={SVG_VH}
               title={T('compressor').title} text={T('compressor').text} onClick={go} highlight/>
@@ -6130,6 +6196,35 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // after it can also reference this same X and keep clear of the
     // elbow that turns right there (see that label's own QA FIX comment).
     const flueExitX=UNIT_X+UNIT_W*0.38;
+    // The routed flue's low stub (furnace top to elbow 1) and horizontal
+    // run's hovers, recomputed from the same constants the flue's own
+    // IIFE further down draws with (PIPE_W/ELBOW_R/ELB1_Y/HORIZ_X - keep
+    // in sync). Hoisted so the done screen's indoor_type EditZone can
+    // re-add them on top of itself (its box covers the stub and the
+    // right half of the run - same reason indoorSubHoversV exists).
+    // QA FIX - the horizontal run used to have no hover at all (its
+    // exclusion comment cited an overlap with the left supply duct's
+    // hover, which no longer holds - those ducts now leave from the
+    // supply plenum at the TOP of the stack, nowhere near this run just
+    // above the furnace): hovering the pipe showed nothing left of the
+    // cabinet and "A-COIL" where it crosses the coil box's bottom-left
+    // corner, and on the done screen even the stub showed A-COIL/HEAT
+    // EXCHANGER (hover sweep, both screens). Tight PIPE_W+6 strip only,
+    // so it can't reach the float switch/drain further right.
+    const closetFlueLowHovers=()=>{
+      const PIPE_W=is90?5:7, ELBOW_R=8;
+      const EXIT_X=flueExitX, EXIT_Y=FURN_Y, ELB1_Y=EXIT_Y-18, HORIZ_X=UNIT_X-52;
+      const stubD=`M${EXIT_X} ${EXIT_Y} L${EXIT_X} ${ELB1_Y+ELBOW_R}`;
+      const horizD=`M${HORIZ_X+ELBOW_R} ${ELB1_Y-PIPE_W/2} L${EXIT_X-PIPE_W/2-ELBOW_R} ${ELB1_Y-PIPE_W/2}`;
+      return <>
+        <HoverInfo x={EXIT_X-PIPE_W/2-4} y={ELB1_Y+ELBOW_R-2} w={PIPE_W+8} h={EXIT_Y-ELB1_Y-ELBOW_R+4} rx={2}
+          vw={SVG_VW} vh={SVG_VH} title={T('flue_pipe').title} text={T('flue_pipe').text}
+          ringPath={stubD} ringStrokeWidth={PIPE_W+6}/>
+        <HoverInfo x={HORIZ_X-PIPE_W/2} y={ELB1_Y-PIPE_W-3} w={EXIT_X-HORIZ_X+PIPE_W} h={PIPE_W+6} rx={2}
+          vw={SVG_VW} vh={SVG_VH} title={T('flue_pipe').title} text={T('flue_pipe').text}
+          ringPath={horizD} ringStrokeWidth={PIPE_W+6}/>
+      </>;
+    };
     const APR_H=hasAprilaire?28:0;
     const APR_Y=hasFurnace?FURN_Y+FURN_H:ACOIL_Y+ACOIL_H;
     const CHASE_Y=APR_Y+APR_H+2;
@@ -6889,7 +6984,6 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               // established fix for the three raw glow-duplicate <path>
               // pairs elsewhere in this file) lets the duct hover
               // underneath it work everywhere in its own box again.
-              const stubD=`M${EXIT_X} ${EXIT_Y} L${EXIT_X} ${ELB1_Y+ELBOW_R}`;
               const riserD=`M${HORIZ_X} ${TOP_Y} L${HORIZ_X} ${ELB2_Y-ELBOW_R-PIPE_W}`;
               return <>
                 <g style={{pointerEvents:'none'}}>
@@ -6917,14 +7011,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     {is90?CT('PVC',lang):CT('B-VENT',lang)}
                   </text>
                 </g>
-                {/* Flue hover - only the two vertical segments (stub near
-                    the furnace, riser through the roof). The horizontal
-                    run in between stays pointer-events:none since it
-                    crosses directly over the left supply duct's own hover
-                    zone (see this block's own comment above). */}
-                <HoverInfo x={EXIT_X-PIPE_W/2-4} y={ELB1_Y+ELBOW_R-2} w={PIPE_W+8} h={EXIT_Y-ELB1_Y-ELBOW_R+4} rx={2}
-                  vw={SVG_VW} vh={SVG_VH} title={T('flue_pipe').title} text={T('flue_pipe').text}
-                  ringPath={stubD} ringStrokeWidth={PIPE_W+6}/>
+                {/* Flue hover - the art above stays pointer-events:none;
+                    each segment gets its own tight hit-rect instead (stub
+                    + horizontal run via closetFlueLowHovers - see its own
+                    QA FIX comment - then the riser through the roof). */}
+                {closetFlueLowHovers()}
                 <HoverInfo x={HORIZ_X-PIPE_W/2-4} y={TOP_Y-2} w={PIPE_W+8} h={ELB2_Y-ELBOW_R-PIPE_W-TOP_Y+4} rx={2}
                   vw={SVG_VW} vh={SVG_VH} title={T('flue_pipe').title} text={T('flue_pipe').text}
                   ringPath={riserD} ringStrokeWidth={PIPE_W+6}/>
@@ -7056,6 +7147,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             x={UNIT_X-4} y={ACOIL_Y-2} rx={6}
             w={UNIT_W+8} h={(hasFurnace?FURN_Y+FURN_H-ACOIL_Y:ACOIL_H)+4}>
             {indoorSubHoversV(hasFurnace,UNIT_X,UNIT_W,ACOIL_Y,ACOIL_H,FURN_Y,FURN_H)}
+            {hasFurnace&&closetFlueLowHovers()}
           </EditZone>}
 
           {/* Aprilaire - between bottom of unit and 2x4 chase */}

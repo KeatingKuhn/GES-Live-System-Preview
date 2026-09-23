@@ -883,7 +883,8 @@
           textAnchor: "middle",
           fill: "rgba(150,110,40,.5)",
           fontSize: "11.5",
-          fontFamily: "monospace"
+          fontFamily: "monospace",
+          style: { pointerEvents: "none" }
         },
         CT("LINESET", lang2)
       ), /* @__PURE__ */ React.createElement(
@@ -986,7 +987,26 @@
           ringPath: linesetRingPath,
           ringStrokeWidth: 16
         }
-      ));
+      ), (() => {
+        const capTxt = CT("LINESET", lang2), capW = capTxt.length * 11.5 * 0.6;
+        return /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: Math.min(px1, px2) - 6,
+            y: Math.min(exitY1, exitY2) - 6,
+            w: condX - Math.min(px1, px2) + 6,
+            h: Math.abs(exitY2 - exitY1) + 12,
+            hit: { x: sidingX + wallThick / 2 - capW / 2 - 2, y: exitY2 + 16 - 9, w: capW + 4, h: 9 },
+            rx: 3,
+            vw,
+            vh,
+            title: partInfo("lineset", lang2).title,
+            text: partInfo("lineset", lang2).text,
+            ringPath: linesetRingPath,
+            ringStrokeWidth: 16
+          }
+        );
+      })());
     })(), (() => {
       const DX = sidingX + wallThick + 4;
       const DY = Math.round(groundY * 0.62) - 34;
@@ -3615,7 +3635,7 @@
     return vertical ? /* @__PURE__ */ React.createElement("rect", { x: x - 1, y, width: w + 2, height: "3.5", rx: "1", fill: "rgba(180,184,192,.55)", stroke: "rgba(20,20,24,.5)", strokeWidth: "0.5" }) : /* @__PURE__ */ React.createElement("rect", { x, y: y - 1, width: "3.5", height: h + 2, rx: "1", fill: "rgba(180,184,192,.55)", stroke: "rgba(20,20,24,.5)", strokeWidth: "0.5" });
   }
   function PlenumMaterial({ x, y, w, h, isMetal }) {
-    return isMetal ? /* @__PURE__ */ React.createElement("g", null, Array.from({ length: Math.floor(h / 8) }, (_, i) => /* @__PURE__ */ React.createElement("line", { key: i, x1: x + 2, y1: y + 4 + i * 8, x2: x + w - 2, y2: y + 4 + i * 8, stroke: W + ".05)", strokeWidth: "0.3" })), /* @__PURE__ */ React.createElement("path", { d: `M${x} ${y + h * 0.12} L${x + w} ${y + h * 0.5}`, stroke: "rgba(255,255,255,.045)", strokeWidth: Math.max(4, h * 0.16), strokeLinecap: "round" }), [[x + 7, y + 5], [x + w - 7, y + 5], [x + 7, y + h - 5], [x + w - 7, y + h - 5]].map(([px, py], i) => /* @__PURE__ */ React.createElement(
+    return isMetal ? /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, Array.from({ length: Math.floor(h / 8) }, (_, i) => /* @__PURE__ */ React.createElement("line", { key: i, x1: x + 2, y1: y + 4 + i * 8, x2: x + w - 2, y2: y + 4 + i * 8, stroke: W + ".05)", strokeWidth: "0.3" })), /* @__PURE__ */ React.createElement("path", { d: `M${x} ${y + h * 0.12} L${x + w} ${y + h * 0.5}`, stroke: "rgba(255,255,255,.045)", strokeWidth: Math.max(4, h * 0.16), strokeLinecap: "round" }), [[x + 7, y + 5], [x + w - 7, y + 5], [x + 7, y + h - 5], [x + w - 7, y + h - 5]].map(([px, py], i) => /* @__PURE__ */ React.createElement(
       "path",
       {
         key: i,
@@ -3624,7 +3644,7 @@
         stroke: "rgba(210,214,222,.28)",
         strokeWidth: "1"
       }
-    ))) : /* @__PURE__ */ React.createElement("g", null, Array.from({ length: Math.floor(h / 10) }, (_, i) => /* @__PURE__ */ React.createElement("line", { key: i, x1: x + 3, y1: y + 5 + i * 10, x2: x + w - 3, y2: y + 5 + i * 10, stroke: G + ".07)", strokeWidth: "0.6" })), /* @__PURE__ */ React.createElement("path", { d: `M${x} ${y + h * 0.08} L${x + w * 0.55} ${y + h * 0.68}`, stroke: "rgba(224,228,238,.05)", strokeWidth: Math.max(5, h * 0.24), strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: `M${x + w * 0.42} ${y + h * 0.02} L${x + w} ${y + h * 0.46}`, stroke: "rgba(224,228,238,.04)", strokeWidth: Math.max(4, h * 0.16), strokeLinecap: "round" }), [x + w * 0.32, x + w * 0.68].map((sx, i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("rect", { x: sx - 4.5, y: y + 2, width: 9, height: h - 4, fill: "rgba(210,214,222,.045)", stroke: "rgba(210,214,222,.09)", strokeWidth: "0.4" }), /* @__PURE__ */ React.createElement("line", { x1: sx, y1: y + 2, x2: sx, y2: y + h - 2, stroke: "rgba(190,194,204,.15)", strokeWidth: "0.5", strokeDasharray: "1.6 1.6" }))));
+    ))) : /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, Array.from({ length: Math.floor(h / 10) }, (_, i) => /* @__PURE__ */ React.createElement("line", { key: i, x1: x + 3, y1: y + 5 + i * 10, x2: x + w - 3, y2: y + 5 + i * 10, stroke: G + ".07)", strokeWidth: "0.6" })), /* @__PURE__ */ React.createElement("path", { d: `M${x} ${y + h * 0.08} L${x + w * 0.55} ${y + h * 0.68}`, stroke: "rgba(224,228,238,.05)", strokeWidth: Math.max(5, h * 0.24), strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: `M${x + w * 0.42} ${y + h * 0.02} L${x + w} ${y + h * 0.46}`, stroke: "rgba(224,228,238,.04)", strokeWidth: Math.max(4, h * 0.16), strokeLinecap: "round" }), [x + w * 0.32, x + w * 0.68].map((sx, i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("rect", { x: sx - 4.5, y: y + 2, width: 9, height: h - 4, fill: "rgba(210,214,222,.045)", stroke: "rgba(210,214,222,.09)", strokeWidth: "0.4" }), /* @__PURE__ */ React.createElement("line", { x1: sx, y1: y + 2, x2: sx, y2: y + h - 2, stroke: "rgba(190,194,204,.15)", strokeWidth: "0.5", strokeDasharray: "1.6 1.6" }))));
   }
   function RegisterGrille({ cx, y, w, dc, ds, label, lang: lang2, vw, vh }) {
     const h = 9;
@@ -3885,7 +3905,9 @@
     let SVG_SCALE = 1, SVG_VW = 0, SVG_VH = 0;
     const uvHoverH = (cx, cy, cw, ch) => {
       if (!hasUV) return null;
-      const rodLen = Math.min(cw * 0.7, cw - 12), rodCX = cx + cw * 0.48, rodCY = cy + ch / 2;
+      const rodLen = Math.min(cw * 0.7, cw - 12), rodCX = cx + cw * 0.5, rodCY = cy + ch / 2;
+      const ringW = (rodLen + 8) * 0.9, ringH = 16 * 0.9;
+      const uvRingBox = { x: rodCX - ringW / 2, y: rodCY - ringH / 2, w: ringW, h: ringH, rx: 2.7 };
       return /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -3897,10 +3919,26 @@
           vw: SVG_VW,
           vh: SVG_VH,
           title: T("uv_light").title,
-          text: T("uv_light").text
+          text: T("uv_light").text,
+          ringBox: uvRingBox
         }
       );
     };
+    const blowerHover = (cx, cy, r, go) => /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x: cx - r - 5,
+        y: cy - r - 5,
+        w: (r + 5) * 2,
+        h: (r + 5) * 2,
+        rx: r + 5,
+        vw: SVG_VW,
+        vh: SVG_VH,
+        title: T("blower").title,
+        text: T("blower").text,
+        onClick: go
+      }
+    );
     const indoorSubHoversH = (hasFurnaceLocal, FURN_X, FURN_W, ACOIL_X, ACOIL_W, AH_X, AH_W, UNIT_Y, UNIT_H) => {
       const go = () => onEditStep("indoor_type");
       if (hasFurnaceLocal) {
@@ -3919,21 +3957,7 @@
             text: T("furnace_cabinet").text,
             onClick: go
           }
-        ), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: FURN_X,
-            y: UNIT_Y,
-            w: FURN_W * 0.44,
-            h: UNIT_H,
-            rx: 4,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("blower").title,
-            text: T("blower").text,
-            onClick: go
-          }
-        ), /* @__PURE__ */ React.createElement(
+        ), blowerHover(FURN_X + FURN_W * 0.25, UNIT_Y + UNIT_H * 0.42, Math.min(FURN_W * 0.21, UNIT_H * 0.29), go), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: mid,
@@ -3974,8 +3998,9 @@
             text: T(acoilInfoKey()).text,
             onClick: go
           }
-        ), uvHoverH(ACOIL_X + 8, UNIT_Y + 12, ACOIL_W - 16, UNIT_H - 20));
+        ), uvHoverH(ACOIL_X + 8, UNIT_Y + 10, ACOIL_W - 16, UNIT_H - 20));
       }
+      const blowerW = AH_W * 0.35;
       return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -3993,36 +4018,24 @@
       ), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
-          x: AH_X,
-          y: UNIT_Y,
-          w: AH_W * 0.5,
-          h: UNIT_H,
-          rx: 4,
+          x: AH_X + 9.5,
+          y: UNIT_Y + 12,
+          w: AH_W * 0.5 - 19,
+          h: UNIT_H - 22,
+          rx: 3,
           vw: SVG_VW,
           vh: SVG_VH,
           title: T(acoilInfoKey()).title,
           text: T(acoilInfoKey()).text,
           onClick: go
         }
-      ), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: AH_X + AH_W * 0.5,
-          y: UNIT_Y,
-          w: AH_W * 0.5,
-          h: UNIT_H,
-          rx: 4,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("blower").title,
-          text: T("blower").text,
-          onClick: go
-        }
-      ), uvHoverH(AH_X + 9, UNIT_Y + 12, AH_W * 0.5 - 19, UNIT_H - 22));
+      ), blowerHover(AH_X + AH_W * 0.5 + blowerW / 2, UNIT_Y + UNIT_H * 0.42, Math.min(blowerW * 0.32, UNIT_H * 0.29), go), uvHoverH(AH_X + 9.5, UNIT_Y + 12, AH_W * 0.5 - 19, UNIT_H - 22));
     };
     const uvHoverV = (cx, cy, cw, ch) => {
       if (!hasUV) return null;
       const rodCX = cx + cw * 0.5, rodLen2 = Math.min(ch * 0.75, ch - 12), rodCY = cy + ch / 2;
+      const ringW = 16 * 0.9, ringH = (rodLen2 + 8) * 0.9;
+      const uvRingBox = { x: rodCX - ringW / 2, y: rodCY - ringH / 2, w: ringW, h: ringH, rx: 2.7 };
       return /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
@@ -4034,7 +4047,8 @@
           vw: SVG_VW,
           vh: SVG_VH,
           title: T("uv_light").title,
-          text: T("uv_light").text
+          text: T("uv_light").text,
+          ringBox: uvRingBox
         }
       );
     };
@@ -4098,21 +4112,7 @@
             text: T("afue_badge").text,
             onClick: go
           }
-        ), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: UNIT_X,
-            y: FURN_Y + FURN_H / 2,
-            w: UNIT_W,
-            h: FURN_H / 2,
-            rx: 5,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("blower").title,
-            text: T("blower").text,
-            onClick: go
-          }
-        ), uvHoverV(UNIT_X + 8, coilBoxY, UNIT_W - 16, coilBoxH));
+        ), blowerHover(UNIT_X + UNIT_W / 2, FURN_Y + FURN_H * 0.7, Math.min(UNIT_W * 0.32, FURN_H * 0.155), go), uvHoverV(UNIT_X + 8, coilBoxY, UNIT_W - 16, coilBoxH));
       }
       return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
         HoverInfo,
@@ -4128,28 +4128,14 @@
           text: T("air_handler_cabinet").text,
           onClick: go
         }
-      ), /* @__PURE__ */ React.createElement(
+      ), blowerHover(UNIT_X + UNIT_W / 2, ACOIL_Y + ACOIL_H * 0.33, Math.min(UNIT_W * 0.24, ACOIL_H * 0.105), go), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
-          x: UNIT_X,
-          y: ACOIL_Y,
-          w: UNIT_W,
-          h: ACOIL_H * 0.5,
-          rx: 5,
-          vw: SVG_VW,
-          vh: SVG_VH,
-          title: T("blower").title,
-          text: T("blower").text,
-          onClick: go
-        }
-      ), /* @__PURE__ */ React.createElement(
-        HoverInfo,
-        {
-          x: UNIT_X,
-          y: ACOIL_Y + ACOIL_H * 0.5,
-          w: UNIT_W,
-          h: ACOIL_H * 0.5,
-          rx: 5,
+          x: UNIT_X + 8,
+          y: coilBoxY,
+          w: UNIT_W - 16,
+          h: coilBoxH,
+          rx: 3,
           vw: SVG_VW,
           vh: SVG_VH,
           title: T(acoilInfoKey()).title,
@@ -4178,16 +4164,18 @@
         }
       ), isMini ? (() => {
         const fanAreaW = Math.round(w * 0.68), fanAreaH = h - Math.round(h * 0.1) - 4, fanAreaY = y + Math.round(h * 0.1) + 2;
+        const fCX = x + fanAreaW / 2, fCY = fanAreaY + fanAreaH / 2;
+        const fR = Math.round(Math.min(fanAreaW, fanAreaH) * 0.41);
         const panelX = x + Math.round(w * 0.7), panelW = w - Math.round(w * 0.7) - 2;
         const panelY = y + Math.round(h * 0.1) + 4, panelH = h - Math.round(h * 0.1) - 8;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
-            x,
-            y: fanAreaY,
-            w: fanAreaW,
-            h: fanAreaH,
-            rx: 4,
+            x: fCX - fR - 4,
+            y: fCY - fR - 4,
+            w: (fR + 4) * 2,
+            h: (fR + 4) * 2,
+            rx: fR + 4,
             vw: SVG_VW,
             vh: SVG_VH,
             title: T("condenser_fan").title,
@@ -6125,6 +6113,43 @@
       const ACOIL_Y = UNIT_TOP;
       const FURN_Y = ACOIL_Y + ACOIL_H + 4;
       const flueExitX = UNIT_X + UNIT_W * 0.38;
+      const closetFlueLowHovers = () => {
+        const PIPE_W = is90 ? 5 : 7, ELBOW_R = 8;
+        const EXIT_X = flueExitX, EXIT_Y = FURN_Y, ELB1_Y = EXIT_Y - 18, HORIZ_X = UNIT_X - 52;
+        const stubD = `M${EXIT_X} ${EXIT_Y} L${EXIT_X} ${ELB1_Y + ELBOW_R}`;
+        const horizD = `M${HORIZ_X + ELBOW_R} ${ELB1_Y - PIPE_W / 2} L${EXIT_X - PIPE_W / 2 - ELBOW_R} ${ELB1_Y - PIPE_W / 2}`;
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: EXIT_X - PIPE_W / 2 - 4,
+            y: ELB1_Y + ELBOW_R - 2,
+            w: PIPE_W + 8,
+            h: EXIT_Y - ELB1_Y - ELBOW_R + 4,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("flue_pipe").title,
+            text: T("flue_pipe").text,
+            ringPath: stubD,
+            ringStrokeWidth: PIPE_W + 6
+          }
+        ), /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: HORIZ_X - PIPE_W / 2,
+            y: ELB1_Y - PIPE_W - 3,
+            w: EXIT_X - HORIZ_X + PIPE_W,
+            h: PIPE_W + 6,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: T("flue_pipe").title,
+            text: T("flue_pipe").text,
+            ringPath: horizD,
+            ringStrokeWidth: PIPE_W + 6
+          }
+        ));
+      };
       const APR_H = hasAprilaire ? 28 : 0;
       const APR_Y = hasFurnace ? FURN_Y + FURN_H : ACOIL_Y + ACOIL_H;
       const CHASE_Y = APR_Y + APR_H + 2;
@@ -6985,7 +7010,6 @@
           return roofYAtX - 12;
         })();
         const ELBOW_R = 8;
-        const stubD = `M${EXIT_X} ${EXIT_Y} L${EXIT_X} ${ELB1_Y + ELBOW_R}`;
         const riserD = `M${HORIZ_X} ${TOP_Y} L${HORIZ_X} ${ELB2_Y - ELBOW_R - PIPE_W}`;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, /* @__PURE__ */ React.createElement(
           "rect",
@@ -7059,22 +7083,7 @@
             fontFamily: "monospace"
           },
           is90 ? CT("PVC", lang2) : CT("B-VENT", lang2)
-        )), /* @__PURE__ */ React.createElement(
-          HoverInfo,
-          {
-            x: EXIT_X - PIPE_W / 2 - 4,
-            y: ELB1_Y + ELBOW_R - 2,
-            w: PIPE_W + 8,
-            h: EXIT_Y - ELB1_Y - ELBOW_R + 4,
-            rx: 2,
-            vw: SVG_VW,
-            vh: SVG_VH,
-            title: T("flue_pipe").title,
-            text: T("flue_pipe").text,
-            ringPath: stubD,
-            ringStrokeWidth: PIPE_W + 6
-          }
-        ), /* @__PURE__ */ React.createElement(
+        )), closetFlueLowHovers(), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: HORIZ_X - PIPE_W / 2 - 4,
@@ -7220,7 +7229,8 @@
           w: UNIT_W + 8,
           h: (hasFurnace ? FURN_Y + FURN_H - ACOIL_Y : ACOIL_H) + 4
         },
-        indoorSubHoversV(hasFurnace, UNIT_X, UNIT_W, ACOIL_Y, ACOIL_H, FURN_Y, FURN_H)
+        indoorSubHoversV(hasFurnace, UNIT_X, UNIT_W, ACOIL_Y, ACOIL_H, FURN_Y, FURN_H),
+        hasFurnace && closetFlueLowHovers()
       ), hasCoil && hasAprilaire && /* @__PURE__ */ React.createElement("g", { className: "fadein", key: "apr-c" }, /* @__PURE__ */ React.createElement(
         "rect",
         {
