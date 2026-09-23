@@ -305,10 +305,39 @@ function App(){
       try{parentJQ&&parentJQ(window.parent.document).off('.gesGate');}catch(e){}
     };
   },[leadUnlocked]);
+  // QA FIX - the gate now embeds the Gravity Form directly in its own
+  // <iframe> (GATE_CONFIG.embedFormUrl - see that constant's own comment
+  // in data.js for why) rather than depending on the form living
+  // somewhere else on the WordPress page. Detection here is simpler and
+  // more reliable than any of the three paths above: same-origin access
+  // straight into the iframe's own document, polled while the gate is
+  // showing, watching for Gravity Forms' own AJAX confirmation wrapper
+  // (`.gform_confirmation_wrapper` / an id containing that string) to
+  // appear - which happens whether the form's Confirmation is a plain
+  // Text message swapped in inline, or a Redirect that navigates this
+  // iframe to a different same-origin page (a real navigation reloads
+  // the iframe's document too, and the very next poll picks up whatever
+  // landed there). No reliance on jQuery, postMessage, a WordPress-side
+  // snippet, or the outer page's own AJAX/confirmation settings at all.
+  const leadIframeRef=useRef(null);
+  React.useEffect(()=>{
+    if(!GATE_CONFIG.gravityFormId||!GATE_CONFIG.embedFormUrl||leadUnlocked||pricingFlow!=='leadgate')return;
+    const check=()=>{
+      try{
+        const doc=leadIframeRef.current&&leadIframeRef.current.contentDocument;
+        if(doc&&doc.querySelector('.gform_confirmation_wrapper,[id*="gform_confirmation_wrapper"]')){
+          markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});
+        }
+      }catch(e){/* cross-origin - shouldn't happen for a same-domain embed, never break the gate over it */}
+    };
+    const id=setInterval(check,600);
+    check();
+    return ()=>clearInterval(id);
+  },[leadUnlocked,pricingFlow]);
   // Moves straight into the sizing questions the instant the gate
-  // unlocks, whether that's the effect above detecting a real submission
-  // mid-wait or the gate never having been shown at all this session
-  // (returning with it already unlocked from a previous visit).
+  // unlocks, whether that's one of the effects above detecting a real
+  // submission mid-wait or the gate never having been shown at all this
+  // session (returning with it already unlocked from a previous visit).
   React.useEffect(()=>{
     if(leadUnlocked&&pricingFlow==='leadgate'){
       setPricingFlow('sizing');
@@ -1820,14 +1849,38 @@ function App(){
 
               {/* Contact-form gate - only reachable when GATE_CONFIG.gravityFormId
                   is set (see goSubNext above and data.js). Waits on the
-                  leadUnlocked detection effect above; auto-advances to
-                  'result' the moment that flips true, so a homeowner who
-                  submits the form never has to click anything in here. */}
+                  leadUnlocked detection effects above; auto-advances to
+                  'sizing' the moment that flips true, so a homeowner who
+                  submits the form never has to click anything in here.
+                  With GATE_CONFIG.embedFormUrl set, the form itself is
+                  embedded right here via <iframe> - no separate form
+                  elsewhere on the page to find. Falls back to the old
+                  "scroll down to find it" copy if embedFormUrl is unset
+                  (form still placed elsewhere on the WordPress page). */}
               {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
                 <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
-                <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
-                  {tr('Scroll down on this page to find the short form - fill it out to unlock pricing. It continues right here automatically, no need to click anything else.','Desplácese hacia abajo en esta página para encontrar el formulario breve - complételo para desbloquear los precios. Continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
-                </div>
+                {GATE_CONFIG.embedFormUrl?<>
+                  <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:10}}>
+                    {tr('Fill out the short form below to unlock pricing - it continues right here automatically, no need to click anything else.','Complete el formulario breve a continuación para desbloquear los precios - continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
+                  </div>
+                  <iframe ref={leadIframeRef} src={GATE_CONFIG.embedFormUrl} title={tr('Contact form','Formulario de contacto')}
+                    onLoad={()=>{
+                      // Best-effort auto-resize to the embedded form's own
+                      // content height (same-origin only - the polling
+                      // effect above still detects submission either way
+                      // if this throws for any reason).
+                      try{
+                        const doc=leadIframeRef.current&&leadIframeRef.current.contentDocument;
+                        const h=doc&&doc.body&&doc.body.scrollHeight;
+                        if(h&&leadIframeRef.current)leadIframeRef.current.style.height=Math.min(Math.max(h,260),900)+'px';
+                      }catch(e){/* cross-origin - keep the default height below */}
+                    }}
+                    style={{width:"100%",height:420,border:"none",display:"block",marginBottom:10,background:"transparent",borderRadius:4}}/>
+                </>:
+                  <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
+                    {tr('Scroll down on this page to find the short form - fill it out to unlock pricing. It continues right here automatically, no need to click anything else.','Desplácese hacia abajo en esta página para encontrar el formulario breve - complételo para desbloquear los precios. Continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
+                  </div>
+                }
                 <button className="btn-back" style={{padding:isAtticMode?"6px 16px":"8px 16px",fontSize:isAtticMode?14:"var(--fs-pricing-fine)"}}
                   onClick={()=>setPricingFlow(null)}>‹ {tr('Back','Atrás')}</button>
               </div>}

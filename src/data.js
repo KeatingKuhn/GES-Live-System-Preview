@@ -446,12 +446,25 @@ export const FINANCING_OPTIONS=[
 // required WordPress-side snippet in src/app.js, right where this is
 // imported and used.
 export const GATE_CONFIG={
-  // Live - the Gravity Form (ID 9) is placed directly below this
-  // widget's iframe on the WordPress page, same domain (same-origin),
-  // so the jQuery gform_confirmation_loaded detection path applies with
-  // no extra relay snippet needed - see the gate detection logic in
-  // src/app.js, right where this is imported and used.
   gravityFormId:9,
+  // QA FIX - direct feedback after real customers got stuck behind this
+  // gate: the form used to live somewhere ELSE on the WordPress page
+  // (below this widget's own embed), which meant a homeowner had to
+  // notice it, scroll to find it, and submitting it depended on that
+  // page's own Gravity Forms AJAX/confirmation settings staying correct
+  // - a customer hit a real dead end when the confirmation wasn't in
+  // AJAX mode. embedFormUrl points at a WordPress page containing
+  // ONLY this Gravity Form (nothing else) - the leadgate screen below
+  // now embeds THAT page directly in its own <iframe>, so the form is
+  // literally part of this widget, same-origin, fully under this
+  // code's own control: no separate page element to find, no
+  // dependency on the OUTER WordPress page's own AJAX/confirmation
+  // settings. See the leadIframeRef effect in src/app.js for the
+  // same-origin detection that replaces the old jQuery/postMessage/
+  // ?ges_lead=1 paths (all three are KEPT as harmless legacy fallbacks
+  // in case this form ever gets placed elsewhere again, but none of
+  // them should be needed once this is set).
+  embedFormUrl:'https://goldeagleservices.com/build-your-system-submission-form/',
 };
 // The office inbox the "Send to Our Office" quick-action (result screen,
 // src/app.js buildEmailHref) mailto:'s to, alongside the existing "Email
