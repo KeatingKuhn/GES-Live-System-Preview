@@ -4099,11 +4099,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
     // itself though - it's the 3-button COOL/HP/FURN row (cx=38,
     // totalW=96, so it spans -10..86) and the "COMMUNICATING" caption
     // (13 chars @ fontSize 11.5, spans roughly -7..83) - both wider than
-    // the 76-wide face they're centered under/above. CONTENT_W/CONTENT_L
-    // are that real left-to-right extent (with a couple px of safety
-    // pad), so every size/position calc after this is based on what
-    // actually needs to fit, not just the face's own nominal width.
-    const THERM_CONTENT_W=100, THERM_CONTENT_L=-12;
+    // the 76-wide face they're centered under/above. CONTENT_L is that
+    // real left edge (with a couple px of safety pad), so every
+    // size/position calc after this is based on what actually needs to
+    // fit, not just the face's own nominal width.
+    const THERM_CONTENT_L=-12;
     // 120 is the real top-to-bottom extent of the tallest variant now
     // that the caption sits below the COOL/HEAT row (moved there per
     // direct feedback - see THERM_CAP_Y) instead of on the face itself.

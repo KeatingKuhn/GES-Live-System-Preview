@@ -4381,7 +4381,7 @@
       const MARGIN_L = Math.max(20, Math.round((HOUSE_W - totalW) / 2));
       const RET_X = MARGIN_L;
       const THERM_IN_MARGIN = MARGIN_L >= 70;
-      const THERM_CONTENT_W = 100, THERM_CONTENT_L = -12;
+      const THERM_CONTENT_L = -12;
       const THERM_GAP = 10;
       const THERM_SCALE = THERM_IN_MARGIN ? Math.min(THERM_TARGET_SCALE, Math.max(0.3, (RET_X - THERM_GAP - 26) / 100)) : 0.5;
       const THERM_BTN_N = isDualFuel || !hasFurnace ? 3 : 2;
@@ -8273,7 +8273,6 @@
     const totalSteps = activeSteps.length - 1;
     const totalKnown = !!answers.indoor_type;
     const cur = activeSteps[stepIdx];
-    const pct = Math.round((stepIdx + 1) / activeSteps.length * 100);
     const chapterCounts = useMemo2(() => {
       const counts = CHAPTERS.map(() => 0);
       activeSteps.forEach((s) => {

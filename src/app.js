@@ -562,7 +562,6 @@ function App(){
   // claim one yet. It reappears, accurate, from the very next step on.
   const totalKnown=!!answers.indoor_type;
   const cur=activeSteps[stepIdx];
-  const pct=Math.round(((stepIdx+1)/activeSteps.length)*100);
 
   // Chapter progress - how many active (non-location) steps live in each
   // chapter, and how far into the current chapter this step sits. Drives
