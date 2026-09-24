@@ -1687,6 +1687,39 @@ function App(){
             reveal this size deserves the full width. */}
         {celebrateBuild&&<Confetti/>}
         {celebratePrice&&<Confetti/>}
+        {/* QA FIX - direct feedback: "any way to speed up the gravity
+            forms loading when you click 'get pricing'?" The real lead-
+            gate iframe (below, in the pricingFlow==='leadgate' block)
+            only ever started loading the instant pricingFlow flipped to
+            'leadgate' - the literal next state after clicking Get
+            Pricing for a not-yet-unlocked visitor - so a cold fetch of
+            an entire separate WordPress page (its own theme, Gravity
+            Forms plugin assets, etc.) landed squarely on the one click a
+            homeowner is most impatient about. This is a second, purely
+            invisible <iframe> pointed at the exact same URL, mounted as
+            soon as the done screen itself appears - there's real dwell
+            time here (reviewing the diagram, quick-editing an answer)
+            before anyone gets around to clicking Get Pricing, which is
+            exactly the time to spend warming this up in the background
+            instead. It shares no ref/state with the real gate iframe and
+            plays no role in lead detection - purely a browser-level
+            head start, so by the time the real iframe mounts, the
+            browser already has a warm connection to that origin and its
+            shared static assets (CSS/JS/fonts) cached, even though the
+            page's own dynamic HTML response still gets fetched fresh.
+            Kept off-screen via position/size rather than display:none,
+            which some browsers treat as "don't bother loading yet" and
+            would defeat the whole point. aria-hidden + tabIndex=-1 keep
+            it out of the accessibility tree and tab order - nothing
+            about it is meant to ever be seen or reached by a real user.
+            Stops mounting once leadUnlocked (nothing left to warm up for
+            - the gate won't show at all) or once the real gate iframe
+            has taken over (pricingFlow==='leadgate') - the connection's
+            already warm by then, so a second concurrent load of the same
+            page is just wasted bandwidth with no remaining benefit. */}
+        {GATE_CONFIG.gravityFormId&&GATE_CONFIG.embedFormUrl&&!leadUnlocked&&pricingFlow!=='leadgate'&&
+          <iframe src={GATE_CONFIG.embedFormUrl} aria-hidden="true" tabIndex="-1"
+            style={{position:"absolute",left:-9999,top:0,width:1,height:1,overflow:"hidden",opacity:0,pointerEvents:"none",border:"none"}}/>}
         {/* flex itself lives in styles.css (.done-canvas-frame), not here -
             an inline style always wins over any stylesheet rule regardless
             of specificity, which silently defeated the mobile height cap
