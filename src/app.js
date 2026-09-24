@@ -810,7 +810,20 @@ function App(){
     setStepIdx(clampedIdx);
     setDone(!!savedBuild.done);
     setPricingFlow(savedBuild.pricingFlow||null);
-    setPricingSubStep(savedBuild.pricingSubStep||0);
+    // QA FIX - same class of bug as clampedIdx just above, caught by an
+    // automated QA pass: a build saved while pricingSubStep was 1 (the
+    // old "want duct replacement priced too?" sub-step, removed in this
+    // pass - see the sizing sub-flow's own subSteps=['sqft'] below) left
+    // pricingSubStep stuck at a now out-of-range value on resume.
+    // subSteps[1] is undefined, so that screen's question body rendered
+    // fully blank with a permanently-disabled Next button and no way
+    // forward except Back, which drops the whole pricing flow. The
+    // sizing sub-flow is a single step now, so 0 is the only valid value
+    // regardless of what was saved - trusting savedBuild.pricingSubStep
+    // as-is here was exactly the "stale/tampered/out-of-range value"
+    // mistake clampedIdx was already written to guard against for
+    // stepIdx, just not extended to this sibling field.
+    setPricingSubStep(0);
     setPricingAnswers(savedBuild.pricingAnswers||{});
     setResumePending(false);
     // Resuming straight into an already-completed saved build (the person
@@ -2417,11 +2430,23 @@ function App(){
                         <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
                           disabled={(pricingAnswers.ventCount||0)<=1}
                           onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.max(1,(p.ventCount||1)-1)}))}>−</button>
+                        {/* QA FIX - caught by an automated QA pass: this
+                            clamp still allowed 0 (Math.max(0,n)) while the
+                            stepper buttons just above/below floor at 1
+                            (p.ventCount||1) - typing "0" directly left the
+                            checkbox checked with no price line (0 vents
+                            charges nothing, with no warning it's not
+                            actually included), and then clicking "+" from
+                            that 0 jumped to 2, not 1, since 0 is falsy and
+                            fell through to the ||1 default before adding.
+                            Matches the new-supply-run stepper's own input
+                            clamp (Math.max(1,n)) so typing and the buttons
+                            agree on the same 1-20 floor everywhere. */}
                         <input id="pricing-vent-count-input" type="number" min="1" max="20" value={pricingAnswers.ventCount??''} onChange={e=>{
                           const raw=e.target.value;
                           if(raw===''){setPricingAnswers(p=>({...p,ventCount:undefined}));return;}
                           const n=parseInt(raw);
-                          setPricingAnswers(p=>({...p,ventCount:Number.isNaN(n)?undefined:Math.min(20,Math.max(0,n))}));
+                          setPricingAnswers(p=>({...p,ventCount:Number.isNaN(n)?undefined:Math.min(20,Math.max(1,n))}));
                         }} className="pricing-input vent-input"/>
                         <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
                           disabled={(pricingAnswers.ventCount||0)>=20}

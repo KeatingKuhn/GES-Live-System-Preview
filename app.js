@@ -8460,7 +8460,7 @@
       setStepIdx(clampedIdx);
       setDone(!!savedBuild.done);
       setPricingFlow(savedBuild.pricingFlow || null);
-      setPricingSubStep(savedBuild.pricingSubStep || 0);
+      setPricingSubStep(0);
       setPricingAnswers(savedBuild.pricingAnswers || {});
       setResumePending(false);
       if (savedBuild.done) {
@@ -9035,7 +9035,7 @@
           return;
         }
         const n = parseInt(raw);
-        setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(0, n)) }));
+        setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(1, n)) }));
       }, className: "pricing-input vent-input" }), /* @__PURE__ */ React.createElement(
         "button",
         {

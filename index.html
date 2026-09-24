@@ -333,14 +333,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .pricing-substep-left{flex:1 1 auto!important}
   .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
   .pricing-result-row{flex-direction:column!important}
-  /* QA FIX - direct feedback: the sizing sub-steps' Next/Get My Estimate
-     button landed at a different Y depending on which sub-step's content
-     was shorter (see the base .pricing-substep-content rule below for the
-     full story) - attic's own stacked-column state at this breakpoint
-     needs its own taller floor than the base rule's row-layout number,
-     measured against attic's stacked sqft grid (its tallest of the 3
-     states here, real 7-tonnage-option fedmin tier at 480px wide). */
-  .done-screen.attic-mode .pricing-substep-content{min-height:220px;justify-content:center}
 }
 
 /* ANIMATIONS */
@@ -10079,7 +10071,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       setStepIdx(clampedIdx);
       setDone(!!savedBuild.done);
       setPricingFlow(savedBuild.pricingFlow || null);
-      setPricingSubStep(savedBuild.pricingSubStep || 0);
+      setPricingSubStep(0);
       setPricingAnswers(savedBuild.pricingAnswers || {});
       setResumePending(false);
       if (savedBuild.done) {
@@ -10654,7 +10646,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           return;
         }
         const n = parseInt(raw);
-        setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(0, n)) }));
+        setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(1, n)) }));
       }, className: "pricing-input vent-input" }), /* @__PURE__ */ React.createElement(
         "button",
         {

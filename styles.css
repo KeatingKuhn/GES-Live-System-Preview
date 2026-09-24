@@ -303,14 +303,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .pricing-substep-left{flex:1 1 auto!important}
   .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
   .pricing-result-row{flex-direction:column!important}
-  /* QA FIX - direct feedback: the sizing sub-steps' Next/Get My Estimate
-     button landed at a different Y depending on which sub-step's content
-     was shorter (see the base .pricing-substep-content rule below for the
-     full story) - attic's own stacked-column state at this breakpoint
-     needs its own taller floor than the base rule's row-layout number,
-     measured against attic's stacked sqft grid (its tallest of the 3
-     states here, real 7-tonnage-option fedmin tier at 480px wide). */
-  .done-screen.attic-mode .pricing-substep-content{min-height:220px;justify-content:center}
 }
 
 /* ANIMATIONS */
