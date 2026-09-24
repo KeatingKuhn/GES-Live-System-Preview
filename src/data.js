@@ -571,14 +571,9 @@ export function calcEstimate(answers,pricingAnswers){
     const cfmNum=cfmKey==='cfm130'?'130':'150';
     lines.push({key:'erv',ervCfm:cfmNum,label:`ERV (${cfmNum} CFM)`,price:PRICING.extras.erv[cfmKey]});
   }
-  // Return-side work (plenum, new duct, duct cleaning) stays education-only
-  // (see additionalConsiderations below) with final scope confirmed at the
-  // in-home visit - unlike dehu/ERV, these don't have a self-contained
-  // on-diagram build-out for the customer to see update live.
-
-  // QA FIX - the sizing sub-step's own vent-count input clamps to 1-20 on
-  // every keystroke (see its onChange in app.js), but that clamp lives
-  // ONLY there - calcEstimate itself trusted pricingAnswers.ventCount
+  // QA FIX - the price-reveal panel's own vent-count input (app.js) clamps
+  // to 1-20 on every keystroke, but that clamp lives ONLY there -
+  // calcEstimate itself trusted pricingAnswers.ventCount
   // as-is. A build autosaved before that clamp existed (or any future
   // caller that sets pricingAnswers directly, e.g. a localStorage
   // restore) could still carry an unclamped value straight into the

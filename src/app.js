@@ -2034,21 +2034,33 @@ function App(){
                  below instead of its own full-width row ── */}
             {pricingFlow!==null&&<div style={{width:"100%",marginBottom:12}}>
               {pricingFlow==='sizing'&&(()=>{
-                // Just sqft + ducts - the old "how many separate HVAC
-                // systems does your home have?" sub-step never actually
-                // fed into calcEstimate's math (systemsCount only ever
-                // changed wording and added a disclaimer note), so
-                // dropping it loses nothing but a click.
-                const subSteps=['sqft','ducts'];
+                // Just sqft now - the old "how many separate HVAC systems
+                // does your home have?" sub-step never actually fed into
+                // calcEstimate's math (systemsCount only ever changed
+                // wording and added a disclaimer note), so dropping it lost
+                // nothing but a click. The "want duct replacement priced
+                // too?" sub-step is gone too as of this pass - direct
+                // feedback: move it down to a checkbox (with the other
+                // duct-related add-ons) instead of its own question, same
+                // spirit as duct cleaning/new supply runs/etc already being
+                // checkboxes rather than wizard steps. See wantDucts on the
+                // price-reveal panel below - same pricingAnswers field,
+                // same calcEstimate line item, just asked in a different
+                // spot. That also fully retires the multi-state Next-button-
+                // position problem a previous QA pass patched with
+                // pricing-substep-content's min-height/centering (see
+                // styles.css history) - with only one sub-step left, the
+                // button has nowhere else to land, so that machinery came
+                // out along with the ducts UI rather than being left behind
+                // describing a problem that can't happen here anymore.
+                const subSteps=['sqft'];
                 const subId=subSteps[pricingSubStep];
                 const goSubNext=()=>{
-                  if(pricingSubStep<subSteps.length-1){setPricingSubStep(s=>s+1);return;}
                   trackEvent('price_revealed');
                   setPricingFlow('result');
                 };
                 const goSubBack=()=>{
-                  if(pricingSubStep>0)setPricingSubStep(s=>s-1);
-                  else setPricingFlow(null);
+                  setPricingFlow(null);
                 };
                 // Half-ton sizes (1.5/2.5/3.5) are a Federal Minimum-only
                 // catalog option - Mid/High Efficiency only stock full
@@ -2062,15 +2074,12 @@ function App(){
                 // the quick-edit guard effect above shares this exact same
                 // rule instead of a second copy of it.)
                 const tonnageOptions=tonnageOptionsForTier;
-                const canSubNext=
-                  // Checked against the CURRENT tonnageOptions, not just
-                  // "any value is set" - a half-ton pick made before a
-                  // quick-edit bumped the tier to Mid/High no longer has a
-                  // matching card (none shows as selected), so it
-                  // shouldn't silently count as answered either.
-                  subId==='sqft'?tonnageOptions.some(o=>o.v===pricingAnswers.tonnageChoice):
-                  subId==='ducts'?(pricingAnswers.wantDucts===false||(pricingAnswers.wantDucts===true&&pricingAnswers.ventCount>0)):
-                  true;
+                // Checked against the CURRENT tonnageOptions, not just "any
+                // value is set" - a half-ton pick made before a quick-edit
+                // bumped the tier to Mid/High no longer has a matching card
+                // (none shows as selected), so it shouldn't silently count
+                // as answered either.
+                const canSubNext=tonnageOptions.some(o=>o.v===pricingAnswers.tonnageChoice);
                 // Attic mode's panel is a short, very wide bar (not the tall
                 // narrow sidebar this was designed for originally) - stacking
                 // question, description, options and nav vertically no
@@ -2097,42 +2106,10 @@ function App(){
                         }}
                         className={"pricing-input"+(isAtticMode?" compact":"")}/>
                     </>}
-                    {/* QA FIX - direct feedback: "ductwork question is good
-                        to have, just needs to be better... the text is too
-                        small for the question, it sucks on horizontal
-                        mostly". A one-line hint under the question (same
-                        role .step-hint/sqft's own description line plays
-                        everywhere else) was the one piece of context this
-                        step never had - it read as a bare yes/no with
-                        nothing explaining what "duct replacement" even
-                        covers, which is a lot of why it felt like an
-                        afterthought next to sqft's fuller treatment. */}
-                    {subId==='ducts'&&<>
-                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{tr('Want duct replacement priced too?','¿Desea que también se cotice el reemplazo de ductos?')}</div>
-                      <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:isAtticMode?1.15:1.5}}>
-                        {tr("Only if a run needs it - most homes replace a few, not all.","Solo si una línea lo necesita - la mayoría de las casas reemplaza algunas, no todas.")}
-                      </div>
-                    </>}
                   </div>
                 );
                 const right=(
-                  // QA FIX - flex:1 (unconditional) made sense in row mode
-                  // (fills the remaining row width beside left's fixed
-                  // 420px column) but the same flex-grow ALSO governs the
-                  // MAIN axis once this flips to column mode - harmless
-                  // before pricing-substep-content had a min-height to grow
-                  // into (nothing to distribute), but once it does (see
-                  // that class's own comment in styles.css), a bare flex:1
-                  // here let this block's own box balloon to soak up the
-                  // reserved space instead of the container's justify-
-                  // content:center doing that job, leaving {left}/{right}'s
-                  // actual content pinned to the top with a dead gap
-                  // between them instead of the pair sitting centered as a
-                  // unit. Matches {left}'s own isAtticMode-conditional flex
-                  // value (pricing-substep-left, and its own !important
-                  // narrow-width override) exactly, mirrored here as
-                  // pricing-substep-right.
-                  <div className={isAtticMode?"pricing-substep-right":undefined} style={{flex:isAtticMode?1:"0 1 auto",minWidth:0}}>
+                  <div style={{flex:1,minWidth:0}}>
                     {subId==='sqft'&&(()=>{
                       const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
                       const recommended=nearestTonnageOption(sqftNum,tonnageOptions);
@@ -2154,103 +2131,6 @@ function App(){
                         ))}
                       </div>;
                     })()}
-                    {/* QA FIX - direct feedback: "ductwork question is good
-                        to have, just needs to be better" - this used to be
-                        a single flex row with Yes/No cards and the vent-
-                        count field crammed in as a third column beside
-                        them, so on attic's wide-but-short panel the count
-                        field had almost no width left to work with and got
-                        knocked down to a 9.5px label (see the removed
-                        comment this replaces) just to avoid wrapping. Yes/
-                        No now get the same label+desc card treatment every
-                        other option in this wizard gets (was label-only),
-                        and the vent-count field, once it's relevant, gets
-                        its own full-width row below instead of splitting
-                        the row three ways - room it only has because the
-                        done-screen sidebar itself now grows while pricing
-                        is engaged (.pricing-engaged, styles.css) instead of
-                        staying pinned to the same 240px bar the plain
-                        review screen uses. */}
-                    {subId==='ducts'&&<div className="pricing-ducts-block">
-                      <div className="pricing-ducts-choice">
-                        <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===true?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:true}))}>
-                          <div className="opt-inner"><div className="opt-body">
-                            <span className="opt-label">{tr('Yes','Sí')}</span>
-                            <span className="opt-desc">{tr('Price in some duct runs','Cotizar algunas líneas de ducto')}</span>
-                          </div></div>
-                        </button>
-                        <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===false?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:false,ventCount:undefined}))}>
-                          <div className="opt-inner"><div className="opt-body">
-                            <span className="opt-label">{tr('No / Skip','No / Omitir')}</span>
-                            <span className="opt-desc">{tr('Keep my existing ducts','Mantener mis ductos actuales')}</span>
-                          </div></div>
-                        </button>
-                      </div>
-                      {/* .snap (the same entrance bounce the splash cards and
-                          option selections use) instead of just appearing -
-                          this field is genuinely new content mounting (not a
-                          re-render of something already on screen), so it's
-                          the one spot in this step where that flourish is
-                          actually earned rather than noise. */}
-                      {pricingAnswers.wantDucts&&<div className="pricing-vent-count snap">
-                        <label className="pricing-vent-count-label" htmlFor="pricing-vent-count-input">{tr('How many vents/registers?','¿Cuántas rejillas/registros?')}</label>
-                        {/* Clamped to the same 1-20 range the min/max attributes
-                            below advertise - type="number" doesn't enforce that
-                            range on its own (no form submit/reportValidity ever
-                            runs here), so an unclamped parse let a stray extra
-                            digit (e.g. "200" instead of "20") multiply straight
-                            into the duct-replacement line item and the headline
-                            total with no warning - a QA pass caught a typo'd
-                            vent count silently producing a 6-figure estimate. 20
-                            is the ceiling (not 40) because that's about the most
-                            vents a single residential system realistically
-                            serves - direct feedback after the pricing-math sweep
-                            found a 40-vent max let a build pair a 1.5-ton system
-                            with a $36,800 duct-replacement line. */}
-                        <div className="vent-stepper">
-                          <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
-                            disabled={!pricingAnswers.ventCount}
-                            onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,(p.ventCount||0)-1)}))}>−</button>
-                          {/* QA FIX - value used `||''` to show a blank field
-                              before anything's typed, but 0 is itself a valid
-                              (if not yet submittable, min="1") clamped result -
-                              `0||''` is also '', so typing "0" outright, or a
-                              negative number the clamp above rounds down to 0,
-                              silently blanked the field back out on the very
-                              keystroke that set it - LOOKS like the keystroke
-                              never registered, not like an invalid value was
-                              clamped. `??` only falls back to '' for the
-                              genuine unset case (undefined). */}
-                          {/* QA FIX - the clamp used to run parseInt(e.target.value)
-                              unconditionally, so an emptied field (raw value "")
-                              still resolved through `||0` to a real ventCount:0,
-                              which the `??''` above then displays as "0" - not
-                              blank. That's correct for a genuinely-cleared field
-                              in isolation, but the *next* keystroke lands after
-                              that already-rendered "0" (a controlled re-render
-                              doesn't retroactively move the caret to precede it),
-                              so a real-world select-all-and-retype (clear a "1",
-                              type "12") visibly produces "012" on screen one
-                              keystroke at a time - looks like the field is
-                              broken/eating input, even though parseInt happens
-                              to still resolve the final string to the intended
-                              number. Checking raw==='' first keeps a truly empty
-                              field as undefined (blank, no phantom "0" to type
-                              past) while a deliberate "0" keystroke still clamps
-                              and displays as "0" same as before. */}
-                          <input id="pricing-vent-count-input" type="number" min="1" max="20" value={pricingAnswers.ventCount??''} onChange={e=>{
-                            const raw=e.target.value;
-                            if(raw===''){setPricingAnswers(p=>({...p,ventCount:undefined}));return;}
-                            const n=parseInt(raw);
-                            setPricingAnswers(p=>({...p,ventCount:Number.isNaN(n)?undefined:Math.min(20,Math.max(0,n))}));
-                          }}
-                            className="pricing-input vent-input"/>
-                          <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
-                            disabled={(pricingAnswers.ventCount||0)>=20}
-                            onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.min(20,(p.ventCount||0)+1)}))}>+</button>
-                        </div>
-                      </div>}
-                    </div>}
                   </div>
                 );
                 {/* key={pricingSubStep} forces a remount per sub-step so
@@ -2272,26 +2152,18 @@ function App(){
                 return <div key={pricingSubStep} className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"10px 14px":12}}>
                   {/* .5 measured 3.20:1 against the panel background this
                       sits on - under the 4.5:1 minimum for this 9-10.5px
-                      label. .7 clears it at 5.06:1. */}
+                      label. .7 clears it at 5.06:1. QA FIX - this used to
+                      show a "STEP X OF Y" counter plus a segmented progress
+                      bar (subSteps.map(...)) back when this flow had 2
+                      sub-steps (sqft + ducts). With ducts moved down to a
+                      checkbox (see the a-la-carte add-ons on the result
+                      panel below), there's only ever one sub-step left, so
+                      a step counter showing "STEP 1 OF 1" would just look
+                      broken instead of removed - dropped both along with
+                      the ducts UI itself rather than left rendering a
+                      counter for a sequence that no longer exists. */}
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:isAtticMode?5:9}}>
-                    <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.7)",letterSpacing:".1em",fontFamily:"var(--fm)"}}>{tr('PRICING','PRECIO')} · {tr('STEP','PASO')} {pricingSubStep+1} {tr('OF','DE')} {subSteps.length}</div>
-                    {/* Small excitement idea (direct feedback: "give some
-                        excitement in the pricing section") - echoes the
-                        wizard's own segmented .prog-chapter/.prog-chapter-
-                        fill progress bar at the top of the screen instead of
-                        inventing a second progress language: same classes,
-                        just reused inside a small inline wrapper here rather
-                        than that bar's full-width position:absolute one, so
-                        the two quick sizing questions read as their own
-                        mini-chapter with visible momentum instead of a bare
-                        "STEP 1 OF 2" label that only changes as text. */}
-                    <div className="pricing-step-progress">
-                      {subSteps.map((s,i)=>(
-                        <div key={s} className={"prog-chapter"+(i<pricingSubStep?" done":"")}>
-                          <div className="prog-chapter-fill" style={{width:(i<pricingSubStep?100:i===pricingSubStep?55:0)+"%"}}/>
-                        </div>
-                      ))}
-                    </div>
+                    <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.7)",letterSpacing:".1em",fontFamily:"var(--fm)"}}>{tr('PRICING','PRECIO')}</div>
                   </div>
 
                   {/* alignItems:"flex-start" only makes sense in ROW mode
@@ -2303,24 +2175,9 @@ function App(){
                       their own content width instead of the container's
                       full width, since their flex:1 only governs the
                       vertical main axis once stacked. Short button grids
-                      (systems' 1/2/3+, ducts' Yes/No/vent-count) collapsed
-                      to a narrow single column instead of using the real
-                      available width. */}
-                  {/* QA FIX - direct feedback: "when it asks the tonnage and
-                      then asks if they want a quote for ducting, and then
-                      you press yes and put the number, all 3 of them have
-                      different spots to push the next button" - each of
-                      those 3 states (sqft's tonnage grid, the ducts yes/no
-                      question, ducts once "Yes" reveals the vent-count
-                      field) has genuinely different content height, so
-                      Next/Get My Estimate landed at a different Y each time
-                      - breaks the "click Next again" muscle memory this is
-                      a wizard for. pricing-substep-content is a min-height
-                      floor (measured against the tallest real state per
-                      layout - see styles.css) so shorter states get padded
-                      up to match instead of leaving the button to float
-                      wherever their own shorter content happens to end. */}
-                  <div className={"pricing-substep-content"+(isAtticMode?" pricing-substep-row":"")} style={{display:"flex",flexDirection:isAtticMode?"row":"column",gap:isAtticMode?20:8,alignItems:isAtticMode?"flex-start":"stretch"}}>
+                      (systems' 1/2/3+) collapsed to a narrow single column
+                      instead of using the real available width. */}
+                  <div className={isAtticMode?"pricing-substep-row":undefined} style={{display:"flex",flexDirection:isAtticMode?"row":"column",gap:isAtticMode?20:8,alignItems:isAtticMode?"flex-start":"stretch"}}>
                     {left}
                     {right}
                   </div>
@@ -2528,6 +2385,49 @@ function App(){
                         </div>
                       ))}
                     </div>
+                    {/* Duct replacement - used to be its own sizing sub-step
+                        ("Want duct replacement priced too?") between the
+                        tonnage question and the estimate reveal. Direct
+                        feedback: move it down here as a checkbox instead,
+                        same as duct cleaning/new supply runs/etc below -
+                        "gets rid of a question" so the sizing flow is just
+                        "what size is your home." Same pricingAnswers
+                        fields (wantDucts/ventCount) and the exact same
+                        calcEstimate line item as before - only where it's
+                        asked changed, not the math. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!pricingAnswers.wantDucts}
+                        onChange={e=>setPricingAnswers(p=>({...p,wantDucts:e.target.checked,...(e.target.checked&&!pricingAnswers.ventCount?{ventCount:1}:{})}))}/>
+                      {tr(`Add duct replacement (+$${fmtPrice(PRICING.duct.replacementPerStem)}/vent)`,`Agregar reemplazo de ductos (+$${fmtPrice(PRICING.duct.replacementPerStem)}/rejilla)`)}
+                    </label>
+                    {pricingAnswers.wantDucts&&<div className="snap" style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0 10px 24px"}}>
+                      <span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('How many vents/registers?','¿Cuántas rejillas/registros?')}</span>
+                      {/* Same 0-flash/"012"-artifact guard as the supply-run
+                          stepper below (raw==='' checked before parseInt) -
+                          see its comment for the full why. Min 1 (not 0)
+                          here too, matching that stepper's cleaner floor
+                          instead of the old sizing-step version's quirk of
+                          letting the count reach 0 while still checked. 20
+                          is the ceiling - the same real-incident rationale
+                          as before (a 40-vent max once let a 1.5-ton system
+                          carry a $36,800 duct-replacement line) - enforced
+                          again in calcEstimate itself (data.js) regardless
+                          of what reaches it from here. */}
+                      <div className="vent-stepper">
+                        <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
+                          disabled={(pricingAnswers.ventCount||0)<=1}
+                          onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.max(1,(p.ventCount||1)-1)}))}>−</button>
+                        <input id="pricing-vent-count-input" type="number" min="1" max="20" value={pricingAnswers.ventCount??''} onChange={e=>{
+                          const raw=e.target.value;
+                          if(raw===''){setPricingAnswers(p=>({...p,ventCount:undefined}));return;}
+                          const n=parseInt(raw);
+                          setPricingAnswers(p=>({...p,ventCount:Number.isNaN(n)?undefined:Math.min(20,Math.max(0,n))}));
+                        }} className="pricing-input vent-input"/>
+                        <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
+                          disabled={(pricingAnswers.ventCount||0)>=20}
+                          onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.min(20,(p.ventCount||1)+1)}))}>+</button>
+                      </div>
+                    </div>}
                     {/* Duct cleaning - same a-la-carte checkbox pattern as
                         labor warranty/maintenance plan above. Used to be
                         purely educational text in the "Additional
