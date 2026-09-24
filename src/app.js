@@ -3,7 +3,7 @@
 // the copyright block in index.html's own source for the full terms.
 // GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx
 const {useState,useMemo,useRef,useCallback}=React;
-import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES} from './data.js';
+import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES,supplyRunDiscountRate} from './data.js';
 import {Canvas,CashCount,Defs} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
@@ -955,7 +955,7 @@ function App(){
       case 'laborWarranty':     return 'Garantía de mano de obra de 10 años';
       case 'maintenancePlan':   return 'Plan de mantenimiento anual (1er año)';
       case 'ductCleaning':      return 'Limpieza de ductos';
-      case 'newSupplyRuns':     return `Línea${line.runCount===1?'':'s'} de suministro nueva${line.runCount===1?'':'s'} (${line.runCount})`;
+      case 'newSupplyRuns':     return `Línea${line.runCount===1?'':'s'} de suministro nueva${line.runCount===1?'':'s'} (${line.runCount})${line.discountRate>0?` - ${Math.round(line.discountRate*100)}% de descuento por volumen`:''}`;
       case 'newReturnDuct':     return 'Línea de retorno nueva';
       case 'ductReturnPlenum':  return line.plenumType==='metal'?'Plenum de retorno (lámina metálica)':'Plenum de retorno (ductboard)';
       default:                  return line.label;
@@ -2556,24 +2556,40 @@ function App(){
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantNewSupplyRuns}
                         onChange={e=>setPricingAnswers(p=>({...p,wantNewSupplyRuns:e.target.checked,...(e.target.checked&&!pricingAnswers.newSupplyRunCount?{newSupplyRunCount:1}:{})}))}/>
-                      {tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run)`,`Agregar línea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/línea)`)}
+                      {tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run - volume discount on 2+)`,`Agregar línea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/línea - descuento por volumen en 2+)`)}
                     </label>
-                    {pricingAnswers.wantNewSupplyRuns&&<div className="snap" style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0 10px 24px"}}>
-                      <span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('How many runs?','¿Cuántas líneas?')}</span>
-                      <div className="vent-stepper">
-                        <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
-                          disabled={(pricingAnswers.newSupplyRunCount||0)<=1}
-                          onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.max(1,(p.newSupplyRunCount||1)-1)}))}>−</button>
-                        <input type="number" min="1" max="10" value={pricingAnswers.newSupplyRunCount??''} onChange={e=>{
-                          const raw=e.target.value;
-                          if(raw===''){setPricingAnswers(p=>({...p,newSupplyRunCount:undefined}));return;}
-                          const n=parseInt(raw);
-                          setPricingAnswers(p=>({...p,newSupplyRunCount:Number.isNaN(n)?undefined:Math.min(10,Math.max(1,n))}));
-                        }} className="pricing-input vent-input"/>
-                        <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
-                          disabled={(pricingAnswers.newSupplyRunCount||0)>=10}
-                          onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.min(10,(p.newSupplyRunCount||1)+1)}))}>+</button>
+                    {pricingAnswers.wantNewSupplyRuns&&<div className="snap" style={{display:"flex",flexDirection:"column",gap:4,margin:"6px 0 10px 24px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('How many runs?','¿Cuántas líneas?')}</span>
+                        <div className="vent-stepper">
+                          <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
+                            disabled={(pricingAnswers.newSupplyRunCount||0)<=1}
+                            onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.max(1,(p.newSupplyRunCount||1)-1)}))}>−</button>
+                          <input type="number" min="1" max="10" value={pricingAnswers.newSupplyRunCount??''} onChange={e=>{
+                            const raw=e.target.value;
+                            if(raw===''){setPricingAnswers(p=>({...p,newSupplyRunCount:undefined}));return;}
+                            const n=parseInt(raw);
+                            setPricingAnswers(p=>({...p,newSupplyRunCount:Number.isNaN(n)?undefined:Math.min(10,Math.max(1,n))}));
+                          }} className="pricing-input vent-input"/>
+                          <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
+                            disabled={(pricingAnswers.newSupplyRunCount||0)>=10}
+                            onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.min(10,(p.newSupplyRunCount||1)+1)}))}>+</button>
+                        </div>
                       </div>
+                      {/* Live multi-run discount hint - direct feedback:
+                          "make it to where theres a discount the more you
+                          buy... once you hit 10 you get 1 free type of
+                          deal." supplyRunDiscountRate (data.js) is the same
+                          tier lookup calcEstimate itself uses for the real
+                          line-item price, so this can never drift out of
+                          sync with what actually gets charged. */}
+                      {(()=>{
+                        const count=Math.min(10,Math.max(1,pricingAnswers.newSupplyRunCount||1));
+                        const rate=supplyRunDiscountRate(count);
+                        return rate>0
+                          ?<span style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)"}}>{tr(`${Math.round(rate*100)}% multi-run discount applied`,`${Math.round(rate*100)}% de descuento por volumen aplicado`)}</span>
+                          :<span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('Add 2+ for a discount, 10 for the biggest deal','Agregue 2+ para un descuento, 10 para la mejor oferta')}</span>;
+                      })()}
                     </div>}
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantNewReturnDuct}

@@ -507,6 +507,26 @@ export const GATE_CONFIG={
 // FINANCING_OPTIONS above: blank means that button simply doesn't render.
 export const OFFICE_EMAIL='sales@goldeagleservices.com';
 const TIER_LABEL={fedmin:'Federal Minimum - 14.3 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
+// Multi-run discount for new supply duct runs (PRICING.duct.newSupplyRun) -
+// direct feedback: "make it to where theres a discount the more you buy...
+// once you hit 10 you get 1 free type of deal." Tiered per-run discount
+// (not compounding - the rate for the tier the total quantity lands in
+// applies to every run in the order) landing exactly on that "10 for the
+// price of 9" deal at the stepper's own 10-run max (10% off = 1 run's
+// worth, free), with a smaller discount kicking in earlier so bundling
+// even a couple of runs into one visit is worth it before hitting 10.
+// Ordered highest-quantity-tier first so .find() below returns the first
+// (highest) tier the count actually qualifies for.
+const SUPPLY_RUN_DISCOUNT=[
+  {min:10,rate:.10},
+  {min:5, rate:.08},
+  {min:2, rate:.05},
+  {min:1, rate:0},
+];
+export function supplyRunDiscountRate(count){
+  const tier=SUPPLY_RUN_DISCOUNT.find(t=>count>=t.min);
+  return tier?tier.rate:0;
+}
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
 // given the wizard's own filtering, but guards against stale/edge-case answers).
 // (Proprietary pricing logic - Gold Eagle Services, GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
@@ -605,7 +625,9 @@ export function calcEstimate(answers,pricingAnswers){
   // for all-new runs including sheetrock work).
   const supplyRunCount=Math.min(10,Math.max(0,pricingAnswers.newSupplyRunCount||0));
   if(pricingAnswers.wantNewSupplyRuns&&supplyRunCount>0){
-    lines.push({key:'newSupplyRuns',runCount:supplyRunCount,label:`New supply duct run${supplyRunCount===1?'':'s'} (${supplyRunCount})`,price:supplyRunCount*PRICING.duct.newSupplyRun});
+    const supplyDiscountRate=supplyRunDiscountRate(supplyRunCount);
+    const supplyRunPrice=supplyRunCount*PRICING.duct.newSupplyRun*(1-supplyDiscountRate);
+    lines.push({key:'newSupplyRuns',runCount:supplyRunCount,discountRate:supplyDiscountRate,label:`New supply duct run${supplyRunCount===1?'':'s'} (${supplyRunCount})${supplyDiscountRate>0?` - ${Math.round(supplyDiscountRate*100)}% multi-run discount`:''}`,price:supplyRunPrice});
   }
   // Return duct run - per direct feedback, unlike supply runs above, a
   // home usually only needs one of these, so no quantity field.

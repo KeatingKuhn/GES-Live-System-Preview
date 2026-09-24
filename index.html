@@ -2120,6 +2120,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   };
   var OFFICE_EMAIL = "sales@goldeagleservices.com";
   var TIER_LABEL = { fedmin: "Federal Minimum - 14.3 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
+  var SUPPLY_RUN_DISCOUNT = [
+    { min: 10, rate: 0.1 },
+    { min: 5, rate: 0.08 },
+    { min: 2, rate: 0.05 },
+    { min: 1, rate: 0 }
+  ];
+  function supplyRunDiscountRate(count) {
+    const tier = SUPPLY_RUN_DISCOUNT.find((t) => count >= t.min);
+    return tier ? tier.rate : 0;
+  }
   function calcEstimate(answers, pricingAnswers) {
     const tier = answers.cond_tier;
     const sysKey = systemTypeKey(answers);
@@ -2163,7 +2173,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     }
     const supplyRunCount = Math.min(10, Math.max(0, pricingAnswers.newSupplyRunCount || 0));
     if (pricingAnswers.wantNewSupplyRuns && supplyRunCount > 0) {
-      lines.push({ key: "newSupplyRuns", runCount: supplyRunCount, label: `New supply duct run${supplyRunCount === 1 ? "" : "s"} (${supplyRunCount})`, price: supplyRunCount * PRICING.duct.newSupplyRun });
+      const supplyDiscountRate = supplyRunDiscountRate(supplyRunCount);
+      const supplyRunPrice = supplyRunCount * PRICING.duct.newSupplyRun * (1 - supplyDiscountRate);
+      lines.push({ key: "newSupplyRuns", runCount: supplyRunCount, discountRate: supplyDiscountRate, label: `New supply duct run${supplyRunCount === 1 ? "" : "s"} (${supplyRunCount})${supplyDiscountRate > 0 ? ` - ${Math.round(supplyDiscountRate * 100)}% multi-run discount` : ""}`, price: supplyRunPrice });
     }
     if (pricingAnswers.wantNewReturnDuct) {
       lines.push({ key: "newReturnDuct", label: "New return duct run", price: PRICING.duct.newReturnDuct });
@@ -10250,7 +10262,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         case "ductCleaning":
           return "Limpieza de ductos";
         case "newSupplyRuns":
-          return `L\xEDnea${line.runCount === 1 ? "" : "s"} de suministro nueva${line.runCount === 1 ? "" : "s"} (${line.runCount})`;
+          return `L\xEDnea${line.runCount === 1 ? "" : "s"} de suministro nueva${line.runCount === 1 ? "" : "s"} (${line.runCount})${line.discountRate > 0 ? ` - ${Math.round(line.discountRate * 100)}% de descuento por volumen` : ""}`;
         case "newReturnDuct":
           return "L\xEDnea de retorno nueva";
         case "ductReturnPlenum":
@@ -10771,7 +10783,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           checked: !!pricingAnswers.wantNewSupplyRuns,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantNewSupplyRuns: e.target.checked, ...e.target.checked && !pricingAnswers.newSupplyRunCount ? { newSupplyRunCount: 1 } : {} }))
         }
-      ), tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run)`, `Agregar l\xEDnea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/l\xEDnea)`)), pricingAnswers.wantNewSupplyRuns && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", alignItems: "center", gap: 8, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("How many runs?", "\xBFCu\xE1ntas l\xEDneas?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run - volume discount on 2+)`, `Agregar l\xEDnea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/l\xEDnea - descuento por volumen en 2+)`)), pricingAnswers.wantNewSupplyRuns && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", flexDirection: "column", gap: 4, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("How many runs?", "\xBFCu\xE1ntas l\xEDneas?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
         "button",
         {
           type: "button",
@@ -10799,7 +10811,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           onClick: () => setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Math.min(10, (p.newSupplyRunCount || 1) + 1) }))
         },
         "+"
-      ))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ))), (() => {
+        const count = Math.min(10, Math.max(1, pricingAnswers.newSupplyRunCount || 1));
+        const rate = supplyRunDiscountRate(count);
+        return rate > 0 ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.85)" } }, tr(`${Math.round(rate * 100)}% multi-run discount applied`, `${Math.round(rate * 100)}% de descuento por volumen aplicado`)) : /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Add 2+ for a discount, 10 for the biggest deal", "Agregue 2+ para un descuento, 10 para la mejor oferta"));
+      })()), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
