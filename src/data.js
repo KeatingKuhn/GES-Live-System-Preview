@@ -531,8 +531,20 @@ export function calcEstimate(answers,pricingAnswers){
   // in-home visit - unlike dehu/ERV, these don't have a self-contained
   // on-diagram build-out for the customer to see update live.
 
-  if(pricingAnswers.wantDucts&&pricingAnswers.ventCount>0){
-    lines.push({key:'ductReplacement',ventCount:pricingAnswers.ventCount,label:`Duct replacement (${pricingAnswers.ventCount} vents)`,price:pricingAnswers.ventCount*PRICING.duct.replacementPerStem});
+  // QA FIX - the sizing sub-step's own vent-count input clamps to 1-40 on
+  // every keystroke (see its onChange in app.js), but that clamp lives
+  // ONLY there - calcEstimate itself trusted pricingAnswers.ventCount
+  // as-is. A build autosaved before that clamp existed (or any future
+  // caller that sets pricingAnswers directly, e.g. a localStorage
+  // restore) could still carry an unclamped value straight into the
+  // headline total with no warning - the exact "typo'd vent count
+  // silently producing a 6-figure estimate" failure mode the input-level
+  // fix was written for, just reachable one layer lower. Re-clamping here
+  // too means the estimate itself can never show more than a 40-vent
+  // duct-replacement line, regardless of where ventCount came from.
+  const ventCount=Math.min(40,Math.max(0,pricingAnswers.ventCount||0));
+  if(pricingAnswers.wantDucts&&ventCount>0){
+    lines.push({key:'ductReplacement',ventCount,label:`Duct replacement (${ventCount} vents)`,price:ventCount*PRICING.duct.replacementPerStem});
   }
   // Extended labor warranty - a checkbox on the result screen, not a
   // wizard question (see the comment on PRICING.laborWarranty10yr above).
