@@ -1,26 +1,6 @@
 const {useState,useMemo,useRef,useCallback}=React;
 
 
-// The price is the payoff of the entire build - having it just appear
-// instantly reads as a lookup, not a calculation. Counting up from 0 (ease-
-// out, ~900ms) makes it feel computed specifically for what was just built.
-export function CountUp({value,duration=900,format}){
-  const [display,setDisplay]=useState(0);
-  React.useEffect(()=>{
-    let raf,start;
-    const animate=ts=>{
-      if(!start)start=ts;
-      const t=Math.min(1,(ts-start)/duration);
-      const eased=1-Math.pow(1-t,3);
-      setDisplay(Math.round(value*eased));
-      if(t<1)raf=requestAnimationFrame(animate);
-    };
-    raf=requestAnimationFrame(animate);
-    return ()=>cancelAnimationFrame(raf);
-  },[value,duration]);
-  return format?format(display):display;
-}
-
 // QA FIX - direct feedback: "i like how it counts up the numbers, maybe
 // it counts up to the price on all the numbers. like an old school cash
 // register type number selection... make it fun. were finally at the
