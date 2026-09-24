@@ -2624,8 +2624,21 @@ function App(){
                         spilling above/below this block's own bounds - for
                         a short build that never needs scrolling, this
                         renders identically to the plain centering it
-                        replaces. */}
-                    <div style={{position:"sticky",top:"50%",transform:"translateY(-50%)"}}>
+                        replaces.
+                        QA FIX - a follow-up automated pass caught that
+                        print/PDF output has no scrolling container at
+                        all, so sticky falls back to its static-position
+                        math (top:50% of this block's own height, shifted
+                        up by half its own height) with nothing to clamp
+                        it against - on the real printed page this landed
+                        "Zoning" overlapping the eyebrow label above it on
+                        every build, not just tall/scrolled ones. The
+                        considerations-sticky-content class exists solely
+                        so @media print (styles.css) can force this back
+                        to normal static flow - same content, same order,
+                        just not sticky, since print has nothing for it
+                        to track against anyway. */}
+                    <div className="considerations-sticky-content" style={{position:"sticky",top:"50%",transform:"translateY(-50%)"}}>
                       <div style={{fontSize:isAtticMode?15:16,fontWeight:600,color:"rgba(255,255,255,.92)",marginBottom:4,fontFamily:"var(--ft)"}}>Zoning</div>
                       <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
                       <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:10,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>

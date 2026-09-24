@@ -1404,6 +1404,18 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     height:auto!important;max-height:none!important;width:100%!important;
     transform:none!important;
   }
+  /* QA FIX - the "Zoning" callout's on-screen sticky-centering trick
+     (position:sticky;top:50%;translateY(-50%) - app.js, considerations-
+     sticky-content) has nothing to track once printed: there's no
+     scrolling container at all in print (see html,body/.done-wrap above,
+     all forced to overflow:visible;height:auto), so sticky fell back to
+     its static-position math with no scroll context to clamp against,
+     landing the Zoning heading/body overlapping the eyebrow label above
+     it on every printed build, not just tall/scrolled ones. Print never
+     needed the trick in the first place - a printed page has no
+     "invisible until you scroll to the middle" problem, content just
+     flows in order - so this simply un-stickies it back to normal flow. */
+  .considerations-sticky-content{position:static!important;top:auto!important;transform:none!important}
   .print-only-grid{display:block!important}
   /* .done-canvas-frame (the finished diagram) used to be swept up by a
      blanket .canvas-frame rule here too - it carries that class alongside
