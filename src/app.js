@@ -2470,12 +2470,29 @@ function App(){
                         onChange={e=>setPricingAnswers(p=>({...p,wantMaintenancePlan:e.target.checked}))}/>
                       {tr(`Add our annual maintenance plan (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/yr)`,`Agregar nuestro plan de mantenimiento anual (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/año)`)}
                     </label>
-                    {/* Short, non-exhaustive summary of what the plan covers -
-                        kept to one line by design rather than reproducing
-                        the full benefits sheet. */}
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",lineHeight:1.5,margin:"3px 0 10px 24px"}}>
-                      {tr('Includes 2 seasonal tune-ups (AC + heating), priority scheduling, 10% off repairs, waived consultation fees, a free coil cleaning & drain flush, and one free service call for friends or family.',
-                          'Incluye 2 afinaciones estacionales (A/C y calefacción), programación prioritaria, 10% de descuento en reparaciones, consultas sin cargo, limpieza de serpentín y purga de drenaje gratis, y una visita de servicio gratis para amigos o familiares.')}
+                    {/* QA FIX - direct feedback: "doesn't look great" - this
+                        used to be one dense, comma-heavy sentence crammed
+                        under the checkbox at fine-print size, the only
+                        thing in this list that read as a paragraph instead
+                        of a scannable line - the labor warranty checkbox
+                        right above has no description at all, so this one
+                        stuck out. Same 6 perks, restructured into a tight
+                        2-column checkmarked grid instead of a wall of text -
+                        each fragment short enough to scan in one glance,
+                        nothing dropped from the original list. */}
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"3px 10px",fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",lineHeight:1.4,margin:"4px 0 10px 24px"}}>
+                      {[
+                        tr('2 seasonal tune-ups (AC + heating)','2 afinaciones estacionales (A/C y calefacción)'),
+                        tr('Priority scheduling','Programación prioritaria'),
+                        tr('10% off repairs','10% de descuento en reparaciones'),
+                        tr('Waived consultation fees','Consultas sin cargo'),
+                        tr('Free coil cleaning & drain flush','Limpieza de serpentín y drenaje gratis'),
+                        tr('1 free service call for friends/family','1 visita de servicio gratis para familiares'),
+                      ].map((perk,i)=>(
+                        <div key={i} style={{display:"flex",gap:5,alignItems:"flex-start"}}>
+                          <span style={{color:"rgba(215,183,64,.6)",flexShrink:0}}>✓</span><span>{perk}</span>
+                        </div>
+                      ))}
                     </div>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.68)",lineHeight:1.55,marginBottom:10}}>{tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")}</div>
                     <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
