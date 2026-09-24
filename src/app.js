@@ -2597,11 +2597,27 @@ function App(){
                     {/* Same flex:1+justify-content:center centering as
                         before (see the considerations-block height:100%
                         comment further down for why this box needs to
-                        match the price card's height at all) - unchanged
-                        by this restructure, just now centering a heading +
-                        paragraph + disclaimer instead of a bulleted line +
-                        disclaimer. */}
-                    <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                        match the price card's height at all).
+                        QA FIX - caught by an automated QA pass: centering
+                        via flex justify-content only centers within this
+                        block's own (often off-screen-tall) height - once
+                        the price card next to it needs several hundred px
+                        of scrolling (roughly 5+ add-ons checked), the
+                        content sat in the vertical middle of that full
+                        height, invisible at both the top (where a visitor
+                        actually lands) and the bottom (near the CTA
+                        buttons), only appearing if someone happened to
+                        scroll to that one specific midpoint. position:
+                        sticky + top:50%/translateY(-50%) is the standard
+                        "sticky-center" trick: it centers within whatever
+                        portion of the block is currently in the viewport
+                        (so it tracks into view as this panel scrolls)
+                        while sticky's own clamping keeps it from ever
+                        spilling above/below this block's own bounds - for
+                        a short build that never needs scrolling, this
+                        renders identically to the plain centering it
+                        replaces. */}
+                    <div style={{position:"sticky",top:"50%",transform:"translateY(-50%)"}}>
                       <div style={{fontSize:isAtticMode?15:16,fontWeight:600,color:"rgba(255,255,255,.92)",marginBottom:4,fontFamily:"var(--ft)"}}>Zoning</div>
                       <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
                       <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:10,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>
