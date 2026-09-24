@@ -2644,7 +2644,7 @@ function App(){
                     already covers it there too - height:"100%" is a no-op
                     on a block-stacked child with no set container height). */}
                 const considerations=(
-                  <div className="considerations-block" style={{width:"100%",height:"100%",boxSizing:"border-box",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",...(isAtticMode?{}:{marginTop:12})}}>
+                  <div className="considerations-block" style={{width:"100%",height:"100%",boxSizing:"border-box",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",display:"flex",flexDirection:"column",...(isAtticMode?{}:{marginTop:12})}}>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.75)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
                     {/* QA FIX - this used to list return plenum/ductwork, new
                         return duct run, and new supply duct runs as plain
@@ -2657,11 +2657,32 @@ function App(){
                         can never be part of the estimate above - proprietary
                         zone board/sensors/dampers, cost varies too much per
                         home for anything but an in-home visit (see
-                        PRICING.zoning's own comment in data.js). */}
-                    <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>
-                      <div><strong style={{color:"rgba(255,255,255,.9)"}}>Zoning</strong> - splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
+                        PRICING.zoning's own comment in data.js).
+                        QA FIX - a follow-up QA pass caught that dropping
+                        from 4 paragraphs to this 1 (above) made the OLDER
+                        "match the price card's height" fix (see this
+                        component's own big comment further down) look
+                        broken instead of fixed: this box's height:100% still
+                        stretches to match whatever tall price card is next
+                        to it (up to ~960px once several add-ons are
+                        checked), but with 4x less content to fill it, that
+                        now reads as a large dead gap instead of a matching
+                        sibling. flex:1 + justify-content:center on this
+                        wrapper (new) centers the Zoning paragraph + the
+                        disclaimer below as a group in whatever height the
+                        price card hands this box, instead of pinning them
+                        to the top and leaving the rest empty underneath -
+                        the section label right above stays pinned to the
+                        top on its own (not part of this wrapper) since a
+                        title floating mid-box would look stranger than a
+                        title that stays put while the body centers below
+                        it. */}
+                    <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                      <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>
+                        <div><strong style={{color:"rgba(255,255,255,.9)"}}>Zoning</strong> - splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
+                      </div>
+                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>
                     </div>
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>
                   </div>
                 );
                 if(!isAtticMode)return<>{priceCard}{considerations}</>;
