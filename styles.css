@@ -158,6 +158,34 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    (was inline in app.js, where it beat the max-width:1024px override
    below and left stacked tablets/phones with a 240px scroll box). */
 .done-screen.attic-mode>.sidebar{height:240px;flex-shrink:0}
+/* QA FIX - direct feedback: "on horizontal, the pricing doesnt take much
+   of the page even though thats the final page, the page should probably
+   shift down to the pricing away from the system builder at that point."
+   Once pricingFlow is engaged at all (leadgate/sizing/result - see the
+   .pricing-engaged class in app.js), the diagram has already done its job
+   - the homeowner already watched their system get built - and the
+   pricing panel is what actually matters now. Same trade as the fixed
+   240px height itself and .lead-form-open right below: .done-canvas-frame
+   is flex:1 (see its own comment further down), so growing this fixed
+   sidebar dimension shrinks the diagram automatically, no separate rule
+   needed on the canvas side. Sized for the SHORTER pricing states (a
+   single question plus its option cards, or leadgate's plain-text
+   fallback) - .pricing-engaged-result right below stacks a taller bump
+   on top of this one for the price reveal itself, which is genuinely
+   longer content. Well under .lead-form-open's own 560px too (that one
+   has a real ~370px embedded form to fit), and both of these rules sit
+   BEFORE .lead-form-open in source order so when more than one class
+   lands on the same element (leadgate + embedFormUrl), the later, more
+   specific bump always wins the tie instead of this one. */
+.done-screen.attic-mode.pricing-engaged>.sidebar{height:min(300px,42%)}
+/* QA FIX - same feedback as .pricing-engaged just above, but measured
+   specifically against the finished price-reveal panel's own real
+   content height (price hero, line items, the labor-warranty/maintenance
+   checkboxes, the "other things we commonly find" column) instead of
+   reusing the shorter sizing-question bump for it too - that flatter
+   number still left this particular panel scrolling far more than it
+   needed to for content this genuinely long. */
+.done-screen.attic-mode.pricing-engaged-result>.sidebar{height:min(420px,55%)}
 /* The embedded lead-capture form (GATE_CONFIG.embedFormUrl) is ~370px
    tall on its own - inside the 240px bar only its first field showed,
    with the rest (and Submit) behind a nested scroll, at the single most
@@ -609,6 +637,48 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .pricing-input{width:100%;background:var(--surf);border:1px solid var(--border);color:var(--wh);font-family:var(--fm);box-sizing:border-box;padding:8px 10px;font-size:13px}
 .pricing-input.compact{padding:3px 10px;font-size:11px}
 
+/* QA FIX - direct feedback: "ductwork question is good to have, just
+   needs to be better... the text is too small for the question, it sucks
+   on horizontal mostly". The vent-count field used to share sqft's own
+   .pricing-input.compact (3px/10px padding, 11px font) crammed into a
+   third column alongside the Yes/No cards - on attic's wide-short panel
+   that column had so little width left that the "How many vents/
+   registers?" label above it was knocked down to 9.5px just to keep from
+   wrapping. Yes/No now get their own row (.pricing-ducts-choice, reusing
+   .opt/.opt-compact exactly as sqft's tonnage cards do - same card
+   language, not a new one), and the count field gets its own full-width
+   row below once it's relevant (.pricing-vent-count), with a proper
+   label size and a real stepper instead of a bare number box - the "Yes/
+   No/count crammed into one row" layout was as much the problem as the
+   font sizes themselves. */
+.pricing-ducts-block{display:flex;flex-direction:column;gap:10px}
+.pricing-ducts-choice{display:flex;gap:8px}
+.pricing-vent-count{padding:10px 12px;border:1px solid rgba(215,183,64,.22);background:rgba(240,214,78,.04)}
+.pricing-vent-count-label{display:block;font-family:var(--ft);font-weight:600;color:var(--wh);margin-bottom:7px;font-size:var(--fs-pricing-line)}
+.vent-stepper{display:flex;align-items:center;gap:8px}
+/* Matches .review-edit-btn's own press pattern (background/border/color
+   transition + a small :active scale) rather than inventing a fourth
+   button language for one small control. */
+.vent-step-btn{width:32px;height:32px;flex-shrink:0;background:var(--surf);border:1px solid var(--border);color:var(--gl);font-family:var(--fm);font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,background .15s,color .15s,transform .1s;outline:none}
+.vent-step-btn:hover:not(:disabled){border-color:rgba(215,183,64,.5);background:#1a1a1a}
+.vent-step-btn:active:not(:disabled){transform:scale(.9)}
+.vent-step-btn:disabled{opacity:.3;cursor:not-allowed}
+/* Deliberately NOT .compact - this field earned a full row of its own
+   (see .pricing-vent-count above) specifically so it didn't have to stay
+   sqft's cramped 11px/3px-padding size to fit; a fixed comfortable width
+   instead of width:100% since it now sits beside two stepper buttons
+   rather than filling a whole column on its own. */
+.vent-input{width:64px;flex:0 0 auto;text-align:center;font-size:16px;padding:8px 6px}
+
+/* Small excitement idea (direct feedback: "give some excitement in the
+   pricing section") - a compact echo of the wizard's own top-of-screen
+   .prog-chapters bar for these two quick sizing questions. Reuses
+   .prog-chapter/.prog-chapter-fill/.prog-chapter.done completely unchanged
+   (same colors, same "done" gradient swap) - only this wrapper is new,
+   sized for sitting inline next to the "STEP X OF Y" label instead of
+   .prog-chapters' own full-width position:absolute bar. */
+.pricing-step-progress{display:flex;gap:3px;width:40px;height:4px;flex-shrink:0}
+
 /* NAV */
 .nav-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--panel);position:sticky;bottom:0}
 /* .btn-back sits directly beside .btn-next in every nav row (wizard bar,
@@ -627,6 +697,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    instead of the click just holding at the hover lift the whole time. */
 .btn-next:active:not(:disabled){transform:scale(.96)}
 .btn-next:disabled{opacity:.22;cursor:not-allowed;transform:none}
+/* Small excitement idea (direct feedback: "give some excitement in the
+   pricing section") - the "Get My Estimate" click is the one Next/Back
+   press in the whole wizard that's actually one tap from the reveal, so
+   it's the one worth a nudge. Reuses .info-btn's own always-on glow pulse
+   verbatim (same gold, same "there's something here" idea) instead of a
+   new animation language - only applied via the .btn-cta-glow modifier
+   (app.js gates it to the final sizing sub-step once it's answered), and
+   :not(:disabled) here is a second, CSS-level backstop for that same
+   gate so a still-greyed-out button can never glow - that would read as
+   broken, not inviting. */
+.btn-next.btn-cta-glow:not(:disabled){animation:info-btn-glow 2.4s ease-in-out infinite}
 .btn-skip{background:transparent;border:none;color:rgba(255,255,255,.55);font-family:var(--fb);font-size:var(--fs-btn-skip);cursor:pointer;text-decoration:underline;outline:none;padding:4px;white-space:nowrap}
 .btn-skip:hover{color:rgba(255,255,255,.75)}
 
@@ -1189,7 +1270,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      Start Over hidden in a tiny scroller), and on a 844x390 landscape
      phone it ran ~30px past the bottom of the screen, clipping Start
      Over. min-height:0 lets it shrink and scroll when space is tight. */
-  .done-screen.attic-mode>.sidebar,.done-screen.attic-mode.lead-form-open>.sidebar{height:auto;flex:1 1 auto;min-height:0;max-height:none}
+  /* .pricing-engaged/.pricing-engaged-result included here for the same
+     reason .lead-form-open is - each is a 4-class selector (higher
+     specificity than the bare 3-class rule right after >.sidebar above),
+     so without a stacked-layout override of its own it would keep winning
+     over this auto-height rule on a narrow viewport regardless of this
+     media query, pinning the panel to a fixed height whether or not
+     that's actually more than the space available. */
+  .done-screen.attic-mode>.sidebar,.done-screen.attic-mode.lead-form-open>.sidebar,.done-screen.attic-mode.pricing-engaged>.sidebar,.done-screen.attic-mode.pricing-engaged-result>.sidebar{height:auto;flex:1 1 auto;min-height:0;max-height:none}
   /* Attic's done-screen canvas wrapper (.done-canvas-frame) has no height
      rule of its own - unlike the wizard's .attic-canvas-area above, it's
      bare flex:1 (see app.js), which happily fills whatever's left after

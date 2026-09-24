@@ -1534,7 +1534,27 @@ function App(){
           entirely (doneVisible false), so there's no stray Tab stop to guard
           against outside that one closing beat. Same reasoning as the
           .splash-screen comment above. */}
-      {doneVisible&&<div ref={doneScreenRef} className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(pricingFlow==='leadgate'&&GATE_CONFIG.embedFormUrl?" lead-form-open":"")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
+      {/* QA FIX - direct feedback: "on horizontal, the pricing doesnt take
+          much of the page even though thats the final page, the page
+          should probably shift down to the pricing away from the system
+          builder at that point." pricing-engaged is the general "give the
+          pricing panel more room" state - scoped to attic (closet's own
+          diagram-top/sidebar-below split already reads fine at pricing
+          time per that same feedback, so it's left alone) and to any
+          pricingFlow value, not just leadgate's own embedded-form case
+          (which keeps its bigger, dedicated .lead-form-open bump below -
+          same modifier-class pattern, just sized for a ~370px form instead
+          of a couple of short questions or the final estimate).
+          pricing-engaged-result stacks a second, taller bump on top of the
+          base one specifically for the price reveal itself - it's a
+          genuinely longer panel (price hero, line items, the two add-on
+          checkboxes, the "other things we commonly find" column) than a
+          one-question sizing sub-step, and measuring it uncapped showed a
+          plain flat height tuned for sizing/leadgate left it scrolling
+          noticeably more than it needed to. All three classes can be
+          present at once (leadgate + embedFormUrl); source order in
+          styles.css lets the more specific bump win each time. */}
+      {doneVisible&&<div ref={doneScreenRef} className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(isAtticMode&&pricingFlow!==null?" pricing-engaged":"")+(isAtticMode&&pricingFlow==='result'?" pricing-engaged-result":"")+(pricingFlow==='leadgate'&&GATE_CONFIG.embedFormUrl?" lead-form-open":"")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
         {/* Confetti - see celebrateBuild/celebratePrice's own comments
             above (near the `done`/`pricingFlow` state) for when/why each
             fires. Both burst across the whole done screen rather than
@@ -1891,7 +1911,22 @@ function App(){
                         }}
                         className={"pricing-input"+(isAtticMode?" compact":"")}/>
                     </>}
-                    {subId==='ducts'&&<div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,fontFamily:"var(--ft)"}}>{tr('Want duct replacement priced too?','¿Desea que también se cotice el reemplazo de ductos?')}</div>}
+                    {/* QA FIX - direct feedback: "ductwork question is good
+                        to have, just needs to be better... the text is too
+                        small for the question, it sucks on horizontal
+                        mostly". A one-line hint under the question (same
+                        role .step-hint/sqft's own description line plays
+                        everywhere else) was the one piece of context this
+                        step never had - it read as a bare yes/no with
+                        nothing explaining what "duct replacement" even
+                        covers, which is a lot of why it felt like an
+                        afterthought next to sqft's fuller treatment. */}
+                    {subId==='ducts'&&<>
+                      <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{tr('Want duct replacement priced too?','¿Desea que también se cotice el reemplazo de ductos?')}</div>
+                      <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:isAtticMode?1.15:1.5}}>
+                        {tr("Only if a run needs it - most homes replace a few, not all.","Solo si una línea lo necesita - la mayoría de las casas reemplaza algunas, no todas.")}
+                      </div>
+                    </>}
                   </div>
                 );
                 const right=(
@@ -1910,15 +1945,46 @@ function App(){
                         ))}
                       </div>;
                     })()}
-                    {subId==='ducts'&&<div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                      <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===true?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:true}))}>
-                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">{tr('Yes','Sí')}</span></div></div>
-                      </button>
-                      <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===false?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:false,ventCount:undefined}))}>
-                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">{tr('No / Skip','No / Omitir')}</span></div></div>
-                      </button>
-                      {pricingAnswers.wantDucts&&<div style={{flex:1}}>
-                        <div style={{fontSize:isAtticMode?9.5:11,color:"var(--mut)",marginBottom:4}}>{tr('How many vents/registers?','¿Cuántas rejillas/registros?')}</div>
+                    {/* QA FIX - direct feedback: "ductwork question is good
+                        to have, just needs to be better" - this used to be
+                        a single flex row with Yes/No cards and the vent-
+                        count field crammed in as a third column beside
+                        them, so on attic's wide-but-short panel the count
+                        field had almost no width left to work with and got
+                        knocked down to a 9.5px label (see the removed
+                        comment this replaces) just to avoid wrapping. Yes/
+                        No now get the same label+desc card treatment every
+                        other option in this wizard gets (was label-only),
+                        and the vent-count field, once it's relevant, gets
+                        its own full-width row below instead of splitting
+                        the row three ways - room it only has because the
+                        done-screen sidebar itself now grows while pricing
+                        is engaged (.pricing-engaged, styles.css) instead of
+                        staying pinned to the same 240px bar the plain
+                        review screen uses. */}
+                    {subId==='ducts'&&<div className="pricing-ducts-block">
+                      <div className="pricing-ducts-choice">
+                        <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===true?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:true}))}>
+                          <div className="opt-inner"><div className="opt-body">
+                            <span className="opt-label">{tr('Yes','Sí')}</span>
+                            <span className="opt-desc">{tr('Price in some duct runs','Cotizar algunas líneas de ducto')}</span>
+                          </div></div>
+                        </button>
+                        <button className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.wantDucts===false?" sel":"")} style={{flex:1}} onClick={()=>setPricingAnswers(p=>({...p,wantDucts:false,ventCount:undefined}))}>
+                          <div className="opt-inner"><div className="opt-body">
+                            <span className="opt-label">{tr('No / Skip','No / Omitir')}</span>
+                            <span className="opt-desc">{tr('Keep my existing ducts','Mantener mis ductos actuales')}</span>
+                          </div></div>
+                        </button>
+                      </div>
+                      {/* .snap (the same entrance bounce the splash cards and
+                          option selections use) instead of just appearing -
+                          this field is genuinely new content mounting (not a
+                          re-render of something already on screen), so it's
+                          the one spot in this step where that flourish is
+                          actually earned rather than noise. */}
+                      {pricingAnswers.wantDucts&&<div className="pricing-vent-count snap">
+                        <label className="pricing-vent-count-label" htmlFor="pricing-vent-count-input">{tr('How many vents/registers?','¿Cuántas rejillas/registros?')}</label>
                         {/* Clamped to the same 1-40 range the min/max attributes
                             below advertise - type="number" doesn't enforce that
                             range on its own (no form submit/reportValidity ever
@@ -1927,18 +1993,26 @@ function App(){
                             into the duct-replacement line item and the headline
                             total with no warning - a QA pass caught a typo'd
                             vent count silently producing a 6-figure estimate. */}
-                        {/* QA FIX - value used `||''` to show a blank field
-                            before anything's typed, but 0 is itself a valid
-                            (if not yet submittable, min="1") clamped result -
-                            `0||''` is also '', so typing "0" outright, or a
-                            negative number the clamp above rounds down to 0,
-                            silently blanked the field back out on the very
-                            keystroke that set it - LOOKS like the keystroke
-                            never registered, not like an invalid value was
-                            clamped. `??` only falls back to '' for the
-                            genuine unset case (undefined). */}
-                        <input type="number" min="1" max="40" value={pricingAnswers.ventCount??''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.min(40,Math.max(0,parseInt(e.target.value)||0))}))}
-                          className={"pricing-input"+(isAtticMode?" compact":"")}/>
+                        <div className="vent-stepper">
+                          <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
+                            disabled={!pricingAnswers.ventCount}
+                            onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.max(0,(p.ventCount||0)-1)}))}>−</button>
+                          {/* QA FIX - value used `||''` to show a blank field
+                              before anything's typed, but 0 is itself a valid
+                              (if not yet submittable, min="1") clamped result -
+                              `0||''` is also '', so typing "0" outright, or a
+                              negative number the clamp above rounds down to 0,
+                              silently blanked the field back out on the very
+                              keystroke that set it - LOOKS like the keystroke
+                              never registered, not like an invalid value was
+                              clamped. `??` only falls back to '' for the
+                              genuine unset case (undefined). */}
+                          <input id="pricing-vent-count-input" type="number" min="1" max="40" value={pricingAnswers.ventCount??''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.min(40,Math.max(0,parseInt(e.target.value)||0))}))}
+                            className="pricing-input vent-input"/>
+                          <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
+                            disabled={(pricingAnswers.ventCount||0)>=40}
+                            onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.min(40,(p.ventCount||0)+1)}))}>+</button>
+                        </div>
                       </div>}
                     </div>}
                   </div>
@@ -1959,11 +2033,30 @@ function App(){
                 // already gets the full review grid via .print-only-grid
                 // above (see its own comment) - that's the printable
                 // stand-in for whatever this in-progress panel is showing.
-                return <div key={pricingSubStep} className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
+                return <div key={pricingSubStep} className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"10px 14px":12}}>
                   {/* .5 measured 3.20:1 against the panel background this
                       sits on - under the 4.5:1 minimum for this 9-10.5px
                       label. .7 clears it at 5.06:1. */}
-                  <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:isAtticMode?4:8,fontFamily:"var(--fm)"}}>{tr('PRICING','PRECIO')} · {tr('STEP','PASO')} {pricingSubStep+1} {tr('OF','DE')} {subSteps.length}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:isAtticMode?5:9}}>
+                    <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.7)",letterSpacing:".1em",fontFamily:"var(--fm)"}}>{tr('PRICING','PRECIO')} · {tr('STEP','PASO')} {pricingSubStep+1} {tr('OF','DE')} {subSteps.length}</div>
+                    {/* Small excitement idea (direct feedback: "give some
+                        excitement in the pricing section") - echoes the
+                        wizard's own segmented .prog-chapter/.prog-chapter-
+                        fill progress bar at the top of the screen instead of
+                        inventing a second progress language: same classes,
+                        just reused inside a small inline wrapper here rather
+                        than that bar's full-width position:absolute one, so
+                        the two quick sizing questions read as their own
+                        mini-chapter with visible momentum instead of a bare
+                        "STEP 1 OF 2" label that only changes as text. */}
+                    <div className="pricing-step-progress">
+                      {subSteps.map((s,i)=>(
+                        <div key={s} className={"prog-chapter"+(i<pricingSubStep?" done":"")}>
+                          <div className="prog-chapter-fill" style={{width:(i<pricingSubStep?100:i===pricingSubStep?55:0)+"%"}}/>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
                   {/* alignItems:"flex-start" only makes sense in ROW mode
                       (attic, wide) where it top-aligns two columns of
@@ -1984,7 +2077,15 @@ function App(){
 
                   <div style={{display:"flex",gap:8,marginTop:isAtticMode?8:12}}>
                     <button className="btn-back" style={{flex:"0 0 auto",...(isAtticMode?{padding:"6px 16px",fontSize:14}:{})}} onClick={goSubBack}>‹ {tr('Back','Atrás')}</button>
-                    <button className="btn-next" style={{flex:1,...(isAtticMode?{padding:"7px 16px",fontSize:15}:{})}} disabled={!canSubNext} onClick={goSubNext}>
+                    {/* Small excitement idea: once this is the last sub-step
+                        AND it's actually answered, the button that reveals
+                        the price gets a gentle gold pulse - reuses
+                        .info-btn's own always-on glow animation verbatim
+                        (same color, same "there's something here" idea)
+                        rather than a new one, and is gated on :not(:disabled)
+                        in CSS so a still-greyed-out button never glows (that
+                        would read as broken, not inviting). */}
+                    <button className={"btn-next"+(pricingSubStep===subSteps.length-1&&canSubNext?" btn-cta-glow":"")} style={{flex:1,...(isAtticMode?{padding:"7px 16px",fontSize:15}:{})}} disabled={!canSubNext} onClick={goSubNext}>
                       {pricingSubStep===subSteps.length-1?tr("Get My Estimate","Obtener Mi Estimado"):tr("Next","Siguiente")}
                     </button>
                   </div>
