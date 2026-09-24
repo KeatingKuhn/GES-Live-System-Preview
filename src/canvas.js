@@ -1092,7 +1092,17 @@ function HoverPanel({part,groupBoxes}){
   const lines=hiWrapText(text,maxChars);
   const titleW=(title||'').length*10.5*0.62;
   const bodyW=lines.reduce((m,ln)=>Math.max(m,ln.length*FONT*0.56),0);
-  const PANEL_W=Math.min(MAX_PANEL_W,Math.max(MIN_PANEL_W,Math.ceil(Math.max(titleW,bodyW))+PAD*2));
+  // QA FIX - the title (unlike the body) never wraps - it's one line,
+  // centered, full stop - so clamping PANEL_W to MAX_PANEL_W regardless of
+  // titleW let a long title (mainly a Spanish compound like "DUCTO DE
+  // SUMINISTRO DEL DESHUMIDIFICADOR" or "INTERRUPTOR DE FLOTADOR
+  // SECUNDARIO" - short single English words rarely hit this) render wider
+  // than the box itself and spill past both rounded edges, confirmed via a
+  // hover sweep. The body still can't push the box past MAX_PANEL_W (its
+  // lines are pre-wrapped AT MAX_PANEL_W by hiWrapText above, so bodyW is
+  // already bounded) - only an overlong title is now allowed to grow the
+  // box past that cap, exactly as far as it needs to stay fully enclosed.
+  const PANEL_W=Math.max(MIN_PANEL_W,Math.min(MAX_PANEL_W,bodyW)+PAD*2,Math.ceil(titleW)+PAD*2);
   const panelH=TITLE_H+lines.length*LINE_H+7;
   // Anchors centered above the component by default (flips below when too
   // close to the canvas top), then clamps sideways/vertically to stay

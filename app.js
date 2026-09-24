@@ -1587,7 +1587,7 @@
     const lines = hiWrapText(text, maxChars);
     const titleW = (title || "").length * 10.5 * 0.62;
     const bodyW = lines.reduce((m, ln) => Math.max(m, ln.length * FONT * 0.56), 0);
-    const PANEL_W = Math.min(MAX_PANEL_W, Math.max(MIN_PANEL_W, Math.ceil(Math.max(titleW, bodyW)) + PAD * 2));
+    const PANEL_W = Math.max(MIN_PANEL_W, Math.min(MAX_PANEL_W, bodyW) + PAD * 2, Math.ceil(titleW) + PAD * 2);
     const panelH = TITLE_H + lines.length * LINE_H + 7;
     let px = x + w / 2 - PANEL_W / 2;
     let py = y - panelH - 9;
