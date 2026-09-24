@@ -472,6 +472,17 @@
     if (pricingAnswers.wantDuctCleaning) {
       lines.push({ key: "ductCleaning", label: "Duct cleaning", price: PRICING.duct.cleaning[tonnage] });
     }
+    const supplyRunCount = Math.min(10, Math.max(0, pricingAnswers.newSupplyRunCount || 0));
+    if (pricingAnswers.wantNewSupplyRuns && supplyRunCount > 0) {
+      lines.push({ key: "newSupplyRuns", runCount: supplyRunCount, label: `New supply duct run${supplyRunCount === 1 ? "" : "s"} (${supplyRunCount})`, price: supplyRunCount * PRICING.duct.newSupplyRun });
+    }
+    if (pricingAnswers.wantNewReturnDuct) {
+      lines.push({ key: "newReturnDuct", label: "New return duct run", price: PRICING.duct.newReturnDuct });
+    }
+    if (pricingAnswers.wantReturnPlenum) {
+      const plenumType = pricingAnswers.returnPlenumType === "metal" ? "metal" : "ductboard";
+      lines.push({ key: "ductReturnPlenum", plenumType, label: plenumType === "metal" ? "Return plenum (sheet metal)" : "Return plenum (ductboard)", price: PRICING.duct.returnPlenum[plenumType] });
+    }
     const subtotal = lines.reduce((s, l) => s + l.price, 0);
     const linesRounded = lines.map((l) => ({ ...l, display: roundTo25(l.price) }));
     const display = linesRounded.reduce((s, l) => s + l.display, 0);
@@ -8549,6 +8560,12 @@
           return "Plan de mantenimiento anual (1er a\xF1o)";
         case "ductCleaning":
           return "Limpieza de ductos";
+        case "newSupplyRuns":
+          return `L\xEDnea${line.runCount === 1 ? "" : "s"} de suministro nueva${line.runCount === 1 ? "" : "s"} (${line.runCount})`;
+        case "newReturnDuct":
+          return "L\xEDnea de retorno nueva";
+        case "ductReturnPlenum":
+          return line.plenumType === "metal" ? "Plenum de retorno (l\xE1mina met\xE1lica)" : "Plenum de retorno (ductboard)";
         default:
           return line.label;
       }
@@ -8914,62 +8931,80 @@
           className: "pricing-input" + (isAtticMode ? " compact" : "")
         }
       )), subId === "ducts" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: isAtticMode ? 2 : 4, lineHeight: isAtticMode ? 1.15 : "normal", fontFamily: "var(--ft)" } }, tr("Want duct replacement priced too?", "\xBFDesea que tambi\xE9n se cotice el reemplazo de ductos?")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: isAtticMode ? 1.15 : 1.5 } }, tr("Only if a run needs it - most homes replace a few, not all.", "Solo si una l\xEDnea lo necesita - la mayor\xEDa de las casas reemplaza algunas, no todas."))));
-      const right = /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, subId === "sqft" && (() => {
-        const sqftNum = parseInt(pricingAnswers.sqftInput) || 0;
-        const recommended = nearestTonnageOption(sqftNum, tonnageOptions);
-        return /* @__PURE__ */ React.createElement("div", { ref: sqftGridRef, className: isAtticMode ? "pricing-opts-sqft" : void 0, style: { display: "grid", gridTemplateColumns: isAtticMode ? `repeat(${tonnageOptions.length},1fr)` : "repeat(auto-fit,minmax(160px,1fr))", gap: 6 } }, tonnageOptions.map((o, i) => /* @__PURE__ */ React.createElement(
+      const right = (
+        // QA FIX - flex:1 (unconditional) made sense in row mode
+        // (fills the remaining row width beside left's fixed
+        // 420px column) but the same flex-grow ALSO governs the
+        // MAIN axis once this flips to column mode - harmless
+        // before pricing-substep-content had a min-height to grow
+        // into (nothing to distribute), but once it does (see
+        // that class's own comment in styles.css), a bare flex:1
+        // here let this block's own box balloon to soak up the
+        // reserved space instead of the container's justify-
+        // content:center doing that job, leaving {left}/{right}'s
+        // actual content pinned to the top with a dead gap
+        // between them instead of the pair sitting centered as a
+        // unit. Matches {left}'s own isAtticMode-conditional flex
+        // value (pricing-substep-left, and its own !important
+        // narrow-width override) exactly, mirrored here as
+        // pricing-substep-right.
+        /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-right" : void 0, style: { flex: isAtticMode ? 1 : "0 1 auto", minWidth: 0 } }, subId === "sqft" && (() => {
+          const sqftNum = parseInt(pricingAnswers.sqftInput) || 0;
+          const recommended = nearestTonnageOption(sqftNum, tonnageOptions);
+          return /* @__PURE__ */ React.createElement("div", { ref: sqftGridRef, className: isAtticMode ? "pricing-opts-sqft" : void 0, style: { display: "grid", gridTemplateColumns: isAtticMode ? `repeat(${tonnageOptions.length},1fr)` : "repeat(auto-fit,minmax(160px,1fr))", gap: 6 } }, tonnageOptions.map((o, i) => /* @__PURE__ */ React.createElement(
+            "button",
+            {
+              key: o.v,
+              className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.tonnageChoice === o.v ? " sel" : ""),
+              style: i === tonnageOptions.length - 1 && sqftGridOrphan ? { gridColumn: "1 / -1" } : void 0,
+              onClick: () => setPricingAnswers((p) => ({ ...p, tonnageChoice: o.v }))
+            },
+            /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr(o.label, o.labelEs), recommended && recommended.v === o.v && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, isAtticMode ? tr(o.sqftLabel, o.sqftLabelEs) : tr(`Typical for ${o.sqftLabel} homes`, `T\xEDpico para casas de ${o.sqftLabelEs}`))))
+          )));
+        })(), subId === "ducts" && /* @__PURE__ */ React.createElement("div", { className: "pricing-ducts-block" }, /* @__PURE__ */ React.createElement("div", { className: "pricing-ducts-choice" }, /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === true ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: true })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("Yes", "S\xED")), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, tr("Price in some duct runs", "Cotizar algunas l\xEDneas de ducto"))))), /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === false ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: false, ventCount: void 0 })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("No / Skip", "No / Omitir")), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, tr("Keep my existing ducts", "Mantener mis ductos actuales")))))), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { className: "pricing-vent-count snap" }, /* @__PURE__ */ React.createElement("label", { className: "pricing-vent-count-label", htmlFor: "pricing-vent-count-input" }, tr("How many vents/registers?", "\xBFCu\xE1ntas rejillas/registros?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
           "button",
           {
-            key: o.v,
-            className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.tonnageChoice === o.v ? " sel" : ""),
-            style: i === tonnageOptions.length - 1 && sqftGridOrphan ? { gridColumn: "1 / -1" } : void 0,
-            onClick: () => setPricingAnswers((p) => ({ ...p, tonnageChoice: o.v }))
+            type: "button",
+            className: "vent-step-btn",
+            "aria-label": tr("Decrease", "Disminuir"),
+            disabled: !pricingAnswers.ventCount,
+            onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.max(0, (p.ventCount || 0) - 1) }))
           },
-          /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr(o.label, o.labelEs), recommended && recommended.v === o.v && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, isAtticMode ? tr(o.sqftLabel, o.sqftLabelEs) : tr(`Typical for ${o.sqftLabel} homes`, `T\xEDpico para casas de ${o.sqftLabelEs}`))))
-        )));
-      })(), subId === "ducts" && /* @__PURE__ */ React.createElement("div", { className: "pricing-ducts-block" }, /* @__PURE__ */ React.createElement("div", { className: "pricing-ducts-choice" }, /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === true ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: true })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("Yes", "S\xED")), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, tr("Price in some duct runs", "Cotizar algunas l\xEDneas de ducto"))))), /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === false ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: false, ventCount: void 0 })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("No / Skip", "No / Omitir")), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, tr("Keep my existing ducts", "Mantener mis ductos actuales")))))), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { className: "pricing-vent-count snap" }, /* @__PURE__ */ React.createElement("label", { className: "pricing-vent-count-label", htmlFor: "pricing-vent-count-input" }, tr("How many vents/registers?", "\xBFCu\xE1ntas rejillas/registros?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          type: "button",
-          className: "vent-step-btn",
-          "aria-label": tr("Decrease", "Disminuir"),
-          disabled: !pricingAnswers.ventCount,
-          onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.max(0, (p.ventCount || 0) - 1) }))
-        },
-        "\u2212"
-      ), /* @__PURE__ */ React.createElement(
-        "input",
-        {
-          id: "pricing-vent-count-input",
-          type: "number",
-          min: "1",
-          max: "20",
-          value: pricingAnswers.ventCount ?? "",
-          onChange: (e) => {
-            const raw = e.target.value;
-            if (raw === "") {
-              setPricingAnswers((p) => ({ ...p, ventCount: void 0 }));
-              return;
-            }
-            const n = parseInt(raw);
-            setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(0, n)) }));
+          "\u2212"
+        ), /* @__PURE__ */ React.createElement(
+          "input",
+          {
+            id: "pricing-vent-count-input",
+            type: "number",
+            min: "1",
+            max: "20",
+            value: pricingAnswers.ventCount ?? "",
+            onChange: (e) => {
+              const raw = e.target.value;
+              if (raw === "") {
+                setPricingAnswers((p) => ({ ...p, ventCount: void 0 }));
+                return;
+              }
+              const n = parseInt(raw);
+              setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(0, n)) }));
+            },
+            className: "pricing-input vent-input"
+          }
+        ), /* @__PURE__ */ React.createElement(
+          "button",
+          {
+            type: "button",
+            className: "vent-step-btn",
+            "aria-label": tr("Increase", "Aumentar"),
+            disabled: (pricingAnswers.ventCount || 0) >= 20,
+            onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(20, (p.ventCount || 0) + 1) }))
           },
-          className: "pricing-input vent-input"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          type: "button",
-          className: "vent-step-btn",
-          "aria-label": tr("Increase", "Aumentar"),
-          disabled: (pricingAnswers.ventCount || 0) >= 20,
-          onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(20, (p.ventCount || 0) + 1) }))
-        },
-        "+"
-      )))));
+          "+"
+        )))))
+      );
       {
       }
-      return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "10px 14px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: isAtticMode ? 5 : 9 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.7)", letterSpacing: ".1em", fontFamily: "var(--fm)" } }, tr("PRICING", "PRECIO"), " \xB7 ", tr("STEP", "PASO"), " ", pricingSubStep + 1, " ", tr("OF", "DE"), " ", subSteps.length), /* @__PURE__ */ React.createElement("div", { className: "pricing-step-progress" }, subSteps.map((s, i) => /* @__PURE__ */ React.createElement("div", { key: s, className: "prog-chapter" + (i < pricingSubStep ? " done" : "") }, /* @__PURE__ */ React.createElement("div", { className: "prog-chapter-fill", style: { width: (i < pricingSubStep ? 100 : i === pricingSubStep ? 55 : 0) + "%" } }))))), /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-row" : void 0, style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "btn-next" + (pricingSubStep === subSteps.length - 1 && canSubNext ? " btn-cta-glow" : ""), style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? tr("Get My Estimate", "Obtener Mi Estimado") : tr("Next", "Siguiente"))));
+      return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "10px 14px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: isAtticMode ? 5 : 9 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.7)", letterSpacing: ".1em", fontFamily: "var(--fm)" } }, tr("PRICING", "PRECIO"), " \xB7 ", tr("STEP", "PASO"), " ", pricingSubStep + 1, " ", tr("OF", "DE"), " ", subSteps.length), /* @__PURE__ */ React.createElement("div", { className: "pricing-step-progress" }, subSteps.map((s, i) => /* @__PURE__ */ React.createElement("div", { key: s, className: "prog-chapter" + (i < pricingSubStep ? " done" : "") }, /* @__PURE__ */ React.createElement("div", { className: "prog-chapter-fill", style: { width: (i < pricingSubStep ? 100 : i === pricingSubStep ? 55 : 0) + "%" } }))))), /* @__PURE__ */ React.createElement("div", { className: "pricing-substep-content" + (isAtticMode ? " pricing-substep-row" : ""), style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "btn-next" + (pricingSubStep === subSteps.length - 1 && canSubNext ? " btn-cta-glow" : ""), style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? tr("Get My Estimate", "Obtener Mi Estimado") : tr("Next", "Siguiente"))));
     })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, tr("Almost there - just one quick step", "Ya casi termina - solo un paso r\xE1pido")), GATE_CONFIG.embedFormUrl ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 10 } }, tr("Fill out the short form below to unlock pricing - it continues right here automatically, no need to click anything else.", "Complete el formulario breve a continuaci\xF3n para desbloquear los precios - continuar\xE1 aqu\xED autom\xE1ticamente, sin necesidad de hacer clic en nada m\xE1s.")), /* @__PURE__ */ React.createElement(
       "iframe",
       {
@@ -9040,13 +9075,80 @@
           checked: !!pricingAnswers.wantDuctCleaning,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantDuctCleaning: e.target.checked }))
         }
-      ), tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`, `Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
+      ), tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`, `Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "checkbox",
+          checked: !!pricingAnswers.wantNewSupplyRuns,
+          onChange: (e) => setPricingAnswers((p) => ({ ...p, wantNewSupplyRuns: e.target.checked, ...e.target.checked && !pricingAnswers.newSupplyRunCount ? { newSupplyRunCount: 1 } : {} }))
+        }
+      ), tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run)`, `Agregar l\xEDnea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/l\xEDnea)`)), pricingAnswers.wantNewSupplyRuns && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", alignItems: "center", gap: 8, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("How many runs?", "\xBFCu\xE1ntas l\xEDneas?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "vent-step-btn",
+          "aria-label": tr("Decrease", "Disminuir"),
+          disabled: (pricingAnswers.newSupplyRunCount || 0) <= 1,
+          onClick: () => setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Math.max(1, (p.newSupplyRunCount || 1) - 1) }))
+        },
+        "\u2212"
+      ), /* @__PURE__ */ React.createElement("input", { type: "number", min: "1", max: "10", value: pricingAnswers.newSupplyRunCount ?? "", onChange: (e) => {
+        const raw = e.target.value;
+        if (raw === "") {
+          setPricingAnswers((p) => ({ ...p, newSupplyRunCount: void 0 }));
+          return;
+        }
+        const n = parseInt(raw);
+        setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Number.isNaN(n) ? void 0 : Math.min(10, Math.max(1, n)) }));
+      }, className: "pricing-input vent-input" }), /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "vent-step-btn",
+          "aria-label": tr("Increase", "Aumentar"),
+          disabled: (pricingAnswers.newSupplyRunCount || 0) >= 10,
+          onClick: () => setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Math.min(10, (p.newSupplyRunCount || 1) + 1) }))
+        },
+        "+"
+      ))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "checkbox",
+          checked: !!pricingAnswers.wantNewReturnDuct,
+          onChange: (e) => setPricingAnswers((p) => ({ ...p, wantNewReturnDuct: e.target.checked }))
+        }
+      ), tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`, `Agregar una l\xEDnea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "checkbox",
+          checked: !!pricingAnswers.wantReturnPlenum,
+          onChange: (e) => setPricingAnswers((p) => ({ ...p, wantReturnPlenum: e.target.checked }))
+        }
+      ), tr(`Add a return plenum (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType === "metal" ? "metal" : "ductboard"])})`, `Agregar un plenum de retorno (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType === "metal" ? "metal" : "ductboard"])})`)), pricingAnswers.wantReturnPlenum && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", alignItems: "center", gap: 8, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "opt opt-compact" + (pricingAnswers.returnPlenumType !== "metal" ? " sel" : ""),
+          style: { flex: "0 1 auto", padding: "5px 10px" },
+          onClick: () => setPricingAnswers((p) => ({ ...p, returnPlenumType: "ductboard" }))
+        },
+        /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("Ductboard", "Ductboard"))))
+      ), /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "opt opt-compact" + (pricingAnswers.returnPlenumType === "metal" ? " sel" : ""),
+          style: { flex: "0 1 auto", padding: "5px 10px" },
+          onClick: () => setPricingAnswers((p) => ({ ...p, returnPlenumType: "metal" }))
+        },
+        /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("Sheet metal", "L\xE1mina met\xE1lica"))))
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
         setPricingFlow("sizing");
         setPricingSubStep(0);
       } }, "\u2039 ", tr("Adjust my answers", "Ajustar mis respuestas")));
       {
       }
-      const considerations = /* @__PURE__ */ React.createElement("div", { className: "considerations-block", style: { width: "100%", height: "100%", boxSizing: "border-box", padding: "10px 12px", background: "rgba(215,183,64,.05)", border: "1px solid rgba(215,183,64,.15)", ...isAtticMode ? {} : { marginTop: 12 } } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.75)", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 6, fontFamily: "var(--fm)" } }, "A Few Other Things We Commonly Find"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "Return plenum/ductwork"), " - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "New return duct run"), " - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "New supply duct runs"), " - new duct, boot, and grille together for a single run. ", Math.min(20, Math.max(0, pricingAnswers.ventCount || 0)) > 0 ? `You mentioned ${Math.min(20, Math.max(0, pricingAnswers.ventCount || 0))} vents - most homes only need a few of those runs redone, not all of them.` : "Ask us how many runs your home is likely to need.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 6, fontStyle: "italic" } }, "These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit."));
+      const considerations = /* @__PURE__ */ React.createElement("div", { className: "considerations-block", style: { width: "100%", height: "100%", boxSizing: "border-box", padding: "10px 12px", background: "rgba(215,183,64,.05)", border: "1px solid rgba(215,183,64,.15)", ...isAtticMode ? {} : { marginTop: 12 } } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.75)", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 6, fontFamily: "var(--fm)" } }, "A Few Other Things We Commonly Find"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "Zoning"), " - splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 6, fontStyle: "italic" } }, "Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit."));
       if (!isAtticMode) return /* @__PURE__ */ React.createElement(React.Fragment, null, priceCard, considerations);
       {
       }

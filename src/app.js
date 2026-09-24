@@ -955,6 +955,9 @@ function App(){
       case 'laborWarranty':     return 'Garantía de mano de obra de 10 años';
       case 'maintenancePlan':   return 'Plan de mantenimiento anual (1er año)';
       case 'ductCleaning':      return 'Limpieza de ductos';
+      case 'newSupplyRuns':     return `Línea${line.runCount===1?'':'s'} de suministro nueva${line.runCount===1?'':'s'} (${line.runCount})`;
+      case 'newReturnDuct':     return 'Línea de retorno nueva';
+      case 'ductReturnPlenum':  return line.plenumType==='metal'?'Plenum de retorno (lámina metálica)':'Plenum de retorno (ductboard)';
       default:                  return line.label;
     }
   };
@@ -2113,7 +2116,23 @@ function App(){
                   </div>
                 );
                 const right=(
-                  <div style={{flex:1,minWidth:0}}>
+                  // QA FIX - flex:1 (unconditional) made sense in row mode
+                  // (fills the remaining row width beside left's fixed
+                  // 420px column) but the same flex-grow ALSO governs the
+                  // MAIN axis once this flips to column mode - harmless
+                  // before pricing-substep-content had a min-height to grow
+                  // into (nothing to distribute), but once it does (see
+                  // that class's own comment in styles.css), a bare flex:1
+                  // here let this block's own box balloon to soak up the
+                  // reserved space instead of the container's justify-
+                  // content:center doing that job, leaving {left}/{right}'s
+                  // actual content pinned to the top with a dead gap
+                  // between them instead of the pair sitting centered as a
+                  // unit. Matches {left}'s own isAtticMode-conditional flex
+                  // value (pricing-substep-left, and its own !important
+                  // narrow-width override) exactly, mirrored here as
+                  // pricing-substep-right.
+                  <div className={isAtticMode?"pricing-substep-right":undefined} style={{flex:isAtticMode?1:"0 1 auto",minWidth:0}}>
                     {subId==='sqft'&&(()=>{
                       const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
                       const recommended=nearestTonnageOption(sqftNum,tonnageOptions);
@@ -2287,7 +2306,21 @@ function App(){
                       (systems' 1/2/3+, ducts' Yes/No/vent-count) collapsed
                       to a narrow single column instead of using the real
                       available width. */}
-                  <div className={isAtticMode?"pricing-substep-row":undefined} style={{display:"flex",flexDirection:isAtticMode?"row":"column",gap:isAtticMode?20:8,alignItems:isAtticMode?"flex-start":"stretch"}}>
+                  {/* QA FIX - direct feedback: "when it asks the tonnage and
+                      then asks if they want a quote for ducting, and then
+                      you press yes and put the number, all 3 of them have
+                      different spots to push the next button" - each of
+                      those 3 states (sqft's tonnage grid, the ducts yes/no
+                      question, ducts once "Yes" reveals the vent-count
+                      field) has genuinely different content height, so
+                      Next/Get My Estimate landed at a different Y each time
+                      - breaks the "click Next again" muscle memory this is
+                      a wizard for. pricing-substep-content is a min-height
+                      floor (measured against the tallest real state per
+                      layout - see styles.css) so shorter states get padded
+                      up to match instead of leaving the button to float
+                      wherever their own shorter content happens to end. */}
+                  <div className={"pricing-substep-content"+(isAtticMode?" pricing-substep-row":"")} style={{display:"flex",flexDirection:isAtticMode?"row":"column",gap:isAtticMode?20:8,alignItems:isAtticMode?"flex-start":"stretch"}}>
                     {left}
                     {right}
                   </div>
@@ -2509,6 +2542,59 @@ function App(){
                         onChange={e=>setPricingAnswers(p=>({...p,wantDuctCleaning:e.target.checked}))}/>
                       {tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`,`Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)}
                     </label>
+                    {/* New supply duct runs / new return duct / return plenum
+                        - same a-la-carte checkbox pattern, using the real
+                        prices in PRICING.duct that used to be plain
+                        educational text in the "Additional Considerations"
+                        panel below (see the QA FIX there). Direct feedback:
+                        "supply duct number needs to be put in the question
+                        because its not usually just one duct. return plenum
+                        and duct are usually just one" - so unlike the two
+                        return items, this one gets its own quantity field,
+                        same stepper pattern as the sizing sub-step's own
+                        vent-count control (.vent-stepper/.vent-step-btn). */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!pricingAnswers.wantNewSupplyRuns}
+                        onChange={e=>setPricingAnswers(p=>({...p,wantNewSupplyRuns:e.target.checked,...(e.target.checked&&!pricingAnswers.newSupplyRunCount?{newSupplyRunCount:1}:{})}))}/>
+                      {tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run)`,`Agregar línea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/línea)`)}
+                    </label>
+                    {pricingAnswers.wantNewSupplyRuns&&<div className="snap" style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0 10px 24px"}}>
+                      <span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('How many runs?','¿Cuántas líneas?')}</span>
+                      <div className="vent-stepper">
+                        <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
+                          disabled={(pricingAnswers.newSupplyRunCount||0)<=1}
+                          onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.max(1,(p.newSupplyRunCount||1)-1)}))}>−</button>
+                        <input type="number" min="1" max="10" value={pricingAnswers.newSupplyRunCount??''} onChange={e=>{
+                          const raw=e.target.value;
+                          if(raw===''){setPricingAnswers(p=>({...p,newSupplyRunCount:undefined}));return;}
+                          const n=parseInt(raw);
+                          setPricingAnswers(p=>({...p,newSupplyRunCount:Number.isNaN(n)?undefined:Math.min(10,Math.max(1,n))}));
+                        }} className="pricing-input vent-input"/>
+                        <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
+                          disabled={(pricingAnswers.newSupplyRunCount||0)>=10}
+                          onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.min(10,(p.newSupplyRunCount||1)+1)}))}>+</button>
+                      </div>
+                    </div>}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!pricingAnswers.wantNewReturnDuct}
+                        onChange={e=>setPricingAnswers(p=>({...p,wantNewReturnDuct:e.target.checked}))}/>
+                      {tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`,`Agregar una línea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)}
+                    </label>
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!pricingAnswers.wantReturnPlenum}
+                        onChange={e=>setPricingAnswers(p=>({...p,wantReturnPlenum:e.target.checked}))}/>
+                      {tr(`Add a return plenum (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard'])})`,`Agregar un plenum de retorno (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard'])})`)}
+                    </label>
+                    {pricingAnswers.wantReturnPlenum&&<div className="snap" style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0 10px 24px"}}>
+                      <button type="button" className={"opt opt-compact"+(pricingAnswers.returnPlenumType!=='metal'?" sel":"")} style={{flex:"0 1 auto",padding:"5px 10px"}}
+                        onClick={()=>setPricingAnswers(p=>({...p,returnPlenumType:'ductboard'}))}>
+                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">{tr('Ductboard','Ductboard')}</span></div></div>
+                      </button>
+                      <button type="button" className={"opt opt-compact"+(pricingAnswers.returnPlenumType==='metal'?" sel":"")} style={{flex:"0 1 auto",padding:"5px 10px"}}
+                        onClick={()=>setPricingAnswers(p=>({...p,returnPlenumType:'metal'}))}>
+                        <div className="opt-inner"><div className="opt-body"><span className="opt-label">{tr('Sheet metal','Lámina metálica')}</span></div></div>
+                      </button>
+                    </div>}
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.68)",lineHeight:1.55,marginBottom:10}}>{tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")}</div>
                     <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
                   </div>
@@ -2544,20 +2630,22 @@ function App(){
                 const considerations=(
                   <div className="considerations-block" style={{width:"100%",height:"100%",boxSizing:"border-box",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",...(isAtticMode?{}:{marginTop:12})}}>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.75)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
+                    {/* QA FIX - this used to list return plenum/ductwork, new
+                        return duct run, and new supply duct runs as plain
+                        education text even though PRICING.duct already had
+                        real prices for all three - now that they're actual
+                        checkboxes on the price card (see the a-la-carte
+                        add-ons above), repeating them here as "not part of
+                        the estimate" text would be flatly wrong once
+                        checked. Zoning is genuinely the one thing left that
+                        can never be part of the estimate above - proprietary
+                        zone board/sensors/dampers, cost varies too much per
+                        home for anything but an in-home visit (see
+                        PRICING.zoning's own comment in data.js). */}
                     <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>
-                      <div><strong style={{color:"rgba(255,255,255,.9)"}}>Return plenum/ductwork</strong> - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should.</div>
-                      <div><strong style={{color:"rgba(255,255,255,.9)"}}>New return duct run</strong> - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended.</div>
-                      {/* QA FIX - same unclamped-ventCount exposure as
-                          calcEstimate's own duct-replacement line (see its
-                          comment in data.js) - this text read straight off
-                          pricingAnswers.ventCount too, so a stale/tampered
-                          value bypassing the sizing sub-step's 1-20 input
-                          clamp would show a nonsensical "You mentioned 200
-                          vents" line here even after the priced line item
-                          itself got clamped. Reuses the exact same clamp. */}
-                      <div><strong style={{color:"rgba(255,255,255,.9)"}}>New supply duct runs</strong> - new duct, boot, and grille together for a single run. {Math.min(20,Math.max(0,pricingAnswers.ventCount||0))>0?`You mentioned ${Math.min(20,Math.max(0,pricingAnswers.ventCount||0))} vents - most homes only need a few of those runs redone, not all of them.`:"Ask us how many runs your home is likely to need."}</div>
+                      <div><strong style={{color:"rgba(255,255,255,.9)"}}>Zoning</strong> - splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
                     </div>
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit.</div>
+                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>
                   </div>
                 );
                 if(!isAtticMode)return<>{priceCard}{considerations}</>;

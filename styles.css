@@ -300,9 +300,31 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      option grids into a single narrow column instead of using the real
      available width. */
   .pricing-substep-row{flex-direction:column!important;gap:8px!important;align-items:stretch!important}
-  .pricing-substep-left{flex:1 1 auto!important}
+  /* QA FIX - flex-grow:1 here used to double as "use the full available
+     WIDTH" once this row flips to column (see the rule's own original
+     comment above), but that's already align-items:stretch's job (the
+     cross-axis, i.e. width, in column mode) - flex-grow governs the MAIN
+     axis instead, which is now vertical, so this was quietly telling
+     {left} to grow to fill any extra vertical space too. Never visible
+     before pricing-substep-content had a min-height to grow into; once it
+     does (see that class's own comment), this fought its container's
+     justify-content:center, ballooning {left}'s own box instead of
+     letting the {left}/{right} pair center as a unit. 0 keeps the
+     full-width behavior (still align-items:stretch) without the
+     vertical side effect. pricing-substep-right mirrors this for
+     {right}'s own equivalent inline flex:1 (app.js). */
+  .pricing-substep-left{flex:0 1 auto!important}
+  .pricing-substep-right{flex:0 1 auto!important}
   .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
   .pricing-result-row{flex-direction:column!important}
+  /* QA FIX - direct feedback: the sizing sub-steps' Next/Get My Estimate
+     button landed at a different Y depending on which sub-step's content
+     was shorter (see the base .pricing-substep-content rule below for the
+     full story) - attic's own stacked-column state at this breakpoint
+     needs its own taller floor than the base rule's row-layout number,
+     measured against attic's stacked sqft grid (its tallest of the 3
+     states here, real 7-tonnage-option fedmin tier at 480px wide). */
+  .done-screen.attic-mode .pricing-substep-content{min-height:220px;justify-content:center}
 }
 
 /* ANIMATIONS */
@@ -659,6 +681,36 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    other and to the option cards they sit beside. */
 .pricing-input{width:100%;background:var(--surf);border:1px solid var(--border);color:var(--wh);font-family:var(--fm);box-sizing:border-box;padding:8px 10px;font-size:13px}
 .pricing-input.compact{padding:3px 10px;font-size:11px}
+
+/* QA FIX - direct feedback: the sizing sub-steps' Next/Get My Estimate
+   button landed in a different spot depending on which of the 3 states was
+   showing (sqft's tonnage grid, the bare ducts yes/no question, ducts once
+   "Yes" reveals the vent-count field) - each is genuinely a different
+   content height, so the button followed it downward instead of staying
+   put, breaking the "click Next again" muscle memory. Reserves a min-height
+   on the {left}/{right} question row (app.js) matching the tallest of the
+   3 states per layout, measured directly against real content, so shorter
+   states get padded up to the same floor instead of leaving the button to
+   land wherever their own content happened to end. Row layout (attic,
+   >860px, side-by-side columns) is the shortest of the three layouts - its
+   tallest state is the ducts question with the vent-count field open,
+   ~144px. The <=860px stacked-attic and closet overrides live next to
+   their own layout rules (see .pricing-substep-row's media block and
+   .done-screen.closet-mode below) since each needs a taller floor measured
+   against ITS OWN tallest state, not this one. */
+.pricing-substep-content{min-height:150px}
+/* Closet's sidebar (unlike attic's) isn't height-clamped during pricing -
+   it just grows with its content and the page scrolls if needed (see
+   .sidebar's own height:100% off a naturally-tall parent here) - so
+   reserving this much height doesn't risk a scrollbar showing up, it just
+   keeps the panel a consistent height across all 3 states. Measured
+   against closet's own tallest state: the sqft step's 7-tonnage-card grid
+   (closet's cards are full-size, not attic's .opt-compact) runs ~490px. */
+/* justify-content:center (not set inline - see app.js) distributes that
+   reserved height as balanced space above/below the actual content
+   instead of dumping it all below as one dead-looking gap between the
+   question and the Back/Get My Estimate row. */
+.done-screen.closet-mode .pricing-substep-content{min-height:500px;justify-content:center}
 
 /* QA FIX - direct feedback: "ductwork question is good to have, just
    needs to be better... the text is too small for the question, it sucks

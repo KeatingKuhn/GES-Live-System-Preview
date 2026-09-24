@@ -595,6 +595,32 @@ export function calcEstimate(answers,pricingAnswers){
   if(pricingAnswers.wantDuctCleaning){
     lines.push({key:'ductCleaning',label:'Duct cleaning',price:PRICING.duct.cleaning[tonnage]});
   }
+  // New supply duct runs - same checkbox add-on treatment, but unlike
+  // return plenum/return duct below, a home very rarely needs just one of
+  // these (direct feedback: "supply duct number needs to be put in the
+  // question because its not usually just one duct") - so this gets its
+  // own quantity field, same 1-10 stepper pattern as ventCount just
+  // capped lower (a handful of brand-new runs in one visit is realistic;
+  // 20 is what ductReplacement's per-vent swap allows, not a sane ceiling
+  // for all-new runs including sheetrock work).
+  const supplyRunCount=Math.min(10,Math.max(0,pricingAnswers.newSupplyRunCount||0));
+  if(pricingAnswers.wantNewSupplyRuns&&supplyRunCount>0){
+    lines.push({key:'newSupplyRuns',runCount:supplyRunCount,label:`New supply duct run${supplyRunCount===1?'':'s'} (${supplyRunCount})`,price:supplyRunCount*PRICING.duct.newSupplyRun});
+  }
+  // Return duct run - per direct feedback, unlike supply runs above, a
+  // home usually only needs one of these, so no quantity field.
+  if(pricingAnswers.wantNewReturnDuct){
+    lines.push({key:'newReturnDuct',label:'New return duct run',price:PRICING.duct.newReturnDuct});
+  }
+  // Return plenum - also usually just one (same feedback as the return
+  // duct run above), but still needs the ductboard-vs-metal material
+  // choice PRICING.duct.returnPlenum prices separately - defaults to
+  // ductboard (the standard choice) same as the wizard's own supply-
+  // plenum question above.
+  if(pricingAnswers.wantReturnPlenum){
+    const plenumType=pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard';
+    lines.push({key:'ductReturnPlenum',plenumType,label:plenumType==='metal'?'Return plenum (sheet metal)':'Return plenum (ductboard)',price:PRICING.duct.returnPlenum[plenumType]});
+  }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
   const linesRounded=lines.map(l=>({...l,display:roundTo25(l.price)}));
