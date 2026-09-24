@@ -964,7 +964,7 @@ function App(){
       case 'surge':             return 'Protector de Sobrevoltaje';
       case 'dehu':              return `Deshumidificador para toda la casa (${line.dehuCap}pt)`;
       case 'erv':                return `ERV (${line.ervCfm} CFM)`;
-      case 'ductReplacement':   return `Reemplazo de ductos (${line.ventCount} rejillas)`;
+      case 'ductReplacement':   return `Reemplazo de ductos (${line.ventCount} rejilla${line.ventCount===1?'':'s'})`;
       case 'laborWarranty':     return 'Garantía de mano de obra de 10 años';
       case 'maintenancePlan':   return 'Plan de mantenimiento anual (1er año)';
       case 'ductCleaning':      return 'Limpieza de ductos';
@@ -2122,6 +2122,14 @@ function App(){
                 const right=(
                   <div style={{flex:1,minWidth:0}}>
                     {subId==='sqft'&&(()=>{
+                      // sqftInput has no UI to set it anymore (the input
+                      // field itself was removed - see the QA FIX on the
+                      // description text above) - this only ever has a
+                      // value now for someone resuming a build saved
+                      // before that removal shipped. Left as a harmless
+                      // no-op for new visitors rather than ripped out, so
+                      // that narrow case still gets its SUGGESTED badge
+                      // instead of silently losing it.
                       const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
                       const recommended=nearestTonnageOption(sqftNum,tonnageOptions);
                       return <div ref={sqftGridRef} className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?`repeat(${tonnageOptions.length},1fr)`:"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>

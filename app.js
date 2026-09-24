@@ -471,7 +471,7 @@
     }
     const ventCount = Math.min(20, Math.max(0, pricingAnswers.ventCount || 0));
     if (pricingAnswers.wantDucts && ventCount > 0) {
-      lines.push({ key: "ductReplacement", ventCount, label: `Duct replacement (${ventCount} vents)`, price: ventCount * PRICING.duct.replacementPerStem });
+      lines.push({ key: "ductReplacement", ventCount, label: `Duct replacement (${ventCount} vent${ventCount === 1 ? "" : "s"})`, price: ventCount * PRICING.duct.replacementPerStem });
     }
     if (pricingAnswers.wantLaborWarranty) {
       lines.push({ key: "laborWarranty", label: "10-year labor warranty", price: PRICING.laborWarranty10yr });
@@ -8566,7 +8566,7 @@
         case "erv":
           return `ERV (${line.ervCfm} CFM)`;
         case "ductReplacement":
-          return `Reemplazo de ductos (${line.ventCount} rejillas)`;
+          return `Reemplazo de ductos (${line.ventCount} rejilla${line.ventCount === 1 ? "" : "s"})`;
         case "laborWarranty":
           return "Garant\xEDa de mano de obra de 10 a\xF1os";
         case "maintenancePlan":

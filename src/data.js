@@ -588,7 +588,7 @@ export function calcEstimate(answers,pricingAnswers){
   // $36,800 duct-replacement line, which doesn't reflect a real home.
   const ventCount=Math.min(20,Math.max(0,pricingAnswers.ventCount||0));
   if(pricingAnswers.wantDucts&&ventCount>0){
-    lines.push({key:'ductReplacement',ventCount,label:`Duct replacement (${ventCount} vents)`,price:ventCount*PRICING.duct.replacementPerStem});
+    lines.push({key:'ductReplacement',ventCount,label:`Duct replacement (${ventCount} vent${ventCount===1?'':'s'})`,price:ventCount*PRICING.duct.replacementPerStem});
   }
   // Extended labor warranty - a checkbox on the result screen, not a
   // wizard question (see the comment on PRICING.laborWarranty10yr above).
