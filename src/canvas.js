@@ -1118,6 +1118,20 @@ function HoverPanel({part,groupBoxes}){
   let px=x+w/2-PANEL_W/2;
   let py=y-panelH-9;
   if(vh&&py<4)py=y+h+9;
+  // QA FIX - caught by an automated QA pass: "LIVE SYSTEM PREVIEW" (SVG
+  // text, x=12 y=20, drawn separately below) sits in a fixed top-left
+  // corner that this panel's own vh-based clamp above knows nothing
+  // about - it only guarantees staying inside the SVG's own top edge,
+  // not clear of that separate label. A component anchored in roughly
+  // that same top-left region (e.g. the dehumidistat wall control)
+  // could clamp to py=4 and still visually sit on top of the label's
+  // text. 26 clears the label's y=20 baseline with room for its
+  // ascent/descent; 260 safely overestimates its right edge in either
+  // language (the Spanish translation runs longer than English) -
+  // panels anchored further right never trigger this and are
+  // unaffected. Only ever pushes DOWN, never up, so it can't reintroduce
+  // an off-canvas spill the line above this already prevents.
+  if(px<260&&py<26)py=26;
   if(vh&&py+panelH>vh-4)py=Math.max(4,vh-4-panelH);
   if(vw){
     if(px<4)px=4;

@@ -1618,6 +1618,7 @@
     let px = x + w / 2 - PANEL_W / 2;
     let py = y - panelH - 9;
     if (vh && py < 4) py = y + h + 9;
+    if (px < 260 && py < 26) py = 26;
     if (vh && py + panelH > vh - 4) py = Math.max(4, vh - 4 - panelH);
     if (vw) {
       if (px < 4) px = 4;
