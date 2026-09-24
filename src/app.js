@@ -2007,7 +2007,29 @@ function App(){
                               never registered, not like an invalid value was
                               clamped. `??` only falls back to '' for the
                               genuine unset case (undefined). */}
-                          <input id="pricing-vent-count-input" type="number" min="1" max="40" value={pricingAnswers.ventCount??''} onChange={e=>setPricingAnswers(p=>({...p,ventCount:Math.min(40,Math.max(0,parseInt(e.target.value)||0))}))}
+                          {/* QA FIX - the clamp used to run parseInt(e.target.value)
+                              unconditionally, so an emptied field (raw value "")
+                              still resolved through `||0` to a real ventCount:0,
+                              which the `??''` above then displays as "0" - not
+                              blank. That's correct for a genuinely-cleared field
+                              in isolation, but the *next* keystroke lands after
+                              that already-rendered "0" (a controlled re-render
+                              doesn't retroactively move the caret to precede it),
+                              so a real-world select-all-and-retype (clear a "1",
+                              type "12") visibly produces "012" on screen one
+                              keystroke at a time - looks like the field is
+                              broken/eating input, even though parseInt happens
+                              to still resolve the final string to the intended
+                              number. Checking raw==='' first keeps a truly empty
+                              field as undefined (blank, no phantom "0" to type
+                              past) while a deliberate "0" keystroke still clamps
+                              and displays as "0" same as before. */}
+                          <input id="pricing-vent-count-input" type="number" min="1" max="40" value={pricingAnswers.ventCount??''} onChange={e=>{
+                            const raw=e.target.value;
+                            if(raw===''){setPricingAnswers(p=>({...p,ventCount:undefined}));return;}
+                            const n=parseInt(raw);
+                            setPricingAnswers(p=>({...p,ventCount:Number.isNaN(n)?undefined:Math.min(40,Math.max(0,n))}));
+                          }}
                             className="pricing-input vent-input"/>
                           <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
                             disabled={(pricingAnswers.ventCount||0)>=40}

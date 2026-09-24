@@ -8876,7 +8876,15 @@
           min: "1",
           max: "40",
           value: pricingAnswers.ventCount ?? "",
-          onChange: (e) => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(40, Math.max(0, parseInt(e.target.value) || 0)) })),
+          onChange: (e) => {
+            const raw = e.target.value;
+            if (raw === "") {
+              setPricingAnswers((p) => ({ ...p, ventCount: void 0 }));
+              return;
+            }
+            const n = parseInt(raw);
+            setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(40, Math.max(0, n)) }));
+          },
           className: "pricing-input vent-input"
         }
       ), /* @__PURE__ */ React.createElement(
