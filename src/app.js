@@ -954,6 +954,7 @@ function App(){
       case 'ductReplacement':   return `Reemplazo de ductos (${line.ventCount} rejillas)`;
       case 'laborWarranty':     return 'Garantía de mano de obra de 10 años';
       case 'maintenancePlan':   return 'Plan de mantenimiento anual (1er año)';
+      case 'ductCleaning':      return 'Limpieza de ductos';
       default:                  return line.label;
     }
   };
@@ -2494,6 +2495,20 @@ function App(){
                         </div>
                       ))}
                     </div>
+                    {/* Duct cleaning - same a-la-carte checkbox pattern as
+                        labor warranty/maintenance plan above. Used to be
+                        purely educational text in the "Additional
+                        Considerations" panel even though PRICING.duct.
+                        cleaning already had real, tonnage-indexed prices for
+                        it - per direct feedback ("I love the click to add a
+                        price for different things") this is exactly the
+                        kind of item that belongs up here as an actual
+                        choice instead. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!pricingAnswers.wantDuctCleaning}
+                        onChange={e=>setPricingAnswers(p=>({...p,wantDuctCleaning:e.target.checked}))}/>
+                      {tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`,`Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)}
+                    </label>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.68)",lineHeight:1.55,marginBottom:10}}>{tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")}</div>
                     <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
                   </div>
@@ -2541,7 +2556,6 @@ function App(){
                           vents" line here even after the priced line item
                           itself got clamped. Reuses the exact same clamp. */}
                       <div><strong style={{color:"rgba(255,255,255,.9)"}}>New supply duct runs</strong> - new duct, boot, and grille together for a single run. {Math.min(20,Math.max(0,pricingAnswers.ventCount||0))>0?`You mentioned ${Math.min(20,Math.max(0,pricingAnswers.ventCount||0))} vents - most homes only need a few of those runs redone, not all of them.`:"Ask us how many runs your home is likely to need."}</div>
-                      <div><strong style={{color:"rgba(255,255,255,.9)"}}>Duct cleaning</strong> - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.</div>
                     </div>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit.</div>
                   </div>

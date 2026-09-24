@@ -585,6 +585,16 @@ export function calcEstimate(answers,pricingAnswers){
   if(pricingAnswers.wantMaintenancePlan){
     lines.push({key:'maintenancePlan',label:'Annual maintenance plan (1st year)',price:PRICING.maintenancePlanAnnual});
   }
+  // Duct cleaning - same checkbox add-on treatment as the two above.
+  // Previously just educational text in the "Additional Considerations"
+  // block even though PRICING.duct.cleaning already had real prices for
+  // it; per direct feedback that a-la-carte pattern (see labor warranty/
+  // maintenance plan) is exactly what customers want here too. Priced by
+  // this build's own tonnage, same lookup calcEstimate already does for
+  // the base system price above.
+  if(pricingAnswers.wantDuctCleaning){
+    lines.push({key:'ductCleaning',label:'Duct cleaning',price:PRICING.duct.cleaning[tonnage]});
+  }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
   const linesRounded=lines.map(l=>({...l,display:roundTo25(l.price)}));
