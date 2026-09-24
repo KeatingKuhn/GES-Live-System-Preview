@@ -2105,19 +2105,17 @@ function App(){
                   <div className={isAtticMode?"pricing-substep-left":undefined} style={{flex:isAtticMode?"0 0 420px":"1 1 auto"}}>
                     {subId==='sqft'&&<>
                       <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?2:4,lineHeight:isAtticMode?1.15:"normal",fontFamily:"var(--ft)"}}>{tr('What size system does this area need?','¿Qué tamaño de sistema necesita esta área?')}</div>
+                      {/* QA FIX - direct feedback: drop the "enter your sq
+                          ft" input - each tonnage card already shows its
+                          own typical sq-ft range (see the option grid to
+                          the right), so this description just points at
+                          that instead of asking for a number nobody needs
+                          to type. */}
                       <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5}}>
                         {isAtticMode
-                          ?tr("Pick the tonnage for your home's sq ft, or enter it below for a suggestion.","Elija las toneladas según los pies cuadrados de su casa, o ingréselos abajo para una sugerencia.")
-                          :tr("Pick the tonnage that best fits the square footage this system covers. Not sure? Enter your sq ft for a suggested starting point.","Elija las toneladas que mejor se ajusten a los pies cuadrados que cubre este sistema. ¿No está seguro? Ingrese sus pies cuadrados para una sugerencia.")}
+                          ?tr("Pick the tonnage that best fits your home's sq ft - see the typical range on each card.","Elija las toneladas que mejor se ajusten a los pies cuadrados de su casa - vea el rango típico en cada tarjeta.")
+                          :tr("Pick the tonnage that best fits the square footage this system covers - each option shows its typical range.","Elija las toneladas que mejor se ajusten a los pies cuadrados que cubre este sistema - cada opción muestra su rango típico.")}
                       </div>
-                      <input type="number" min="200" max="10000" placeholder={tr("Sq ft (optional)","Pies cuadrados (opcional)")}
-                        value={pricingAnswers.sqftInput||''}
-                        onChange={e=>{
-                          const val=e.target.value;
-                          const rec=nearestTonnageOption(parseInt(val)||0,tonnageOptions);
-                          setPricingAnswers(p=>({...p, sqftInput:val, ...(rec?{tonnageChoice:rec.v}:{})}));
-                        }}
-                        className={"pricing-input"+(isAtticMode?" compact":"")}/>
                     </>}
                   </div>
                 );
@@ -2570,7 +2568,6 @@ function App(){
                     on a block-stacked child with no set container height). */}
                 const considerations=(
                   <div className="considerations-block" style={{width:"100%",height:"100%",boxSizing:"border-box",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",display:"flex",flexDirection:"column",...(isAtticMode?{}:{marginTop:12})}}>
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.75)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
                     {/* QA FIX - this used to list return plenum/ductwork, new
                         return duct run, and new supply duct runs as plain
                         education text even though PRICING.duct already had
@@ -2583,30 +2580,31 @@ function App(){
                         zone board/sensors/dampers, cost varies too much per
                         home for anything but an in-home visit (see
                         PRICING.zoning's own comment in data.js).
-                        QA FIX - a follow-up QA pass caught that dropping
-                        from 4 paragraphs to this 1 (above) made the OLDER
-                        "match the price card's height" fix (see this
-                        component's own big comment further down) look
-                        broken instead of fixed: this box's height:100% still
-                        stretches to match whatever tall price card is next
-                        to it (up to ~960px once several add-ons are
-                        checked), but with 4x less content to fill it, that
-                        now reads as a large dead gap instead of a matching
-                        sibling. flex:1 + justify-content:center on this
-                        wrapper (new) centers the Zoning paragraph + the
-                        disclaimer below as a group in whatever height the
-                        price card hands this box, instead of pinning them
-                        to the top and leaving the rest empty underneath -
-                        the section label right above stays pinned to the
-                        top on its own (not part of this wrapper) since a
-                        title floating mid-box would look stranger than a
-                        title that stays put while the body centers below
-                        it. */}
+                        QA FIX (follow-up, direct feedback: "looks like
+                        shit") - the eyebrow label above used to read "A Few
+                        Other Things We Commonly Find" over a bulleted list
+                        of several items; once three of those became
+                        checkboxes and only Zoning was left, a plural
+                        "a few things" header sitting over a single
+                        "Zoning - ..." bullet read as a cut-off list, not a
+                        deliberate single-topic callout. Restructured as an
+                        actual callout instead: a singular eyebrow, Zoning
+                        promoted to its own heading (not a bolded lead-in to
+                        a sentence), body copy as its own paragraph below
+                        it. Reads as "here's one specific thing worth
+                        asking about" rather than an abandoned list. */}
+                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.75)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:isAtticMode?0:6,fontFamily:"var(--fm)"}}>Also Worth Asking About</div>
+                    {/* Same flex:1+justify-content:center centering as
+                        before (see the considerations-block height:100%
+                        comment further down for why this box needs to
+                        match the price card's height at all) - unchanged
+                        by this restructure, just now centering a heading +
+                        paragraph + disclaimer instead of a bulleted line +
+                        disclaimer. */}
                     <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                      <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>
-                        <div><strong style={{color:"rgba(255,255,255,.9)"}}>Zoning</strong> - splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
-                      </div>
-                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>
+                      <div style={{fontSize:isAtticMode?15:16,fontWeight:600,color:"rgba(255,255,255,.92)",marginBottom:4,fontFamily:"var(--ft)"}}>Zoning</div>
+                      <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
+                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:10,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>
                     </div>
                   </div>
                 );
