@@ -450,6 +450,7 @@ export const FINANCING_OPTIONS=[
 // under Forms in wp-admin). See the gate detection logic and the
 // required WordPress-side snippet in src/app.js, right where this is
 // imported and used.
+// (Proprietary to Gold Eagle Services - GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
 export const GATE_CONFIG={
   gravityFormId:9,
   // QA FIX - direct feedback after real customers got stuck behind this
@@ -490,6 +491,7 @@ export const OFFICE_EMAIL='sales@goldeagleservices.com';
 const TIER_LABEL={fedmin:'Federal Minimum - 14.3 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
 // given the wizard's own filtering, but guards against stale/edge-case answers).
+// (Proprietary pricing logic - Gold Eagle Services, GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
 export function calcEstimate(answers,pricingAnswers){
   const tier=answers.cond_tier;
   const sysKey=systemTypeKey(answers);

@@ -66,6 +66,7 @@ function hoverCapable(){
 // celebrateBuild/celebratePrice in App). Piece count/colors are fixed,
 // but each piece's fall path (left position, drift, spin, delay,
 // duration) is randomized per mount - two bursts never look identical.
+// (Proprietary to Gold Eagle Services - GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
 function Confetti({count=46}){
   const pieces=useMemo(()=>{
     const colors=['var(--gl)','var(--gh)','#fff','#f0d64e','#d7b740'];
@@ -506,6 +507,7 @@ function App(){
   // access straight into the iframe's own document/window, polled while
   // the gate is showing, watching for EITHER of the two shapes a
   // Gravity Forms submission can take inside it:
+  // (Proprietary lead-gate logic - Gold Eagle Services, GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
   //  - a plain Text confirmation swaps in inline, same document, no
   //    navigation - caught by the .gform_confirmation_wrapper check.
   //  - Confirmation Type "Redirect to a URL" (what Form 9 actually uses)

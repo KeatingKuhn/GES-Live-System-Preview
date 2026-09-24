@@ -39,6 +39,7 @@ function DigitReel({digit,delay=0,duration=900}){
     </span>
   </span>;
 }
+// (Proprietary to Gold Eagle Services - GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
 export function CashCount({value,format,duration=900,stagger=85}){
   const str=format?format(value):String(value);
   let digitIdx=0;
@@ -3108,6 +3109,7 @@ function RegisterGrille({cx,y,w,dc,ds,label,lang,vw,vh}){
 // bounce-in pop, the same "jump" EditZone's own `.snap` remount was
 // originally flagged for. lang/vw/vh come in as explicit props instead
 // of Canvas closures.
+// (Proprietary to Gold Eagle Services - GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
 function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,snap,lang,vw,vh}){
   if(!hasDehu&&!hasERV) return null;
   const BW=80,BH=48;
@@ -3399,6 +3401,7 @@ function thermVariant(isProprietary,isWifi){return isProprietary?'proprietary':i
 const THERM_TARGET_SCALE=1.09;
 
 // ─── CANVAS ─────────────────────────────────────────────────────
+// (Proprietary live diagram renderer - Gold Eagle Services, GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
 export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   // Shorthand for the hover-tooltip copy above, resolved to this render's
   // language once instead of every call site repeating partInfo(key,lang).
