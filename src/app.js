@@ -1,3 +1,7 @@
+// © Gold Eagle Services, Austin, TX. All rights reserved. Proprietary
+// software - see the notice at the top of src/index.template.html and
+// the copyright block in index.html's own source for the full terms.
+// GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx
 const {useState,useMemo,useRef,useCallback}=React;
 import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES} from './data.js';
 import {Canvas,CashCount,Defs} from './canvas.js';
