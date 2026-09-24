@@ -202,6 +202,35 @@ function App(){
     }
     wasDoneRef.current=done;
   },[done,answers]);
+  // Analytics: guards trackEvent calls that sit directly on a CTA whose own
+  // click doesn't transition the app to a different screen/state (financing,
+  // Save/Print, both email actions) - unlike Get Pricing/Get My Estimate/
+  // Start Over/quick-edit, whose click unmounts or replaces the very button
+  // just clicked (moving to the sizing flow, the result screen, the splash
+  // screen, or the wizard) fast enough that a second real click of a genuine
+  // double-click lands on nothing, these buttons/links stay exactly where
+  // they were, doing nothing to the app's own state - so a second click
+  // event landing within the same double-click gesture hits the identical
+  // onClick handler again with nothing to stop it. Verified with Playwright:
+  // a REAL .dblclick() (two separately-dispatched click events at native
+  // double-click speed, not two same-tick synthetic clicks) reliably fired
+  // financing_clicked/email_build_clicked/email_office_clicked/print_clicked
+  // twice before this guard existed, double-counting one physical click as
+  // two conversions/engagements - while pricing_started/price_revealed/
+  // restart_clicked/quick_edit_used were already safe purely because their
+  // own click moves the button out from under the second click in time.
+  // Keyed by event name + params (not just name) so two DIFFERENT financing
+  // options (were there more than one configured) clicked back to back each
+  // still count - only a literal repeat of the exact same action within the
+  // window is treated as one double-click, not two deliberate clicks.
+  const lastCtaFireRef=useRef({});
+  const trackCtaOnce=useCallback((name,params)=>{
+    const key=name+'|'+JSON.stringify(params||{});
+    const now=Date.now();
+    if(now-(lastCtaFireRef.current[key]||0)<800)return;
+    lastCtaFireRef.current[key]=now;
+    trackEvent(name,params);
+  },[]);
   // Snapshot of `answers` taken the instant a quick-edit begins (see
   // jumpToStep below) - restored by cancelQuickEdit if the homeowner backs
   // out via the banner's own "Cancel, back to build" link (or by backing
@@ -2354,7 +2383,7 @@ function App(){
                           of the number above it. */}
                       <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR through Wells Fargo - ask your comfort advisor, subject to approved credit.','Basado en 36 meses al 0% de interés a través de Wells Fargo - pregunte a su asesor, sujeto a aprobación de crédito.')}</div>
                       {wisetack&&<a href={wisetack.url} target="_blank" rel="noopener" className="price-hero-financing-link no-print"
-                        onClick={()=>trackEvent('financing_clicked',{lender:'wisetack',source:'price_reveal'})}>
+                        onClick={()=>trackCtaOnce('financing_clicked',{lender:'wisetack',source:'price_reveal'})}>
                         {tr('→ Or prequalify online with Wisetack','→ O precalifique en línea con Wisetack')}
                       </a>}
                     </div>
@@ -2512,22 +2541,22 @@ function App(){
                   FINANCING_OPTIONS in data.js) - an entry with no url
                   simply doesn't render here. */}
               {FINANCING_OPTIONS.filter(f=>f.url).map(f=>(
-                <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackEvent('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {tr(f.label,f.labelEs)}</a>
+                <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackCtaOnce('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {tr(f.label,f.labelEs)}</a>
               ))}
-              <button onClick={()=>{trackEvent('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ {tr('Save / Print','Guardar / Imprimir')}</button>
+              <button onClick={()=>{trackCtaOnce('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ {tr('Save / Print','Guardar / Imprimir')}</button>
               {/* QA FIX - per direct feedback, paired with the office button
                   right below so the end of the build reads as "send to our
                   office + a copy to yourself" - this one stays the original
                   blank-recipient mailto (opens the customer's own mail app,
                   nothing pre-addressed) for the "copy to yourself" half. */}
-              <a href={buildEmailHref()} onClick={()=>trackEvent('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Email a Copy to Yourself','Enviar Copia a Mi Correo')}</a>
+              <a href={buildEmailHref()} onClick={()=>trackCtaOnce('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Email a Copy to Yourself','Enviar Copia a Mi Correo')}</a>
               {/* QA FIX - "send to our office" half of the same pair - mailto:
                   pre-addressed to OFFICE_EMAIL (data.js), same build content
                   as the button above via the same buildEmailHref(). Ships
                   hidden (same "no config = no button" convention as
                   FINANCING_OPTIONS) until the site owner fills in the real
                   office inbox. */}
-              {OFFICE_EMAIL&&<a href={buildEmailHref(OFFICE_EMAIL)} onClick={()=>trackEvent('email_office_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Send to Our Office','Enviar a Nuestra Oficina')}</a>}
+              {OFFICE_EMAIL&&<a href={buildEmailHref(OFFICE_EMAIL)} onClick={()=>trackCtaOnce('email_office_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Send to Our Office','Enviar a Nuestra Oficina')}</a>}
               {/* QA FIX - this drops back into the wizard's last step, same
                   as goBack's own "past step 1" branch and pickLocation/
                   restart/cancelQuickEdit all do - but unlike every one of
