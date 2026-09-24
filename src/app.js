@@ -2637,8 +2637,42 @@ function App(){
                         so @media print (styles.css) can force this back
                         to normal static flow - same content, same order,
                         just not sticky, since print has nothing for it
-                        to track against anyway. */}
-                    <div className="considerations-sticky-content" style={{position:"sticky",top:"50%",transform:"translateY(-50%)"}}>
+                        to track against anyway.
+                        QA FIX - a follow-up automated pass found this
+                        sticky trick overlapping the content above it in
+                        closet mode and on mobile attic (any viewport
+                        <=860px) - the SAME defect class as the print bug
+                        above, just impossible for @media print to touch
+                        since it's an on-screen layout, not a print one.
+                        Root cause: the whole "center within whatever's
+                        currently visible of an off-screen-tall box" trick
+                        only makes sense when the parent genuinely GETS
+                        stretched to a tall height - that only happens in
+                        attic's wide 2-column row (alignItems:"stretch"
+                        below). Closet never renders that row at all (see
+                        `if(!isAtticMode)return<>{priceCard}{considerations}
+                        </>` a few lines down - considerations sits at its
+                        own natural content height there), and the same
+                        row collapses to a column at <=860px even in attic
+                        mode (.pricing-result-row's own media rule), where
+                        stretch becomes a width rule instead of a height
+                        one. In both cases .considerations-block's height:
+                        100% resolves to essentially its own content
+                        height (nothing to stretch against), so top:50%/
+                        translateY(-50%) - tuned for a box hundreds of px
+                        taller than its content - shifted this well above
+                        its own box into whatever precedes it. Moved the
+                        actual sticky positioning out of this inline style
+                        and into CSS (styles.css) scoped to
+                        `.done-screen.attic-mode .considerations-sticky-
+                        content` outside the <=860px breakpoint - the ONLY
+                        case where the parent's height:100% is genuinely
+                        tall. Closet and mobile-attic now just render this
+                        div in plain static flow, which needs no special
+                        positioning at all once the parent isn't
+                        artificially stretched - the box height already
+                        equals its content height there. */}
+                    <div className="considerations-sticky-content">
                       <div style={{fontSize:isAtticMode?15:16,fontWeight:600,color:"rgba(255,255,255,.92)",marginBottom:4,fontFamily:"var(--ft)"}}>Zoning</div>
                       <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
                       <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:10,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>
