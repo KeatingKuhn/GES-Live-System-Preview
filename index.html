@@ -310,7 +310,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      available width. */
   .pricing-substep-row{flex-direction:column!important;gap:8px!important;align-items:stretch!important}
   .pricing-substep-left{flex:1 1 auto!important}
-  .pricing-opts-systems{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}
   .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
   .pricing-result-row{flex-direction:column!important}
 }
@@ -9725,6 +9724,25 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       setPricingFlow((f) => f === "sizing" || f === "result" ? "sizing" : f);
       setPricingSubStep(0);
     }, [tonnageOptionsForTier, pricingAnswers.tonnageChoice]);
+    const sqftGridRef = useRef2(null);
+    const [sqftGridOrphan, setSqftGridOrphan] = useState2(false);
+    React.useEffect(() => {
+      const el = sqftGridRef.current;
+      if (!el || typeof ResizeObserver === "undefined") return;
+      const measure = () => {
+        const kids = el.children;
+        if (kids.length < 2) {
+          setSqftGridOrphan(false);
+          return;
+        }
+        const last = kids[kids.length - 1], prev = kids[kids.length - 2];
+        setSqftGridOrphan(last.offsetTop > prev.offsetTop);
+      };
+      measure();
+      const ro = new ResizeObserver(measure);
+      ro.observe(el);
+      return () => ro.disconnect();
+    }, [tonnageOptionsForTier, pricingSubStep, pricingFlow, doneVisible]);
     const [lang2, setLang] = useState2(() => {
       try {
         return localStorage.getItem("gesLang_v1") === "es" ? "es" : "en";
@@ -10451,7 +10469,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const right = /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, subId === "sqft" && (() => {
         const sqftNum = parseInt(pricingAnswers.sqftInput) || 0;
         const recommended = nearestTonnageOption(sqftNum, tonnageOptions);
-        return /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-opts-sqft" : void 0, style: { display: "grid", gridTemplateColumns: isAtticMode ? `repeat(${tonnageOptions.length},1fr)` : "repeat(auto-fit,minmax(160px,1fr))", gap: 6 } }, tonnageOptions.map((o) => /* @__PURE__ */ React.createElement("button", { key: o.v, className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.tonnageChoice === o.v ? " sel" : ""), onClick: () => setPricingAnswers((p) => ({ ...p, tonnageChoice: o.v })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr(o.label, o.labelEs), recommended && recommended.v === o.v && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, isAtticMode ? tr(o.sqftLabel, o.sqftLabelEs) : tr(`Typical for ${o.sqftLabel} homes`, `T\xEDpico para casas de ${o.sqftLabelEs}`)))))));
+        return /* @__PURE__ */ React.createElement("div", { ref: sqftGridRef, className: isAtticMode ? "pricing-opts-sqft" : void 0, style: { display: "grid", gridTemplateColumns: isAtticMode ? `repeat(${tonnageOptions.length},1fr)` : "repeat(auto-fit,minmax(160px,1fr))", gap: 6 } }, tonnageOptions.map((o, i) => /* @__PURE__ */ React.createElement(
+          "button",
+          {
+            key: o.v,
+            className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.tonnageChoice === o.v ? " sel" : ""),
+            style: i === tonnageOptions.length - 1 && sqftGridOrphan ? { gridColumn: "1 / -1" } : void 0,
+            onClick: () => setPricingAnswers((p) => ({ ...p, tonnageChoice: o.v }))
+          },
+          /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr(o.label, o.labelEs), recommended && recommended.v === o.v && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, isAtticMode ? tr(o.sqftLabel, o.sqftLabelEs) : tr(`Typical for ${o.sqftLabel} homes`, `T\xEDpico para casas de ${o.sqftLabelEs}`))))
+        )));
       })(), subId === "ducts" && /* @__PURE__ */ React.createElement("div", { className: "pricing-ducts-block" }, /* @__PURE__ */ React.createElement("div", { className: "pricing-ducts-choice" }, /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === true ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: true })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("Yes", "S\xED")), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, tr("Price in some duct runs", "Cotizar algunas l\xEDneas de ducto"))))), /* @__PURE__ */ React.createElement("button", { className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.wantDucts === false ? " sel" : ""), style: { flex: 1 }, onClick: () => setPricingAnswers((p) => ({ ...p, wantDucts: false, ventCount: void 0 })) }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("No / Skip", "No / Omitir")), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, tr("Keep my existing ducts", "Mantener mis ductos actuales")))))), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { className: "pricing-vent-count snap" }, /* @__PURE__ */ React.createElement("label", { className: "pricing-vent-count-label", htmlFor: "pricing-vent-count-input" }, tr("How many vents/registers?", "\xBFCu\xE1ntas rejillas/registros?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
         "button",
         {

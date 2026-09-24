@@ -280,6 +280,64 @@ function App(){
     setPricingSubStep(0);
   },[tonnageOptionsForTier,pricingAnswers.tonnageChoice]);
 
+  // QA FIX - the sizing sub-step's tonnage grid is `repeat(auto-fit,
+  // minmax(...))` (both layouts - attic only switches to this below its
+  // own 860px breakpoint), so its column count tracks container width
+  // continuously, not a fixed number CSS can reason about at author time.
+  // Federal Minimum's 7-option list (the only tier with half-tons, so the
+  // only one that isn't a tidy 4) is prime - no column count from 2-6
+  // divides it evenly - so at MOST widths the last "5 Tons" card lands
+  // alone in its own final row with a dead gap beside it, the same
+  // orphaned-grid-item look .done-review-grid's own last-child rule
+  // already exists to fix elsewhere on this screen. That fix works there
+  // because its column count is hardcoded (2 or 5); this grid's isn't, so
+  // a blind nth-child parity rule would be right at some widths and wrong
+  // at others (spot-checked 3/4/5/6-column results at 420-860px - only
+  // 3 and 6 columns actually strand the last card alone, 4 and 5 don't).
+  // Measuring the real rendered layout instead of guessing at it: if the
+  // last card's own top offset differs from the second-to-last card's,
+  // it's alone on a new row and gets grid-column:1/-1 to fill it instead
+  // of leaving that gap. Re-measures on resize (ResizeObserver) and
+  // whenever the option count/layout could change the column math.
+  const sqftGridRef=useRef(null);
+  const [sqftGridOrphan,setSqftGridOrphan]=useState(false);
+  React.useEffect(()=>{
+    const el=sqftGridRef.current;
+    if(!el||typeof ResizeObserver==='undefined')return;
+    const measure=()=>{
+      const kids=el.children;
+      if(kids.length<2){setSqftGridOrphan(false);return;}
+      const last=kids[kids.length-1],prev=kids[kids.length-2];
+      setSqftGridOrphan(last.offsetTop>prev.offsetTop);
+    };
+    measure();
+    const ro=new ResizeObserver(measure);
+    ro.observe(el);
+    return ()=>ro.disconnect();
+    // isAtticMode isn't in this list - it's declared further down in this
+    // component (after `loc` is derived) and a location swap always
+    // resizes/remounts the grid's own container anyway, which the
+    // ResizeObserver already reacts to on its own.
+    //
+    // QA FIX - doneVisible IS needed here, though. It flips true in its
+    // own effect one render AFTER `done` does (see the comment on
+    // doneVisible above) rather than synchronously in the same commit -
+    // so on a resumed build whose saved state already has pricingFlow
+    // 'sizing' (resumeBuild sets done/pricingFlow/pricingSubStep all in
+    // one batch), the very first commit where those three match their
+    // resumed values still has doneVisible false and the done-screen
+    // (this grid included) not yet mounted - sqftGridRef.current is null,
+    // this effect bails out having never called ResizeObserver.observe(),
+    // and doneVisible's own later flip to true - the render that actually
+    // mounts the grid - doesn't re-run this effect because none of ITS
+    // deps changed. Reproduced via a direct resumeBuild() into
+    // pricingFlow:'sizing': the last card's grid-column style stayed
+    // unset indefinitely (checked out past 3s) until doneVisible was
+    // added here. A fresh completion doesn't hit this (doneVisible is
+    // already stable true by the time "Get Pricing" sets pricingFlow),
+    // but a resumed one reliably does.
+  },[tonnageOptionsForTier,pricingSubStep,pricingFlow,doneVisible]);
+
   // ─── LANGUAGE TOGGLE (EN/ES) ────────────────────────────────
   // Scoped translation - see the big comment on CHAPTERS_ES/STEPS_ES/
   // OPTS_ES in data.js for exactly what is and isn't covered. tr(en,es)
@@ -1959,9 +2017,16 @@ function App(){
                     {subId==='sqft'&&(()=>{
                       const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
                       const recommended=nearestTonnageOption(sqftNum,tonnageOptions);
-                      return <div className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?`repeat(${tonnageOptions.length},1fr)`:"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
-                        {tonnageOptions.map(o=>(
-                          <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.tonnageChoice===o.v?" sel":"")} onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
+                      return <div ref={sqftGridRef} className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?`repeat(${tonnageOptions.length},1fr)`:"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
+                        {tonnageOptions.map((o,i)=>(
+                          <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.tonnageChoice===o.v?" sel":"")}
+                            // see the sqftGridOrphan QA FIX above this
+                            // component's return - fills the dead gap
+                            // beside a lone last-row card instead of
+                            // leaving it stranded at its normal 1-column
+                            // width.
+                            style={i===tonnageOptions.length-1&&sqftGridOrphan?{gridColumn:"1 / -1"}:undefined}
+                            onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
                             <div className="opt-inner"><div className="opt-body">
                               <span className="opt-label">{tr(o.label,o.labelEs)}{recommended&&recommended.v===o.v&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
                               <span className="opt-desc">{isAtticMode?tr(o.sqftLabel,o.sqftLabelEs):tr(`Typical for ${o.sqftLabel} homes`,`Típico para casas de ${o.sqftLabelEs}`)}</span>

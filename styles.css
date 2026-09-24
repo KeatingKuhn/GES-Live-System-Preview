@@ -296,7 +296,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      available width. */
   .pricing-substep-row{flex-direction:column!important;gap:8px!important;align-items:stretch!important}
   .pricing-substep-left{flex:1 1 auto!important}
-  .pricing-opts-systems{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}
   .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
   .pricing-result-row{flex-direction:column!important}
 }
