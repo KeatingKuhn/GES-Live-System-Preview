@@ -10107,7 +10107,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const savedAnswers = savedBuild.answers || {};
       setAnswers(savedAnswers);
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedAnswers));
-      const clampedIdx = Math.min(Math.max(savedBuild.stepIdx || 0, 0), Math.max(savedSteps.length - 1, 0));
+      const rawIdx = Number(savedBuild.stepIdx) || 0;
+      const clampedIdx = Math.min(Math.max(rawIdx, 0), Math.max(savedSteps.length - 1, 0));
       setStepIdx(clampedIdx);
       setDone(!!savedBuild.done);
       setPricingFlow(savedBuild.pricingFlow || null);

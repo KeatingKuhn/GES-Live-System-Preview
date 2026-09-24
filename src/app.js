@@ -806,7 +806,18 @@ function App(){
     // a permanently-disabled Next button and no way out except clicking
     // Back hundreds of times back down into range.
     const savedSteps=STEPS.filter(s=>!s.showIf||s.showIf(savedAnswers));
-    const clampedIdx=Math.min(Math.max(savedBuild.stepIdx||0,0),Math.max(savedSteps.length-1,0));
+    // QA FIX - automated pass found a hand-corrupted (non-numeric-string)
+    // stepIdx sails past the `||0` fallback (a truthy string stays as-is)
+    // and turns Math.max/min's result into NaN, which is worse than the
+    // original bug this clamp exists to prevent: activeSteps[NaN] is
+    // undefined same as any other out-of-range index, but stepIdx>0 is
+    // also false for NaN, so the Back button doesn't even render - a
+    // total dead end with no recovery at all. Number(...)||0 coerces any
+    // non-finite-number input (a garbage string, null, undefined) to 0
+    // before the existing clamp runs, same as the pre-existing fallback
+    // already did for the falsy cases.
+    const rawIdx=Number(savedBuild.stepIdx)||0;
+    const clampedIdx=Math.min(Math.max(rawIdx,0),Math.max(savedSteps.length-1,0));
     setStepIdx(clampedIdx);
     setDone(!!savedBuild.done);
     setPricingFlow(savedBuild.pricingFlow||null);
