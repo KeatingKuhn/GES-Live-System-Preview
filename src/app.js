@@ -405,24 +405,39 @@ function App(){
   // QA FIX - the gate now embeds the Gravity Form directly in its own
   // <iframe> (GATE_CONFIG.embedFormUrl - see that constant's own comment
   // in data.js for why) rather than depending on the form living
-  // somewhere else on the WordPress page. Detection here is simpler and
-  // more reliable than any of the three paths above: same-origin access
-  // straight into the iframe's own document, polled while the gate is
-  // showing, watching for Gravity Forms' own AJAX confirmation wrapper
-  // (`.gform_confirmation_wrapper` / an id containing that string) to
-  // appear - which happens whether the form's Confirmation is a plain
-  // Text message swapped in inline, or a Redirect that navigates this
-  // iframe to a different same-origin page (a real navigation reloads
-  // the iframe's document too, and the very next poll picks up whatever
-  // landed there). No reliance on jQuery, postMessage, a WordPress-side
-  // snippet, or the outer page's own AJAX/confirmation settings at all.
+  // somewhere else on the WordPress page. Detection here is same-origin
+  // access straight into the iframe's own document/window, polled while
+  // the gate is showing, watching for EITHER of the two shapes a
+  // Gravity Forms submission can take inside it:
+  //  - a plain Text confirmation swaps in inline, same document, no
+  //    navigation - caught by the .gform_confirmation_wrapper check.
+  //  - Confirmation Type "Redirect to a URL" (what Form 9 actually uses)
+  //    navigates the IFRAME ITSELF to a real new page instead - direct
+  //    feedback confirmed exactly this: "it filled out the form, it sent
+  //    the form to my office email, it just didnt go to the next page" -
+  //    the submission genuinely worked, but the resulting page (this
+  //    same widget, reloaded inside its own grandchild iframe) has no
+  //    .gform_confirmation_wrapper anywhere on it, so the check above
+  //    alone never caught it. Since the redirect target already carries
+  //    ?ges_lead=1 (the same param path 3 above uses for the
+  //    non-embedded case), checking the iframe's OWN location for that
+  //    param catches it too - this is the one place that can actually
+  //    see it: it lands three frames deep (this iframe, not the outer
+  //    widget or the WordPress page above it), invisible to the
+  //    window.location/window.parent.location checks earlier, which
+  //    only ever look at their own level and one level up.
   const leadIframeRef=useRef(null);
   React.useEffect(()=>{
     if(!GATE_CONFIG.gravityFormId||!GATE_CONFIG.embedFormUrl||leadUnlocked||pricingFlow!=='leadgate')return;
     const check=()=>{
       try{
-        const doc=leadIframeRef.current&&leadIframeRef.current.contentDocument;
+        const win=leadIframeRef.current&&leadIframeRef.current.contentWindow;
+        const doc=win&&win.document;
         if(doc&&doc.querySelector('.gform_confirmation_wrapper,[id*="gform_confirmation_wrapper"]')){
+          markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});
+          return;
+        }
+        if(win&&new URLSearchParams(win.location.search).get('ges_lead')==='1'){
           markLeadSubmitted();setLeadUnlocked(true);trackLead({form_id:GATE_CONFIG.gravityFormId});
         }
       }catch(e){/* cross-origin - shouldn't happen for a same-domain embed, never break the gate over it */}

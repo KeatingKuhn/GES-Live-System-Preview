@@ -1893,29 +1893,26 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     // notice it, scroll to find it, and submitting it depended on that
     // page's own Gravity Forms AJAX/confirmation settings staying correct
     // - a customer hit a real dead end when the confirmation wasn't in
-    // AJAX mode. embedFormUrl pointed at a WordPress page containing ONLY
-    // this Gravity Form, embedded directly in an <iframe> right here - but
-    // that means an iframe nested inside THIS widget's own iframe (already
-    // embedded in the WordPress page), and live testing hit exactly the
-    // failure mode that setup risks: the whole browser tab force-navigated
-    // to the form's own URL and went blank - almost certainly a
-    // clickjacking-protection script on that page (common on WordPress,
-    // often added by a security plugin or the theme itself) detecting
-    // `window!==window.top` and forcing `top.location` to escape the
-    // frame, since same-origin X-Frame-Options alone wouldn't explain the
-    // tab's own URL changing. Turned back off rather than debugging
-    // WordPress-side security headers blind. Falls back to the "scroll
-    // down to find it" copy below, relying on the ?ges_lead=1 redirect
-    // path instead (see the leadgate detection effect in src/app.js) -
-    // this REQUIRES the actual [gravityform id="9"] shortcode to be
-    // placed somewhere on the SAME WordPress page as this widget's own
-    // iframe (not iframed itself, just placed directly in the page, the
-    // way it originally was), with that form's own Confirmation set to
-    // "Redirect to a URL" -> this page's own URL with ?ges_lead=1
-    // appended, exactly as originally configured before this embed
-    // detour. If that shortcode/confirmation isn't still in place, restore
-    // it - this widget alone can no longer host the form itself.
-    embedFormUrl: ""
+    // AJAX mode. embedFormUrl points at a WordPress page containing ONLY
+    // this Gravity Form, embedded directly in an <iframe> right here, so
+    // the form is literally part of this widget - no separate page
+    // element to find, no dependency on the outer WordPress page's own
+    // AJAX/confirmation settings.
+    //
+    // Briefly turned this off after live feedback sounded like a broken
+    // frame ("goes to a separate gravity form url... then it just goes
+    // blank"), suspecting a clickjacking-protection script forcing the tab
+    // out of the frame - direct follow-up feedback corrected that reading:
+    // the form filled out and submitted fine (the office inbox got the
+    // email), it just never advanced past the gate. The real cause: Form
+    // 9's own Confirmation is set to "Redirect to a URL" (not a plain Text
+    // confirmation), so submitting it navigates THIS iframe to a real new
+    // page rather than swapping in Gravity Forms' own confirmation markup
+    // - and the leadIframeRef detection effect in src/app.js only checked
+    // for that markup appearing, never for the iframe's own location
+    // changing. Fixed there (now also checks the iframe's own
+    // ?ges_lead=1), so the embed is back on.
+    embedFormUrl: "https://goldeagleservices.com/build-your-system-submission-form/"
   };
   var OFFICE_EMAIL = "sales@goldeagleservices.com";
   var TIER_LABEL = { fedmin: "Federal Minimum - 14.3 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
@@ -9718,8 +9715,15 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       if (!GATE_CONFIG.gravityFormId || !GATE_CONFIG.embedFormUrl || leadUnlocked || pricingFlow !== "leadgate") return;
       const check = () => {
         try {
-          const doc = leadIframeRef.current && leadIframeRef.current.contentDocument;
+          const win = leadIframeRef.current && leadIframeRef.current.contentWindow;
+          const doc = win && win.document;
           if (doc && doc.querySelector('.gform_confirmation_wrapper,[id*="gform_confirmation_wrapper"]')) {
+            markLeadSubmitted();
+            setLeadUnlocked(true);
+            trackLead({ form_id: GATE_CONFIG.gravityFormId });
+            return;
+          }
+          if (win && new URLSearchParams(win.location.search).get("ges_lead") === "1") {
             markLeadSubmitted();
             setLeadUnlocked(true);
             trackLead({ form_id: GATE_CONFIG.gravityFormId });
