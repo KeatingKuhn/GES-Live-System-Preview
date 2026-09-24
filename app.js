@@ -9015,15 +9015,29 @@
           onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.max(1, (p.ventCount || 1) - 1) }))
         },
         "\u2212"
-      ), /* @__PURE__ */ React.createElement("input", { id: "pricing-vent-count-input", type: "number", min: "1", max: "20", value: pricingAnswers.ventCount ?? "", onChange: (e) => {
-        const raw = e.target.value;
-        if (raw === "") {
-          setPricingAnswers((p) => ({ ...p, ventCount: void 0 }));
-          return;
+      ), /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          id: "pricing-vent-count-input",
+          type: "number",
+          min: "1",
+          max: "20",
+          value: pricingAnswers.ventCount ?? "",
+          onChange: (e) => {
+            const raw = e.target.value;
+            if (raw === "") {
+              setPricingAnswers((p) => ({ ...p, ventCount: void 0 }));
+              return;
+            }
+            const n = parseInt(raw);
+            setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(1, n)) }));
+          },
+          onBlur: () => {
+            if (!pricingAnswers.ventCount) setPricingAnswers((p) => ({ ...p, ventCount: 1 }));
+          },
+          className: "pricing-input vent-input"
         }
-        const n = parseInt(raw);
-        setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(1, n)) }));
-      }, className: "pricing-input vent-input" }), /* @__PURE__ */ React.createElement(
+      ), /* @__PURE__ */ React.createElement(
         "button",
         {
           type: "button",
@@ -9057,15 +9071,28 @@
           onClick: () => setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Math.max(1, (p.newSupplyRunCount || 1) - 1) }))
         },
         "\u2212"
-      ), /* @__PURE__ */ React.createElement("input", { type: "number", min: "1", max: "10", value: pricingAnswers.newSupplyRunCount ?? "", onChange: (e) => {
-        const raw = e.target.value;
-        if (raw === "") {
-          setPricingAnswers((p) => ({ ...p, newSupplyRunCount: void 0 }));
-          return;
+      ), /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "number",
+          min: "1",
+          max: "10",
+          value: pricingAnswers.newSupplyRunCount ?? "",
+          onChange: (e) => {
+            const raw = e.target.value;
+            if (raw === "") {
+              setPricingAnswers((p) => ({ ...p, newSupplyRunCount: void 0 }));
+              return;
+            }
+            const n = parseInt(raw);
+            setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Number.isNaN(n) ? void 0 : Math.min(10, Math.max(1, n)) }));
+          },
+          onBlur: () => {
+            if (!pricingAnswers.newSupplyRunCount) setPricingAnswers((p) => ({ ...p, newSupplyRunCount: 1 }));
+          },
+          className: "pricing-input vent-input"
         }
-        const n = parseInt(raw);
-        setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Number.isNaN(n) ? void 0 : Math.min(10, Math.max(1, n)) }));
-      }, className: "pricing-input vent-input" }), /* @__PURE__ */ React.createElement(
+      ), /* @__PURE__ */ React.createElement(
         "button",
         {
           type: "button",

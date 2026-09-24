@@ -2464,7 +2464,23 @@ function App(){
                           if(raw===''){setPricingAnswers(p=>({...p,ventCount:undefined}));return;}
                           const n=parseInt(raw);
                           setPricingAnswers(p=>({...p,ventCount:Number.isNaN(n)?undefined:Math.min(20,Math.max(1,n))}));
-                        }} className="pricing-input vent-input"/>
+                        }}
+                        // QA FIX - automated pass: clearing this field to
+                        // empty (select-all+delete, or a non-numeric paste
+                        // that type=number rejects down to '') left
+                        // ventCount:undefined with nothing to ever set it
+                        // back - the checkbox stayed checked but
+                        // calcEstimate's own ventCount||0 fallback (data.js)
+                        // silently dropped the whole line, charging $0 with
+                        // no visible warning. The undefined branch above has
+                        // to stay (so you can clear-then-retype a new
+                        // number while typing) - this restores a valid
+                        // value only once you leave the field with nothing
+                        // usable in it, same "fix it on blur, not on every
+                        // keystroke" pattern as the stepper buttons already
+                        // use for their own floor.
+                        onBlur={()=>{if(!pricingAnswers.ventCount)setPricingAnswers(p=>({...p,ventCount:1}));}}
+                        className="pricing-input vent-input"/>
                         <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
                           disabled={(pricingAnswers.ventCount||0)>=20}
                           onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.min(20,(p.ventCount||1)+1)}))}>+</button>
@@ -2512,7 +2528,17 @@ function App(){
                             if(raw===''){setPricingAnswers(p=>({...p,newSupplyRunCount:undefined}));return;}
                             const n=parseInt(raw);
                             setPricingAnswers(p=>({...p,newSupplyRunCount:Number.isNaN(n)?undefined:Math.min(10,Math.max(1,n))}));
-                          }} className="pricing-input vent-input"/>
+                          }}
+                          // QA FIX - same checked-but-$0 desync as the
+                          // duct-replacement vent-count input just above
+                          // (see its own comment): clearing this field to
+                          // empty left newSupplyRunCount:undefined with
+                          // nothing to ever restore it, and
+                          // calcEstimate's own newSupplyRunCount||0
+                          // fallback (data.js) silently dropped the whole
+                          // line while the checkbox stayed checked.
+                          onBlur={()=>{if(!pricingAnswers.newSupplyRunCount)setPricingAnswers(p=>({...p,newSupplyRunCount:1}));}}
+                          className="pricing-input vent-input"/>
                           <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
                             disabled={(pricingAnswers.newSupplyRunCount||0)>=10}
                             onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.min(10,(p.newSupplyRunCount||1)+1)}))}>+</button>
