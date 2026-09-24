@@ -5380,9 +5380,9 @@
             HoverInfo,
             {
               key: "rl-seg" + i,
-              x: x0 - 4,
+              x: Math.min(x0, x1) - 4,
               y: top,
-              w: x1 - x0 + 8,
+              w: Math.abs(x1 - x0) + 8,
               h: bot - top,
               rx: 3,
               vw: SVG_VW,

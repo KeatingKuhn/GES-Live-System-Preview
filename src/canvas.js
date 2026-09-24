@@ -5322,12 +5322,37 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     forces only an eighth of the rise, so each one stays
                     genuinely tight against the line no matter how
                     shallow or steep the overall pitch is. */}
+                {/* QA FIX - both interpolation arrays above assume their
+                    start point sits left of their end point (RL_START_X
+                    before RIDGE_X, RIDGE_X before RL_WALL_X) - true for
+                    every layout the wizard's own step order can produce
+                    (plenum, which the indoor unit's own horizontal
+                    centering below accounts for via totalW, is always
+                    answered before cond_tier can even be reached, let
+                    alone rendered here). A resumed build that skips
+                    straight to cond_tier without plenum ever having been
+                    answered (loadSavedBuild in app.js only requires
+                    `answers.location` to be truthy, not that every
+                    earlier-step field is populated too - reachable by
+                    hand-edited localStorage, or a future save-schema
+                    change) under-counts totalW by the plenum's own
+                    reserved width, which shifts the whole indoor-unit
+                    assembly (and RL_START_X with it) far enough right to
+                    land right of RIDGE_X - flipping this first array's
+                    real direction without the code here ever expecting
+                    that. x0-4/x1-x0+8 then went negative-width, which is
+                    invalid SVG (Chrome logs it and simply skips painting
+                    that rect) - not a crash, but it silently dropped that
+                    segment's own hover/tooltip coverage. Math.min/
+                    Math.abs make each segment's box direction-agnostic, so
+                    it's still the same tight, correctly-positioned box
+                    either way instead of a negative-width no-op. */}
                 {[...Array.from({length:8},(_,i)=>[RL_START_X+(RIDGE_X-RL_START_X)*i/8,RL_START_X+(RIDGE_X-RL_START_X)*(i+1)/8]),
                   ...Array.from({length:8},(_,i)=>[RIDGE_X+(RL_WALL_X-RIDGE_X)*i/8,RIDGE_X+(RL_WALL_X-RIDGE_X)*(i+1)/8])
                 ].map(([x0,x1],i)=>{
                   const y0=roofY(x0)+RL_ROOF_GAP, y1=roofY(x1)+RL_ROOF_GAP;
                   const top=Math.min(y0,y1)-6, bot=Math.max(y0,y1)+10;
-                  return <HoverInfo key={'rl-seg'+i} x={x0-4} y={top} w={x1-x0+8} h={bot-top} rx={3}
+                  return <HoverInfo key={'rl-seg'+i} x={Math.min(x0,x1)-4} y={top} w={Math.abs(x1-x0)+8} h={bot-top} rx={3}
                     vw={SVG_VW} vh={SVG_VH} title={T('lineset').title} text={T('lineset').text}
                     ringPath={linesetRingPath} ringStrokeWidth={16}/>;
                 })}
