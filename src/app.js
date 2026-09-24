@@ -1,6 +1,6 @@
 const {useState,useMemo,useRef,useCallback}=React;
 import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES} from './data.js';
-import {Canvas,CountUp,Defs} from './canvas.js';
+import {Canvas,CashCount,Defs} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
 // ─── AUTOSAVE ───────────────────────────────────────────────────
@@ -51,6 +51,46 @@ function hoverCapable(){
   try{return window.matchMedia('(hover: hover)').matches;}catch(e){return true;}
 }
 
+// QA FIX - direct feedback: "when you finish the system build, throw
+// some easter eggs, fireworks, whatever... make it fun. were finally at
+// the end." A one-shot confetti burst (not a looping/sustained effect -
+// see styles.css's own prefers-reduced-motion comment for why short,
+// one-time transitions like this stay exempt from that media query,
+// same as fadein/snap elsewhere) - absolutely positioned, pointer-
+// events:none so it never blocks a click on whatever's underneath, and
+// self-contained (the parent just mounts/unmounts it via a timeout, see
+// celebrateBuild/celebratePrice in App). Piece count/colors are fixed,
+// but each piece's fall path (left position, drift, spin, delay,
+// duration) is randomized per mount - two bursts never look identical.
+function Confetti({count=46}){
+  const pieces=useMemo(()=>{
+    const colors=['var(--gl)','var(--gh)','#fff','#f0d64e','#d7b740'];
+    return Array.from({length:count},(_,i)=>({
+      id:i,
+      left:Math.random()*100,
+      delay:Math.random()*0.35,
+      duration:1.6+Math.random()*0.9,
+      size:5+Math.random()*5,
+      drift:(Math.random()-0.5)*140,
+      spin:(Math.random()>0.5?1:-1)*(360+Math.random()*360),
+      color:colors[i%colors.length],
+      round:i%2===0,
+    }));
+  },[count]);
+  return <div style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:50}} aria-hidden="true">
+    {pieces.map(p=>(
+      <span key={p.id} style={{
+        position:"absolute",top:-14,left:p.left+"%",
+        width:p.size,height:p.size*(p.round?1:0.42),
+        background:p.color,borderRadius:p.round?"50%":2,
+        opacity:0,
+        animation:`confettiFall ${p.duration}s cubic-bezier(.24,.68,.3,1) ${p.delay}s forwards`,
+        "--confetti-drift":p.drift+"px","--confetti-spin":p.spin+"deg",
+      }}/>
+    ))}
+  </div>;
+}
+
 function App(){
   const [savedBuild]=useState(loadSavedBuild);
   const [resumePending,setResumePending]=useState(!!savedBuild);
@@ -60,6 +100,24 @@ function App(){
   const [answers,setAnswers]=useState(defaultAnswers);
   const [stepIdx,setStepIdx]=useState(0);
   const [done,setDone]=useState(false);
+  // QA FIX - direct feedback: "when you finish the system build, throw
+  // some easter eggs, fireworks, whatever... make it fun. were finally at
+  // the end." A one-shot confetti burst, fired once on genuinely
+  // finishing a build and once on reaching the price reveal - refs (not
+  // state) guard each so an EDIT chip round-trip back to either screen
+  // never replays it; only a brand-new build (Start Over) resets these,
+  // same as a fresh page load.
+  const [celebrateBuild,setCelebrateBuild]=useState(false);
+  const buildCelebratedRef=useRef(false);
+  React.useEffect(()=>{
+    if(!done||buildCelebratedRef.current)return;
+    buildCelebratedRef.current=true;
+    setCelebrateBuild(true);
+    const t=setTimeout(()=>setCelebrateBuild(false),2600);
+    return ()=>clearTimeout(t);
+  },[done]);
+  const [celebratePrice,setCelebratePrice]=useState(false);
+  const priceCelebratedRef=useRef(false);
   // Done-screen exit transition: its own entrance already gets a deliberate
   // "power on" flourish (canvasPowerOn/done-wrap's snap, below) - but an
   // EDIT chip flips `done` back to false to jump into the wizard, which
@@ -144,6 +202,13 @@ function App(){
   const [pricingFlow,setPricingFlow]=useState(null);
   const [pricingSubStep,setPricingSubStep]=useState(0);
   const [pricingAnswers,setPricingAnswers]=useState({});
+  React.useEffect(()=>{
+    if(pricingFlow!=='result'||priceCelebratedRef.current)return;
+    priceCelebratedRef.current=true;
+    setCelebratePrice(true);
+    const t=setTimeout(()=>setCelebratePrice(false),2600);
+    return ()=>clearTimeout(t);
+  },[pricingFlow]);
   const topRef=useRef(null);
   // QA FIX - block:'start' forces topRef's top edge to align EXACTLY with
   // its scrolling ancestor's top on every call, even when it's already
@@ -571,6 +636,11 @@ function App(){
     // (even one that happens to land on the exact same picks as the one
     // just abandoned) is its own real completion and must still fire.
     lastTrackedBuildRef.current=null;
+    // Same for the confetti celebration guards - a fresh build deserves
+    // its own celebration when it finishes, not silence because the
+    // abandoned build already used up the one-time flag.
+    buildCelebratedRef.current=false;
+    priceCelebratedRef.current=false;
   };
   const resumeBuild=()=>{
     const savedAnswers=savedBuild.answers||{};
@@ -1440,6 +1510,13 @@ function App(){
           against outside that one closing beat. Same reasoning as the
           .splash-screen comment above. */}
       {doneVisible&&<div ref={doneScreenRef} className={"done-screen"+(isAtticMode?" attic-mode":" closet-mode")+(pricingFlow==='leadgate'&&GATE_CONFIG.embedFormUrl?" lead-form-open":"")+(!done?" done-leaving":"")} style={{position:"absolute",inset:0,overflow:"hidden",zIndex:10}}>
+        {/* Confetti - see celebrateBuild/celebratePrice's own comments
+            above (near the `done`/`pricingFlow` state) for when/why each
+            fires. Both burst across the whole done screen rather than
+            being scoped to just the diagram or just the price card - a
+            reveal this size deserves the full width. */}
+        {celebrateBuild&&<Confetti/>}
+        {celebratePrice&&<Confetti/>}
         {/* flex itself lives in styles.css (.done-canvas-frame), not here -
             an inline style always wins over any stylesheet rule regardless
             of specificity, which silently defeated the mobile height cap
@@ -1930,7 +2007,7 @@ function App(){
               {/* Wrapped in its own key'd+fadein div for the same reason as
                   the sizing sub-steps above - this result panel replaces
                   the sizing UI in place with no DOM identity change, so
-                  without this it popped in instantly (the CountUp price
+                  without this it popped in instantly (the CashCount price
                   digits were the only thing that animated in). */}
               {pricingFlow==='result'&&<div key="result" className="fadein">{(()=>{
                 const est=calcEstimate(answers,pricingAnswers);
@@ -1961,7 +2038,7 @@ function App(){
                         gets the dominant visual weight: its own bordered
                         card, the biggest type on the panel, and a one-shot
                         gold reveal glow (.price-hero::before in styles.css)
-                        timed to the CountUp beneath it finishing. The
+                        timed to the CashCount beneath it finishing. The
                         one-time total right below stays fully visible and
                         at its original size/color - still a number someone
                         will want to read clearly - it's just no longer the
@@ -1972,8 +2049,10 @@ function App(){
                         actually applies to. */}
                     <div className="price-hero">
                       <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
-                      {/* PRINT QA FIX - CountUp (canvas.js) re-animates from
-                          $0 over 900ms on every `value` change, including a
+                      {/* PRINT QA FIX - CashCount (canvas.js) re-animates
+                          from $0 over 900ms on every `value` change (each
+                          digit reels independently, but still lands from
+                          scratch), including a
                           checkbox toggle re-triggering it, not just the
                           first reveal. window.print()/a PDF capture snapshots
                           whatever the DOM happens to show at that instant -
@@ -1989,7 +2068,7 @@ function App(){
                           .price-live/.price-static (styles.css, @media
                           print) swap to the plain final number for print
                           only - on-screen animation is untouched. */}
-                      <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CountUp value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/></span><span className="price-static">{Math.round(est.display/36).toLocaleString()}</span><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
+                      <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CashCount value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/></span><span className="price-static">{Math.round(est.display/36).toLocaleString()}</span><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
                       {/* This 36mo/0% figure is a real Wells Fargo program,
                           but not a self-serve one - GES has to send the
                           customer a direct application link personally, so
@@ -2010,7 +2089,7 @@ function App(){
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
                     {/* Same in-flight-animation print fix as the /mo hero
                         figure above - see its comment. */}
-                    <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CountUp value={est.display} format={n=>n.toLocaleString()}/></span><span className="price-static">{est.display.toLocaleString()}</span></div>
+                    <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CashCount value={est.display} format={n=>n.toLocaleString()}/></span><span className="price-static">{est.display.toLocaleString()}</span></div>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr('Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).','Incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación).')}</div>
                     {addonLines.length>0&&<div className="price-breakdown">
                       <div className="price-breakdown-bar">

@@ -492,6 +492,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    to compete with), so this is scoped to attic only. */
 .done-screen.attic-mode .done-canvas-frame{max-height:620px}
 @keyframes canvasPowerOn{0%{filter:brightness(1.7) saturate(1.35)}100%{filter:brightness(1) saturate(1)}}
+/* Confetti (app.js) - each piece fades in fast, falls+drifts+spins to a
+   per-piece randomized end position via the --confetti-drift/-spin custom
+   properties set inline, then fades out just before landing (so nothing
+   visibly piles up at the bottom of the done screen). */
+@keyframes confettiFall{
+  0%{opacity:0;transform:translate(0,0) rotate(0deg)}
+  10%{opacity:1}
+  85%{opacity:1}
+  100%{opacity:0;transform:translate(var(--confetti-drift),360px) rotate(var(--confetti-spin))}
+}
 .done-canvas-sweep{position:absolute;inset:0;pointer-events:none;z-index:6;
   background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.22) 47%,rgba(240,214,78,.4) 50%,rgba(255,255,255,.22) 53%,transparent 65%);
   background-size:280% 100%;background-position:160% 0;animation:powerSweep 1s cubic-bezier(.4,0,.2,1) both}
@@ -1954,21 +1964,32 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 
   // src/canvas.js
   var { useState, useMemo, useRef, useCallback } = React;
-  function CountUp({ value, duration = 900, format }) {
-    const [display, setDisplay] = useState(0);
+  function DigitReel({ digit, delay = 0, duration = 900 }) {
+    const loops = 3;
+    const strip = useMemo(() => {
+      const seq = [];
+      for (let i = 0; i < loops; i++) for (let d = 0; d < 10; d++) seq.push(d);
+      seq.push(Number(digit));
+      return seq;
+    }, [digit]);
+    const ref = useRef(null);
     React.useEffect(() => {
-      let raf, start;
-      const animate = (ts) => {
-        if (!start) start = ts;
-        const t = Math.min(1, (ts - start) / duration);
-        const eased = 1 - Math.pow(1 - t, 3);
-        setDisplay(Math.round(value * eased));
-        if (t < 1) raf = requestAnimationFrame(animate);
-      };
-      raf = requestAnimationFrame(animate);
-      return () => cancelAnimationFrame(raf);
-    }, [value, duration]);
-    return format ? format(display) : display;
+      const el = ref.current;
+      if (!el) return;
+      el.style.transition = "none";
+      el.style.transform = "translateY(0)";
+      void el.offsetHeight;
+      el.style.transition = `transform ${duration}ms cubic-bezier(.16,.72,.28,1) ${delay}ms`;
+      el.style.transform = `translateY(-${strip.length - 1}em)`;
+    }, [digit, duration, delay, strip.length]);
+    return /* @__PURE__ */ React.createElement("span", { style: { display: "inline-block", overflow: "hidden", height: "1em", width: "0.62em", verticalAlign: "text-bottom", textAlign: "center" } }, /* @__PURE__ */ React.createElement("span", { ref, style: { display: "block" } }, strip.map((d, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { display: "block", height: "1em", lineHeight: "1em" } }, d))));
+  }
+  function CashCount({ value, format, duration = 900, stagger = 85 }) {
+    const str = format ? format(value) : String(value);
+    let digitIdx = 0;
+    return /* @__PURE__ */ React.createElement("span", { style: { display: "inline-flex" } }, str.split("").map(
+      (c, i) => /[0-9]/.test(c) ? /* @__PURE__ */ React.createElement(DigitReel, { key: i, digit: c, duration, delay: digitIdx++ * stagger }) : /* @__PURE__ */ React.createElement("span", { key: i, style: { display: "inline-block" } }, c)
+    ));
   }
   function rnd(seed) {
     const x = Math.sin(seed * 12.9898) * 43758.5453;
@@ -9509,6 +9530,35 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       return true;
     }
   }
+  function Confetti({ count = 46 }) {
+    const pieces = useMemo2(() => {
+      const colors = ["var(--gl)", "var(--gh)", "#fff", "#f0d64e", "#d7b740"];
+      return Array.from({ length: count }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 0.35,
+        duration: 1.6 + Math.random() * 0.9,
+        size: 5 + Math.random() * 5,
+        drift: (Math.random() - 0.5) * 140,
+        spin: (Math.random() > 0.5 ? 1 : -1) * (360 + Math.random() * 360),
+        color: colors[i % colors.length],
+        round: i % 2 === 0
+      }));
+    }, [count]);
+    return /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 50 }, "aria-hidden": "true" }, pieces.map((p) => /* @__PURE__ */ React.createElement("span", { key: p.id, style: {
+      position: "absolute",
+      top: -14,
+      left: p.left + "%",
+      width: p.size,
+      height: p.size * (p.round ? 1 : 0.42),
+      background: p.color,
+      borderRadius: p.round ? "50%" : 2,
+      opacity: 0,
+      animation: `confettiFall ${p.duration}s cubic-bezier(.24,.68,.3,1) ${p.delay}s forwards`,
+      "--confetti-drift": p.drift + "px",
+      "--confetti-spin": p.spin + "deg"
+    } })));
+  }
   function App() {
     const [savedBuild] = useState2(loadSavedBuild);
     const [resumePending, setResumePending] = useState2(!!savedBuild);
@@ -9516,6 +9566,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     const [answers, setAnswers] = useState2(defaultAnswers);
     const [stepIdx, setStepIdx] = useState2(0);
     const [done, setDone] = useState2(false);
+    const [celebrateBuild, setCelebrateBuild] = useState2(false);
+    const buildCelebratedRef = useRef2(false);
+    React.useEffect(() => {
+      if (!done || buildCelebratedRef.current) return;
+      buildCelebratedRef.current = true;
+      setCelebrateBuild(true);
+      const t = setTimeout(() => setCelebrateBuild(false), 2600);
+      return () => clearTimeout(t);
+    }, [done]);
+    const [celebratePrice, setCelebratePrice] = useState2(false);
+    const priceCelebratedRef = useRef2(false);
     const [doneVisible, setDoneVisible] = useState2(false);
     React.useEffect(() => {
       if (done) {
@@ -9549,6 +9610,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     const [pricingFlow, setPricingFlow] = useState2(null);
     const [pricingSubStep, setPricingSubStep] = useState2(0);
     const [pricingAnswers, setPricingAnswers] = useState2({});
+    React.useEffect(() => {
+      if (pricingFlow !== "result" || priceCelebratedRef.current) return;
+      priceCelebratedRef.current = true;
+      setCelebratePrice(true);
+      const t = setTimeout(() => setCelebratePrice(false), 2600);
+      return () => clearTimeout(t);
+    }, [pricingFlow]);
     const topRef = useRef2(null);
     const scrollTop = useCallback2(() => setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50), []);
     const tonnageOptionsForTier = useMemo2(
@@ -9798,6 +9866,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       setPricingSubStep(0);
       setPricingAnswers({});
       lastTrackedBuildRef.current = null;
+      buildCelebratedRef.current = false;
+      priceCelebratedRef.current = false;
     };
     const resumeBuild = () => {
       const savedAnswers = savedBuild.answers || {};
@@ -10161,7 +10231,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         }
       },
       "i"
-    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (isClosetMode && showInfo && infoText ? " open" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (pricingFlow === "leadgate" && GATE_CONFIG.embedFormUrl ? " lead-form-open" : "") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang: lang2 })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" })), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang2 === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
+    )), /* @__PURE__ */ React.createElement("div", { className: "step-q" }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint)), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line", style: { padding: "4px 18px 0" } }, "\u2713 ", reactionText), /* @__PURE__ */ React.createElement("div", { className: "info-collapse" + (isClosetMode && showInfo && infoText ? " open" : "") }, /* @__PURE__ */ React.createElement("div", { className: "info-collapse-inner" }, infoText && /* @__PURE__ */ React.createElement("div", { className: "info-expand" }, /* @__PURE__ */ React.createElement("div", { className: "info-body" }, infoText)))), /* @__PURE__ */ React.createElement("div", { key: "opts-" + stepIdx, className: "opts fadein" }, opts.map((opt) => makeOpt(opt, false))), /* @__PURE__ */ React.createElement("div", { className: "nav-row" }, stepIdx > 0 && /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: goBack }, "\u2039 ", tr("Back", "Atr\xE1s")), cur && (cur.optional || cur.multi) && /* @__PURE__ */ React.createElement("button", { className: "btn-skip", onClick: skip }, tr("Skip", "Omitir")), /* @__PURE__ */ React.createElement("button", { className: "btn-next", onClick: goNext, disabled: !canNext }, quickEdit ? quickEditWillFinish ? tr("Save & Return", "Guardar y volver") : tr("Next", "Siguiente") : stepIdx === activeSteps.length - 1 ? tr("See Full Build", "Ver Sistema Completo") : tr("Next", "Siguiente"))))), doneVisible && /* @__PURE__ */ React.createElement("div", { ref: doneScreenRef, className: "done-screen" + (isAtticMode ? " attic-mode" : " closet-mode") + (pricingFlow === "leadgate" && GATE_CONFIG.embedFormUrl ? " lead-form-open" : "") + (!done ? " done-leaving" : ""), style: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 10 } }, celebrateBuild && /* @__PURE__ */ React.createElement(Confetti, null), celebratePrice && /* @__PURE__ */ React.createElement(Confetti, null), /* @__PURE__ */ React.createElement("div", { className: "canvas-frame done-canvas-frame", style: { minWidth: 0, minHeight: 0, position: "relative", overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, onEditStep: jumpToStep, lang: lang2 })), /* @__PURE__ */ React.createElement("div", { className: "done-canvas-sweep" })), /* @__PURE__ */ React.createElement("div", { className: "sidebar", style: isAtticMode ? { overflowY: "auto", width: "100%", flexShrink: 0, borderLeft: "none", borderTop: "1px solid var(--border)" } : { overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead" }, /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-brand" }, "GOLD EAGLE SERVICES"), /* @__PURE__ */ React.createElement("div", { className: "print-letterhead-sub" }, tr("Austin, TX \xB7 HVAC System Estimate", "Austin, TX \xB7 Estimado de Sistema HVAC"), " \xB7 ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang2 === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" }))), /* @__PURE__ */ React.createElement("div", { className: "done-wrap" + (isAtticMode ? " done-wrap-attic" : ""), style: { padding: "10px 14px 8px", overflowY: "auto" } }, (() => {
       const closetVisibleCount = reviewItems.filter((it) => it && it.val).length;
       let closetRenderedIdx = 0;
       const reviewGrid = (leadCell) => /* @__PURE__ */ React.createElement("div", { className: "done-review-grid" + (isAtticMode ? " attic-mode-grid" : " closet-mode-grid"), style: { width: "100%", marginBottom: 8, border: "1px solid rgba(215,183,64,.15)", display: "grid" } }, leadCell, reviewItems.map((item, i) => {
@@ -10324,7 +10394,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const basePct = est.display > 0 ? Math.round(est.lines[0].display / est.display * 100) : 100;
       const addonsPct = 100 - basePct;
       const wisetack = FINANCING_OPTIONS.find((f) => f.key === "wisetack" && f.url);
-      const priceCard = /* @__PURE__ */ React.createElement("div", { className: "price-card", style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { className: "price-hero" }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("AS LOW AS", "DESDE")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 48, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CountUp, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, Math.round(est.display / 36).toLocaleString()), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18, color: "var(--dim)", fontWeight: 400 } }, tr("/mo", "/mes"))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6 } }, tr("Based on 36 months at 0% APR through Wells Fargo - ask your comfort advisor, subject to approved credit.", "Basado en 36 meses al 0% de inter\xE9s a trav\xE9s de Wells Fargo - pregunte a su asesor, sujeto a aprobaci\xF3n de cr\xE9dito.")), wisetack && /* @__PURE__ */ React.createElement(
+      const priceCard = /* @__PURE__ */ React.createElement("div", { className: "price-card", style: { border: "1px solid rgba(215,183,64,.3)", background: "rgba(215,183,64,.05)", padding: 12 } }, /* @__PURE__ */ React.createElement("div", { className: "price-hero" }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("AS LOW AS", "DESDE")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 48, fontWeight: 700, color: "var(--gl)", lineHeight: 1 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CashCount, { value: Math.round(est.display / 36), format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, Math.round(est.display / 36).toLocaleString()), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18, color: "var(--dim)", fontWeight: 400 } }, tr("/mo", "/mes"))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginTop: 6 } }, tr("Based on 36 months at 0% APR through Wells Fargo - ask your comfort advisor, subject to approved credit.", "Basado en 36 meses al 0% de inter\xE9s a trav\xE9s de Wells Fargo - pregunte a su asesor, sujeto a aprobaci\xF3n de cr\xE9dito.")), wisetack && /* @__PURE__ */ React.createElement(
         "a",
         {
           href: wisetack.url,
@@ -10334,7 +10404,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           onClick: () => trackEvent("financing_clicked", { lender: "wisetack", source: "price_reveal" })
         },
         tr("\u2192 Or prequalify online with Wisetack", "\u2192 O precalifique en l\xEDnea con Wisetack")
-      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CountUp, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, est.display.toLocaleString())), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr("Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).", "Incluye una garant\xEDa de f\xE1brica de 10 a\xF1os en piezas (requiere registro dentro de los 60 d\xEDas posteriores a la instalaci\xF3n).")), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)", textAlign: "left" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CashCount, { value: est.display, format: (n) => n.toLocaleString() })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, est.display.toLocaleString())), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr("Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).", "Incluye una garant\xEDa de f\xE1brica de 10 a\xF1os en piezas (requiere registro dentro de los 60 d\xEDas posteriores a la instalaci\xF3n).")), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)", textAlign: "left" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", l.display.toLocaleString())))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",

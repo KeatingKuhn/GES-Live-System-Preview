@@ -21,6 +21,50 @@ export function CountUp({value,duration=900,format}){
   return format?format(display):display;
 }
 
+// QA FIX - direct feedback: "i like how it counts up the numbers, maybe
+// it counts up to the price on all the numbers. like an old school cash
+// register type number selection... make it fun. were finally at the
+// end." Each digit gets its own vertical reel spinning through a few
+// loops of 0-9 before landing on the right number, staggered left to
+// right (leftmost settles first, like a slot machine's reels stopping in
+// sequence) instead of the whole figure just counting up as one block.
+// The reel only re-spins when ITS OWN final digit actually changes (the
+// effect below keys on [digit]) - a quick-edit that only moves the last
+// digit of the total doesn't replay every other position.
+function DigitReel({digit,delay=0,duration=900}){
+  const loops=3; // full 0-9 passes before landing, purely cosmetic (longer spin = more "mechanical")
+  const strip=useMemo(()=>{
+    const seq=[];
+    for(let i=0;i<loops;i++)for(let d=0;d<10;d++)seq.push(d);
+    seq.push(Number(digit));
+    return seq;
+  },[digit]);
+  const ref=useRef(null);
+  React.useEffect(()=>{
+    const el=ref.current;
+    if(!el)return;
+    el.style.transition='none';
+    el.style.transform='translateY(0)';
+    void el.offsetHeight; // force reflow so the transition below animates FROM 0, not just jumps
+    el.style.transition=`transform ${duration}ms cubic-bezier(.16,.72,.28,1) ${delay}ms`;
+    el.style.transform=`translateY(-${strip.length-1}em)`;
+  },[digit,duration,delay,strip.length]);
+  return <span style={{display:"inline-block",overflow:"hidden",height:"1em",width:"0.62em",verticalAlign:"text-bottom",textAlign:"center"}}>
+    <span ref={ref} style={{display:"block"}}>
+      {strip.map((d,i)=><span key={i} style={{display:"block",height:"1em",lineHeight:"1em"}}>{d}</span>)}
+    </span>
+  </span>;
+}
+export function CashCount({value,format,duration=900,stagger=85}){
+  const str=format?format(value):String(value);
+  let digitIdx=0;
+  return <span style={{display:"inline-flex"}}>{str.split('').map((c,i)=>
+    /[0-9]/.test(c)
+      ?<DigitReel key={i} digit={c} duration={duration} delay={(digitIdx++)*stagger}/>
+      :<span key={i} style={{display:"inline-block"}}>{c}</span>
+  )}</span>;
+}
+
 // Deterministic pseudo-random in [0,1) - same seed always gives the same
 // value, so the rain/snow layout in OutsideZone below is stable across
 // re-renders instead of reshuffling every time React re-renders the canvas.
