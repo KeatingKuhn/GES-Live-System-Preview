@@ -77,7 +77,15 @@ function Confetti({count=46}){
       round:i%2===0,
     }));
   },[count]);
-  return <div style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:50}} aria-hidden="true">
+  // QA FIX - print/PDF correctness: this had no `no-print` class (nor any
+  // className at all), so hitting Save/Print during the ~2.6s celebration
+  // window right after finishing a build or right after the price reveals
+  // (both realistic - the confetti itself draws the eye to the screen at
+  // the exact moment "Save/Print" is sitting right there in Quick Actions)
+  // printed dozens of stray gold/white dots scattered across the diagram
+  // page. Purely a one-shot on-screen flourish with no meaning on paper -
+  // same category as the nav/button chrome .no-print already hides.
+  return <div className="no-print" style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:50}} aria-hidden="true">
     {pieces.map(p=>(
       <span key={p.id} style={{
         position:"absolute",top:-14,left:p.left+"%",
@@ -282,6 +290,23 @@ function App(){
     try{return localStorage.getItem('gesLang_v1')==='es'?'es':'en';}catch(e){return 'en';}
   });
   const tr=(en,es)=>lang==='es'&&es!==undefined?es:en;
+  // QA FIX - every price figure on this screen (hero /mo, hero total,
+  // itemized line items, the two add-on checkboxes, and the emailed/
+  // printed copies of all of these) called n.toLocaleString() with no
+  // locale argument, which formats against the VISITOR'S BROWSER/OS
+  // locale, not this app's own Spanish toggle - the one thing on this
+  // screen that toggle doesn't actually control. Harmless for the
+  // enormous majority of real visitors (es-MX/es-US format identically to
+  // en-US: comma thousands, period decimal - confirmed via
+  // Number.prototype.toLocaleString), but a visitor whose OS/browser is
+  // set to Spain Spanish (es-ES, period thousands/comma decimal) or any
+  // other differently-formatting locale would see numbers that don't
+  // match the grouping the rest of the Spanish page uses, entirely
+  // independent of which language THIS SITE is actually showing them in.
+  // Pinning to the site's own toggle instead of the visitor's ambient OS
+  // locale is what every other Spanish string on this screen already
+  // does.
+  const fmtPrice=n=>n.toLocaleString(lang==='es'?'es-MX':'en-US');
   React.useEffect(()=>{
     try{localStorage.setItem('gesLang_v1',lang);}catch(e){}
     try{document.documentElement.lang=lang;}catch(e){}
@@ -860,9 +885,9 @@ function App(){
       if(est){
         lines.push('');
         lines.push(tr('Price breakdown:','Desglose de precio:'));
-        est.lines.forEach(l=>lines.push(`  ${trLineLabel(l)}: ~$${l.display.toLocaleString()}`));
+        est.lines.forEach(l=>lines.push(`  ${trLineLabel(l)}: ~$${fmtPrice(l.display)}`));
         lines.push('');
-        lines.push(tr(`Estimated total: ~$${est.display.toLocaleString()}`,`Total estimado: ~$${est.display.toLocaleString()}`));
+        lines.push(tr(`Estimated total: ~$${fmtPrice(est.display)}`,`Total estimado: ~$${fmtPrice(est.display)}`));
       }
     }
     lines.push('');
@@ -2216,7 +2241,7 @@ function App(){
                           .price-live/.price-static (styles.css, @media
                           print) swap to the plain final number for print
                           only - on-screen animation is untouched. */}
-                      <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CashCount value={Math.round(est.display/36)} format={n=>n.toLocaleString()}/></span><span className="price-static">{Math.round(est.display/36).toLocaleString()}</span><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
+                      <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CashCount value={Math.round(est.display/36)} format={fmtPrice}/></span><span className="price-static">{fmtPrice(Math.round(est.display/36))}</span><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
                       {/* This 36mo/0% figure is a real Wells Fargo program,
                           but not a self-serve one - GES has to send the
                           customer a direct application link personally, so
@@ -2237,7 +2262,7 @@ function App(){
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
                     {/* Same in-flight-animation print fix as the /mo hero
                         figure above - see its comment. */}
-                    <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CashCount value={est.display} format={n=>n.toLocaleString()}/></span><span className="price-static">{est.display.toLocaleString()}</span></div>
+                    <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CashCount value={est.display} format={fmtPrice}/></span><span className="price-static">{fmtPrice(est.display)}</span></div>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr('Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).','Incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación).')}</div>
                     {addonLines.length>0&&<div className="price-breakdown">
                       <div className="price-breakdown-bar">
@@ -2259,7 +2284,7 @@ function App(){
                               width) centered its lines while every other
                               line item sat flush left. */}
                           <span style={{color:"var(--dim)",textAlign:"left"}}>{trLineLabel(l)}</span>
-                          <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>~${l.display.toLocaleString()}</span>
+                          <span style={{color:"rgba(255,255,255,.85)",fontFamily:"var(--fm)",whiteSpace:"nowrap"}}>~${fmtPrice(l.display)}</span>
                         </div>
                       ))}
                     </div>
@@ -2269,12 +2294,12 @@ function App(){
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantLaborWarranty}
                         onChange={e=>setPricingAnswers(p=>({...p,wantLaborWarranty:e.target.checked}))}/>
-                      {tr(`Add a 10-year labor warranty (+$${PRICING.laborWarranty10yr.toLocaleString()})`,`Agregar garantía de mano de obra de 10 años (+$${PRICING.laborWarranty10yr.toLocaleString()})`)}
+                      {tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`,`Agregar garantía de mano de obra de 10 años (+$${fmtPrice(PRICING.laborWarranty10yr)})`)}
                     </label>
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantMaintenancePlan}
                         onChange={e=>setPricingAnswers(p=>({...p,wantMaintenancePlan:e.target.checked}))}/>
-                      {tr(`Add our annual maintenance plan (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/yr)`,`Agregar nuestro plan de mantenimiento anual (+$${PRICING.maintenancePlanAnnual.toLocaleString()}/año)`)}
+                      {tr(`Add our annual maintenance plan (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/yr)`,`Agregar nuestro plan de mantenimiento anual (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/año)`)}
                     </label>
                     {/* Short, non-exhaustive summary of what the plan covers -
                         kept to one line by design rather than reproducing
