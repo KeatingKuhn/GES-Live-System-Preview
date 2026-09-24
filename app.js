@@ -9039,5 +9039,23 @@
       setPricingAnswers({});
     } }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "quick-restart-btn", style: { width: "100%", fontFamily: "var(--fb)", fontSize: "var(--fs-restart)", padding: "9px" }, onClick: restart }, tr("Start Over", "Empezar de Nuevo"))))))));
   }
-  ReactDOM.createRoot(document.getElementById("root")).render(/* @__PURE__ */ React.createElement(App, null));
+  var ErrorBoundary = class extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = { hasError: false };
+    }
+    static getDerivedStateFromError() {
+      return { hasError: true };
+    }
+    componentDidCatch(error, info) {
+      console.error("GES System Builder - caught a render error:", error, info);
+    }
+    render() {
+      if (this.state.hasError) {
+        return /* @__PURE__ */ React.createElement("div", { style: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center", background: "#121212", color: "rgba(255,255,255,.78)", fontFamily: "'Trebuchet MS',sans-serif" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: "#f0d64e" } }, "Something went wrong."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, maxWidth: 360 } }, "Please refresh the page to keep building your system - your progress up to your last step is saved automatically."), /* @__PURE__ */ React.createElement("button", { onClick: () => window.location.reload(), style: { fontFamily: "'Trebuchet MS',sans-serif", fontSize: 14, fontWeight: 700, padding: "10px 24px", borderRadius: 4, border: "none", background: "linear-gradient(90deg,#f0d64e,#d7b740,#ab8024)", color: "#121212", cursor: "pointer" } }, "Refresh"));
+      }
+      return this.props.children;
+    }
+  };
+  ReactDOM.createRoot(document.getElementById("root")).render(/* @__PURE__ */ React.createElement(ErrorBoundary, null, /* @__PURE__ */ React.createElement(App, null)));
 })();

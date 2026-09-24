@@ -2556,4 +2556,41 @@ function App(){
 }
 
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+// ─── TOP-LEVEL ERROR BOUNDARY ───────────────────────────────────
+// Last line of defense: this widget ships as a live lead-gen tool with no
+// one actively watching it (see the provenance/ship-date context in this
+// repo's own history) - an uncaught exception ANYWHERE in the tree below,
+// with nothing catching it, unmounts the whole app to a blank white screen
+// (React's default behavior since v18), and a homeowner staring at a blank
+// iframe on the site just bails instead of retrying. This never repairs
+// anything or hides a real bug (still throws to the console exactly as
+// before, for anyone who does check later) - it only stands between "a bug
+// somewhere" and "the entire page going blank with zero recovery path",
+// swapping the blank screen for a plain apology + a refresh button.
+// Deliberately minimal - a class component is the only way to implement
+// getDerivedStateFromError/componentDidCatch, React has no Hooks
+// equivalent - and deliberately narrow in scope: it does not attempt to
+// recover in place (the state that got the app into a broken render could
+// itself be the cause), just offers the one universally-safe way out.
+class ErrorBoundary extends React.Component{
+  constructor(props){super(props);this.state={hasError:false};}
+  static getDerivedStateFromError(){return{hasError:true};}
+  componentDidCatch(error,info){
+    // Still surfaces in the console/any error-monitoring tool exactly like
+    // an uncaught exception normally would - this boundary only stops it
+    // from taking the whole UI down with it, never silences it.
+    console.error('GES System Builder - caught a render error:',error,info);
+  }
+  render(){
+    if(this.state.hasError){
+      return <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24,textAlign:"center",background:"#121212",color:"rgba(255,255,255,.78)",fontFamily:"'Trebuchet MS',sans-serif"}}>
+        <div style={{fontSize:18,fontWeight:700,color:"#f0d64e"}}>Something went wrong.</div>
+        <div style={{fontSize:14,maxWidth:360}}>Please refresh the page to keep building your system - your progress up to your last step is saved automatically.</div>
+        <button onClick={()=>window.location.reload()} style={{fontFamily:"'Trebuchet MS',sans-serif",fontSize:14,fontWeight:700,padding:"10px 24px",borderRadius:4,border:"none",background:"linear-gradient(90deg,#f0d64e,#d7b740,#ab8024)",color:"#121212",cursor:"pointer"}}>Refresh</button>
+      </div>;
+    }
+    return this.props.children;
+  }
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);
