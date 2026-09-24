@@ -57,15 +57,23 @@ function hoverCapable(){
 
 // QA FIX - direct feedback: "when you finish the system build, throw
 // some easter eggs, fireworks, whatever... make it fun. were finally at
-// the end." A one-shot confetti burst (not a looping/sustained effect -
-// see styles.css's own prefers-reduced-motion comment for why short,
-// one-time transitions like this stay exempt from that media query,
-// same as fadein/snap elsewhere) - absolutely positioned, pointer-
+// the end." A one-shot confetti burst - absolutely positioned, pointer-
 // events:none so it never blocks a click on whatever's underneath, and
 // self-contained (the parent just mounts/unmounts it via a timeout, see
 // celebrateBuild/celebratePrice in App). Piece count/colors are fixed,
 // but each piece's fall path (left position, drift, spin, delay,
 // duration) is randomized per mount - two bursts never look identical.
+// QA FIX - unlike the app's short (<1s), low-amplitude one-shot mount
+// transitions elsewhere (fadein/snap/splashRise), this is 46 pieces
+// falling+drifting+spinning up to 720deg across the full screen for
+// ~2.6s - squarely the kind of large-field motion prefers-reduced-motion
+// exists for, not a borderline case. The confetti-piece className below
+// is a pure CSS hook (styling stays exactly as before) so styles.css's
+// prefers-reduced-motion block can hide the pieces outright, same
+// treatment as rain/snow there and for the same reason (see that
+// comment) - freezing 46 mid-fall/mid-spin pieces via animation:none
+// alone would leave a scatter of static dots at random opacities/
+// rotations, which reads as broken, not intentional.
 // (Proprietary to Gold Eagle Services - GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
 function Confetti({count=46}){
   const pieces=useMemo(()=>{
@@ -92,7 +100,7 @@ function Confetti({count=46}){
   // same category as the nav/button chrome .no-print already hides.
   return <div className="no-print" style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:50}} aria-hidden="true">
     {pieces.map(p=>(
-      <span key={p.id} style={{
+      <span key={p.id} className="confetti-piece" style={{
         position:"absolute",top:-14,left:p.left+"%",
         width:p.size,height:p.size*(p.round?1:0.42),
         background:p.color,borderRadius:p.round?"50%":2,

@@ -495,7 +495,7 @@
       el.style.transition = `transform ${duration}ms cubic-bezier(.16,.72,.28,1) ${delay}ms`;
       el.style.transform = `translateY(-${strip.length - 1}em)`;
     }, [digit, duration, delay, strip.length]);
-    return /* @__PURE__ */ React.createElement("span", { style: { display: "inline-block", overflow: "hidden", height: "1em", width: "0.62em", verticalAlign: "text-bottom", textAlign: "center" } }, /* @__PURE__ */ React.createElement("span", { ref, style: { display: "block" } }, strip.map((d, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { display: "block", height: "1em", lineHeight: "1em" } }, d))));
+    return /* @__PURE__ */ React.createElement("span", { style: { display: "inline-block", overflow: "hidden", height: "1em", width: "0.62em", verticalAlign: "text-bottom", textAlign: "center" } }, /* @__PURE__ */ React.createElement("span", { ref, className: "digit-reel-strip", style: { display: "block" } }, strip.map((d, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { display: "block", height: "1em", lineHeight: "1em" } }, d))));
   }
   function CashCount({ value, format, duration = 900, stagger = 85 }) {
     const str = format ? format(value) : String(value);
@@ -8058,7 +8058,7 @@
         round: i % 2 === 0
       }));
     }, [count]);
-    return /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 50 }, "aria-hidden": "true" }, pieces.map((p) => /* @__PURE__ */ React.createElement("span", { key: p.id, style: {
+    return /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 50 }, "aria-hidden": "true" }, pieces.map((p) => /* @__PURE__ */ React.createElement("span", { key: p.id, className: "confetti-piece", style: {
       position: "absolute",
       top: -14,
       left: p.left + "%",

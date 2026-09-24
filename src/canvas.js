@@ -34,7 +34,13 @@ function DigitReel({digit,delay=0,duration=900}){
     el.style.transform=`translateY(-${strip.length-1}em)`;
   },[digit,duration,delay,strip.length]);
   return <span style={{display:"inline-block",overflow:"hidden",height:"1em",width:"0.62em",verticalAlign:"text-bottom",textAlign:"center"}}>
-    <span ref={ref} style={{display:"block"}}>
+    {/* digit-reel-strip className is a pure CSS hook (no styling of its
+        own here) - see styles.css's prefers-reduced-motion block, which
+        forces this strip's transition to none so the reel snaps straight
+        to the correct final digit instead of spinning through 30 values
+        - the inline transition set below is still what drives the normal
+        spin, this only adds a stylesheet !important can target. */}
+    <span ref={ref} className="digit-reel-strip" style={{display:"block"}}>
       {strip.map((d,i)=><span key={i} style={{display:"block",height:"1em",lineHeight:"1em"}}>{d}</span>)}
     </span>
   </span>;
