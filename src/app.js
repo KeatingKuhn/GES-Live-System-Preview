@@ -84,7 +84,17 @@ function Confetti({count=46}){
         width:p.size,height:p.size*(p.round?1:0.42),
         background:p.color,borderRadius:p.round?"50%":2,
         opacity:0,
-        animation:`confettiFall ${p.duration}s cubic-bezier(.24,.68,.3,1) ${p.delay}s forwards`,
+        // QA FIX - direct feedback: "confetti that immediately drops to
+        // the floor... kinda trash". The original curve here,
+        // cubic-bezier(.24,.68,.3,1), is a steep ease-OUT: by just 24%
+        // of the duration it's already 68% of the way through the fall,
+        // so every piece rocketed to the bottom almost instantly and
+        // then sat there motionless (still opacity:1) for the rest of
+        // its ~2s before fading - exactly the "drops to the floor" look.
+        // ease-in (slow start, accelerating) is the right direction for
+        // something falling under gravity - pieces now visibly drift
+        // down the WHOLE duration instead of snapping to rest.
+        animation:`confettiFall ${p.duration}s cubic-bezier(.42,0,1,1) ${p.delay}s forwards`,
         "--confetti-drift":p.drift+"px","--confetti-spin":p.spin+"deg",
       }}/>
     ))}
