@@ -1459,6 +1459,17 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .sidebar{border:none!important}
   .done-wrap{animation:none!important}
   .btn-back,.btn-next,.btn-skip,.info-btn,.done-restart,.no-print{display:none!important}
+  /* PRINT QA FIX - .app-root's own dark theme background (var(--bk),
+     #121212) was never reset here like body/.done-wrap/.sidebar are just
+     below. Harmless on screen (.app-root is normally position:absolute;
+     inset:0, exactly viewport-sized), but the print rule above this block
+     un-fixes it to a flowed position:static;height:auto block so the
+     done-screen's real content height can paginate - once it's an
+     ordinary tall block, its dark background paints across its entire
+     flowed height, including the empty gap between .done-canvas-frame's
+     forced page-break-after and wherever the actual content starts,
+     printing as a solid near-black page instead of blank white paper. */
+  .app-root{background:#fff!important}
   body,.done-wrap,.sidebar{color:#000!important;background:#fff!important}
   .done-wrap *{color:#000!important;border-color:#999!important}
   .done-title,.opt-label{color:#000!important}
