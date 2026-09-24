@@ -409,6 +409,24 @@
     // for that markup appearing, never for the iframe's own location
     // changing. Fixed there (now also checks the iframe's own
     // ?ges_lead=1), so the embed is back on.
+    //
+    // DEPLOY CHECK - the redirect-confirmation detection above (the one
+    // Form 9 actually relies on) needs same-origin access from wherever
+    // THIS WIDGET itself is hosted into this embedFormUrl's iframe - that's
+    // an exact origin match: scheme, host AND the "www." label all have to
+    // agree (https://goldeagleservices.com and https://www.goldeagleservices.com,
+    // or an http vs https copy of the same host, are different origins to
+    // the browser even though they're "the same site" to a person). If
+    // whatever URL this widget ends up embedded at doesn't exactly match
+    // this origin, that access throws (caught - never crashes) and the
+    // customer is stuck at the gate with no other way through: paths 1/2/3
+    // above can't see this specific redirect (it lands inside THIS iframe,
+    // not the top page or its parent - see the leadIframeRef comment
+    // above), and there's no manual "I already submitted" fallback button
+    // in the gate UI. Update this URL's scheme/host to match exactly if the
+    // live WordPress domain differs (e.g. it canonicalizes to www or to
+    // http), and spot-check the real embed once live: submit Form 9 for
+    // real and confirm the gate actually advances.
     embedFormUrl: "https://goldeagleservices.com/build-your-system-submission-form/"
   };
   var OFFICE_EMAIL = "sales@goldeagleservices.com";
