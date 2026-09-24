@@ -2104,14 +2104,19 @@ function App(){
                           actually earned rather than noise. */}
                       {pricingAnswers.wantDucts&&<div className="pricing-vent-count snap">
                         <label className="pricing-vent-count-label" htmlFor="pricing-vent-count-input">{tr('How many vents/registers?','¿Cuántas rejillas/registros?')}</label>
-                        {/* Clamped to the same 1-40 range the min/max attributes
+                        {/* Clamped to the same 1-20 range the min/max attributes
                             below advertise - type="number" doesn't enforce that
                             range on its own (no form submit/reportValidity ever
                             runs here), so an unclamped parse let a stray extra
-                            digit (e.g. "400" instead of "40") multiply straight
+                            digit (e.g. "200" instead of "20") multiply straight
                             into the duct-replacement line item and the headline
                             total with no warning - a QA pass caught a typo'd
-                            vent count silently producing a 6-figure estimate. */}
+                            vent count silently producing a 6-figure estimate. 20
+                            is the ceiling (not 40) because that's about the most
+                            vents a single residential system realistically
+                            serves - direct feedback after the pricing-math sweep
+                            found a 40-vent max let a build pair a 1.5-ton system
+                            with a $36,800 duct-replacement line. */}
                         <div className="vent-stepper">
                           <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
                             disabled={!pricingAnswers.ventCount}
@@ -2143,16 +2148,16 @@ function App(){
                               field as undefined (blank, no phantom "0" to type
                               past) while a deliberate "0" keystroke still clamps
                               and displays as "0" same as before. */}
-                          <input id="pricing-vent-count-input" type="number" min="1" max="40" value={pricingAnswers.ventCount??''} onChange={e=>{
+                          <input id="pricing-vent-count-input" type="number" min="1" max="20" value={pricingAnswers.ventCount??''} onChange={e=>{
                             const raw=e.target.value;
                             if(raw===''){setPricingAnswers(p=>({...p,ventCount:undefined}));return;}
                             const n=parseInt(raw);
-                            setPricingAnswers(p=>({...p,ventCount:Number.isNaN(n)?undefined:Math.min(40,Math.max(0,n))}));
+                            setPricingAnswers(p=>({...p,ventCount:Number.isNaN(n)?undefined:Math.min(20,Math.max(0,n))}));
                           }}
                             className="pricing-input vent-input"/>
                           <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
-                            disabled={(pricingAnswers.ventCount||0)>=40}
-                            onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.min(40,(p.ventCount||0)+1)}))}>+</button>
+                            disabled={(pricingAnswers.ventCount||0)>=20}
+                            onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.min(20,(p.ventCount||0)+1)}))}>+</button>
                         </div>
                       </div>}
                     </div>}
@@ -2444,11 +2449,11 @@ function App(){
                           calcEstimate's own duct-replacement line (see its
                           comment in data.js) - this text read straight off
                           pricingAnswers.ventCount too, so a stale/tampered
-                          value bypassing the sizing sub-step's 1-40 input
-                          clamp would show a nonsensical "You mentioned 400
+                          value bypassing the sizing sub-step's 1-20 input
+                          clamp would show a nonsensical "You mentioned 200
                           vents" line here even after the priced line item
                           itself got clamped. Reuses the exact same clamp. */}
-                      <div><strong style={{color:"rgba(255,255,255,.9)"}}>New supply duct runs</strong> - new duct, boot, and grille together for a single run. {Math.min(40,Math.max(0,pricingAnswers.ventCount||0))>0?`You mentioned ${Math.min(40,Math.max(0,pricingAnswers.ventCount||0))} vents - most homes only need a few of those runs redone, not all of them.`:"Ask us how many runs your home is likely to need."}</div>
+                      <div><strong style={{color:"rgba(255,255,255,.9)"}}>New supply duct runs</strong> - new duct, boot, and grille together for a single run. {Math.min(20,Math.max(0,pricingAnswers.ventCount||0))>0?`You mentioned ${Math.min(20,Math.max(0,pricingAnswers.ventCount||0))} vents - most homes only need a few of those runs redone, not all of them.`:"Ask us how many runs your home is likely to need."}</div>
                       <div><strong style={{color:"rgba(255,255,255,.9)"}}>Duct cleaning</strong> - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.</div>
                     </div>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:6,fontStyle:"italic"}}>These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit.</div>

@@ -441,7 +441,7 @@
       const cfmNum = cfmKey === "cfm130" ? "130" : "150";
       lines.push({ key: "erv", ervCfm: cfmNum, label: `ERV (${cfmNum} CFM)`, price: PRICING.extras.erv[cfmKey] });
     }
-    const ventCount = Math.min(40, Math.max(0, pricingAnswers.ventCount || 0));
+    const ventCount = Math.min(20, Math.max(0, pricingAnswers.ventCount || 0));
     if (pricingAnswers.wantDucts && ventCount > 0) {
       lines.push({ key: "ductReplacement", ventCount, label: `Duct replacement (${ventCount} vents)`, price: ventCount * PRICING.duct.replacementPerStem });
     }
@@ -8904,7 +8904,7 @@
           id: "pricing-vent-count-input",
           type: "number",
           min: "1",
-          max: "40",
+          max: "20",
           value: pricingAnswers.ventCount ?? "",
           onChange: (e) => {
             const raw = e.target.value;
@@ -8913,7 +8913,7 @@
               return;
             }
             const n = parseInt(raw);
-            setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(40, Math.max(0, n)) }));
+            setPricingAnswers((p) => ({ ...p, ventCount: Number.isNaN(n) ? void 0 : Math.min(20, Math.max(0, n)) }));
           },
           className: "pricing-input vent-input"
         }
@@ -8923,8 +8923,8 @@
           type: "button",
           className: "vent-step-btn",
           "aria-label": tr("Increase", "Aumentar"),
-          disabled: (pricingAnswers.ventCount || 0) >= 40,
-          onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(40, (p.ventCount || 0) + 1) }))
+          disabled: (pricingAnswers.ventCount || 0) >= 20,
+          onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(20, (p.ventCount || 0) + 1) }))
         },
         "+"
       )))));
@@ -8996,7 +8996,7 @@
       } }, "\u2039 ", tr("Adjust my answers", "Ajustar mis respuestas")));
       {
       }
-      const considerations = /* @__PURE__ */ React.createElement("div", { className: "considerations-block", style: { width: "100%", height: "100%", boxSizing: "border-box", padding: "10px 12px", background: "rgba(215,183,64,.05)", border: "1px solid rgba(215,183,64,.15)", ...isAtticMode ? {} : { marginTop: 12 } } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.75)", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 6, fontFamily: "var(--fm)" } }, "A Few Other Things We Commonly Find"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "Return plenum/ductwork"), " - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "New return duct run"), " - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "New supply duct runs"), " - new duct, boot, and grille together for a single run. ", Math.min(40, Math.max(0, pricingAnswers.ventCount || 0)) > 0 ? `You mentioned ${Math.min(40, Math.max(0, pricingAnswers.ventCount || 0))} vents - most homes only need a few of those runs redone, not all of them.` : "Ask us how many runs your home is likely to need."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "Duct cleaning"), " - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 6, fontStyle: "italic" } }, "These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit."));
+      const considerations = /* @__PURE__ */ React.createElement("div", { className: "considerations-block", style: { width: "100%", height: "100%", boxSizing: "border-box", padding: "10px 12px", background: "rgba(215,183,64,.05)", border: "1px solid rgba(215,183,64,.15)", ...isAtticMode ? {} : { marginTop: 12 } } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.75)", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 6, fontFamily: "var(--fm)" } }, "A Few Other Things We Commonly Find"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "Return plenum/ductwork"), " - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "New return duct run"), " - for when the return plenum itself is fine but the duct feeding it needs to be replaced or extended."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "New supply duct runs"), " - new duct, boot, and grille together for a single run. ", Math.min(20, Math.max(0, pricingAnswers.ventCount || 0)) > 0 ? `You mentioned ${Math.min(20, Math.max(0, pricingAnswers.ventCount || 0))} vents - most homes only need a few of those runs redone, not all of them.` : "Ask us how many runs your home is likely to need."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.9)" } }, "Duct cleaning"), " - clears years of dust and debris out of the ductwork, which improves airflow and indoor air quality - especially worth it if the ductwork's never been cleaned.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 6, fontStyle: "italic" } }, "These aren't part of the estimate above - we'll flag anything your ductwork actually needs, and give you exact pricing, at your free in-home visit."));
       if (!isAtticMode) return /* @__PURE__ */ React.createElement(React.Fragment, null, priceCard, considerations);
       {
       }
