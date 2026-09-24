@@ -1677,7 +1677,31 @@ function App(){
             it beat every media query, so a stacked tablet/phone kept a
             240px scroll box with dead black space below it (768x1024) or
             ran past the bottom of the screen (844x390 landscape). */}
-        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",flexShrink:0,borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
+        {/* QA FIX - direct feedback: on a 768x1024 tablet (and narrower),
+            hitting Get Pricing on the attic layout left the ENTIRE quick-
+            actions row (Financing/Save-Print/Email/Back/Start Over) - and
+            usually the considerations panel and warranty checkboxes too -
+            permanently unreachable, even for a bare-minimum build with no
+            add-ons. Cause: this flexShrink:0 was inline, which - same "an
+            inline style always beats a stylesheet rule" issue called out
+            on every other property that got moved out of here into a
+            class (closet's 384px width, attic's 240px height, both right
+            above) - silently beat the max-width:1024px media query's own
+            "flex:1 1 auto" (shrink:1) override (styles.css), the one the
+            comment on THAT rule already says is "what lets it shrink and
+            scroll when space is tight". With shrink permanently pinned to
+            0 by this inline value no matter the viewport, the panel could
+            still grow past its share of space but could never shrink back
+            down to it - so instead of shrinking-then-scrolling inside
+            .done-screen's own overflow:hidden boundary, it just got
+            hard-clipped there with no scrollbar anywhere to reach the rest
+            of it. flex-shrink:0 is exactly right at desktop width, where
+            this panel is meant to stay a fixed 240px - that's still set,
+            just non-inline now (.done-screen.attic-mode>.sidebar in
+            styles.css), so the mobile media query can win back over it
+            the same way it already does for height/width right next to
+            it. */}
+        <div className="sidebar" style={isAtticMode?{overflowY:"auto",width:"100%",borderLeft:"none",borderTop:"1px solid var(--border)"}:{overflowY:"auto"}}>
           {/* PRINT LETTERHEAD - invisible on-screen (.print-letterhead is
               display:none outside @media print, see styles.css), a sibling
               of .done-wrap rather than a child of it specifically so it
@@ -2383,8 +2407,30 @@ function App(){
                 // part of the core flow. Same scoping call as leaving the
                 // live diagram's own labels untranslated - see the big
                 // comment on CHAPTERS_ES in data.js.
+                {/* QA FIX - direct feedback: on attic's side-by-side split,
+                    this panel's copy is fixed/short (~4 short paragraphs)
+                    while the price card next to it grows with every add-on
+                    line, the warranty/maintenance checkboxes, and the
+                    disclaimers below them - measured 300-780px depending on
+                    the build, against this panel's constant ~300px. Both
+                    columns used to top-align (alignItems:"flex-start" on
+                    .pricing-result-row below), so any build with more than
+                    a couple of line items left this panel's gold border
+                    ending well short of the price card's, with a large
+                    blank gap of bare panel background underneath it - the
+                    considerations box reading like a separate, cut-off
+                    element rather than a matching sibling, exactly the
+                    "unfinished" look this pass was checking for. height:
+                    "100%" + boxSizing:"border-box" here is what actually
+                    fills that gap - .pricing-result-row's own alignItems
+                    flip to "stretch" (its own comment) is what hands this
+                    column a height to fill in the first place. Closet mode
+                    stacks these instead of splitting them side by side, so
+                    it never had this gap and stays untouched (width:"100%"
+                    already covers it there too - height:"100%" is a no-op
+                    on a block-stacked child with no set container height). */}
                 const considerations=(
-                  <div className="considerations-block" style={{width:"100%",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",...(isAtticMode?{}:{marginTop:12})}}>
+                  <div className="considerations-block" style={{width:"100%",height:"100%",boxSizing:"border-box",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",...(isAtticMode?{}:{marginTop:12})}}>
                     <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.75)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6,fontFamily:"var(--fm)"}}>A Few Other Things We Commonly Find</div>
                     <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>
                       <div><strong style={{color:"rgba(255,255,255,.9)"}}>Return plenum/ductwork</strong> - Austin homes very commonly have return-side ductwork that's undersized for the system it's paired with. An undersized return shows up as weak airflow, rooms that never quite hit temperature, and a system that runs longer and louder than it should.</div>
@@ -2404,7 +2450,21 @@ function App(){
                   </div>
                 );
                 if(!isAtticMode)return<>{priceCard}{considerations}</>;
-                return <div className="pricing-result-row" style={{display:"flex",gap:16,alignItems:"flex-start"}}>
+                {/* QA FIX - alignItems was "flex-start" (top-aligned columns
+                    of differing height) - see the considerations-block
+                    height:"100%" comment above for what that left behind.
+                    "stretch" (the flex default, set explicitly here since
+                    the wizard's own pricing-substep-row right above this
+                    reuses the same "flex-start" value for a genuinely
+                    different reason - see ITS comment - so this couldn't
+                    just be left unset and inherited) hands both columns the
+                    row's own height (driven by whichever one - always
+                    price-card, see the considerations-block comment - is
+                    taller), which is what lets considerations-block's own
+                    height:"100%" actually fill it instead of stretching
+                    empty invisible wrapper space with nothing visible in
+                    it. */}
+                return <div className="pricing-result-row" style={{display:"flex",gap:16,alignItems:"stretch"}}>
                   <div style={{flex:1,minWidth:0}}>{priceCard}</div>
                   <div style={{flex:1,minWidth:0}}>{considerations}</div>
                 </div>;
