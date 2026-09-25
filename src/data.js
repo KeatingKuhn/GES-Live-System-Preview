@@ -351,7 +351,7 @@ function ervCfmKey(sqft){
 // Rounded to the nearest $25 and shown with a "~" prefix (one number, not a
 // range) so nothing reads as an exact locked-in figure. Source PRICING
 // values stay exact - only this display layer rounds.
-const roundTo25=price=>Math.round(price/25)*25;
+export const roundTo25=price=>Math.round(price/25)*25;
 function systemTypeKey(answers){
   if(answers.indoor_type==='ah')return'heat_pump_ah';
   // Mid efficiency has no straight_cool pricing at all - furnace + mid_ge15

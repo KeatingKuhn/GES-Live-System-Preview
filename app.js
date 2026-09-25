@@ -9144,7 +9144,7 @@
           checked: !!pricingAnswers.wantDucts,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantDucts: e.target.checked, ...e.target.checked && !pricingAnswers.ventCount ? { ventCount: 1 } : {} }))
         }
-      ), tr(`Add duct replacement (+$${fmtPrice(PRICING.duct.replacementPerStem)}/vent)`, `Agregar reemplazo de ductos (+$${fmtPrice(PRICING.duct.replacementPerStem)}/rejilla)`)), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", flexDirection: "column", gap: 4, margin: "6px 0 20px 24px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("How many vents/registers?", "\xBFCu\xE1ntas rejillas/registros?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add duct replacement (+$${fmtPrice(roundTo25(PRICING.duct.replacementPerStem))}/vent)`, `Agregar reemplazo de ductos (+$${fmtPrice(roundTo25(PRICING.duct.replacementPerStem))}/rejilla)`)), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", flexDirection: "column", gap: 4, margin: "6px 0 20px 24px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("How many vents/registers?", "\xBFCu\xE1ntas rejillas/registros?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
         "button",
         {
           type: "button",
@@ -9198,21 +9198,21 @@
           checked: !!pricingAnswers.wantDuctCleaning,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantDuctCleaning: e.target.checked }))
         }
-      ), tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`, `Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add duct cleaning (+$${fmtPrice(roundTo25(PRICING.duct.cleaning[est.tonnage]))})`, `Agregar limpieza de ductos (+$${fmtPrice(roundTo25(PRICING.duct.cleaning[est.tonnage]))})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantNewReturnDuct,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantNewReturnDuct: e.target.checked }))
         }
-      ), tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`, `Agregar una l\xEDnea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add a new return duct run (+$${fmtPrice(roundTo25(PRICING.duct.newReturnDuct))})`, `Agregar una l\xEDnea de retorno nueva (+$${fmtPrice(roundTo25(PRICING.duct.newReturnDuct))})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantReturnPlenum,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantReturnPlenum: e.target.checked }))
         }
-      ), tr(`Add a return plenum (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType === "metal" ? "metal" : "ductboard"])})`, `Agregar un plenum de retorno (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType === "metal" ? "metal" : "ductboard"])})`)), pricingAnswers.wantReturnPlenum && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", alignItems: "center", gap: 8, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add a return plenum (+$${fmtPrice(roundTo25(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType === "metal" ? "metal" : "ductboard"]))})`, `Agregar un plenum de retorno (+$${fmtPrice(roundTo25(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType === "metal" ? "metal" : "ductboard"]))})`)), pricingAnswers.wantReturnPlenum && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", alignItems: "center", gap: 8, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement(
         "button",
         {
           type: "button",

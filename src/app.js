@@ -3,7 +3,7 @@
 // the copyright block in index.html's own source for the full terms.
 // GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx
 const {useState,useMemo,useRef,useCallback}=React;
-import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES,ductVolumeDiscountRate} from './data.js';
+import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES,ductVolumeDiscountRate,roundTo25} from './data.js';
 import {Canvas,CashCount,Defs} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
@@ -2600,7 +2600,7 @@ function App(){
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:20,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantDucts}
                         onChange={e=>setPricingAnswers(p=>({...p,wantDucts:e.target.checked,...(e.target.checked&&!pricingAnswers.ventCount?{ventCount:1}:{})}))}/>
-                      {tr(`Add duct replacement (+$${fmtPrice(PRICING.duct.replacementPerStem)}/vent)`,`Agregar reemplazo de ductos (+$${fmtPrice(PRICING.duct.replacementPerStem)}/rejilla)`)}
+                      {tr(`Add duct replacement (+$${fmtPrice(roundTo25(PRICING.duct.replacementPerStem))}/vent)`,`Agregar reemplazo de ductos (+$${fmtPrice(roundTo25(PRICING.duct.replacementPerStem))}/rejilla)`)}
                     </label>
                     {pricingAnswers.wantDucts&&<div className="snap" style={{display:"flex",flexDirection:"column",gap:4,margin:"6px 0 20px 24px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -2713,7 +2713,7 @@ function App(){
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantDuctCleaning}
                         onChange={e=>setPricingAnswers(p=>({...p,wantDuctCleaning:e.target.checked}))}/>
-                      {tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`,`Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)}
+                      {tr(`Add duct cleaning (+$${fmtPrice(roundTo25(PRICING.duct.cleaning[est.tonnage]))})`,`Agregar limpieza de ductos (+$${fmtPrice(roundTo25(PRICING.duct.cleaning[est.tonnage]))})`)}
                     </label>
                     {/* New return duct / return plenum - same a-la-carte
                         checkbox pattern, using the real prices in
@@ -2737,7 +2737,7 @@ function App(){
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantNewReturnDuct}
                         onChange={e=>setPricingAnswers(p=>({...p,wantNewReturnDuct:e.target.checked}))}/>
-                      {tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`,`Agregar una línea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)}
+                      {tr(`Add a new return duct run (+$${fmtPrice(roundTo25(PRICING.duct.newReturnDuct))})`,`Agregar una línea de retorno nueva (+$${fmtPrice(roundTo25(PRICING.duct.newReturnDuct))})`)}
                     </label>
                     {/* QA FIX - automated pass measured this checkbox's
                         native glyph at 13x13px with the whole label row
@@ -2753,7 +2753,7 @@ function App(){
                     <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantReturnPlenum}
                         onChange={e=>setPricingAnswers(p=>({...p,wantReturnPlenum:e.target.checked}))}/>
-                      {tr(`Add a return plenum (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard'])})`,`Agregar un plenum de retorno (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard'])})`)}
+                      {tr(`Add a return plenum (+$${fmtPrice(roundTo25(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard']))})`,`Agregar un plenum de retorno (+$${fmtPrice(roundTo25(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard']))})`)}
                     </label>
                     {pricingAnswers.wantReturnPlenum&&<div className="snap" style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0 10px 24px"}}>
                       <button type="button" className={"opt opt-compact"+(pricingAnswers.returnPlenumType!=='metal'?" sel":"")} style={{flex:"0 1 auto",padding:"5px 10px"}}
