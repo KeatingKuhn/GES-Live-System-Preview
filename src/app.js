@@ -2044,7 +2044,14 @@ function App(){
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,width:"100%"}}>
                       <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:34,height:34,fontSize:16,flexShrink:0}}>✓</div></div>
                       <div>
-                        <div className="done-title" style={{fontSize:16,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
+                        {/* QA FIX - same English heading as the attic
+                            compact header above was rendered as two
+                            different Spanish strings ("Su Sistema
+                            Construido" there vs "Su Sistema Está
+                            Construido" here) - unified on the shorter
+                            title-style phrasing both headers actually use
+                            elsewhere (a label, not a full sentence). */}
+                        <div className="done-title" style={{fontSize:16,marginBottom:1}}>{tr('Your System is Built','Su Sistema Construido')}</div>
                         <div style={{fontSize:"var(--fs-review-label-lg)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
                       </div>
                     </div>
@@ -2419,7 +2426,7 @@ function App(){
                         tr('10% off repairs','10% de descuento en reparaciones'),
                         tr('Waived consultation fees','Consultas sin cargo'),
                         tr('Free coil cleaning & drain flush','Limpieza de serpentín y drenaje gratis'),
-                        tr('1 free service call for friends/family','1 visita de servicio gratis para familiares'),
+                        tr('1 free service call for friends and family','1 visita de servicio gratis para familiares'),
                       ].map((perk,i)=>(
                         <div key={i} style={{display:"flex",gap:5,alignItems:"flex-start"}}>
                           <span style={{color:"rgba(215,183,64,.6)",flexShrink:0}}>✓</span><span>{perk}</span>
