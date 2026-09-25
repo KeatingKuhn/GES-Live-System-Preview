@@ -1256,6 +1256,15 @@ const PART_INFO={
   // HEAT ONLY" label - the compressor's actually off here, not reversed.
   acoil_aux_lockout:{en:{title:'A-COIL',text:"The compressor's locked out at this outdoor temperature, so this coil sits idle - aux/emergency electric heat strips are carrying the entire heating load instead."},
     es:{title:'SERPENTÍN EN A',text:"El compresor está bloqueado a esta temperatura exterior, así que este serpentín permanece inactivo - las resistencias eléctricas de calefacción auxiliar/de emergencia se encargan de toda la carga de calefacción en su lugar."}},
+  // Only hoverable while actually glowing (auxHeatActive) - see the two
+  // AuxHeatKit call sites below, both gated the same way. It sits idle
+  // and invisible-to-hover the rest of the time on purpose: direct
+  // feedback was that a tooltip should only appear once the kit is
+  // doing something, not as a permanently-hoverable fixture like every
+  // other part, since unlike everything else in the cabinet this one
+  // only exists as backup and is mostly off.
+  aux_heat_kit:{en:{title:'AUX HEAT KIT',text:"Electric heat strips kicking in right now as backup - either because it's too cold outside for the heat pump's compressor to keep up alone, or during a brief defrost cycle."},
+    es:{title:'KIT DE CALOR AUX',text:"Resistencias eléctricas de calefacción activándose ahora mismo como respaldo - ya sea porque hace demasiado frío afuera para que el compresor de la bomba de calor funcione solo, o durante un breve ciclo de descongelamiento."}},
   air_handler_cabinet:{en:{title:'AIR HANDLER',text:"The indoor half of a heat-pump-only system - no gas furnace here, just a blower and coil moving air for both heating and cooling."},
     es:{title:'MANEJADOR DE AIRE',text:"La mitad interior de un sistema de solo bomba de calor - sin horno de gas aquí, solo un motor y un serpentín moviendo aire para calefacción y enfriamiento."}},
   condenser_cabinet:{en:{title:'CONDENSER',text:"Your outdoor unit. It releases heat outside to cool your home, or, with a heat pump, pulls heat from the outside air to warm it."},
@@ -2918,6 +2927,20 @@ function AirHandlerH({x,y,w,h,active,auxHeat,evapC,evapC2,hasUV,acoilInfoKey,blo
     <g transform={`translate(${c2+3} ${y+8+(h-14)}) rotate(-90)`}>
       <AuxHeatKit x={0} y={0} w={h-14} h={auxW-6} auxHeat={auxHeat} lang={lang}/>
     </g>
+    {/* Only hoverable while it's actually on - see the aux_heat_kit
+        PART_INFO entry's own comment. Deliberately NOT nested inside
+        the rotated <g> above: HoverPanel's ring/panel positioning
+        expects x/y/w/h in this cabinet's own (unrotated) coordinate
+        space, same as every other hover zone in this component - this
+        is the rotated strip's bounding box worked out in that outer
+        space instead (local (lx,ly) -> rotated -90 + translate ->
+        (c2+3+ly, y+8+(h-14)-lx), so lx in [0,h-14]/ly in [0,auxW-6]
+        sweeps out x:[c2+3,c2+auxW-3], y:[y+8,y+8+(h-14)]). This is the
+        one spot in the whole diagram with a rotated sub-component, so
+        there's no existing precedent to follow here - re-derive this
+        box by hand again if AuxHeatKit's own proportions ever change. */}
+    {auxHeat&&<HoverInfo x={c2+3} y={y+8} w={auxW-6} h={h-14} rx={2}
+      vw={vw} vh={vh} title={partInfo('aux_heat_kit',lang).title} text={partInfo('aux_heat_kit',lang).text}/>}
     <rect x={x} y={y+h} width={w} height={6} rx="1" fill="#08121e" stroke={B+'.18)'} strokeWidth="0.7"/>
   </g>;
 }
@@ -3550,6 +3573,19 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
         title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
       {blowerHover(AH_X+AH_W*0.5+blowerW/2,UNIT_Y+UNIT_H*0.42,Math.min(blowerW*0.32,UNIT_H*0.29),go)}
       {uvHoverH(AH_X+9.5,UNIT_Y+12,AH_W*0.5-19,UNIT_H-22)}
+      {/* QA FIX - only hoverable while auxHeatActive (see the
+          aux_heat_kit PART_INFO entry's own comment) - the done
+          screen's EditZone/indoorSubHoversH sub-hovers are painted
+          last of all and win every hit-test in this whole cabinet
+          (see indoorSubHoversV's own comment on this same issue for
+          UV), so AuxHeatKit's own conditional hover back in
+          AirHandlerH never actually wins here - it needs its own
+          copy in this layer too. Box matches AirHandlerH's own
+          rotated AuxHeatKit strip, worked out in THIS function's
+          coilW/blowerW/auxW terms (coilW=AH_W*0.50, auxW=AH_W*0.15,
+          c2=AH_X+coilW+blowerW=AH_X+AH_W*0.85). */}
+      {auxHeatActive&&<HoverInfo x={AH_X+AH_W*0.85+3} y={UNIT_Y+8} w={AH_W*0.15-6} h={UNIT_H-14} rx={2}
+        vw={SVG_VW} vh={SVG_VH} title={T('aux_heat_kit').title} text={T('aux_heat_kit').text} onClick={go}/>}
     </>;
   };
   // Closet/vertical equivalent - furnace sits BELOW the A-coil (HX on top
@@ -3602,6 +3638,16 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
       <HoverInfo x={UNIT_X+8} y={coilBoxY} w={UNIT_W-16} h={coilBoxH} rx={3} vw={SVG_VW} vh={SVG_VH}
         title={T(acoilInfoKey()).title} text={T(acoilInfoKey()).text} onClick={go}/>
       {uvHoverV(UNIT_X+8,coilBoxY,UNIT_W-16,coilBoxH)}
+      {/* QA FIX - only hoverable while auxHeatActive (see the
+          aux_heat_kit PART_INFO entry's own comment) - same "done
+          screen's own EditZone sub-hover otherwise wins back over"
+          issue already noted on uvHoverV's own comment above, so
+          AuxHeatKit's own conditional hover elsewhere in this file
+          never actually wins on the done screen without its own
+          copy here too. Same box the closet's own AuxHeatKit call
+          site uses. */}
+      {auxHeatActive&&<HoverInfo x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.09} w={UNIT_W-28} h={ACOIL_H*0.14} rx={2}
+        vw={SVG_VW} vh={SVG_VH} title={T('aux_heat_kit').title} text={T('aux_heat_kit').text} onClick={go}/>}
     </>;
   };
   // Condenser's own fan/compressor/SEER sub-hovers, shared by both layout
@@ -6902,6 +6948,11 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                     <line x1={UNIT_X} y1={ACOIL_Y+ACOIL_H*0.53} x2={UNIT_X+UNIT_W} y2={ACOIL_Y+ACOIL_H*0.53}
                       stroke={S+'.26)'} strokeWidth="0.9" strokeDasharray="4 3"/>
                     <AuxHeatKit x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.09} w={UNIT_W-28} h={ACOIL_H*0.14} auxHeat={auxHeatActive} lang={lang}/>
+                    {/* Only hoverable while it's actually on - see the
+                        aux_heat_kit PART_INFO entry's own comment. Same
+                        box AuxHeatKit itself just drew. */}
+                    {auxHeatActive&&<HoverInfo x={UNIT_X+14} y={ACOIL_Y+ACOIL_H*0.09} w={UNIT_W-28} h={ACOIL_H*0.14} rx={2}
+                      vw={SVG_VW} vh={SVG_VH} title={partInfo('aux_heat_kit',lang).title} text={partInfo('aux_heat_kit',lang).text}/>}
                     <BlowerWheel cx={UNIT_X+UNIT_W/2} cy={ACOIL_Y+ACOIL_H*0.33}
                       r={Math.min(UNIT_W*0.24,ACOIL_H*0.105)}
                       spd={blowerActive?1.4:0.4} active={blowerActive}

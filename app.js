@@ -1729,6 +1729,17 @@
       en: { title: "A-COIL", text: "The compressor's locked out at this outdoor temperature, so this coil sits idle - aux/emergency electric heat strips are carrying the entire heating load instead." },
       es: { title: "SERPENT\xCDN EN A", text: "El compresor est\xE1 bloqueado a esta temperatura exterior, as\xED que este serpent\xEDn permanece inactivo - las resistencias el\xE9ctricas de calefacci\xF3n auxiliar/de emergencia se encargan de toda la carga de calefacci\xF3n en su lugar." }
     },
+    // Only hoverable while actually glowing (auxHeatActive) - see the two
+    // AuxHeatKit call sites below, both gated the same way. It sits idle
+    // and invisible-to-hover the rest of the time on purpose: direct
+    // feedback was that a tooltip should only appear once the kit is
+    // doing something, not as a permanently-hoverable fixture like every
+    // other part, since unlike everything else in the cabinet this one
+    // only exists as backup and is mostly off.
+    aux_heat_kit: {
+      en: { title: "AUX HEAT KIT", text: "Electric heat strips kicking in right now as backup - either because it's too cold outside for the heat pump's compressor to keep up alone, or during a brief defrost cycle." },
+      es: { title: "KIT DE CALOR AUX", text: "Resistencias el\xE9ctricas de calefacci\xF3n activ\xE1ndose ahora mismo como respaldo - ya sea porque hace demasiado fr\xEDo afuera para que el compresor de la bomba de calor funcione solo, o durante un breve ciclo de descongelamiento." }
+    },
     air_handler_cabinet: {
       en: { title: "AIR HANDLER", text: "The indoor half of a heat-pump-only system - no gas furnace here, just a blower and coil moving air for both heating and cooling." },
       es: { title: "MANEJADOR DE AIRE", text: "La mitad interior de un sistema de solo bomba de calor - sin horno de gas aqu\xED, solo un motor y un serpent\xEDn moviendo aire para calefacci\xF3n y enfriamiento." }
@@ -3640,7 +3651,20 @@
         vw,
         vh
       }
-    ), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, CT("BLOWER", lang2)), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, blowerMotorLabel), /* @__PURE__ */ React.createElement("g", { transform: `translate(${c2 + 3} ${y + 8 + (h - 14)}) rotate(-90)` }, /* @__PURE__ */ React.createElement(AuxHeatKit, { x: 0, y: 0, w: h - 14, h: auxW - 6, auxHeat, lang: lang2 })), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.7" }));
+    ), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 13, textAnchor: "middle", fill: S + ".65)", fontSize: "12.5", fontFamily: "monospace" }, CT("BLOWER", lang2)), /* @__PURE__ */ React.createElement("text", { x: c1 + blowerW / 2, y: y + h - 4, textAnchor: "middle", fill: S + ".5)", fontSize: "9.5", fontFamily: "monospace" }, blowerMotorLabel), /* @__PURE__ */ React.createElement("g", { transform: `translate(${c2 + 3} ${y + 8 + (h - 14)}) rotate(-90)` }, /* @__PURE__ */ React.createElement(AuxHeatKit, { x: 0, y: 0, w: h - 14, h: auxW - 6, auxHeat, lang: lang2 })), auxHeat && /* @__PURE__ */ React.createElement(
+      HoverInfo,
+      {
+        x: c2 + 3,
+        y: y + 8,
+        w: auxW - 6,
+        h: h - 14,
+        rx: 2,
+        vw,
+        vh,
+        title: partInfo("aux_heat_kit", lang2).title,
+        text: partInfo("aux_heat_kit", lang2).text
+      }
+    ), /* @__PURE__ */ React.createElement("rect", { x, y: y + h, width: w, height: 6, rx: "1", fill: "#08121e", stroke: B + ".18)", strokeWidth: "0.7" }));
   }
   function DuctRibbing({ x, y, w, h, vertical }) {
     vertical = vertical !== false;
@@ -4095,7 +4119,21 @@
           text: T(acoilInfoKey()).text,
           onClick: go
         }
-      ), blowerHover(AH_X + AH_W * 0.5 + blowerW / 2, UNIT_Y + UNIT_H * 0.42, Math.min(blowerW * 0.32, UNIT_H * 0.29), go), uvHoverH(AH_X + 9.5, UNIT_Y + 12, AH_W * 0.5 - 19, UNIT_H - 22));
+      ), blowerHover(AH_X + AH_W * 0.5 + blowerW / 2, UNIT_Y + UNIT_H * 0.42, Math.min(blowerW * 0.32, UNIT_H * 0.29), go), uvHoverH(AH_X + 9.5, UNIT_Y + 12, AH_W * 0.5 - 19, UNIT_H - 22), auxHeatActive && /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: AH_X + AH_W * 0.85 + 3,
+          y: UNIT_Y + 8,
+          w: AH_W * 0.15 - 6,
+          h: UNIT_H - 14,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("aux_heat_kit").title,
+          text: T("aux_heat_kit").text,
+          onClick: go
+        }
+      ));
     };
     const uvHoverV = (cx, cy, cw, ch) => {
       if (!hasUV) return null;
@@ -4208,7 +4246,21 @@
           text: T(acoilInfoKey()).text,
           onClick: go
         }
-      ), uvHoverV(UNIT_X + 8, coilBoxY, UNIT_W - 16, coilBoxH));
+      ), uvHoverV(UNIT_X + 8, coilBoxY, UNIT_W - 16, coilBoxH), auxHeatActive && /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: UNIT_X + 14,
+          y: ACOIL_Y + ACOIL_H * 0.09,
+          w: UNIT_W - 28,
+          h: ACOIL_H * 0.14,
+          rx: 2,
+          vw: SVG_VW,
+          vh: SVG_VH,
+          title: T("aux_heat_kit").title,
+          text: T("aux_heat_kit").text,
+          onClick: go
+        }
+      ));
     };
     const condenserSubHovers = (x, y, w, h, tierKey) => {
       const go = () => onEditStep("cond_tier");
@@ -6763,7 +6815,20 @@
             strokeWidth: "0.9",
             strokeDasharray: "4 3"
           }
-        ), /* @__PURE__ */ React.createElement(AuxHeatKit, { x: UNIT_X + 14, y: ACOIL_Y + ACOIL_H * 0.09, w: UNIT_W - 28, h: ACOIL_H * 0.14, auxHeat: auxHeatActive, lang: lang2 }), /* @__PURE__ */ React.createElement(
+        ), /* @__PURE__ */ React.createElement(AuxHeatKit, { x: UNIT_X + 14, y: ACOIL_Y + ACOIL_H * 0.09, w: UNIT_W - 28, h: ACOIL_H * 0.14, auxHeat: auxHeatActive, lang: lang2 }), auxHeatActive && /* @__PURE__ */ React.createElement(
+          HoverInfo,
+          {
+            x: UNIT_X + 14,
+            y: ACOIL_Y + ACOIL_H * 0.09,
+            w: UNIT_W - 28,
+            h: ACOIL_H * 0.14,
+            rx: 2,
+            vw: SVG_VW,
+            vh: SVG_VH,
+            title: partInfo("aux_heat_kit", lang2).title,
+            text: partInfo("aux_heat_kit", lang2).text
+          }
+        ), /* @__PURE__ */ React.createElement(
           BlowerWheel,
           {
             cx: UNIT_X + UNIT_W / 2,
