@@ -1470,6 +1470,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    been opened. */
 .print-only-grid{display:none}
 .print-letterhead{display:none}
+/* QA FIX - printing (Ctrl+P) from the splash screen or mid-wizard used
+   to produce a completely blank page: the @media print block below
+   unconditionally hides .splash-screen/.attic-layout/.closet-layout,
+   and .done-screen isn't mounted at all until the wizard is finished,
+   so nothing was left to print. Same invisible-until-print pattern as
+   .print-only-grid/.print-letterhead above - see the JSX in app.js
+   (gated on !doneVisible, so it only exists during the exact gap print
+   CSS doesn't otherwise cover, and disappears once .done-screen mounts
+   and has its own real print content). */
+.print-only-fallback{display:none}
 /* PRINT QA FIX - see the .price-live/.price-static comment in app.js next
    to the CountUp hero figures: on screen the live, animated number is what
    should show (.price-static stays hidden); only @media print below swaps
@@ -1496,6 +1506,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      flows in order - so this simply un-stickies it back to normal flow. */
   .considerations-sticky-content{position:static!important;top:auto!important;transform:none!important}
   .print-only-grid{display:block!important}
+  .print-only-fallback{display:block!important;padding:60px 40px;text-align:center;color:#000;font-family:var(--fb)}
   /* .done-canvas-frame (the finished diagram) used to be swept up by a
      blanket .canvas-frame rule here too - it carries that class alongside
      its own (see its className in app.js) since it reuses the same grid-
@@ -10401,7 +10412,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
       return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), opt.desc && /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, opt.desc)), /* @__PURE__ */ React.createElement("div", { className: isMulti ? "opt-check" : "opt-check radio", style: isOn && !isMulti ? { borderColor: "var(--gl)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" } : {} }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 8, height: 8, borderRadius: "50%", background: "var(--gh)" } }) : "")));
     };
-    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, /* @__PURE__ */ React.createElement("svg", { width: "0", height: "0", style: { position: "absolute" }, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null)), /* @__PURE__ */ React.createElement("div", { "aria-live": "polite", "aria-atomic": "true", className: "sr-only" }, liveMessage), resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, tr("WELCOME BACK", "BIENVENIDO DE NUEVO")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, !doneVisible && /* @__PURE__ */ React.createElement("div", { className: "print-only-fallback" }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--ft)", fontSize: 20, marginBottom: 8 } }, "Gold Eagle Services"), /* @__PURE__ */ React.createElement("div", null, tr("Your estimate isn\u2019t ready to print yet - finish building your system to see pricing and print your results.", "Su estimado a\xFAn no est\xE1 listo para imprimir - termine de armar su sistema para ver el precio e imprimir sus resultados."))), /* @__PURE__ */ React.createElement("svg", { width: "0", height: "0", style: { position: "absolute" }, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null)), /* @__PURE__ */ React.createElement("div", { "aria-live": "polite", "aria-atomic": "true", className: "sr-only" }, liveMessage), resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, tr("WELCOME BACK", "BIENVENIDO DE NUEVO")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
       const savedCur = savedSteps[savedBuild.stepIdx];
       const savedQ = savedCur && (lang2 === "es" && STEPS_ES[savedCur.id] ? STEPS_ES[savedCur.id].q : savedCur.q);

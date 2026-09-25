@@ -1357,6 +1357,22 @@ function App(){
           toggle, which lives down on the splash screen now (see below). */}
       <div className="site-header-spacer no-print"/>
     <div ref={topRef} className="app-root">
+      {/* QA FIX - automated pass: printing (Ctrl+P) from the splash
+          screen or anywhere mid-wizard produced a completely blank
+          page - the @media print block unconditionally hides
+          .splash-screen/.attic-layout/.closet-layout (styles.css), and
+          .done-screen isn't mounted at all until doneVisible is true,
+          so there was nothing left in the DOM for the browser to print.
+          This fallback only exists while !doneVisible (i.e. exactly the
+          gap that print CSS doesn't otherwise cover), hidden on-screen
+          and shown only in print media (see .print-only-fallback in
+          styles.css) - a plain, no-dead-chrome message rather than a
+          blank page, since there's no in-progress-answers UI to print
+          yet at this point in the flow. */}
+      {!doneVisible&&<div className="print-only-fallback">
+        <div style={{fontFamily:"var(--ft)",fontSize:20,marginBottom:8}}>Gold Eagle Services</div>
+        <div>{tr('Your estimate isn’t ready to print yet - finish building your system to see pricing and print your results.','Su estimado aún no está listo para imprimir - termine de armar su sistema para ver el precio e imprimir sus resultados.')}</div>
+      </div>}
       {/* QA FIX - the diagram's shared gradients/filters (gold, silver,
           cabinet-edge, glow, etc.) used to be defined fresh inside EACH
           mounted <svg> (the wizard's own preview canvas stays mounted,

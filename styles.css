@@ -1440,6 +1440,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    been opened. */
 .print-only-grid{display:none}
 .print-letterhead{display:none}
+/* QA FIX - printing (Ctrl+P) from the splash screen or mid-wizard used
+   to produce a completely blank page: the @media print block below
+   unconditionally hides .splash-screen/.attic-layout/.closet-layout,
+   and .done-screen isn't mounted at all until the wizard is finished,
+   so nothing was left to print. Same invisible-until-print pattern as
+   .print-only-grid/.print-letterhead above - see the JSX in app.js
+   (gated on !doneVisible, so it only exists during the exact gap print
+   CSS doesn't otherwise cover, and disappears once .done-screen mounts
+   and has its own real print content). */
+.print-only-fallback{display:none}
 /* PRINT QA FIX - see the .price-live/.price-static comment in app.js next
    to the CountUp hero figures: on screen the live, animated number is what
    should show (.price-static stays hidden); only @media print below swaps
@@ -1466,6 +1476,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      flows in order - so this simply un-stickies it back to normal flow. */
   .considerations-sticky-content{position:static!important;top:auto!important;transform:none!important}
   .print-only-grid{display:block!important}
+  .print-only-fallback{display:block!important;padding:60px 40px;text-align:center;color:#000;font-family:var(--fb)}
   /* .done-canvas-frame (the finished diagram) used to be swept up by a
      blanket .canvas-frame rule here too - it carries that class alongside
      its own (see its className in app.js) since it reuses the same grid-
