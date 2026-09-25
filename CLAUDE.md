@@ -27,15 +27,34 @@ Never print, echo or commit those values.
 
 ## How to make a change
 
-1. Find the page, read its current content, and describe the exact change
-   in one or two plain sentences.
-2. Get a clear "yes" before changing the live site. Small text fixes the
-   owner spelled out exactly can go straight through.
-3. Make the change, then re-fetch the page (and its public URL) to confirm
-   it took. Give the owner the page link. Mention that a caching plugin may
-   delay what visitors see.
-4. If something goes wrong, WordPress keeps revisions
-   (`/wp/v2/pages/<id>/revisions`) - restore from there.
+The owner's top priority is that the site never breaks. These rules are
+mandatory - no exceptions, even for "tiny" edits:
+
+1. **New pages and posts are always created with `"status": "draft"`.**
+   Give the owner the preview link. Publish only when they explicitly say
+   to publish that specific item.
+2. **Edits to existing pages need an explicit "yes" every time.** Before
+   saving, show the owner the exact before and after text in plain
+   language, then wait. A general "go ahead" earlier in the conversation
+   does not cover a new change.
+3. **Back up before every edit.** Save the page's current `content.raw` to
+   a file in the scratchpad before POSTing a change, so it can be put
+   back even if WordPress revisions fail.
+4. **Verify after every edit.** Re-fetch the page via the API and load its
+   public URL. If it doesn't return HTTP 200, or the change isn't there,
+   or other content is missing, immediately restore the backup and tell
+   the owner what happened. Mention that a caching plugin may delay what
+   visitors see.
+5. **One page at a time.** A change touching several pages needs the owner
+   to approve the full list of pages first.
+6. **Never:** delete pages, posts or media; change menus, site settings,
+   users, plugins or themes; edit the two Elementor pages listed above.
+   If the owner asks for one of these, explain it's outside what this
+   setup does safely and suggest they do it in WP Admin.
+
+To undo a change later, WordPress keeps revisions
+(`/wp/v2/pages/<id>/revisions`); the owner can also use Revisions →
+Restore in the page editor.
 
 ## The Build Your System estimator (this repo)
 
