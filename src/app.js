@@ -2240,11 +2240,22 @@ function App(){
                           own typical sq-ft range (see the option grid to
                           the right), so this description just points at
                           that instead of asking for a number nobody needs
-                          to type. */}
-                      <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5}}>
-                        {isAtticMode
-                          ?tr("Pick the tonnage that best fits your home's sq ft - see the typical range on each card.","Elija las toneladas que mejor se ajusten a los pies cuadrados de su casa - vea el rango típico en cada tarjeta.")
-                          :tr("Pick the tonnage that best fits the square footage this system covers - each option shows its typical range.","Elija las toneladas que mejor se ajusten a los pies cuadrados que cubre este sistema - cada opción muestra su rango típico.")}
+                          to type.
+                          QA FIX - the attic-mode copy used to say "your
+                          home's sq ft," which is wrong for anyone with more
+                          than one system (this card only sizes THIS one) -
+                          closet mode already had the correct "the square
+                          footage this system covers" phrasing, so unified
+                          on that instead of carrying two different (and
+                          contradictory) claims depending on layout. Added a
+                          second line spelling out the multi-system case
+                          explicitly, since "this system covers" alone is
+                          easy to read past. */}
+                      <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",marginBottom:isAtticMode?2:6,lineHeight:isAtticMode?1.15:1.5}}>
+                        {tr("Pick the tonnage that best fits the square footage this system covers - each option shows its typical range.","Elija las toneladas que mejor se ajusten a los pies cuadrados que cubre este sistema - cada opción muestra su rango típico.")}
+                      </div>
+                      <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",marginBottom:isAtticMode?3:8,lineHeight:isAtticMode?1.15:1.5,fontStyle:"italic"}}>
+                        {tr("Have more than one system? Base this on just the area that system covers, not your whole home.","¿Tiene más de un sistema? Base esto solo en el área que cubre ese sistema, no en toda su casa.")}
                       </div>
                     </>}
                   </div>
@@ -2262,9 +2273,41 @@ function App(){
                       // instead of silently losing it.
                       const sqftNum=parseInt(pricingAnswers.sqftInput)||0;
                       const recommended=nearestTonnageOption(sqftNum,tonnageOptions);
-                      return <div ref={sqftGridRef} className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?`repeat(${tonnageOptions.length},1fr)`:"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
+                      {/* QA FIX - direct feedback: this grid's "right"
+                          column is flex:1 inside the attic bottom panel,
+                          which can run 1500px+ wide on a large monitor -
+                          with columns at a bare 1fr, 3-4 cards stretched to
+                          fill all of it, leaving each one a huge mostly-
+                          empty box around a couple lines of small
+                          .opt-compact text. Everything above this step
+                          (the diagram) fills its space with real content;
+                          these cards had nothing to fill theirs with, so
+                          they just looked unfinished by comparison.
+                          minmax(140px,220px) caps how wide any one card can
+                          grow - extra space is left blank instead of
+                          stretching the cards - and dropping opt-compact in
+                          favor of the same .opt sizing the rest of the
+                          wizard's option cards use gives them the same
+                          padding/font weight as everything else, instead of
+                          the tight sidebar-tuned compact variant. */}
+                      {/* QA FIX - repeat(N,minmax(140px,220px)) (a fixed
+                          column count) forced ALL N tracks into whatever
+                          width the container had, even when N*140px+gaps
+                          didn't fit - confirmed at 1100px wide with the
+                          fedmin tier's 7-card half-ton catalog, where the
+                          grid overflowed its container and the last couple
+                          cards bled off the visible panel instead of
+                          wrapping. auto-fit lets the browser wrap extra
+                          cards onto additional rows once they stop fitting,
+                          same as it already did before this same-line QA
+                          FIX capped the max width - the sqftGridOrphans
+                          effect above already exists specifically to handle
+                          a lone card stranded on its own wrapped row, so
+                          multi-row wrapping here is a supported case, not a
+                          new one. */}
+                      return <div ref={sqftGridRef} className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?"repeat(auto-fit,minmax(140px,220px))":"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
                         {tonnageOptions.map((o,i)=>(
-                          <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.tonnageChoice===o.v?" sel":"")}
+                          <button key={o.v} className={"opt"+(pricingAnswers.tonnageChoice===o.v?" sel":"")}
                             // see the sqftGridOrphans QA FIX above this
                             // component's return - fills the dead gap
                             // beside ANY lone card left alone on its own
@@ -2273,9 +2316,24 @@ function App(){
                             // 1-column width.
                             style={sqftGridOrphans.has(i)?{gridColumn:"1 / -1"}:undefined}
                             onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
-                            <div className="opt-inner"><div className="opt-body">
-                              <span className="opt-label">{tr(o.label,o.labelEs)}{recommended&&recommended.v===o.v&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
-                              <span className="opt-desc">{isAtticMode?tr(o.sqftLabel,o.sqftLabelEs):tr(`Typical for ${o.sqftLabel} homes`,`Típico para casas de ${o.sqftLabelEs}`)}</span>
+                            {/* QA FIX - direct feedback: even capped at
+                                220px wide, the cards still left the fixed-
+                                height attic sidebar mostly empty below the
+                                Get My Estimate button (measured ~100px of
+                                dead space at 1980px wide). Rather than pad
+                                the box out with nothing in it, sized up the
+                                one number that actually matters here - same
+                                "make the real number bigger" language the
+                                diagram's own temperature readouts and the
+                                price card's hero figure already use - so
+                                the extra room goes to bigger, easier-to-
+                                read text instead of empty padding. Scoped
+                                to attic mode only; the closet sidebar is a
+                                normal-height scrolling column with no dead
+                                space to fill, so its cards are unchanged. */}
+                            <div className="opt-inner" style={isAtticMode?{padding:"20px 16px"}:undefined}><div className="opt-body">
+                              <span className="opt-label" style={isAtticMode?{fontSize:24,lineHeight:1.2}:undefined}>{tr(o.label,o.labelEs)}{recommended&&recommended.v===o.v&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
+                              <span className="opt-desc" style={isAtticMode?{fontSize:14,marginTop:4}:undefined}>{isAtticMode?tr(o.sqftLabel,o.sqftLabelEs):tr(`Typical for ${o.sqftLabel} homes`,`Típico para casas de ${o.sqftLabelEs}`)}</span>
                             </div></div>
                           </button>
                         ))}
