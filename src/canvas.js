@@ -2270,10 +2270,20 @@ function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount,ringColor,onEditSt
   const fanRx=w*0.46;
   const fanRy=h*0.38;
   const spd=active?0.9:0;
+  // QA FIX - this used to set the full `animation` shorthand as a bare
+  // inline style with no backing class, so styles.css's
+  // `.spin{animation:none!important}` prefers-reduced-motion override
+  // (and every other `.spin` rule) never matched this element at all -
+  // the fan kept spinning even with reduced motion on, unlike every
+  // other looping element in the diagram (CondenserFan's `.spin`,
+  // `.airflow`, etc., which all correctly stop). Switched to the same
+  // className="spin" + animationDuration-only pattern CondenserFan
+  // already uses above, so `.spin`'s CSS animation-name/iteration-count
+  // apply and the reduced-motion override can actually match.
   const spinStyle=active?{
     transformBox:'fill-box',
     transformOrigin:'center',
-    animation:'spin '+(1/spd).toFixed(2)+'s linear infinite',
+    animationDuration:(1/spd).toFixed(2)+'s',
   }:{};
   const bC=bladeColor||(active?'rgba(80,85,95,.75)':'rgba(50,55,62,.5)');
   const gC=slatFill||ringColor||bC;
@@ -2292,7 +2302,7 @@ function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount,ringColor,onEditSt
       fill={active?"rgba(10,11,14,.95)":"rgba(8,9,12,.9)"}
       stroke="rgba(30,32,38,.6)" strokeWidth="0.7"/>
     <g transform={'translate('+cx+' '+cy+') scale(1,'+squash+')'}>
-      <g style={spinStyle}>
+      <g className={active?"spin":undefined} style={spinStyle}>
         {Array.from({length:4},(_,i)=>{
           const ang=i*(Math.PI/2);
           const bx1=fanRx*0.15*Math.cos(ang);

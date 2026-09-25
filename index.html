@@ -4328,7 +4328,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     const spinStyle = active ? {
       transformBox: "fill-box",
       transformOrigin: "center",
-      animation: "spin " + (1 / spd).toFixed(2) + "s linear infinite"
+      animationDuration: (1 / spd).toFixed(2) + "s"
     } : {};
     const bC = bladeColor || (active ? "rgba(80,85,95,.75)" : "rgba(50,55,62,.5)");
     const gC = slatFill || ringColor || bC;
@@ -4344,7 +4344,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         stroke: "rgba(30,32,38,.6)",
         strokeWidth: "0.7"
       }
-    ), /* @__PURE__ */ React.createElement("g", { transform: "translate(" + cx + " " + cy + ") scale(1," + squash + ")" }, /* @__PURE__ */ React.createElement("g", { style: spinStyle }, Array.from({ length: 4 }, (_, i) => {
+    ), /* @__PURE__ */ React.createElement("g", { transform: "translate(" + cx + " " + cy + ") scale(1," + squash + ")" }, /* @__PURE__ */ React.createElement("g", { className: active ? "spin" : void 0, style: spinStyle }, Array.from({ length: 4 }, (_, i) => {
       const ang = i * (Math.PI / 2);
       const bx1 = fanRx * 0.15 * Math.cos(ang);
       const by1 = fanRx * 0.15 * Math.sin(ang);
