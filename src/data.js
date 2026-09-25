@@ -38,7 +38,7 @@ export const STEPS=[
   // of it... cleans up a few things"), which left ERV as the only thing
   // in that step. Folding it in here instead of keeping a step with one
   // lonely option: same multi-select pattern as purif above.
-  {id:'dehu',        q:'Want to enhance your IAQ?', chapter:2,
+  {id:'dehu',        q:'Want to enhance your indoor air quality?', chapter:2,
     hint:'Whole-home dehumidifier, ERV fresh-air system, or both.', optional:true, multi:true},
 ];
 

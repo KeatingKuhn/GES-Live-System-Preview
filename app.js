@@ -71,7 +71,7 @@
     // lonely option: same multi-select pattern as purif above.
     {
       id: "dehu",
-      q: "Want to enhance your IAQ?",
+      q: "Want to enhance your indoor air quality?",
       chapter: 2,
       hint: "Whole-home dehumidifier, ERV fresh-air system, or both.",
       optional: true,
@@ -8612,9 +8612,18 @@
         // to need (to keep two separate wizard steps both editable from one
         // merged box) is gone too, since there's only one step to jump back
         // to now. Matches the purif row's own pattern exactly.
+        // QA FIX - a fresh-eyes UX pass caught "IAQ" as an unexplained
+        // acronym nowhere spelled out in the UI (the wizard step's own
+        // question already dropped it - see that field's own comment).
+        // "Air quality" instead - notably SHORTER than "IAQ add-ons" in
+        // English (11 vs 12 chars) and "Calidad del aire" shorter than
+        // "Complementos de CAI" in Spanish too (16 vs 20 chars), so this
+        // stays safely inside the tight width this row was already tuned
+        // to in closet mode (see the "Shrink closet IAQ add-ons review
+        // row" fix this same label used to need).
         Array.isArray(answers.dehu) && answers.dehu.length > 0 ? {
           step: "dehu",
-          label: tr("IAQ add-ons", "Complementos de CAI"),
+          label: tr("Air quality", "Calidad del aire"),
           val: answers.dehu.map((v) => v === "dehu" ? tr("Whole-home dehumidifier", "Deshumidificador para toda la casa") : v === "erv" ? "ERV" : v).join(" + "),
           short: answers.dehu.map((v) => v === "dehu" ? tr("Dehu", "Deshu") : v === "erv" ? "ERV" : v).join(" + ")
         } : null
@@ -9253,13 +9262,13 @@
         tr("Waived consultation fees", "Consultas sin cargo"),
         tr("Free coil cleaning & drain flush", "Limpieza de serpent\xEDn y drenaje gratis"),
         tr("1 free service call for friends and family", "1 visita de servicio gratis para familiares")
-      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.85)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
+      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.85)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 16, flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
         setOpenFaqKey("zoning");
         setShowFaq(true);
       } }, tr("FAQ", "Preguntas Frecuentes")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
         setPricingFlow("sizing");
         setPricingSubStep(0);
-      } }, "\u2039 ", tr("Adjust my answers", "Ajustar mis respuestas")));
+      } }, "\u2039 ", tr("Adjust my answers", "Ajustar mis respuestas"))));
       return priceCard;
     })())), pricingFlow === null && /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: "none", margin: 0, width: "100%", marginBottom: 6, padding: "9px", fontSize: 14 }, onClick: () => {
       trackEvent("pricing_started");

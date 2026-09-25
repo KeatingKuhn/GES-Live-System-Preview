@@ -967,7 +967,16 @@ function App(){
       // to need (to keep two separate wizard steps both editable from one
       // merged box) is gone too, since there's only one step to jump back
       // to now. Matches the purif row's own pattern exactly.
-      Array.isArray(answers.dehu)&&answers.dehu.length>0?{step:"dehu",label:tr("IAQ add-ons","Complementos de CAI"),
+      // QA FIX - a fresh-eyes UX pass caught "IAQ" as an unexplained
+      // acronym nowhere spelled out in the UI (the wizard step's own
+      // question already dropped it - see that field's own comment).
+      // "Air quality" instead - notably SHORTER than "IAQ add-ons" in
+      // English (11 vs 12 chars) and "Calidad del aire" shorter than
+      // "Complementos de CAI" in Spanish too (16 vs 20 chars), so this
+      // stays safely inside the tight width this row was already tuned
+      // to in closet mode (see the "Shrink closet IAQ add-ons review
+      // row" fix this same label used to need).
+      Array.isArray(answers.dehu)&&answers.dehu.length>0?{step:"dehu",label:tr("Air quality","Calidad del aire"),
         val:answers.dehu.map(v=>v==="dehu"?tr("Whole-home dehumidifier","Deshumidificador para toda la casa"):v==="erv"?"ERV":v).join(" + "),
         short:answers.dehu.map(v=>v==="dehu"?tr("Dehu","Deshu"):v==="erv"?"ERV":v).join(" + ")}:null,
     ].filter(Boolean);
@@ -2770,9 +2779,19 @@ function App(){
                         plain FAQ button instead - opt-in, not showcased.
                         Resets openFaqKey to the first entry on every open,
                         so a previous visit's expanded question doesn't
-                        carry over looking like the "featured" one. */}
-                    <button className="done-restart" onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
-                    <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
+                        carry over looking like the "featured" one.
+                        QA FIX - a fresh-eyes UX pass caught this button and
+                        "Adjust my answers" right after it rendering with
+                        zero gap between them (two adjacent .done-restart
+                        buttons, which has no margin of its own) - read as
+                        one garbled "FAQ‹ Adjust my answers" string instead
+                        of two separate clickable things. Wrapped both in
+                        their own flex row with a visible gap so they read
+                        as two distinct options. */}
+                    <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
+                      <button className="done-restart" onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
+                      <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
+                    </div>
                   </div>
                 );
                 return priceCard;
