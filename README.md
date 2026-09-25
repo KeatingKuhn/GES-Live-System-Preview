@@ -32,6 +32,33 @@ page. It handles a wide range of fixed iframe heights gracefully (tested
 down to 600px) as well as "fill available space" sizing - no minimum
 height needs to be hardcoded.
 
+### Automatic deploy (`npm run deploy`)
+
+Instead of copying `index.html` by hand, `npm run deploy` builds, uploads
+`index.html` to the WordPress Media Library as
+`ges-live-system-preview-<commit>.html`, checks that WordPress serves it
+byte-for-byte, and only then rewrites the host page's `<iframe src>` to
+point at it. Earlier uploads stay in the Media Library, so rolling back
+means pointing the iframe at a previous file.
+
+Setup, done once:
+
+1. The iframe must be on a **Gutenberg** page, in a Custom HTML block.
+   Elementor pages can't be safely edited through the REST API, and the
+   script refuses them.
+2. In WP Admin, create an **Editor** user and give it an Application
+   Password (Users → Profile → Application Passwords).
+3. Set these environment variables. Never commit them:
+   `WP_URL`, `WP_USER`, `WP_APP_PASSWORD`, `WP_HOST_PAGE_ID` (the number
+   in the host page's edit URL, `post.php?post=123`).
+4. Run `npm run deploy:check`. It verifies the login and finds the iframe
+   without changing anything.
+
+`npm run deploy -- --dry-run` shows what a deploy would do. The deploy
+refuses to publish an `index.html` that isn't committed, so what's live
+always matches a commit. Full details are at the top of
+`scripts/deploy-wp.js`.
+
 ## Development
 
 Everything else in this repo (`src/`, `package.json`, `app.js`,
