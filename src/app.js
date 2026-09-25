@@ -2404,39 +2404,60 @@ function App(){
                 // scroll this page needs roughly in half. Closet's tall
                 // narrow sidebar keeps the original single-column stack.
                 // Base system vs. every add-on the homeowner opted into -
-                // both real numbers calcEstimate already produced (lines[0]
-                // is always the tonnage/system line; nothing invented or
-                // separately rounded here, basePct/addonsPct are derived
-                // from the same already-rounded `l.display` figures the
-                // itemized list below shows, so they can never disagree
-                // with it). Only meaningful when there's actually an
-                // add-on to compare against - a 100%-base bar is a chart
-                // with nothing to say, so it's skipped entirely rather than
-                // rendered empty/degenerate.
-                const addonLines=est.lines.slice(1);
-                const basePct=est.display>0?Math.round(est.lines[0].display/est.display*100):100;
+                // both real numbers calcEstimate already produced (nothing
+                // invented or separately rounded here, basePct/addonsPct
+                // are derived from the same already-rounded `l.display`
+                // figures the itemized list below shows, so they can never
+                // disagree with it). Only meaningful when there's actually
+                // an add-on to compare against - a 100%-base bar is a
+                // chart with nothing to say, so it's skipped entirely
+                // rather than rendered empty/degenerate.
+                // QA FIX - per direct feedback, "base" used to be ONLY
+                // lines[0] (the tonnage/system line) - everything else,
+                // including the ductboard/sheet-metal plenum a customer
+                // was REQUIRED to choose in a mandatory, non-skippable
+                // wizard step ("New supply plenum needed?", never a
+                // checkbox), got lumped into "Add-ons" right alongside
+                // genuinely optional comfort items like the dehumidifier
+                // or ERV. A customer skimming "Add-ons · 52%" could
+                // reasonably read that as "over half my price is optional
+                // extras I could decline," when part of that was actually
+                // required ductwork. REQUIRED_LINE_KEYS now folds every
+                // line that comes from a mandatory wizard answer (tonnage,
+                // the plenum choice, and the 90% AFUE furnace upgrade a
+                // spray-foam-attic answer forces) into "Base system" -
+                // "Add-ons" is left meaning only what a customer actually
+                // opted into via an a-la-carte checkbox on this same card.
+                const REQUIRED_LINE_KEYS=new Set(['tonnage','furnace90','plenum']);
+                const addonLines=est.lines.filter(l=>!REQUIRED_LINE_KEYS.has(l.key));
+                const baseTotal=est.lines.filter(l=>REQUIRED_LINE_KEYS.has(l.key)).reduce((s,l)=>s+l.display,0);
+                const basePct=est.display>0?Math.round(baseTotal/est.display*100):100;
                 const addonsPct=100-basePct;
                 const wisetack=FINANCING_OPTIONS.find(f=>f.key==='wisetack'&&f.url);
                 const priceCard=(
                   <div className="price-card" style={{border:"1px solid rgba(215,183,64,.3)",background:"rgba(215,183,64,.05)",padding:12}}>
-                    {/* ── PRICE HERO — the monthly figure is the number a
-                        homeowner actually budgets against day to day, so it
-                        gets the dominant visual weight: its own bordered
-                        card, the biggest type on the panel, and a one-shot
-                        gold reveal glow (.price-hero::before in styles.css)
-                        timed to the CashCount beneath it finishing. The
-                        one-time total right below stays fully visible and
-                        at its original size/color - still a number someone
-                        will want to read clearly - it's just no longer the
-                        FIRST thing competing for that role. Wisetack's
-                        prequalify link lives here too (not just down in
-                        the Quick Actions grid) so financing reads as part
-                        of the reveal itself, right under the number it
-                        actually applies to. */}
+                    {/* ── PRICE HERO — per direct feedback (a fresh-eyes UX
+                        pass flagged the monthly figure as the FIRST number
+                        a homeowner saw, ahead of the actual total, cutting
+                        against this app's own "transparent pricing, zero
+                        pressure" pitch), the real total now leads and gets
+                        equal top billing: same bordered .price-hero card,
+                        same 48px type, same one-shot gold reveal glow
+                        (.price-hero::before, styles.css) as the monthly
+                        figure right below it - neither one visually
+                        outranks the other, and the number a homeowner
+                        would actually total up their own spend against
+                        is the first thing they read. The monthly figure
+                        keeps its own full-size hero treatment right after
+                        (still the number people actually budget against
+                        day to day - that reasoning didn't change, it's
+                        just no longer FIRST). Wisetack's prequalify link
+                        lives in the monthly card, right under the number
+                        it actually applies to. */}
                     <div className="price-hero">
                       {/* QA FIX - see the 'PRICING' eyebrow's own comment
                           above - same contrast shortfall, same fix. */}
-                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
+                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
                       {/* PRINT QA FIX - CashCount (canvas.js) re-animates
                           from $0 over 900ms on every `value` change (each
                           digit reels independently, but still lands from
@@ -2456,6 +2477,13 @@ function App(){
                           .price-live/.price-static (styles.css, @media
                           print) swap to the plain final number for print
                           only - on-screen animation is untouched. */}
+                      <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CashCount value={est.display} format={fmtPrice}/></span><span className="price-static">{fmtPrice(est.display)}</span></div>
+                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).','Incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación).')}</div>
+                    </div>
+                    <div className="price-hero">
+                      {/* QA FIX - see the 'PRICING' eyebrow's own comment
+                          above - same contrast shortfall, same fix. */}
+                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
                       <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CashCount value={Math.round(est.display/36)} format={fmtPrice}/></span><span className="price-static">{fmtPrice(Math.round(est.display/36))}</span><span style={{fontSize:18,color:"var(--dim)",fontWeight:400}}>{tr('/mo','/mes')}</span></div>
                       {/* This 36mo/0% figure is a real Wells Fargo program,
                           but not a self-serve one - GES has to send the
@@ -2474,13 +2502,6 @@ function App(){
                         {tr('→ Or prequalify online with Wisetack','→ O precalifique en línea con Wisetack')}
                       </a>}
                     </div>
-                    {/* QA FIX - see the 'PRICING' eyebrow's own comment
-                        above - same contrast shortfall, same fix. */}
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
-                    {/* Same in-flight-animation print fix as the /mo hero
-                        figure above - see its comment. */}
-                    <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CashCount value={est.display} format={fmtPrice}/></span><span className="price-static">{fmtPrice(est.display)}</span></div>
-                    <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginBottom:10}}>{tr('Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).','Incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación).')}</div>
                     {addonLines.length>0&&<div className="price-breakdown">
                       <div className="price-breakdown-bar">
                         <div className="price-breakdown-seg base" style={{width:basePct+"%"}}/>
@@ -2644,13 +2665,29 @@ function App(){
                           out of sync with what actually gets charged.
                           Ported over from the now-removed "new supply
                           duct run" add-on, which had this exact same
-                          hint for its own quantity field. */}
+                          hint for its own quantity field.
+                          QA FIX - a fresh-eyes UX pass flagged this
+                          stepper defaulting to 1 vent as reading like a
+                          misleadingly low "token" price for a job that's
+                          rarely really just one vent. Not changing the
+                          default itself (still an honest reflection of
+                          "hasn't told us yet," and defaulting HIGHER
+                          risks overpricing someone who genuinely only
+                          needs 1-2) - added a nudge toward actually
+                          counting instead. Deliberately no specific
+                          number (e.g. "8-12 vents") - nothing in this
+                          app's own established copy backs a number like
+                          that, and this app avoids asserting unverified
+                          business claims, so the fix is a general nudge
+                          only shown while still at the default. */}
                       {(()=>{
                         const count=Math.min(20,Math.max(1,pricingAnswers.ventCount||1));
                         const rate=ductVolumeDiscountRate(count);
-                        return rate>0
-                          ?<span style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)"}}>{tr(`${Math.round(rate*100)}% volume discount applied`,`${Math.round(rate*100)}% de descuento por volumen aplicado`)}</span>
-                          :<span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('Add 2+ for a discount, 10 for the biggest deal','Agregue 2+ para un descuento, 10 para la mejor oferta')}</span>;
+                        if(rate>0)return<span style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)"}}>{tr(`${Math.round(rate*100)}% volume discount applied`,`${Math.round(rate*100)}% de descuento por volumen aplicado`)}</span>;
+                        return<span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>
+                          {count===1&&<>{tr('Most homes need more than one vent replaced - count yours for an accurate price. ','La mayoría de las casas necesita reemplazar más de una rejilla - cuente las suyas para un precio preciso. ')}</>}
+                          {tr('Add 2+ for a discount, 10 for the biggest deal','Agregue 2+ para un descuento, 10 para la mejor oferta')}
+                        </span>;
                       })()}
                     </div>}
                     {/* Duct cleaning - same a-la-carte checkbox pattern as

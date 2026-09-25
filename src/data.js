@@ -31,7 +31,17 @@ export const STEPS=[
     showIf:a=>a.indoor_type==='furnace'&&a.cond_tier!=='mid_ge15'},
   {id:'thermostat',  q:'Which thermostat?', chapter:2,
     hint:'Wi-Fi models can help save 10–15% on your bill.',   optional:false},
-  {id:'purif',       q:'Any add-ons?', chapter:2,
+  // QA FIX - a fresh-eyes UX pass caught this step and the very next one
+  // ("dehu", "Want to enhance your indoor air quality?") reading as the
+  // same question asked twice in a row, both under the same COMFORT
+  // chapter header, both multi-select checkboxes. Renamed to name what
+  // this one is actually about (UV/Ionizer = purification, Surge
+  // Protector = electrical protection) - distinct from the next step's
+  // humidity/fresh-air framing (dehumidifier/ERV) - rather than merging
+  // the two steps, which would touch calcEstimate/the review grid/
+  // Spanish translations/step-count numbering all at once for a copy-
+  // level confusion.
+  {id:'purif',       q:'Any purification or protection add-ons?', chapter:2,
     hint:'Filtration ships standard; add more here.',optional:true, multi:true},
   // Merged with the old standalone "extras" step (condensate pump/ERV) -
   // condensate pump was dropped entirely (direct feedback: "getting rid
@@ -158,7 +168,7 @@ export const STEPS_ES={
   cond_tier:  {q:'Elija su nivel de eficiencia.',          hint:'Mayor eficiencia, facturas mensuales más bajas.'},
   system_for: {q:'¿Bomba de calor de combustible dual, o solo enfriamiento?', hint:'La bomba de calor hace más; el A/C solo enfría.'},
   thermostat: {q:'¿Qué termostato?',                       hint:'Los modelos Wi-Fi pueden ahorrar 10–15% en su factura.'},
-  purif:      {q:'¿Algún complemento?',                    hint:'La filtración viene incluida; agregue más aquí.'},
+  purif:      {q:'¿Algún complemento de purificación o protección?', hint:'La filtración viene incluida; agregue más aquí.'},
   dehu:       {q:'¿Quiere mejorar la calidad del aire interior?', hint:'Deshumidificador para toda la casa, sistema ERV de aire fresco, o ambos.'},
 };
 export const OPTS_ES={
