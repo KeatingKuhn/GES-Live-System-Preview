@@ -2824,7 +2824,25 @@ function App(){
                 color for Start Over stays the same contrast-safe
                 rgba(255,255,255,.68) the class encodes, it's just no
                 longer re-typed inline every render. */}
-            <div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
+            {/* QA FIX - a fresh-eyes UX pass caught this entire row
+                (financing/print/email/back/start-over) rendering fully
+                clickable regardless of pricingFlow - reachable before
+                "Get Pricing" was ever clicked, and even while still
+                mid-way through the sizing sub-steps. Financing linked
+                straight out to Wisetack's real prequalify page, and
+                Email sent a real mailto (cc'ing the office) with zero
+                price context, before the customer had seen a single
+                dollar figure - print already had a graceful pre-
+                pricing fallback message (.print-only-fallback), which
+                is exactly the "we already knew this state was
+                reachable" signal that the fix just wasn't extended to
+                the rest of the row. Gated the whole row behind the
+                same pricingFlow==='result' condition that reveals the
+                price card itself, so it only exists once there's an
+                actual price to act on - the wizard's own per-step Back/
+                Skip/Finish controls already cover navigation during
+                sizing/leadgate. */}
+            {pricingFlow==='result'&&<div className="no-print" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8,width:"100%",marginBottom:8}}>
               {/* One button per configured financing option (see
                   FINANCING_OPTIONS in data.js) - an entry with no url
                   simply doesn't render here. */}
@@ -2855,10 +2873,23 @@ function App(){
                   (mirroring pickLocation's own reset of these same three
                   pieces of state) means re-finishing the build always lands
                   back on the plain review grid with a fresh Get Pricing
-                  button. */}
-              <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});}}>‹ {tr('Back','Atrás')}</button>
+                  button.
+                  QA FIX - a fresh-eyes UX pass caught that clearing
+                  pricingAnswers here (the fix directly above) makes this
+                  button meaningfully MORE destructive than "Adjust my
+                  answers" on the price card right next to it (which only
+                  re-opens the sizing screen, add-ons/quantities intact) -
+                  yet both were labeled/styled identically, with nothing
+                  signalling the difference, unlike "Start Over" which at
+                  least names what it does. This button is for changing a
+                  core system answer (tier, insulation, etc.), which is
+                  exactly why the reset above has to stay - relabeled
+                  instead of removing the fix, so the button is honest
+                  about what happens rather than looking like a second,
+                  interchangeable "go back" control. */}
+              <button className="btn-back" style={{width:"100%",padding:"9px",fontSize:"var(--fs-restart)",justifyContent:"center"}} onClick={()=>{setDone(false);setStepIdx(activeSteps.length-1);setPricingFlow(null);setPricingSubStep(0);setPricingAnswers({});}}>‹ {tr('Edit System (clears pricing)','Editar Sistema (reinicia precios)')}</button>
               <button className="quick-restart-btn" style={{width:"100%",fontFamily:"var(--fb)",fontSize:"var(--fs-restart)",padding:"9px"}} onClick={restart}>{tr('Start Over','Empezar de Nuevo')}</button>
-            </div>
+            </div>}
           </div>
         </div>
       </div>}
