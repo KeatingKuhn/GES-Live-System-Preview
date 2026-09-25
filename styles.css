@@ -456,7 +456,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      coverage. Short (.45s) and non-looping, so low-impact, but still a
      real gap against this rule's own stated intent. */
   .splash-rise{animation:none!important}
-  .spin,.airflow,.line-pulse,.rotate-prompt-icon,.info-btn{animation:none!important}
+  /* QA FIX - .btn-cta-glow ("Get My Estimate" button's pulsing glow)
+     reuses the exact same info-btn-glow keyframe .info-btn already gets
+     suppressed here - it was just never added to this selector list, so
+     it kept looping infinitely under reduced motion while its sibling
+     using the identical animation correctly stopped. */
+  .spin,.airflow,.line-pulse,.rotate-prompt-icon,.info-btn,.btn-cta-glow{animation:none!important}
   .rain-drop,.rain-splash,.snow-flake,.confetti-piece{display:none!important}
   .glow-pulse{animation:glowIn .22s ease-out both!important}
   .step-focus-ring{animation:glowIn .3s ease-out both!important}
