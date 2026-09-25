@@ -290,28 +290,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    a class the inline atticMode style can't out-specificity, so this
    media query actually wins back below the sidebar's own mobile
    breakpoint. */
-/* QA FIX - sticky-centering the Zoning callout (see its own big comment
-   in app.js) only avoids overlapping the content above/below it when the
-   parent it's centering within is genuinely stretched taller than its own
-   content - that only happens in attic mode's wide 2-column price-card/
-   considerations row (alignItems:"stretch" in app.js), which is why this
-   is scoped to .done-screen.attic-mode specifically rather than applied
-   unconditionally. Closet mode never renders that row at all (returns
-   {priceCard}{considerations} as plain siblings - app.js), so
-   .considerations-block's height:100% there resolves against a parent
-   with no definite height (computes as auto per spec) - an automated QA
-   pass caught this same box, with the same sticky rule applied
-   unconditionally, shifting ~60-90px above its own box into whatever
-   precedes it in closet mode (and on mobile attic, once the narrow-
-   viewport override just below collapses the row to a column too). Left
-   as plain static flow in both of those cases (that override) - the box
-   already equals its content height there, so no special positioning is
-   needed to keep it visible. This rule has to come BEFORE the
-   @media(max-width:860px) block below in source order - same selector,
-   same specificity, so the narrow-viewport override inside that block
-   only wins the cascade if it appears later than this. */
-.done-screen.attic-mode .considerations-sticky-content{position:sticky;top:50%;transform:translateY(-50%)}
-
 @media(max-width:860px){
   /* align-items stays "flex-start" inline (app.js) for attic's wide ROW
      layout, where it top-aligns two columns of differing height - a
@@ -324,17 +302,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .pricing-substep-row{flex-direction:column!important;gap:8px!important;align-items:stretch!important}
   .pricing-substep-left{flex:1 1 auto!important}
   .pricing-opts-sqft{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
-  .pricing-result-row{flex-direction:column!important}
-  /* QA FIX - the Zoning callout's sticky-centering (below, base rule)
-     only makes sense once its parent is actually stretched to a tall
-     height by the wide attic row's alignItems:stretch - .pricing-result-
-     row just collapsed to a column above, where stretch governs WIDTH
-     not height, so .considerations-block's height:100% resolves to
-     basically its own content height here (nothing to stretch against).
-     Un-stickying it back to plain static flow needs no special
-     positioning at all once the box isn't artificially tall - content
-     already fills it exactly. */
-  .done-screen.attic-mode .considerations-sticky-content{position:static;top:auto;transform:none}
 }
 
 /* ANIMATIONS */
@@ -1484,18 +1451,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     height:auto!important;max-height:none!important;width:100%!important;
     transform:none!important;
   }
-  /* QA FIX - the "Zoning" callout's on-screen sticky-centering trick
-     (position:sticky;top:50%;translateY(-50%) - app.js, considerations-
-     sticky-content) has nothing to track once printed: there's no
-     scrolling container at all in print (see html,body/.done-wrap above,
-     all forced to overflow:visible;height:auto), so sticky fell back to
-     its static-position math with no scroll context to clamp against,
-     landing the Zoning heading/body overlapping the eyebrow label above
-     it on every printed build, not just tall/scrolled ones. Print never
-     needed the trick in the first place - a printed page has no
-     "invisible until you scroll to the middle" problem, content just
-     flows in order - so this simply un-stickies it back to normal flow. */
-  .considerations-sticky-content{position:static!important;top:auto!important;transform:none!important}
   .print-only-grid{display:block!important}
   .print-only-fallback{display:block!important;padding:60px 40px;text-align:center;color:#000;font-family:var(--fb)}
   /* .done-canvas-frame (the finished diagram) used to be swept up by a
@@ -1647,7 +1602,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      before it, same trade already made everywhere else in this file in
      favor of not losing/garbling content. Also applied to each review-grid
      cell and the price card, for the same reason on a taller build. */
-  .price-card,.considerations-block,.done-review-grid>*{break-inside:avoid}
+  .price-card,.done-review-grid>*{break-inside:avoid}
 
   /* PRINT QA FIX - always show the settled final price, never a mid-count
      animation frame. See the .price-live/.price-static comment in app.js. */

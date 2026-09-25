@@ -279,9 +279,6 @@
       // ($1,776) endpoints were given ("increments as you see fit") - these are
       // linearly interpolated at a constant $116.71/half-ton step in between.
       cleaning: { 1.5: 959, 2: 1076, 2.5: 1192, 3: 1309, 3.5: 1426, 4: 1543, 5: 1776 },
-      // Brand-new supply run (not a swap of an existing one) - new duct, boot,
-      // and grille together. In a 2-story house this needs sheetrock removal.
-      newSupplyRun: 1188,
       // Return side - a separate box/run from the supply plenum question above.
       // Austin homes very commonly have undersized returns. Not a wizard
       // question anymore - referenced in the "Additional Considerations"
@@ -298,7 +295,12 @@
     // offered as a flat add-on at the end of pricing rather than its own
     // wizard question.
     laborWarranty10yr: 1750,
-    maintenancePlanAnnual: 177
+    // $177 covers one system; each additional system on the same visit adds
+    // a flat $100 rather than a second full $177 (shared truck roll/tech
+    // time). Direct feedback - most customers only have one, but multi-unit
+    // homes shouldn't pay full price twice.
+    maintenancePlanAnnual: 177,
+    maintenancePlanAdditionalSystem: 100
   };
   var TONNAGE_OPTIONS = [
     { v: "t15", label: "1.5 Tons", labelEs: "1.5 Toneladas", sqftLabel: "~900 sq ft", sqftLabelEs: "~900 pies\xB2", tons: 1.5, sqftMid: 900 },
@@ -431,14 +433,14 @@
   };
   var OFFICE_EMAIL = "sales@goldeagleservices.com";
   var TIER_LABEL = { fedmin: "Federal Minimum - 14.3 SEER2", mid_ge15: "Mid Efficiency - 18 SEER2", high_ge18: "High Efficiency - 21 SEER2" };
-  var SUPPLY_RUN_DISCOUNT = [
+  var DUCT_VOLUME_DISCOUNT = [
     { min: 10, rate: 0.1 },
     { min: 5, rate: 0.08 },
     { min: 2, rate: 0.05 },
     { min: 1, rate: 0 }
   ];
-  function supplyRunDiscountRate(count) {
-    const tier = SUPPLY_RUN_DISCOUNT.find((t) => count >= t.min);
+  function ductVolumeDiscountRate(count) {
+    const tier = DUCT_VOLUME_DISCOUNT.find((t) => count >= t.min);
     return tier ? tier.rate : 0;
   }
   function calcEstimate(answers, pricingAnswers) {
@@ -471,22 +473,15 @@
     }
     const ventCount = Math.min(20, Math.max(0, pricingAnswers.ventCount || 0));
     if (pricingAnswers.wantDucts && ventCount > 0) {
-      lines.push({ key: "ductReplacement", ventCount, label: `Duct replacement (${ventCount} vent${ventCount === 1 ? "" : "s"})`, price: ventCount * PRICING.duct.replacementPerStem });
+      const ductDiscountRate = ductVolumeDiscountRate(ventCount);
+      const ductPrice = ventCount * PRICING.duct.replacementPerStem * (1 - ductDiscountRate);
+      lines.push({ key: "ductReplacement", ventCount, discountRate: ductDiscountRate, label: `Duct replacement (${ventCount} vent${ventCount === 1 ? "" : "s"})${ductDiscountRate > 0 ? ` - ${Math.round(ductDiscountRate * 100)}% volume discount` : ""}`, price: ductPrice });
     }
     if (pricingAnswers.wantLaborWarranty) {
       lines.push({ key: "laborWarranty", label: "10-year labor warranty", price: PRICING.laborWarranty10yr });
     }
-    if (pricingAnswers.wantMaintenancePlan) {
-      lines.push({ key: "maintenancePlan", label: "Annual maintenance plan (1st year)", price: PRICING.maintenancePlanAnnual });
-    }
     if (pricingAnswers.wantDuctCleaning) {
       lines.push({ key: "ductCleaning", label: "Duct cleaning", price: PRICING.duct.cleaning[tonnage] });
-    }
-    const supplyRunCount = Math.min(10, Math.max(0, pricingAnswers.newSupplyRunCount || 0));
-    if (pricingAnswers.wantNewSupplyRuns && supplyRunCount > 0) {
-      const supplyDiscountRate = supplyRunDiscountRate(supplyRunCount);
-      const supplyRunPrice = supplyRunCount * PRICING.duct.newSupplyRun * (1 - supplyDiscountRate);
-      lines.push({ key: "newSupplyRuns", runCount: supplyRunCount, discountRate: supplyDiscountRate, label: `New supply duct run${supplyRunCount === 1 ? "" : "s"} (${supplyRunCount})${supplyDiscountRate > 0 ? ` - ${Math.round(supplyDiscountRate * 100)}% multi-run discount` : ""}`, price: supplyRunPrice });
     }
     if (pricingAnswers.wantNewReturnDuct) {
       lines.push({ key: "newReturnDuct", label: "New return duct run", price: PRICING.duct.newReturnDuct });
@@ -495,8 +490,14 @@
       const plenumType = pricingAnswers.returnPlenumType === "metal" ? "metal" : "ductboard";
       lines.push({ key: "ductReturnPlenum", plenumType, label: plenumType === "metal" ? "Return plenum (sheet metal)" : "Return plenum (ductboard)", price: PRICING.duct.returnPlenum[plenumType] });
     }
+    if (pricingAnswers.wantMaintenancePlan) {
+      const systemCount = Math.min(6, Math.max(1, pricingAnswers.maintenanceSystemCount || 1));
+      const extraSystems = systemCount - 1;
+      const price = PRICING.maintenancePlanAnnual + extraSystems * PRICING.maintenancePlanAdditionalSystem;
+      lines.push({ key: "maintenancePlan", systemCount, label: `Annual maintenance plan (1st year${systemCount > 1 ? `, ${systemCount} systems` : ""})`, price });
+    }
     const subtotal = lines.reduce((s, l) => s + l.price, 0);
-    const linesRounded = lines.map((l) => ({ ...l, display: roundTo25(l.price) }));
+    const linesRounded = lines.map((l) => ({ ...l, display: l.key === "maintenancePlan" ? l.price : roundTo25(l.price) }));
     const display = linesRounded.reduce((s, l) => s + l.display, 0);
     return { lines: linesRounded, subtotal, display, tonnage };
   }
@@ -8641,15 +8642,13 @@
         case "erv":
           return `ERV (${line.ervCfm} CFM)`;
         case "ductReplacement":
-          return `Reemplazo de ductos (${line.ventCount} rejilla${line.ventCount === 1 ? "" : "s"})`;
+          return `Reemplazo de ductos (${line.ventCount} rejilla${line.ventCount === 1 ? "" : "s"})${line.discountRate > 0 ? ` - ${Math.round(line.discountRate * 100)}% de descuento por volumen` : ""}`;
         case "laborWarranty":
           return "Garant\xEDa de mano de obra de 10 a\xF1os";
         case "maintenancePlan":
-          return "Plan de mantenimiento anual (1er a\xF1o)";
+          return `Plan de mantenimiento anual (1er a\xF1o${line.systemCount > 1 ? `, ${line.systemCount} sistemas` : ""})`;
         case "ductCleaning":
           return "Limpieza de ductos";
-        case "newSupplyRuns":
-          return `L\xEDnea${line.runCount === 1 ? "" : "s"} de suministro nueva${line.runCount === 1 ? "" : "s"} (${line.runCount})${line.discountRate > 0 ? ` - ${Math.round(line.discountRate * 100)}% de descuento por volumen` : ""}`;
         case "newReturnDuct":
           return "L\xEDnea de retorno nueva";
         case "ductReturnPlenum":
@@ -8658,7 +8657,7 @@
           return line.label;
       }
     };
-    const buildEmailHref = (to = "") => {
+    const buildEmailHref = () => {
       const lines = [tr("Here is the system I built with Gold Eagle Services:", "Este es el sistema que arm\xE9 con Gold Eagle Services:"), ""];
       reviewItems.forEach((item) => {
         if (item && item.val) lines.push(`${item.label}: ${item.val}`);
@@ -8677,10 +8676,11 @@
       lines.push(tr("Built with the Gold Eagle Services online system builder.", "Creado con el configurador de sistemas en l\xEDnea de Gold Eagle Services."));
       const subject = encodeURIComponent(tr("My Gold Eagle Services HVAC Build", "Mi Sistema HVAC de Gold Eagle Services"));
       const body = encodeURIComponent(lines.join("\n"));
-      const cc = OFFICE_EMAIL && to !== OFFICE_EMAIL ? `&cc=${encodeURIComponent(OFFICE_EMAIL)}` : "";
-      return `mailto:${to}?subject=${subject}&body=${body}${cc}`;
+      const cc = OFFICE_EMAIL ? `&cc=${encodeURIComponent(OFFICE_EMAIL)}` : "";
+      return `mailto:?subject=${subject}&body=${body}${cc}`;
     };
     const [showInfo, setShowInfo] = React.useState(false);
+    const [showZoningFaq, setShowZoningFaq] = React.useState(false);
     React.useEffect(() => {
       setShowInfo(false);
     }, [stepIdx]);
@@ -8807,7 +8807,23 @@
       }
       return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), opt.desc && /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, opt.desc)), /* @__PURE__ */ React.createElement("div", { className: isMulti ? "opt-check" : "opt-check radio", style: isOn && !isMulti ? { borderColor: "var(--gl)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" } : {} }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 8, height: 8, borderRadius: "50%", background: "var(--gh)" } }) : "")));
     };
-    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, !doneVisible && /* @__PURE__ */ React.createElement("div", { className: "print-only-fallback" }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--ft)", fontSize: 20, marginBottom: 8 } }, "Gold Eagle Services"), /* @__PURE__ */ React.createElement("div", null, tr("Your estimate isn\u2019t ready to print yet - finish building your system to see pricing and print your results.", "Su estimado a\xFAn no est\xE1 listo para imprimir - termine de armar su sistema para ver el precio e imprimir sus resultados."))), /* @__PURE__ */ React.createElement("svg", { width: "0", height: "0", style: { position: "absolute" }, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null)), /* @__PURE__ */ React.createElement("div", { "aria-live": "polite", "aria-atomic": "true", className: "sr-only" }, liveMessage), resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, tr("WELCOME BACK", "BIENVENIDO DE NUEVO")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, !doneVisible && /* @__PURE__ */ React.createElement("div", { className: "print-only-fallback" }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--ft)", fontSize: 20, marginBottom: 8 } }, "Gold Eagle Services"), /* @__PURE__ */ React.createElement("div", null, tr("Your estimate isn\u2019t ready to print yet - finish building your system to see pricing and print your results.", "Su estimado a\xFAn no est\xE1 listo para imprimir - termine de armar su sistema para ver el precio e imprimir sus resultados."))), showZoningFaq && /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        className: "no-print",
+        onClick: () => setShowZoningFaq(false),
+        style: { position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }
+      },
+      /* @__PURE__ */ React.createElement("div", { onClick: (e) => e.stopPropagation(), style: { background: "#14110a", border: "1px solid rgba(215,183,64,.4)", borderRadius: 6, padding: 20, maxWidth: 420, boxShadow: "0 10px 40px rgba(0,0,0,.5)" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,.92)", fontFamily: "var(--ft)" } }, tr("Zoning", "Zonificaci\xF3n")), /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          "aria-label": tr("Close", "Cerrar"),
+          onClick: () => setShowZoningFaq(false),
+          style: { background: "none", border: "none", color: "rgba(255,255,255,.6)", fontSize: 22, lineHeight: 1, cursor: "pointer", padding: 4 }
+        },
+        "\xD7"
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, tr("Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.", "Dividir este sistema en zonas controladas de forma independiente (arriba/abajo, o habitaci\xF3n por habitaci\xF3n). El costo var\xEDa demasiado seg\xFAn la distribuci\xF3n de la casa para un estimado en l\xEDnea - visitaremos su hogar y le daremos una cotizaci\xF3n exacta en su visita gratuita.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 10, fontStyle: "italic" } }, tr("Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.", "\xBFMarc\xF3 alguno de los complementos de ductos arriba? Esos precios ya est\xE1n en su estimado. Aun as\xED confirmaremos el alcance exacto - y se\xF1alaremos cualquier otra necesidad de sus ductos - en su visita gratuita a domicilio.")))
+    ), /* @__PURE__ */ React.createElement("svg", { width: "0", height: "0", style: { position: "absolute" }, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null)), /* @__PURE__ */ React.createElement("div", { "aria-live": "polite", "aria-atomic": "true", className: "sr-only" }, liveMessage), resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, tr("WELCOME BACK", "BIENVENIDO DE NUEVO")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
       const savedCur = savedSteps[savedBuild.stepIdx];
       const savedQ = savedCur && (lang2 === "es" && STEPS_ES[savedCur.id] ? STEPS_ES[savedCur.id].q : savedCur.q);
@@ -9058,28 +9074,14 @@
           checked: !!pricingAnswers.wantLaborWarranty,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantLaborWarranty: e.target.checked }))
         }
-      ), tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+$${fmtPrice(PRICING.laborWarranty10yr)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
-        "input",
-        {
-          type: "checkbox",
-          checked: !!pricingAnswers.wantMaintenancePlan,
-          onChange: (e) => setPricingAnswers((p) => ({ ...p, wantMaintenancePlan: e.target.checked }))
-        }
-      ), tr(`Add our annual maintenance plan (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/yr)`, `Agregar nuestro plan de mantenimiento anual (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/a\xF1o)`)), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "3px 10px", fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", lineHeight: 1.4, margin: "4px 0 10px 24px" } }, [
-        tr("2 seasonal tune-ups (AC + heating)", "2 afinaciones estacionales (A/C y calefacci\xF3n)"),
-        tr("Priority scheduling", "Programaci\xF3n prioritaria"),
-        tr("10% off repairs", "10% de descuento en reparaciones"),
-        tr("Waived consultation fees", "Consultas sin cargo"),
-        tr("Free coil cleaning & drain flush", "Limpieza de serpent\xEDn y drenaje gratis"),
-        tr("1 free service call for friends and family", "1 visita de servicio gratis para familiares")
-      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.85)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+$${fmtPrice(PRICING.laborWarranty10yr)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 20, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantDucts,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantDucts: e.target.checked, ...e.target.checked && !pricingAnswers.ventCount ? { ventCount: 1 } : {} }))
         }
-      ), tr(`Add duct replacement (+$${fmtPrice(PRICING.duct.replacementPerStem)}/vent)`, `Agregar reemplazo de ductos (+$${fmtPrice(PRICING.duct.replacementPerStem)}/rejilla)`)), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", alignItems: "center", gap: 8, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("How many vents/registers?", "\xBFCu\xE1ntas rejillas/registros?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add duct replacement (+$${fmtPrice(PRICING.duct.replacementPerStem)}/vent)`, `Agregar reemplazo de ductos (+$${fmtPrice(PRICING.duct.replacementPerStem)}/rejilla)`)), pricingAnswers.wantDucts && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", flexDirection: "column", gap: 4, margin: "6px 0 20px 24px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("How many vents/registers?", "\xBFCu\xE1ntas rejillas/registros?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
         "button",
         {
           type: "button",
@@ -9121,7 +9123,11 @@
           onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(20, (p.ventCount || 1) + 1) }))
         },
         "+"
-      ))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ))), (() => {
+        const count = Math.min(20, Math.max(1, pricingAnswers.ventCount || 1));
+        const rate = ductVolumeDiscountRate(count);
+        return rate > 0 ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.85)" } }, tr(`${Math.round(rate * 100)}% volume discount applied`, `${Math.round(rate * 100)}% de descuento por volumen aplicado`)) : /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Add 2+ for a discount, 10 for the biggest deal", "Agregue 2+ para un descuento, 10 para la mejor oferta"));
+      })()), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
@@ -9129,58 +9135,6 @@
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantDuctCleaning: e.target.checked }))
         }
       ), tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`, `Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
-        "input",
-        {
-          type: "checkbox",
-          checked: !!pricingAnswers.wantNewSupplyRuns,
-          onChange: (e) => setPricingAnswers((p) => ({ ...p, wantNewSupplyRuns: e.target.checked, ...e.target.checked && !pricingAnswers.newSupplyRunCount ? { newSupplyRunCount: 1 } : {} }))
-        }
-      ), tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run - volume discount on 2+)`, `Agregar l\xEDnea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/l\xEDnea - descuento por volumen en 2+)`)), pricingAnswers.wantNewSupplyRuns && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", flexDirection: "column", gap: 4, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("How many runs?", "\xBFCu\xE1ntas l\xEDneas?")), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          type: "button",
-          className: "vent-step-btn",
-          "aria-label": tr("Decrease", "Disminuir"),
-          disabled: (pricingAnswers.newSupplyRunCount || 0) <= 1,
-          onClick: () => setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Math.max(1, (p.newSupplyRunCount || 1) - 1) }))
-        },
-        "\u2212"
-      ), /* @__PURE__ */ React.createElement(
-        "input",
-        {
-          type: "number",
-          min: "1",
-          max: "10",
-          value: pricingAnswers.newSupplyRunCount ?? "",
-          onChange: (e) => {
-            const raw = e.target.value;
-            if (raw === "") {
-              setPricingAnswers((p) => ({ ...p, newSupplyRunCount: void 0 }));
-              return;
-            }
-            const n = parseInt(raw);
-            setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Number.isNaN(n) ? void 0 : Math.min(10, Math.max(1, n)) }));
-          },
-          onBlur: () => {
-            if (!pricingAnswers.newSupplyRunCount) setPricingAnswers((p) => ({ ...p, newSupplyRunCount: 1 }));
-          },
-          className: "pricing-input vent-input"
-        }
-      ), /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          type: "button",
-          className: "vent-step-btn",
-          "aria-label": tr("Increase", "Aumentar"),
-          disabled: (pricingAnswers.newSupplyRunCount || 0) >= 10,
-          onClick: () => setPricingAnswers((p) => ({ ...p, newSupplyRunCount: Math.min(10, (p.newSupplyRunCount || 1) + 1) }))
-        },
-        "+"
-      ))), (() => {
-        const count = Math.min(10, Math.max(1, pricingAnswers.newSupplyRunCount || 1));
-        const rate = supplyRunDiscountRate(count);
-        return rate > 0 ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.85)" } }, tr(`${Math.round(rate * 100)}% multi-run discount applied`, `${Math.round(rate * 100)}% de descuento por volumen aplicado`)) : /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Add 2+ for a discount, 10 for the biggest deal", "Agregue 2+ para un descuento, 10 para la mejor oferta"));
-      })()), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
@@ -9212,17 +9166,66 @@
           onClick: () => setPricingAnswers((p) => ({ ...p, returnPlenumType: "metal" }))
         },
         /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr("Sheet metal", "L\xE1mina met\xE1lica"))))
-      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
+      )), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "checkbox",
+          checked: !!pricingAnswers.wantMaintenancePlan,
+          onChange: (e) => setPricingAnswers((p) => ({ ...p, wantMaintenancePlan: e.target.checked, ...e.target.checked && !pricingAnswers.maintenanceSystemCount ? { maintenanceSystemCount: 1 } : {} }))
+        }
+      ), tr(`Add our annual maintenance plan (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/yr)`, `Agregar nuestro plan de mantenimiento anual (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/a\xF1o)`)), pricingAnswers.wantMaintenancePlan && /* @__PURE__ */ React.createElement("div", { className: "snap", style: { display: "flex", alignItems: "center", gap: 8, margin: "6px 0 10px 24px" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr(`How many systems do you have? (+$${fmtPrice(PRICING.maintenancePlanAdditionalSystem)}/additional)`, `\xBFCu\xE1ntos sistemas tiene? (+$${fmtPrice(PRICING.maintenancePlanAdditionalSystem)}/adicional)`)), /* @__PURE__ */ React.createElement("div", { className: "vent-stepper" }, /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "vent-step-btn",
+          "aria-label": tr("Decrease", "Disminuir"),
+          disabled: (pricingAnswers.maintenanceSystemCount || 0) <= 1,
+          onClick: () => setPricingAnswers((p) => ({ ...p, maintenanceSystemCount: Math.max(1, (p.maintenanceSystemCount || 1) - 1) }))
+        },
+        "\u2212"
+      ), /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "number",
+          min: "1",
+          max: "6",
+          value: pricingAnswers.maintenanceSystemCount ?? "",
+          onChange: (e) => {
+            const raw = e.target.value;
+            if (raw === "") {
+              setPricingAnswers((p) => ({ ...p, maintenanceSystemCount: void 0 }));
+              return;
+            }
+            const n = parseInt(raw);
+            setPricingAnswers((p) => ({ ...p, maintenanceSystemCount: Number.isNaN(n) ? void 0 : Math.min(6, Math.max(1, n)) }));
+          },
+          onBlur: () => {
+            if (!pricingAnswers.maintenanceSystemCount) setPricingAnswers((p) => ({ ...p, maintenanceSystemCount: 1 }));
+          },
+          className: "pricing-input vent-input"
+        }
+      ), /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "vent-step-btn",
+          "aria-label": tr("Increase", "Aumentar"),
+          disabled: (pricingAnswers.maintenanceSystemCount || 0) >= 6,
+          onClick: () => setPricingAnswers((p) => ({ ...p, maintenanceSystemCount: Math.min(6, (p.maintenanceSystemCount || 1) + 1) }))
+        },
+        "+"
+      ))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "3px 10px", fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", lineHeight: 1.4, margin: "4px 0 10px 24px" } }, [
+        tr("2 seasonal tune-ups (AC + heating)", "2 afinaciones estacionales (A/C y calefacci\xF3n)"),
+        tr("Priority scheduling", "Programaci\xF3n prioritaria"),
+        tr("10% off repairs", "10% de descuento en reparaciones"),
+        tr("Waived consultation fees", "Consultas sin cargo"),
+        tr("Free coil cleaning & drain flush", "Limpieza de serpent\xEDn y drenaje gratis"),
+        tr("1 free service call for friends and family", "1 visita de servicio gratis para familiares")
+      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.85)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => setShowZoningFaq(true) }, tr("FAQ", "Preguntas Frecuentes")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
         setPricingFlow("sizing");
         setPricingSubStep(0);
       } }, "\u2039 ", tr("Adjust my answers", "Ajustar mis respuestas")));
-      {
-      }
-      const considerations = /* @__PURE__ */ React.createElement("div", { className: "considerations-block", style: { width: "100%", height: "100%", boxSizing: "border-box", padding: "10px 12px", background: "rgba(215,183,64,.05)", border: "1px solid rgba(215,183,64,.15)", display: "flex", flexDirection: "column", ...isAtticMode ? {} : { marginTop: 12 } } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.75)", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: isAtticMode ? 0 : 6, fontFamily: "var(--fm)" } }, "Also Worth Asking About"), /* @__PURE__ */ React.createElement("div", { className: "considerations-sticky-content" }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 15 : 16, fontWeight: 600, color: "rgba(255,255,255,.92)", marginBottom: 4, fontFamily: "var(--ft)" } }, "Zoning"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, "Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 10, fontStyle: "italic" } }, "Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.")));
-      if (!isAtticMode) return /* @__PURE__ */ React.createElement(React.Fragment, null, priceCard, considerations);
-      {
-      }
-      return /* @__PURE__ */ React.createElement("div", { className: "pricing-result-row", style: { display: "flex", gap: 16, alignItems: "stretch" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, priceCard), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, considerations));
+      return priceCard;
     })())), pricingFlow === null && /* @__PURE__ */ React.createElement("button", { className: "btn-next", style: { flex: "none", margin: 0, width: "100%", marginBottom: 6, padding: "9px", fontSize: 14 }, onClick: () => {
       trackEvent("pricing_started");
       if (leadUnlocked) {
@@ -9235,7 +9238,7 @@
     } }, "\u{1F4B0} ", tr("Get Pricing", "Ver Precios")), /* @__PURE__ */ React.createElement("div", { className: "no-print", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, width: "100%", marginBottom: 8 } }, FINANCING_OPTIONS.filter((f) => f.url).map((f) => /* @__PURE__ */ React.createElement("a", { key: f.key, href: f.url, target: "_blank", rel: "noopener", onClick: () => trackCtaOnce("financing_clicked", { lender: f.key }), className: "quick-financing-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", textDecoration: "none", textAlign: "center", boxSizing: "border-box" } }, "\u{1F4B3} ", tr(f.label, f.labelEs))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       trackCtaOnce("print_clicked");
       window.print();
-    }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 ", tr("Save / Print", "Guardar / Imprimir")), /* @__PURE__ */ React.createElement("a", { href: buildEmailHref(), onClick: () => trackCtaOnce("email_build_clicked"), className: "quick-print-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em", textDecoration: "none", boxSizing: "border-box", textAlign: "center" } }, "\u2709 ", tr("Email a Copy to Yourself", "Enviar Copia a Mi Correo")), OFFICE_EMAIL && /* @__PURE__ */ React.createElement("a", { href: buildEmailHref(OFFICE_EMAIL), onClick: () => trackCtaOnce("email_office_clicked"), className: "quick-print-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em", textDecoration: "none", boxSizing: "border-box", textAlign: "center" } }, "\u2709 ", tr("Send to Our Office", "Enviar a Nuestra Oficina")), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
+    }, className: "quick-print-btn", style: { width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em" } }, "\u2B07 ", tr("Save / Print", "Guardar / Imprimir")), /* @__PURE__ */ React.createElement("a", { href: buildEmailHref(), onClick: () => trackCtaOnce("email_build_clicked"), className: "quick-print-btn", style: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontFamily: "var(--fm)", fontSize: "var(--fs-restart)", padding: "9px 8px", cursor: "pointer", letterSpacing: ".08em", textDecoration: "none", boxSizing: "border-box", textAlign: "center" } }, "\u2709 ", tr("Email a Copy to Yourself (and Our Office)", "Enviar Copia a Mi Correo (y a Nuestra Oficina)")), /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { width: "100%", padding: "9px", fontSize: "var(--fs-restart)", justifyContent: "center" }, onClick: () => {
       setDone(false);
       setStepIdx(activeSteps.length - 1);
       setPricingFlow(null);

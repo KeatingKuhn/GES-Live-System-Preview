@@ -265,9 +265,6 @@ export const PRICING={
     // ($1,776) endpoints were given ("increments as you see fit") - these are
     // linearly interpolated at a constant $116.71/half-ton step in between.
     cleaning:{1.5:959, 2:1076, 2.5:1192, 3:1309, 3.5:1426, 4:1543, 5:1776},
-    // Brand-new supply run (not a swap of an existing one) - new duct, boot,
-    // and grille together. In a 2-story house this needs sheetrock removal.
-    newSupplyRun:1188,
     // Return side - a separate box/run from the supply plenum question above.
     // Austin homes very commonly have undersized returns. Not a wizard
     // question anymore - referenced in the "Additional Considerations"
@@ -284,7 +281,12 @@ export const PRICING={
   // offered as a flat add-on at the end of pricing rather than its own
   // wizard question.
   laborWarranty10yr:1750,
+  // $177 covers one system; each additional system on the same visit adds
+  // a flat $100 rather than a second full $177 (shared truck roll/tech
+  // time). Direct feedback - most customers only have one, but multi-unit
+  // homes shouldn't pay full price twice.
   maintenancePlanAnnual:177,
+  maintenancePlanAdditionalSystem:100,
 };
 
 // ─── PRICING CALCULATION ────────────────────────────────────────
@@ -507,24 +509,26 @@ export const GATE_CONFIG={
 // FINANCING_OPTIONS above: blank means that button simply doesn't render.
 export const OFFICE_EMAIL='sales@goldeagleservices.com';
 const TIER_LABEL={fedmin:'Federal Minimum - 14.3 SEER2',mid_ge15:'Mid Efficiency - 18 SEER2',high_ge18:'High Efficiency - 21 SEER2'};
-// Multi-run discount for new supply duct runs (PRICING.duct.newSupplyRun) -
-// direct feedback: "make it to where theres a discount the more you buy...
-// once you hit 10 you get 1 free type of deal." Tiered per-run discount
+// Multi-vent discount for duct replacement (PRICING.duct.replacementPerStem)
+// - direct feedback: "make it to where theres a discount the more you buy...
+// once you hit 10 you get 1 free type of deal." Tiered per-vent discount
 // (not compounding - the rate for the tier the total quantity lands in
-// applies to every run in the order) landing exactly on that "10 for the
-// price of 9" deal at the stepper's own 10-run max (10% off = 1 run's
-// worth, free), with a smaller discount kicking in earlier so bundling
-// even a couple of runs into one visit is worth it before hitting 10.
+// applies to every vent in the order), with a smaller discount kicking in
+// earlier so bundling even a couple of vents into one visit is worth it
+// before hitting 10. Originally written for the now-removed "new supply
+// duct run" add-on (kept its own quantity cap of 10 for that reason) - per
+// direct feedback duct replacement (which can run up to 20 vents) now
+// reuses this exact same tier table instead of a second, driftable copy.
 // Ordered highest-quantity-tier first so .find() below returns the first
 // (highest) tier the count actually qualifies for.
-const SUPPLY_RUN_DISCOUNT=[
+const DUCT_VOLUME_DISCOUNT=[
   {min:10,rate:.10},
   {min:5, rate:.08},
   {min:2, rate:.05},
   {min:1, rate:0},
 ];
-export function supplyRunDiscountRate(count){
-  const tier=SUPPLY_RUN_DISCOUNT.find(t=>count>=t.min);
+export function ductVolumeDiscountRate(count){
+  const tier=DUCT_VOLUME_DISCOUNT.find(t=>count>=t.min);
   return tier?tier.rate:0;
 }
 // Returns null if this tier/system-type combo has no pricing (shouldn't happen
@@ -586,19 +590,22 @@ export function calcEstimate(answers,pricingAnswers){
   // system realistically serves - direct feedback after the pricing-math
   // sweep found a 40-vent max let a build combine a 1.5-ton system with a
   // $36,800 duct-replacement line, which doesn't reflect a real home.
+  // QA FIX - per direct feedback, the separate "new supply duct run"
+  // add-on (with its own quantity field/multi-run discount) was removed -
+  // duct replacement now covers that same "get my ducts sorted" need on
+  // its own, so it picked up the exact same volume-discount treatment
+  // (ductVolumeDiscountRate, same tier table) that add-on used to have,
+  // scaled by vent count instead of run count.
   const ventCount=Math.min(20,Math.max(0,pricingAnswers.ventCount||0));
   if(pricingAnswers.wantDucts&&ventCount>0){
-    lines.push({key:'ductReplacement',ventCount,label:`Duct replacement (${ventCount} vent${ventCount===1?'':'s'})`,price:ventCount*PRICING.duct.replacementPerStem});
+    const ductDiscountRate=ductVolumeDiscountRate(ventCount);
+    const ductPrice=ventCount*PRICING.duct.replacementPerStem*(1-ductDiscountRate);
+    lines.push({key:'ductReplacement',ventCount,discountRate:ductDiscountRate,label:`Duct replacement (${ventCount} vent${ventCount===1?'':'s'})${ductDiscountRate>0?` - ${Math.round(ductDiscountRate*100)}% volume discount`:''}`,price:ductPrice});
   }
   // Extended labor warranty - a checkbox on the result screen, not a
   // wizard question (see the comment on PRICING.laborWarranty10yr above).
   if(pricingAnswers.wantLaborWarranty){
     lines.push({key:'laborWarranty',label:'10-year labor warranty',price:PRICING.laborWarranty10yr});
-  }
-  // Annual maintenance plan - same add-on treatment as the labor warranty
-  // above, not a wizard question.
-  if(pricingAnswers.wantMaintenancePlan){
-    lines.push({key:'maintenancePlan',label:'Annual maintenance plan (1st year)',price:PRICING.maintenancePlanAnnual});
   }
   // Duct cleaning - same checkbox add-on treatment as the two above.
   // Previously just educational text in the "Additional Considerations"
@@ -610,22 +617,8 @@ export function calcEstimate(answers,pricingAnswers){
   if(pricingAnswers.wantDuctCleaning){
     lines.push({key:'ductCleaning',label:'Duct cleaning',price:PRICING.duct.cleaning[tonnage]});
   }
-  // New supply duct runs - same checkbox add-on treatment, but unlike
-  // return plenum/return duct below, a home very rarely needs just one of
-  // these (direct feedback: "supply duct number needs to be put in the
-  // question because its not usually just one duct") - so this gets its
-  // own quantity field, same 1-10 stepper pattern as ventCount just
-  // capped lower (a handful of brand-new runs in one visit is realistic;
-  // 20 is what ductReplacement's per-vent swap allows, not a sane ceiling
-  // for all-new runs including sheetrock work).
-  const supplyRunCount=Math.min(10,Math.max(0,pricingAnswers.newSupplyRunCount||0));
-  if(pricingAnswers.wantNewSupplyRuns&&supplyRunCount>0){
-    const supplyDiscountRate=supplyRunDiscountRate(supplyRunCount);
-    const supplyRunPrice=supplyRunCount*PRICING.duct.newSupplyRun*(1-supplyDiscountRate);
-    lines.push({key:'newSupplyRuns',runCount:supplyRunCount,discountRate:supplyDiscountRate,label:`New supply duct run${supplyRunCount===1?'':'s'} (${supplyRunCount})${supplyDiscountRate>0?` - ${Math.round(supplyDiscountRate*100)}% multi-run discount`:''}`,price:supplyRunPrice});
-  }
-  // Return duct run - per direct feedback, unlike supply runs above, a
-  // home usually only needs one of these, so no quantity field.
+  // Return duct run - per direct feedback, a home usually only needs one
+  // of these, so no quantity field.
   if(pricingAnswers.wantNewReturnDuct){
     lines.push({key:'newReturnDuct',label:'New return duct run',price:PRICING.duct.newReturnDuct});
   }
@@ -638,9 +631,26 @@ export function calcEstimate(answers,pricingAnswers){
     const plenumType=pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard';
     lines.push({key:'ductReturnPlenum',plenumType,label:plenumType==='metal'?'Return plenum (sheet metal)':'Return plenum (ductboard)',price:PRICING.duct.returnPlenum[plenumType]});
   }
+  // Annual maintenance plan - same add-on treatment as the checkboxes
+  // above, not a wizard question. Pushed LAST per direct feedback (both
+  // this line and its own checkbox on the price card should be the final
+  // entry, not mixed in with the duct add-ons). $177 covers one system;
+  // each additional system (the "how many systems do you have" stepper
+  // next to this checkbox) adds a flat $100 instead of a second full
+  // $177 - see PRICING.maintenancePlanAdditionalSystem's own comment.
+  if(pricingAnswers.wantMaintenancePlan){
+    const systemCount=Math.min(6,Math.max(1,pricingAnswers.maintenanceSystemCount||1));
+    const extraSystems=systemCount-1;
+    const price=PRICING.maintenancePlanAnnual+extraSystems*PRICING.maintenancePlanAdditionalSystem;
+    lines.push({key:'maintenancePlan',systemCount,label:`Annual maintenance plan (1st year${systemCount>1?`, ${systemCount} systems`:''})`,price});
+  }
 
   const subtotal=lines.reduce((s,l)=>s+l.price,0);
-  const linesRounded=lines.map(l=>({...l,display:roundTo25(l.price)}));
+  // Per direct feedback, every line rounds to the nearest $25 EXCEPT the
+  // maintenance plan - that one's a real, exact recurring price
+  // ($177 + $100/additional system, not a rough install estimate like
+  // everything else here), so it's the one line left un-rounded.
+  const linesRounded=lines.map(l=>({...l,display:l.key==='maintenancePlan'?l.price:roundTo25(l.price)}));
   // Sum the already-rounded line items rather than independently rounding
   // the raw subtotal - roundTo25 isn't linear, so the two can land on
   // different multiples of 25 and a customer adding up the itemized rows

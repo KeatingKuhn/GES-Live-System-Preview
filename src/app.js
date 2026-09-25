@@ -3,7 +3,7 @@
 // the copyright block in index.html's own source for the full terms.
 // GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx
 const {useState,useMemo,useRef,useCallback}=React;
-import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES,supplyRunDiscountRate} from './data.js';
+import {CHAPTERS,STEPS,deriveFurnaceEff,getOpts,PRICING,TONNAGE_OPTIONS,calcEstimate,nearestTonnageOption,trackBuildCompleted,trackEvent,trackLead,GATE_CONFIG,FINANCING_OPTIONS,OFFICE_EMAIL,CHAPTERS_ES,STEPS_ES,OPTS_ES,ductVolumeDiscountRate} from './data.js';
 import {Canvas,CashCount,Defs} from './canvas.js';
 
 // ─── APP ────────────────────────────────────────────────────────
@@ -222,7 +222,7 @@ function App(){
   // onClick handler again with nothing to stop it. Verified with Playwright:
   // a REAL .dblclick() (two separately-dispatched click events at native
   // double-click speed, not two same-tick synthetic clicks) reliably fired
-  // financing_clicked/email_build_clicked/email_office_clicked/print_clicked
+  // financing_clicked/email_build_clicked/print_clicked
   // twice before this guard existed, double-counting one physical click as
   // two conversions/engagements - while pricing_started/price_revealed/
   // restart_clicked/quick_edit_used were already safe purely because their
@@ -995,11 +995,10 @@ function App(){
       case 'surge':             return 'Protector de Sobrevoltaje';
       case 'dehu':              return `Deshumidificador para toda la casa (${line.dehuCap}pt)`;
       case 'erv':                return `ERV (${line.ervCfm} CFM)`;
-      case 'ductReplacement':   return `Reemplazo de ductos (${line.ventCount} rejilla${line.ventCount===1?'':'s'})`;
+      case 'ductReplacement':   return `Reemplazo de ductos (${line.ventCount} rejilla${line.ventCount===1?'':'s'})${line.discountRate>0?` - ${Math.round(line.discountRate*100)}% de descuento por volumen`:''}`;
       case 'laborWarranty':     return 'Garantía de mano de obra de 10 años';
-      case 'maintenancePlan':   return 'Plan de mantenimiento anual (1er año)';
+      case 'maintenancePlan':   return `Plan de mantenimiento anual (1er año${line.systemCount>1?`, ${line.systemCount} sistemas`:''})`;
       case 'ductCleaning':      return 'Limpieza de ductos';
-      case 'newSupplyRuns':     return `Línea${line.runCount===1?'':'s'} de suministro nueva${line.runCount===1?'':'s'} (${line.runCount})${line.discountRate>0?` - ${Math.round(line.discountRate*100)}% de descuento por volumen`:''}`;
       case 'newReturnDuct':     return 'Línea de retorno nueva';
       case 'ductReturnPlenum':  return line.plenumType==='metal'?'Plenum de retorno (lámina metálica)':'Plenum de retorno (ductboard)';
       default:                  return line.label;
@@ -1012,20 +1011,13 @@ function App(){
   // calculated. Built fresh on every render (cheap - just string
   // concatenation) rather than memoized, since it only actually runs when
   // someone clicks the link.
-  // QA FIX - per direct feedback, the end of the build should be able to
-  // send the build to GES AND keep a copy for the customer, not just one
-  // or the other - takes an optional `to` (OFFICE_EMAIL when set) so the
-  // "Send to Our Office" button below can reuse this exact same content
-  // instead of a second, driftable copy of it; left blank (as before) for
-  // "Email a Copy to Yourself", which opens the customer's own mail app
-  // with nothing pre-addressed.
-  // QA FIX - per direct feedback, whenever a customer emails themselves a
-  // copy, GES's office should automatically be cc'd too, so the office
-  // always sees the build even if the customer never uses the separate
-  // "Send to Our Office" button. Skipped when `to` is already OFFICE_EMAIL
-  // (the "Send to Our Office" button itself) to avoid a pointless
-  // self-cc.
-  const buildEmailHref=(to='')=>{
+  // QA FIX - per direct feedback, one button ("Email a Copy to Yourself")
+  // instead of the old separate "Email a Copy to Yourself" + "Send to Our
+  // Office" pair - opens the customer's own mail app with nothing
+  // pre-addressed, and cc's GES's office (OFFICE_EMAIL) automatically so
+  // the office always sees the build too. No longer takes a `to` param -
+  // the removed office button was its only other caller.
+  const buildEmailHref=()=>{
     const lines=[tr('Here is the system I built with Gold Eagle Services:','Este es el sistema que armé con Gold Eagle Services:'),''];
     reviewItems.forEach(item=>{if(item&&item.val)lines.push(`${item.label}: ${item.val}`);});
     if(pricingFlow==='result'){
@@ -1042,11 +1034,15 @@ function App(){
     lines.push(tr('Built with the Gold Eagle Services online system builder.','Creado con el configurador de sistemas en línea de Gold Eagle Services.'));
     const subject=encodeURIComponent(tr('My Gold Eagle Services HVAC Build','Mi Sistema HVAC de Gold Eagle Services'));
     const body=encodeURIComponent(lines.join('\n'));
-    const cc=(OFFICE_EMAIL&&to!==OFFICE_EMAIL)?`&cc=${encodeURIComponent(OFFICE_EMAIL)}`:'';
-    return `mailto:${to}?subject=${subject}&body=${body}${cc}`;
+    const cc=OFFICE_EMAIL?`&cc=${encodeURIComponent(OFFICE_EMAIL)}`:'';
+    return `mailto:?subject=${subject}&body=${body}${cc}`;
   };
 
   const [showInfo,setShowInfo]=React.useState(false);
+  // Zoning FAQ modal - see the FAQ button's own comment (price card, price-
+  // reveal screen) for why this replaced the old always-showcased sticky
+  // callout box.
+  const [showZoningFaq,setShowZoningFaq]=React.useState(false);
   // QA FIX - per direct feedback, the info panel used to auto-open on the
   // first question, pushing the option cards down right as they became
   // clickable ("too jumpy every time you ask a question"). The panel now
@@ -1392,6 +1388,22 @@ function App(){
       {!doneVisible&&<div className="print-only-fallback">
         <div style={{fontFamily:"var(--ft)",fontSize:20,marginBottom:8}}>Gold Eagle Services</div>
         <div>{tr('Your estimate isn’t ready to print yet - finish building your system to see pricing and print your results.','Su estimado aún no está listo para imprimir - termine de armar su sistema para ver el precio e imprimir sus resultados.')}</div>
+      </div>}
+      {/* Zoning FAQ - replaced the old always-showcased sticky callout box
+          on the price-reveal screen (see the FAQ button's own comment) -
+          a plain opt-in overlay instead, top-level so it can sit above
+          either layout regardless of which one triggered it. */}
+      {showZoningFaq&&<div className="no-print" onClick={()=>setShowZoningFaq(false)}
+        style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div onClick={e=>e.stopPropagation()} style={{background:"#14110a",border:"1px solid rgba(215,183,64,.4)",borderRadius:6,padding:20,maxWidth:420,boxShadow:"0 10px 40px rgba(0,0,0,.5)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginBottom:10}}>
+            <div style={{fontSize:16,fontWeight:600,color:"rgba(255,255,255,.92)",fontFamily:"var(--ft)"}}>{tr('Zoning','Zonificación')}</div>
+            <button aria-label={tr('Close','Cerrar')} onClick={()=>setShowZoningFaq(false)}
+              style={{background:"none",border:"none",color:"rgba(255,255,255,.6)",fontSize:22,lineHeight:1,cursor:"pointer",padding:4}}>×</button>
+          </div>
+          <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>{tr("Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.","Dividir este sistema en zonas controladas de forma independiente (arriba/abajo, o habitación por habitación). El costo varía demasiado según la distribución de la casa para un estimado en línea - visitaremos su hogar y le daremos una cotización exacta en su visita gratuita.")}</div>
+          <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:10,fontStyle:"italic"}}>{tr("Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.","¿Marcó alguno de los complementos de ductos arriba? Esos precios ya están en su estimado. Aun así confirmaremos el alcance exacto - y señalaremos cualquier otra necesidad de sus ductos - en su visita gratuita a domicilio.")}</div>
+        </div>
       </div>}
       {/* QA FIX - the diagram's shared gradients/filters (gold, silver,
           cabinet-edge, glow, etc.) used to be defined fresh inside EACH
@@ -2458,39 +2470,6 @@ function App(){
                         onChange={e=>setPricingAnswers(p=>({...p,wantLaborWarranty:e.target.checked}))}/>
                       {tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`,`Agregar garantía de mano de obra de 10 años (+$${fmtPrice(PRICING.laborWarranty10yr)})`)}
                     </label>
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",padding:"5px 0",cursor:"pointer"}}>
-                      <input type="checkbox" checked={!!pricingAnswers.wantMaintenancePlan}
-                        onChange={e=>setPricingAnswers(p=>({...p,wantMaintenancePlan:e.target.checked}))}/>
-                      {tr(`Add our annual maintenance plan (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/yr)`,`Agregar nuestro plan de mantenimiento anual (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/año)`)}
-                    </label>
-                    {/* QA FIX - direct feedback: "doesn't look great" - this
-                        used to be one dense, comma-heavy sentence crammed
-                        under the checkbox at fine-print size, the only
-                        thing in this list that read as a paragraph instead
-                        of a scannable line - the labor warranty checkbox
-                        right above has no description at all, so this one
-                        stuck out. Same 6 perks, restructured into a tight
-                        2-column checkmarked grid instead of a wall of text -
-                        each fragment short enough to scan in one glance,
-                        nothing dropped from the original list. */}
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"3px 10px",fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",lineHeight:1.4,margin:"4px 0 10px 24px"}}>
-                      {[
-                        tr('2 seasonal tune-ups (AC + heating)','2 afinaciones estacionales (A/C y calefacción)'),
-                        tr('Priority scheduling','Programación prioritaria'),
-                        tr('10% off repairs','10% de descuento en reparaciones'),
-                        tr('Waived consultation fees','Consultas sin cargo'),
-                        tr('Free coil cleaning & drain flush','Limpieza de serpentín y drenaje gratis'),
-                        tr('1 free service call for friends and family','1 visita de servicio gratis para familiares'),
-                      ].map((perk,i)=>(
-                        <div key={i} style={{display:"flex",gap:5,alignItems:"flex-start"}}>
-                          {/* QA FIX - contrast audit measured this
-                              checkmark at 3.89:1, under the 4.5:1 AA
-                              floor - bumped to .85 alpha for real margin,
-                              same fix as the pricing eyebrows above. */}
-                          <span style={{color:"rgba(215,183,64,.85)",flexShrink:0}}>✓</span><span>{perk}</span>
-                        </div>
-                      ))}
-                    </div>
                     {/* Duct replacement - used to be its own sizing sub-step
                         ("Want duct replacement priced too?") between the
                         tonnage question and the estimate reveal. Direct
@@ -2526,12 +2505,19 @@ function App(){
                         the tiny glyph), so the fix is vertical padding to
                         get the row itself to 24px+, not resizing the
                         checkbox glyph. */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
+                    {/* QA FIX - direct feedback: "spread it out from the
+                        duct cleaning box" - this row's own marginBottom
+                        (and the reveal panel's below) bumped from the
+                        10px every other checkbox uses to give this one
+                        extra breathing room before Duct Cleaning, checked
+                        or not. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:20,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantDucts}
                         onChange={e=>setPricingAnswers(p=>({...p,wantDucts:e.target.checked,...(e.target.checked&&!pricingAnswers.ventCount?{ventCount:1}:{})}))}/>
                       {tr(`Add duct replacement (+$${fmtPrice(PRICING.duct.replacementPerStem)}/vent)`,`Agregar reemplazo de ductos (+$${fmtPrice(PRICING.duct.replacementPerStem)}/rejilla)`)}
                     </label>
-                    {pricingAnswers.wantDucts&&<div className="snap" style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0 10px 24px"}}>
+                    {pricingAnswers.wantDucts&&<div className="snap" style={{display:"flex",flexDirection:"column",gap:4,margin:"6px 0 20px 24px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
                       <span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('How many vents/registers?','¿Cuántas rejillas/registros?')}</span>
                       {/* Same 0-flash/"012"-artifact guard as the supply-run
                           stepper below (raw==='' checked before parseInt) -
@@ -2586,6 +2572,21 @@ function App(){
                           disabled={(pricingAnswers.ventCount||0)>=20}
                           onClick={()=>setPricingAnswers(p=>({...p,ventCount:Math.min(20,(p.ventCount||1)+1)}))}>+</button>
                       </div>
+                      </div>
+                      {/* Live volume-discount hint - same tier lookup
+                          (ductVolumeDiscountRate, data.js) the real
+                          line-item price uses, so this can never drift
+                          out of sync with what actually gets charged.
+                          Ported over from the now-removed "new supply
+                          duct run" add-on, which had this exact same
+                          hint for its own quantity field. */}
+                      {(()=>{
+                        const count=Math.min(20,Math.max(1,pricingAnswers.ventCount||1));
+                        const rate=ductVolumeDiscountRate(count);
+                        return rate>0
+                          ?<span style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)"}}>{tr(`${Math.round(rate*100)}% volume discount applied`,`${Math.round(rate*100)}% de descuento por volumen aplicado`)}</span>
+                          :<span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('Add 2+ for a discount, 10 for the biggest deal','Agregue 2+ para un descuento, 10 para la mejor oferta')}</span>;
+                      })()}
                     </div>}
                     {/* Duct cleaning - same a-la-carte checkbox pattern as
                         labor warranty/maintenance plan above. Used to be
@@ -2612,76 +2613,14 @@ function App(){
                         onChange={e=>setPricingAnswers(p=>({...p,wantDuctCleaning:e.target.checked}))}/>
                       {tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`,`Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)}
                     </label>
-                    {/* New supply duct runs / new return duct / return plenum
-                        - same a-la-carte checkbox pattern, using the real
-                        prices in PRICING.duct that used to be plain
-                        educational text in the "Additional Considerations"
-                        panel below (see the QA FIX there). Direct feedback:
-                        "supply duct number needs to be put in the question
-                        because its not usually just one duct. return plenum
-                        and duct are usually just one" - so unlike the two
-                        return items, this one gets its own quantity field,
-                        same stepper pattern as the sizing sub-step's own
-                        vent-count control (.vent-stepper/.vent-step-btn). */}
-                    {/* QA FIX - automated pass measured this checkbox's
-                        native glyph at 13x13px with the whole label row
-                        only ~15-19px tall for single-line labels - under
-                        this app's own established 24px WCAG 2.5.8 AA
-                        touch-target floor (see the review-row Edit
-                        button's own QA FIX comment, ~line 1920, which
-                        applied the same fix pattern there). The label
-                        already makes the WHOLE row clickable (not just
-                        the tiny glyph), so the fix is vertical padding to
-                        get the row itself to 24px+, not resizing the
-                        checkbox glyph. */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
-                      <input type="checkbox" checked={!!pricingAnswers.wantNewSupplyRuns}
-                        onChange={e=>setPricingAnswers(p=>({...p,wantNewSupplyRuns:e.target.checked,...(e.target.checked&&!pricingAnswers.newSupplyRunCount?{newSupplyRunCount:1}:{})}))}/>
-                      {tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run - volume discount on 2+)`,`Agregar línea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/línea - descuento por volumen en 2+)`)}
-                    </label>
-                    {pricingAnswers.wantNewSupplyRuns&&<div className="snap" style={{display:"flex",flexDirection:"column",gap:4,margin:"6px 0 10px 24px"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('How many runs?','¿Cuántas líneas?')}</span>
-                        <div className="vent-stepper">
-                          <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
-                            disabled={(pricingAnswers.newSupplyRunCount||0)<=1}
-                            onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.max(1,(p.newSupplyRunCount||1)-1)}))}>−</button>
-                          <input type="number" min="1" max="10" value={pricingAnswers.newSupplyRunCount??''} onChange={e=>{
-                            const raw=e.target.value;
-                            if(raw===''){setPricingAnswers(p=>({...p,newSupplyRunCount:undefined}));return;}
-                            const n=parseInt(raw);
-                            setPricingAnswers(p=>({...p,newSupplyRunCount:Number.isNaN(n)?undefined:Math.min(10,Math.max(1,n))}));
-                          }}
-                          // QA FIX - same checked-but-$0 desync as the
-                          // duct-replacement vent-count input just above
-                          // (see its own comment): clearing this field to
-                          // empty left newSupplyRunCount:undefined with
-                          // nothing to ever restore it, and
-                          // calcEstimate's own newSupplyRunCount||0
-                          // fallback (data.js) silently dropped the whole
-                          // line while the checkbox stayed checked.
-                          onBlur={()=>{if(!pricingAnswers.newSupplyRunCount)setPricingAnswers(p=>({...p,newSupplyRunCount:1}));}}
-                          className="pricing-input vent-input"/>
-                          <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
-                            disabled={(pricingAnswers.newSupplyRunCount||0)>=10}
-                            onClick={()=>setPricingAnswers(p=>({...p,newSupplyRunCount:Math.min(10,(p.newSupplyRunCount||1)+1)}))}>+</button>
-                        </div>
-                      </div>
-                      {/* Live multi-run discount hint - direct feedback:
-                          "make it to where theres a discount the more you
-                          buy... once you hit 10 you get 1 free type of
-                          deal." supplyRunDiscountRate (data.js) is the same
-                          tier lookup calcEstimate itself uses for the real
-                          line-item price, so this can never drift out of
-                          sync with what actually gets charged. */}
-                      {(()=>{
-                        const count=Math.min(10,Math.max(1,pricingAnswers.newSupplyRunCount||1));
-                        const rate=supplyRunDiscountRate(count);
-                        return rate>0
-                          ?<span style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)"}}>{tr(`${Math.round(rate*100)}% multi-run discount applied`,`${Math.round(rate*100)}% de descuento por volumen aplicado`)}</span>
-                          :<span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('Add 2+ for a discount, 10 for the biggest deal','Agregue 2+ para un descuento, 10 para la mejor oferta')}</span>;
-                      })()}
-                    </div>}
+                    {/* New return duct / return plenum - same a-la-carte
+                        checkbox pattern, using the real prices in
+                        PRICING.duct that used to be plain educational text
+                        in the "Additional Considerations" panel below (see
+                        the QA FIX there). Direct feedback: "return plenum
+                        and duct are usually just one" - unlike the now-
+                        removed "new supply duct run" add-on, neither of
+                        these two gets its own quantity field. */}
                     {/* QA FIX - automated pass measured this checkbox's
                         native glyph at 13x13px with the whole label row
                         only ~15-19px tall for single-line labels - under
@@ -2724,162 +2663,81 @@ function App(){
                         <div className="opt-inner"><div className="opt-body"><span className="opt-label">{tr('Sheet metal','Lámina metálica')}</span></div></div>
                       </button>
                     </div>}
+                    {/* Annual maintenance plan - per direct feedback, moved
+                        to be the LAST a-la-carte add-on on this card (was
+                        up top with labor warranty) - same reason its own
+                        line item is now pushed last in calcEstimate
+                        (data.js). "How many systems do you have?" stepper
+                        mirrors the duct-replacement vent-count stepper
+                        above; $100/additional system instead of a second
+                        full $177 (see PRICING.maintenancePlanAdditionalSystem's
+                        own comment). */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!pricingAnswers.wantMaintenancePlan}
+                        onChange={e=>setPricingAnswers(p=>({...p,wantMaintenancePlan:e.target.checked,...(e.target.checked&&!pricingAnswers.maintenanceSystemCount?{maintenanceSystemCount:1}:{})}))}/>
+                      {tr(`Add our annual maintenance plan (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/yr)`,`Agregar nuestro plan de mantenimiento anual (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/año)`)}
+                    </label>
+                    {pricingAnswers.wantMaintenancePlan&&<div className="snap" style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0 10px 24px"}}>
+                      <span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr(`How many systems do you have? (+$${fmtPrice(PRICING.maintenancePlanAdditionalSystem)}/additional)`,`¿Cuántos sistemas tiene? (+$${fmtPrice(PRICING.maintenancePlanAdditionalSystem)}/adicional)`)}</span>
+                      <div className="vent-stepper">
+                        <button type="button" className="vent-step-btn" aria-label={tr('Decrease','Disminuir')}
+                          disabled={(pricingAnswers.maintenanceSystemCount||0)<=1}
+                          onClick={()=>setPricingAnswers(p=>({...p,maintenanceSystemCount:Math.max(1,(p.maintenanceSystemCount||1)-1)}))}>−</button>
+                        <input type="number" min="1" max="6" value={pricingAnswers.maintenanceSystemCount??''} onChange={e=>{
+                          const raw=e.target.value;
+                          if(raw===''){setPricingAnswers(p=>({...p,maintenanceSystemCount:undefined}));return;}
+                          const n=parseInt(raw);
+                          setPricingAnswers(p=>({...p,maintenanceSystemCount:Number.isNaN(n)?undefined:Math.min(6,Math.max(1,n))}));
+                        }}
+                        // QA FIX - same checked-but-wrong-price desync guard
+                        // as the duct-replacement vent-count input above
+                        // (see its own comment): clearing this field to
+                        // empty left maintenanceSystemCount:undefined with
+                        // nothing to ever restore it.
+                        onBlur={()=>{if(!pricingAnswers.maintenanceSystemCount)setPricingAnswers(p=>({...p,maintenanceSystemCount:1}));}}
+                        className="pricing-input vent-input"/>
+                        <button type="button" className="vent-step-btn" aria-label={tr('Increase','Aumentar')}
+                          disabled={(pricingAnswers.maintenanceSystemCount||0)>=6}
+                          onClick={()=>setPricingAnswers(p=>({...p,maintenanceSystemCount:Math.min(6,(p.maintenanceSystemCount||1)+1)}))}>+</button>
+                      </div>
+                    </div>}
+                    {/* QA FIX - direct feedback: "doesn't look great" - this
+                        used to be one dense, comma-heavy sentence crammed
+                        under the checkbox at fine-print size, the only
+                        thing in this list that read as a paragraph instead
+                        of a scannable line - the labor warranty checkbox
+                        right above has no description at all, so this one
+                        stuck out. Same 6 perks, restructured into a tight
+                        2-column checkmarked grid instead of a wall of text -
+                        each fragment short enough to scan in one glance,
+                        nothing dropped from the original list. */}
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"3px 10px",fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",lineHeight:1.4,margin:"4px 0 10px 24px"}}>
+                      {[
+                        tr('2 seasonal tune-ups (AC + heating)','2 afinaciones estacionales (A/C y calefacción)'),
+                        tr('Priority scheduling','Programación prioritaria'),
+                        tr('10% off repairs','10% de descuento en reparaciones'),
+                        tr('Waived consultation fees','Consultas sin cargo'),
+                        tr('Free coil cleaning & drain flush','Limpieza de serpentín y drenaje gratis'),
+                        tr('1 free service call for friends and family','1 visita de servicio gratis para familiares'),
+                      ].map((perk,i)=>(
+                        <div key={i} style={{display:"flex",gap:5,alignItems:"flex-start"}}>
+                          <span style={{color:"rgba(215,183,64,.85)",flexShrink:0}}>✓</span><span>{perk}</span>
+                        </div>
+                      ))}
+                    </div>
                     <div style={{fontSize:"var(--fs-pricing-meta)",color:"rgba(255,255,255,.68)",lineHeight:1.55,marginBottom:10}}>{tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")}</div>
+                    {/* Zoning used to be a permanently-showcased sticky
+                        callout box next to the price card - per direct
+                        feedback that was overkill for something only
+                        relevant to the rare homeowner who already knows
+                        what zoning is and is specifically curious (the
+                        wizard itself never mentions zoning at all). Now a
+                        plain FAQ button instead - opt-in, not showcased. */}
+                    <button className="done-restart" onClick={()=>setShowZoningFaq(true)}>{tr('FAQ','Preguntas Frecuentes')}</button>
                     <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
                   </div>
                 );
-                // ── ADDITIONAL CONSIDERATIONS — education, not "choose your own" ──
-                // Deliberately left untranslated (English only) even under
-                // the Spanish toggle - long-form supplementary copy, not
-                // part of the core flow. Same scoping call as leaving the
-                // live diagram's own labels untranslated - see the big
-                // comment on CHAPTERS_ES in data.js.
-                {/* QA FIX - direct feedback: on attic's side-by-side split,
-                    this panel's copy is fixed/short (~4 short paragraphs)
-                    while the price card next to it grows with every add-on
-                    line, the warranty/maintenance checkboxes, and the
-                    disclaimers below them - measured 300-780px depending on
-                    the build, against this panel's constant ~300px. Both
-                    columns used to top-align (alignItems:"flex-start" on
-                    .pricing-result-row below), so any build with more than
-                    a couple of line items left this panel's gold border
-                    ending well short of the price card's, with a large
-                    blank gap of bare panel background underneath it - the
-                    considerations box reading like a separate, cut-off
-                    element rather than a matching sibling, exactly the
-                    "unfinished" look this pass was checking for. height:
-                    "100%" + boxSizing:"border-box" here is what actually
-                    fills that gap - .pricing-result-row's own alignItems
-                    flip to "stretch" (its own comment) is what hands this
-                    column a height to fill in the first place. Closet mode
-                    stacks these instead of splitting them side by side, so
-                    it never had this gap and stays untouched (width:"100%"
-                    already covers it there too - height:"100%" is a no-op
-                    on a block-stacked child with no set container height). */}
-                const considerations=(
-                  <div className="considerations-block" style={{width:"100%",height:"100%",boxSizing:"border-box",padding:"10px 12px",background:"rgba(215,183,64,.05)",border:"1px solid rgba(215,183,64,.15)",display:"flex",flexDirection:"column",...(isAtticMode?{}:{marginTop:12})}}>
-                    {/* QA FIX - this used to list return plenum/ductwork, new
-                        return duct run, and new supply duct runs as plain
-                        education text even though PRICING.duct already had
-                        real prices for all three - now that they're actual
-                        checkboxes on the price card (see the a-la-carte
-                        add-ons above), repeating them here as "not part of
-                        the estimate" text would be flatly wrong once
-                        checked. Zoning is genuinely the one thing left that
-                        can never be part of the estimate above - proprietary
-                        zone board/sensors/dampers, cost varies too much per
-                        home for anything but an in-home visit (see
-                        PRICING.zoning's own comment in data.js).
-                        QA FIX (follow-up, direct feedback: "looks like
-                        shit") - the eyebrow label above used to read "A Few
-                        Other Things We Commonly Find" over a bulleted list
-                        of several items; once three of those became
-                        checkboxes and only Zoning was left, a plural
-                        "a few things" header sitting over a single
-                        "Zoning - ..." bullet read as a cut-off list, not a
-                        deliberate single-topic callout. Restructured as an
-                        actual callout instead: a singular eyebrow, Zoning
-                        promoted to its own heading (not a bolded lead-in to
-                        a sentence), body copy as its own paragraph below
-                        it. Reads as "here's one specific thing worth
-                        asking about" rather than an abandoned list. */}
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.75)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:isAtticMode?0:6,fontFamily:"var(--fm)"}}>Also Worth Asking About</div>
-                    {/* Same flex:1+justify-content:center centering as
-                        before (see the considerations-block height:100%
-                        comment further down for why this box needs to
-                        match the price card's height at all).
-                        QA FIX - caught by an automated QA pass: centering
-                        via flex justify-content only centers within this
-                        block's own (often off-screen-tall) height - once
-                        the price card next to it needs several hundred px
-                        of scrolling (roughly 5+ add-ons checked), the
-                        content sat in the vertical middle of that full
-                        height, invisible at both the top (where a visitor
-                        actually lands) and the bottom (near the CTA
-                        buttons), only appearing if someone happened to
-                        scroll to that one specific midpoint. position:
-                        sticky + top:50%/translateY(-50%) is the standard
-                        "sticky-center" trick: it centers within whatever
-                        portion of the block is currently in the viewport
-                        (so it tracks into view as this panel scrolls)
-                        while sticky's own clamping keeps it from ever
-                        spilling above/below this block's own bounds - for
-                        a short build that never needs scrolling, this
-                        renders identically to the plain centering it
-                        replaces.
-                        QA FIX - a follow-up automated pass caught that
-                        print/PDF output has no scrolling container at
-                        all, so sticky falls back to its static-position
-                        math (top:50% of this block's own height, shifted
-                        up by half its own height) with nothing to clamp
-                        it against - on the real printed page this landed
-                        "Zoning" overlapping the eyebrow label above it on
-                        every build, not just tall/scrolled ones. The
-                        considerations-sticky-content class exists solely
-                        so @media print (styles.css) can force this back
-                        to normal static flow - same content, same order,
-                        just not sticky, since print has nothing for it
-                        to track against anyway.
-                        QA FIX - a follow-up automated pass found this
-                        sticky trick overlapping the content above it in
-                        closet mode and on mobile attic (any viewport
-                        <=860px) - the SAME defect class as the print bug
-                        above, just impossible for @media print to touch
-                        since it's an on-screen layout, not a print one.
-                        Root cause: the whole "center within whatever's
-                        currently visible of an off-screen-tall box" trick
-                        only makes sense when the parent genuinely GETS
-                        stretched to a tall height - that only happens in
-                        attic's wide 2-column row (alignItems:"stretch"
-                        below). Closet never renders that row at all (see
-                        `if(!isAtticMode)return<>{priceCard}{considerations}
-                        </>` a few lines down - considerations sits at its
-                        own natural content height there), and the same
-                        row collapses to a column at <=860px even in attic
-                        mode (.pricing-result-row's own media rule), where
-                        stretch becomes a width rule instead of a height
-                        one. In both cases .considerations-block's height:
-                        100% resolves to essentially its own content
-                        height (nothing to stretch against), so top:50%/
-                        translateY(-50%) - tuned for a box hundreds of px
-                        taller than its content - shifted this well above
-                        its own box into whatever precedes it. Moved the
-                        actual sticky positioning out of this inline style
-                        and into CSS (styles.css) scoped to
-                        `.done-screen.attic-mode .considerations-sticky-
-                        content` outside the <=860px breakpoint - the ONLY
-                        case where the parent's height:100% is genuinely
-                        tall. Closet and mobile-attic now just render this
-                        div in plain static flow, which needs no special
-                        positioning at all once the parent isn't
-                        artificially stretched - the box height already
-                        equals its content height there. */}
-                    <div className="considerations-sticky-content">
-                      <div style={{fontSize:isAtticMode?15:16,fontWeight:600,color:"rgba(255,255,255,.92)",marginBottom:4,fontFamily:"var(--ft)"}}>Zoning</div>
-                      <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.</div>
-                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:10,fontStyle:"italic"}}>Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.</div>
-                    </div>
-                  </div>
-                );
-                if(!isAtticMode)return<>{priceCard}{considerations}</>;
-                {/* QA FIX - alignItems was "flex-start" (top-aligned columns
-                    of differing height) - see the considerations-block
-                    height:"100%" comment above for what that left behind.
-                    "stretch" (the flex default, set explicitly here since
-                    the wizard's own pricing-substep-row right above this
-                    reuses the same "flex-start" value for a genuinely
-                    different reason - see ITS comment - so this couldn't
-                    just be left unset and inherited) hands both columns the
-                    row's own height (driven by whichever one - always
-                    price-card, see the considerations-block comment - is
-                    taller), which is what lets considerations-block's own
-                    height:"100%" actually fill it instead of stretching
-                    empty invisible wrapper space with nothing visible in
-                    it. */}
-                return <div className="pricing-result-row" style={{display:"flex",gap:16,alignItems:"stretch"}}>
-                  <div style={{flex:1,minWidth:0}}>{priceCard}</div>
-                  <div style={{flex:1,minWidth:0}}>{considerations}</div>
-                </div>;
+                return priceCard;
               })()}</div>}
             </div>}
 
@@ -2917,19 +2775,13 @@ function App(){
                 <a key={f.key} href={f.url} target="_blank" rel="noopener" onClick={()=>trackCtaOnce('financing_clicked',{lender:f.key})} className="quick-financing-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",textDecoration:"none",textAlign:"center",boxSizing:"border-box"}}>💳 {tr(f.label,f.labelEs)}</a>
               ))}
               <button onClick={()=>{trackCtaOnce('print_clicked');window.print();}} className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em"}}>⬇ {tr('Save / Print','Guardar / Imprimir')}</button>
-              {/* QA FIX - per direct feedback, paired with the office button
-                  right below so the end of the build reads as "send to our
-                  office + a copy to yourself" - this one stays the original
-                  blank-recipient mailto (opens the customer's own mail app,
-                  nothing pre-addressed) for the "copy to yourself" half. */}
-              <a href={buildEmailHref()} onClick={()=>trackCtaOnce('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Email a Copy to Yourself','Enviar Copia a Mi Correo')}</a>
-              {/* QA FIX - "send to our office" half of the same pair - mailto:
-                  pre-addressed to OFFICE_EMAIL (data.js), same build content
-                  as the button above via the same buildEmailHref(). Ships
-                  hidden (same "no config = no button" convention as
-                  FINANCING_OPTIONS) until the site owner fills in the real
-                  office inbox. */}
-              {OFFICE_EMAIL&&<a href={buildEmailHref(OFFICE_EMAIL)} onClick={()=>trackCtaOnce('email_office_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Send to Our Office','Enviar a Nuestra Oficina')}</a>}
+              {/* QA FIX - per direct feedback, one button instead of the old
+                  separate "Email a Copy to Yourself" + "Send to Our Office"
+                  pair - blank-recipient mailto (opens the customer's own
+                  mail app, nothing pre-addressed) that cc's GES's office
+                  automatically (buildEmailHref's own comment), so the
+                  label says so rather than leaving that cc silent. */}
+              <a href={buildEmailHref()} onClick={()=>trackCtaOnce('email_build_clicked')} className="quick-print-btn" style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".08em",textDecoration:"none",boxSizing:"border-box",textAlign:"center"}}>✉ {tr('Email a Copy to Yourself (and Our Office)','Enviar Copia a Mi Correo (y a Nuestra Oficina)')}</a>
               {/* QA FIX - this drops back into the wizard's last step, same
                   as goBack's own "past step 1" branch and pickLocation/
                   restart/cancelQuickEdit all do - but unlike every one of
