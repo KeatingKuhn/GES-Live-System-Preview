@@ -22,7 +22,18 @@
       id: "insulation",
       q: "Fiberglass or spray foam?",
       chapter: 0,
-      hint: "Determines your attic's construction - and furnace efficiency, if you have one.",
+      // QA FIX - direct feedback: "some people don't have an attic" - the
+      // hint used to say "your attic's construction" as if everyone has
+      // one, and closet-mode customers (whose equipment sits in a hallway
+      // closet, not the attic) saw the exact same wording. This question
+      // still applies to them too - it's asking about the attic space
+      // itself, which almost every Austin home has somewhere even when
+      // the furnace/air handler doesn't live in it (see the getOpts
+      // 'insulation' comment: "a property of the attic itself, not the
+      // furnace"). Reworded to not assume the answer is obvious, with an
+      // explicit out for the rare home without one instead of just
+      // asserting "your attic" at everyone.
+      hint: "This is about your home's attic space, wherever your equipment sits - affects furnace efficiency too. Not sure, or no attic at all? We'll sort it out at your free in-home visit.",
       optional: false
     },
     {
@@ -175,7 +186,7 @@
   var STEPS_ES = {
     location: { q: "\xBFD\xF3nde est\xE1 su unidad interior?", hint: "Define el dise\xF1o de todo su sistema." },
     indoor_type: { q: "\xBFQu\xE9 tipo de unidad interior?", hint: "\xBFHorno o manejador de aire?\nHorno = Calefacci\xF3n a gas.\nManejador de aire = Todo el\xE9ctrico." },
-    insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Determina la construcci\xF3n de su \xE1tico - y la eficiencia de su horno, si tiene uno." },
+    insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Se trata del espacio de \xE1tico de su casa, sin importar d\xF3nde est\xE9 su equipo - tambi\xE9n afecta la eficiencia del horno. \xBFNo est\xE1 seguro, o no tiene \xE1tico? Lo resolveremos en su visita gratuita a domicilio." },
     plenum: { q: "\xBFNecesita un plenum de suministro nuevo?", hint: "Env\xEDa aire acondicionado a sus ductos." },
     cond_tier: { q: "Elija su nivel de eficiencia.", hint: "Mayor eficiencia, facturas mensuales m\xE1s bajas." },
     system_for: { q: "\xBFBomba de calor de combustible dual, o solo enfriamiento?", hint: "La bomba de calor hace m\xE1s; el A/C solo enfr\xEDa." },
@@ -8897,7 +8908,7 @@
         /* @__PURE__ */ React.createElement(React.Fragment, null, "You were on ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.85)" } }, '"', savedQ, '"'), " - want to keep going?"),
         /* @__PURE__ */ React.createElement(React.Fragment, null, "Estaba en ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.85)" } }, '"', savedQ, '"'), " - \xBFdesea continuar?")
       ) : tr("You have a build in progress. Want to keep going?", "Tiene un sistema en progreso. \xBFDesea continuar?");
-    })()), /* @__PURE__ */ React.createElement("button", { className: "done-cta", style: { width: 220 }, onClick: resumeBuild }, tr("Resume My Build", "Continuar Mi Sistema")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: discardSavedBuild }, tr("Start Fresh Instead", "Empezar de Nuevo"))), /* @__PURE__ */ React.createElement("div", { className: "prog-chapters", style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 30 } }, chapterNames.map((name, i) => {
+    })()), /* @__PURE__ */ React.createElement("button", { className: "done-cta", style: { width: 220 }, onClick: resumeBuild }, tr("Resume My Build", "Continuar Mi Sistema")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: discardSavedBuild }, tr("Start Fresh Instead", "Empezar de Nuevo"))), (loc || done) && /* @__PURE__ */ React.createElement("div", { className: "prog-chapters", style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 30 } }, chapterNames.map((name, i) => {
       const segPct = done || i < curChapter ? 100 : i > curChapter ? 0 : chapterCounts[i] ? Math.round(curChapterStepNum / chapterCounts[i] * 100) : 0;
       return /* @__PURE__ */ React.createElement("div", { key: i, className: "prog-chapter" + (segPct >= 100 ? " done" : ""), title: name }, /* @__PURE__ */ React.createElement("div", { className: "prog-chapter-fill", style: { width: segPct + "%" } }));
     })), /* @__PURE__ */ React.createElement("div", { ref: splashRef, className: "splash-screen" + (loc || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo splash-rise", style: { animationDelay: "0s" } }, tr("BUILD YOUR OWN SYSTEM", "ARME SU PROPIO SISTEMA")), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".06s", fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, tr(
@@ -9058,7 +9069,7 @@
           )
         );
       }));
-      return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid(null))) : /* @__PURE__ */ React.createElement(React.Fragment, null, isAtticMode ? reviewGrid(
+      return pricingFlow ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: isAtticMode ? 6 : 10, paddingBottom: isAtticMode ? 6 : 10, borderBottom: "1px solid rgba(215,183,64,.15)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: isAtticMode ? "var(--fs-review-label)" : "var(--fs-pricing-meta)", color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido")), /* @__PURE__ */ React.createElement("button", { className: "no-print link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)" } }, tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "print-only-grid" }, reviewGrid(null))) : /* @__PURE__ */ React.createElement(React.Fragment, null, isAtticMode ? reviewGrid(
         /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "rgba(255,255,255,.02)", border: "1px solid rgba(215,183,64,.1)", minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 20, height: 20, fontSize: 10, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: "var(--fs-review-val)", marginBottom: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")))
       ) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 8, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { className: "done-icon-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "done-icon", style: { margin: 0, width: 34, height: 34, fontSize: 16, flexShrink: 0 } }, "\u2713")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "done-title", style: { fontSize: 16, marginBottom: 1 } }, tr("Your System is Built", "Su Sistema Est\xE1 Construido")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-review-label-lg)", color: "var(--mut)" } }, tr("Review your selections below", "Revise sus selecciones abajo")))), reviewGrid(null)));
     })(), pricingFlow !== null && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", marginBottom: 12 } }, pricingFlow === "sizing" && (() => {
@@ -9095,7 +9106,7 @@
       {
       }
       return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "10px 14px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: isAtticMode ? 5 : 9 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.85)", letterSpacing: ".1em", fontFamily: "var(--fm)" } }, tr("PRICING", "PRECIO"))), /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-row" : void 0, style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "btn-next" + (pricingSubStep === subSteps.length - 1 && canSubNext ? " btn-cta-glow" : ""), style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? tr("Get My Estimate", "Obtener Mi Estimado") : tr("Next", "Siguiente"))));
-    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "8px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: 6, fontFamily: "var(--ft)" } }, tr("Almost there - just one quick step", "Ya casi termina - solo un paso r\xE1pido")), GATE_CONFIG.embedFormUrl ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 10 } }, tr("Fill out the short form below to unlock pricing - it continues right here automatically, no need to click anything else.", "Complete el formulario breve a continuaci\xF3n para desbloquear los precios - continuar\xE1 aqu\xED autom\xE1ticamente, sin necesidad de hacer clic en nada m\xE1s.")), /* @__PURE__ */ React.createElement(
+    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "6px 12px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, marginBottom: isAtticMode ? 4 : 6, fontFamily: "var(--ft)" } }, tr("Almost there - just one quick step", "Ya casi termina - solo un paso r\xE1pido")), GATE_CONFIG.embedFormUrl ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: isAtticMode ? 6 : 10 } }, tr("Fill out the short form below to unlock pricing - it continues right here automatically, no need to click anything else.", "Complete el formulario breve a continuaci\xF3n para desbloquear los precios - continuar\xE1 aqu\xED autom\xE1ticamente, sin necesidad de hacer clic en nada m\xE1s.")), /* @__PURE__ */ React.createElement(
       "iframe",
       {
         ref: leadIframeRef,
@@ -9105,11 +9116,11 @@
           try {
             const doc = leadIframeRef.current && leadIframeRef.current.contentDocument;
             const h = doc && doc.body && doc.body.scrollHeight;
-            if (h && leadIframeRef.current) leadIframeRef.current.style.height = Math.min(Math.max(h, 260), 900) + "px";
+            if (h && leadIframeRef.current) leadIframeRef.current.style.height = Math.min(Math.max(h, 180), 900) + "px";
           } catch (e) {
           }
         },
-        style: { width: "100%", height: 420, border: "none", display: "block", marginBottom: 10, background: "transparent", borderRadius: 4 }
+        style: { width: "100%", height: 420, border: "none", display: "block", marginBottom: isAtticMode ? 6 : 10, background: "transparent", borderRadius: 4 }
       }
     )) : /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.5, marginBottom: 12 } }, tr("Scroll down on this page to find the short form - fill it out to unlock pricing. It continues right here automatically, no need to click anything else.", "Despl\xE1cese hacia abajo en esta p\xE1gina para encontrar el formulario breve - compl\xE9telo para desbloquear los precios. Continuar\xE1 aqu\xED autom\xE1ticamente, sin necesidad de hacer clic en nada m\xE1s.")), /* @__PURE__ */ React.createElement(
       "button",
