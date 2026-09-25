@@ -19,7 +19,18 @@ export const STEPS=[
   {id:'indoor_type', q:'What Type of Indoor Unit?', chapter:0,
     hint:'Furnace or air handler?\nFurnace = Gas Heat.\nAir Handler = All-Electric.', optional:false},
   {id:'insulation',  q:'Fiberglass or spray foam?', chapter:0,
-    hint:"Determines your attic's construction - and furnace efficiency, if you have one.", optional:false},
+    // QA FIX - direct feedback: "some people don't have an attic" - the
+    // hint used to say "your attic's construction" as if everyone has
+    // one, and closet-mode customers (whose equipment sits in a hallway
+    // closet, not the attic) saw the exact same wording. This question
+    // still applies to them too - it's asking about the attic space
+    // itself, which almost every Austin home has somewhere even when
+    // the furnace/air handler doesn't live in it (see the getOpts
+    // 'insulation' comment: "a property of the attic itself, not the
+    // furnace"). Reworded to not assume the answer is obvious, with an
+    // explicit out for the rare home without one instead of just
+    // asserting "your attic" at everyone.
+    hint:"This is about your home's attic space, wherever your equipment sits - affects furnace efficiency too. Not sure, or no attic at all? We'll sort it out at your free in-home visit.", optional:false},
   {id:'plenum',      q:'New supply plenum needed?', chapter:1,
     hint:'Feeds conditioned air to your ductwork.', optional:false},
   {id:'cond_tier',   q:'Pick your efficiency tier.', chapter:1,
@@ -163,7 +174,7 @@ export const CHAPTERS_ES=['LO BÁSICO','EL MOTOR','CONFORT'];
 export const STEPS_ES={
   location:   {q:'¿Dónde está su unidad interior?',      hint:'Define el diseño de todo su sistema.'},
   indoor_type:{q:'¿Qué tipo de unidad interior?',          hint:'¿Horno o manejador de aire?\nHorno = Calefacción a gas.\nManejador de aire = Todo eléctrico.'},
-  insulation: {q:'¿Fibra de vidrio o espuma aislante?',    hint:'Determina la construcción de su ático - y la eficiencia de su horno, si tiene uno.'},
+  insulation: {q:'¿Fibra de vidrio o espuma aislante?',    hint:'Se trata del espacio de ático de su casa, sin importar dónde esté su equipo - también afecta la eficiencia del horno. ¿No está seguro, o no tiene ático? Lo resolveremos en su visita gratuita a domicilio.'},
   plenum:     {q:'¿Necesita un plenum de suministro nuevo?', hint:'Envía aire acondicionado a sus ductos.'},
   cond_tier:  {q:'Elija su nivel de eficiencia.',          hint:'Mayor eficiencia, facturas mensuales más bajas.'},
   system_for: {q:'¿Bomba de calor de combustible dual, o solo enfriamiento?', hint:'La bomba de calor hace más; el A/C solo enfría.'},

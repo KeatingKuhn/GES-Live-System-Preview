@@ -22,7 +22,18 @@
       id: "insulation",
       q: "Fiberglass or spray foam?",
       chapter: 0,
-      hint: "Determines your attic's construction - and furnace efficiency, if you have one.",
+      // QA FIX - direct feedback: "some people don't have an attic" - the
+      // hint used to say "your attic's construction" as if everyone has
+      // one, and closet-mode customers (whose equipment sits in a hallway
+      // closet, not the attic) saw the exact same wording. This question
+      // still applies to them too - it's asking about the attic space
+      // itself, which almost every Austin home has somewhere even when
+      // the furnace/air handler doesn't live in it (see the getOpts
+      // 'insulation' comment: "a property of the attic itself, not the
+      // furnace"). Reworded to not assume the answer is obvious, with an
+      // explicit out for the rare home without one instead of just
+      // asserting "your attic" at everyone.
+      hint: "This is about your home's attic space, wherever your equipment sits - affects furnace efficiency too. Not sure, or no attic at all? We'll sort it out at your free in-home visit.",
       optional: false
     },
     {
@@ -175,7 +186,7 @@
   var STEPS_ES = {
     location: { q: "\xBFD\xF3nde est\xE1 su unidad interior?", hint: "Define el dise\xF1o de todo su sistema." },
     indoor_type: { q: "\xBFQu\xE9 tipo de unidad interior?", hint: "\xBFHorno o manejador de aire?\nHorno = Calefacci\xF3n a gas.\nManejador de aire = Todo el\xE9ctrico." },
-    insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Determina la construcci\xF3n de su \xE1tico - y la eficiencia de su horno, si tiene uno." },
+    insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Se trata del espacio de \xE1tico de su casa, sin importar d\xF3nde est\xE9 su equipo - tambi\xE9n afecta la eficiencia del horno. \xBFNo est\xE1 seguro, o no tiene \xE1tico? Lo resolveremos en su visita gratuita a domicilio." },
     plenum: { q: "\xBFNecesita un plenum de suministro nuevo?", hint: "Env\xEDa aire acondicionado a sus ductos." },
     cond_tier: { q: "Elija su nivel de eficiencia.", hint: "Mayor eficiencia, facturas mensuales m\xE1s bajas." },
     system_for: { q: "\xBFBomba de calor de combustible dual, o solo enfriamiento?", hint: "La bomba de calor hace m\xE1s; el A/C solo enfr\xEDa." },
