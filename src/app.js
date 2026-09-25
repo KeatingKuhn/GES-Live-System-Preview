@@ -2855,10 +2855,21 @@ function App(){
                         to two that read as buttons. Reuses .quick-print-btn
                         (same neutral chip already used for Save/Print) so
                         all the result-screen secondary actions share one
-                        visual language. */}
+                        visual language.
+                        QA FIX - direct feedback: this button's label used
+                        to read "Adjust my answers," which sounds like it
+                        reopens the whole wizard - it actually only redoes
+                        the one sub-step left in the pricing sizing flow
+                        (home sqft, which drives tonnage; see subSteps=
+                        ['sqft'] above). Every other wizard answer already
+                        has its own per-row EDIT button on the review grid
+                        above, and "Edit System" in the Quick Actions row
+                        below is the actual full-wizard reopen (which also
+                        clears pricingAnswers, unlike this button). Renamed
+                        to say exactly what it does instead. */}
                     <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                       <button className="quick-print-btn" style={{fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 14px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
-                      <button className="quick-print-btn" style={{fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 14px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
+                      <button className="quick-print-btn" style={{fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 14px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my sq ft','Ajustar mis pies cuadrados')}</button>
                     </div>
                   </div>
                 );
