@@ -1506,8 +1506,14 @@ function App(){
         <button className="done-restart" onClick={discardSavedBuild}>{tr('Start Fresh Instead','Empezar de Nuevo')}</button>
       </div>}
 
-      {/* ── PROGRESS BAR - segmented by chapter, not a bare percentage ── */}
-      <div className="prog-chapters" style={{position:"absolute",top:0,left:0,right:0,zIndex:30}}>
+      {/* ── PROGRESS BAR - segmented by chapter, not a bare percentage ──
+          Only mounted once a location's been picked (loc||done matches the
+          splash-screen's own "out" condition below) - there's no chapter
+          progress to show yet on the splash/location-picker screen, and its
+          zIndex:30 used to sit above the splash's z-index:20, letting it
+          bleed through that opaque overlay onto a customer's very first,
+          unfamiliar view of the tool. */}
+      {(loc||done) && <div className="prog-chapters" style={{position:"absolute",top:0,left:0,right:0,zIndex:30}}>
         {chapterNames.map((name,i)=>{
           const segPct=done||i<curChapter?100:i>curChapter?0:
             chapterCounts[i]?Math.round((curChapterStepNum/chapterCounts[i])*100):0;
@@ -1515,7 +1521,7 @@ function App(){
             <div className="prog-chapter-fill" style={{width:segPct+"%"}}/>
           </div>;
         })}
-      </div>
+      </div>}
 
       {/* ── SPLASH - step 1 location picker ── */}
       {/* inert mirrors the "out" class's opacity/pointer-events:none exactly

@@ -862,8 +862,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    overlaps and hides the tool's own topmost content once the page is
    scrolled, since the iframe has no way to know the outer header is
    there and otherwise starts filling from y=0 - adjust to match the
-   real site header's actual height if it differs. */
-.site-header-spacer{position:absolute;top:0;left:0;right:0;height:43px;z-index:50;background:var(--bk);border-bottom:1px solid rgba(215,183,64,.2);box-sizing:border-box}
+   real site header's actual height if it differs. No border here on
+   purpose - a gold-tinted border-bottom used to sit right at this
+   band's seam with the real WordPress header, on every single screen
+   of the tool with no way to hide it, reading as a stray gold line
+   "inside" the site header rather than as this app's own chrome. */
+.site-header-spacer{position:absolute;top:0;left:0;right:0;height:43px;z-index:50;background:var(--bk);box-sizing:border-box}
 @media(min-width:641px){.site-header-spacer{height:42px}}
 
 /* ── ADAPTIVE LAYOUT ── */
