@@ -3140,7 +3140,7 @@ function RegisterGrille({cx,y,w,dc,ds,label,lang,vw,vh}){
 // originally flagged for. lang/vw/vh come in as explicit props instead
 // of Canvas closures.
 // (Proprietary to Gold Eagle Services - GES-HVAC-CONFIGURATOR-PROVENANCE-ID: ges-live-system-2026-austin-tx)
-function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,snap,lang,vw,vh}){
+function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,snap,lang,vw,vh,dehuDedicated}){
   if(!hasDehu&&!hasERV) return null;
   const BW=80,BH=48;
   const boxes=[];
@@ -3236,9 +3236,21 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,
       }
       {/* No EditZone ever covers dehu/erv (StepFocusRing during the
           wizard is the only existing overlay here) - free-standing
-          hover, no onClick. */}
+          hover, no onClick.
+          QA FIX - automated pass: this always used the shared 'dehu_box'
+          copy ("ties into your ductwork...system-wide"), even for the
+          closet layout, whose dehu box actually runs its own dedicated
+          return/supply stubs straight into the drywall (see the
+          'dehu_dedicated_return'/'dehu_dedicated_supply' hovers right
+          next to this box in the closet render below) - the exact
+          opposite claim. A correctly-worded 'dehu_box_dedicated' variant
+          already existed for this (partInfo, above) but was never wired
+          into this shared component, since only the closet call site
+          needs it - the attic dehu genuinely does tie into the main
+          system-wide ductwork, so its copy was already right. */}
       <HoverInfo x={BX} y={BY} w={boxW} h={BH} rx={4} vw={vw} vh={vh}
-        title={partInfo(isDehu?'dehu_box':'erv_box',lang).title} text={partInfo(isDehu?'dehu_box':'erv_box',lang).text}/>
+        title={partInfo(isDehu?(dehuDedicated?'dehu_box_dedicated':'dehu_box'):'erv_box',lang).title}
+        text={partInfo(isDehu?(dehuDedicated?'dehu_box_dedicated':'dehu_box'):'erv_box',lang).text}/>
     </g>;
   })}</g>;
 }
@@ -7753,7 +7765,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
               row's own dedicated duct stubs and StepFocusRing below. */}
           {(hasDehu||hasERV)&&
             <DehuErvBoxes dehuBX={dehuX} ervBX={ervX} ervW={ervW} dehuW={dehuW} BY={DEHU_ERV_BY} roofY={DEHU_ERV_ROOFY}
-              hasDehu={hasDehu} hasERV={hasERV} snap
+              hasDehu={hasDehu} hasERV={hasERV} snap dehuDedicated
               lang={lang} vw={SVG_VW} vh={SVG_VH}/>}
 
           {/* Dehu's own dedicated return + supply - closet layout. A

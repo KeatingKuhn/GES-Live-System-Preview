@@ -5383,7 +5383,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
     ));
   }
-  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, ervW, dehuW, hasDehu, hasERV, snap, lang: lang2, vw, vh }) {
+  function DehuErvBoxes({ dehuBX, ervBX, BY, roofY, ervRoofY, ervW, dehuW, hasDehu, hasERV, snap, lang: lang2, vw, vh, dehuDedicated }) {
     if (!hasDehu && !hasERV) return null;
     const BW = 80, BH = 48;
     const boxes = [];
@@ -5439,8 +5439,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           rx: 4,
           vw,
           vh,
-          title: partInfo(isDehu ? "dehu_box" : "erv_box", lang2).title,
-          text: partInfo(isDehu ? "dehu_box" : "erv_box", lang2).text
+          title: partInfo(isDehu ? dehuDedicated ? "dehu_box_dedicated" : "dehu_box" : "erv_box", lang2).title,
+          text: partInfo(isDehu ? dehuDedicated ? "dehu_box_dedicated" : "dehu_box" : "erv_box", lang2).text
         }
       ));
     }));
@@ -9530,6 +9530,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           hasDehu,
           hasERV,
           snap: true,
+          dehuDedicated: true,
           lang: lang2,
           vw: SVG_VW,
           vh: SVG_VH
@@ -10627,14 +10628,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           onClick: () => trackCtaOnce("financing_clicked", { lender: "wisetack", source: "price_reveal" })
         },
         tr("\u2192 Or prequalify online with Wisetack", "\u2192 O precalifique en l\xEDnea con Wisetack")
-      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CashCount, { value: est.display, format: fmtPrice })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, fmtPrice(est.display))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr("Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).", "Incluye una garant\xEDa de f\xE1brica de 10 a\xF1os en piezas (requiere registro dentro de los 60 d\xEDas posteriores a la instalaci\xF3n).")), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)", textAlign: "left" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", fmtPrice(l.display))))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.7)", letterSpacing: ".1em", marginBottom: 4, fontFamily: "var(--fm)" } }, tr("ESTIMATED PRICE", "PRECIO ESTIMADO")), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--fm)", fontSize: 28, color: "var(--gl)", marginBottom: 10 } }, "~$", /* @__PURE__ */ React.createElement("span", { className: "price-live" }, /* @__PURE__ */ React.createElement(CashCount, { value: est.display, format: fmtPrice })), /* @__PURE__ */ React.createElement("span", { className: "price-static" }, fmtPrice(est.display))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "var(--mut)", marginBottom: 10 } }, tr("Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).", "Incluye una garant\xEDa de f\xE1brica de 10 a\xF1os en piezas (requiere registro dentro de los 60 d\xEDas posteriores a la instalaci\xF3n).")), addonLines.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "price-breakdown" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-bar" }, /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg base", style: { width: basePct + "%" } }), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-seg addons", style: { width: addonsPct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "price-breakdown-legend" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot base" }), tr("Base system", "Sistema base"), " \xB7 ", basePct, "%"), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "price-breakdown-dot addons" }), tr("Add-ons", "Complementos"), " \xB7 ", addonsPct, "%"))), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, est.lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: "var(--fs-pricing-line)" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "var(--dim)", textAlign: "left" } }, trLineLabel(l)), /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(255,255,255,.85)", fontFamily: "var(--fm)", whiteSpace: "nowrap" } }, "~$", fmtPrice(l.display))))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantLaborWarranty,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantLaborWarranty: e.target.checked }))
         }
-      ), tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+$${fmtPrice(PRICING.laborWarranty10yr)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`, `Agregar garant\xEDa de mano de obra de 10 a\xF1os (+$${fmtPrice(PRICING.laborWarranty10yr)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
@@ -10648,7 +10649,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         tr("Waived consultation fees", "Consultas sin cargo"),
         tr("Free coil cleaning & drain flush", "Limpieza de serpent\xEDn y drenaje gratis"),
         tr("1 free service call for friends/family", "1 visita de servicio gratis para familiares")
-      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.6)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.6)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
@@ -10697,14 +10698,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           onClick: () => setPricingAnswers((p) => ({ ...p, ventCount: Math.min(20, (p.ventCount || 1) + 1) }))
         },
         "+"
-      ))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantDuctCleaning,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantDuctCleaning: e.target.checked }))
         }
-      ), tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`, `Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`, `Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
@@ -10756,14 +10757,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const count = Math.min(10, Math.max(1, pricingAnswers.newSupplyRunCount || 1));
         const rate = supplyRunDiscountRate(count);
         return rate > 0 ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "rgba(215,183,64,.85)" } }, tr(`${Math.round(rate * 100)}% multi-run discount applied`, `${Math.round(rate * 100)}% de descuento por volumen aplicado`)) : /* @__PURE__ */ React.createElement("span", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)" } }, tr("Add 2+ for a discount, 10 for the biggest deal", "Agregue 2+ para un descuento, 10 para la mejor oferta"));
-      })()), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      })()), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
           checked: !!pricingAnswers.wantNewReturnDuct,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantNewReturnDuct: e.target.checked }))
         }
-      ), tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`, `Agregar una l\xEDnea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`, `Agregar una l\xEDnea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, padding: "5px 0", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",

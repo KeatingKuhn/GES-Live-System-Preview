@@ -2381,12 +2381,23 @@ function App(){
                     {/* Extended labor warranty - an add-on at the end of
                         pricing, not its own wizard question. Checking it
                         adds a real line item above via calcEstimate. */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                    {/* QA FIX - automated pass measured this checkbox's
+                        native glyph at 13x13px with the whole label row
+                        only ~15-19px tall for single-line labels - under
+                        this app's own established 24px WCAG 2.5.8 AA
+                        touch-target floor (see the review-row Edit
+                        button's own QA FIX comment, ~line 1920, which
+                        applied the same fix pattern there). The label
+                        already makes the WHOLE row clickable (not just
+                        the tiny glyph), so the fix is vertical padding to
+                        get the row itself to 24px+, not resizing the
+                        checkbox glyph. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantLaborWarranty}
                         onChange={e=>setPricingAnswers(p=>({...p,wantLaborWarranty:e.target.checked}))}/>
                       {tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`,`Agregar garantía de mano de obra de 10 años (+$${fmtPrice(PRICING.laborWarranty10yr)})`)}
                     </label>
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantMaintenancePlan}
                         onChange={e=>setPricingAnswers(p=>({...p,wantMaintenancePlan:e.target.checked}))}/>
                       {tr(`Add our annual maintenance plan (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/yr)`,`Agregar nuestro plan de mantenimiento anual (+$${fmtPrice(PRICING.maintenancePlanAnnual)}/año)`)}
@@ -2439,7 +2450,18 @@ function App(){
                         the closing disclaimer paragraph. Matching the
                         sibling pattern here costs a few extra px of gap
                         above the reveal panel once checked, which is fine. */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                    {/* QA FIX - automated pass measured this checkbox's
+                        native glyph at 13x13px with the whole label row
+                        only ~15-19px tall for single-line labels - under
+                        this app's own established 24px WCAG 2.5.8 AA
+                        touch-target floor (see the review-row Edit
+                        button's own QA FIX comment, ~line 1920, which
+                        applied the same fix pattern there). The label
+                        already makes the WHOLE row clickable (not just
+                        the tiny glyph), so the fix is vertical padding to
+                        get the row itself to 24px+, not resizing the
+                        checkbox glyph. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantDucts}
                         onChange={e=>setPricingAnswers(p=>({...p,wantDucts:e.target.checked,...(e.target.checked&&!pricingAnswers.ventCount?{ventCount:1}:{})}))}/>
                       {tr(`Add duct replacement (+$${fmtPrice(PRICING.duct.replacementPerStem)}/vent)`,`Agregar reemplazo de ductos (+$${fmtPrice(PRICING.duct.replacementPerStem)}/rejilla)`)}
@@ -2509,7 +2531,18 @@ function App(){
                         price for different things") this is exactly the
                         kind of item that belongs up here as an actual
                         choice instead. */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                    {/* QA FIX - automated pass measured this checkbox's
+                        native glyph at 13x13px with the whole label row
+                        only ~15-19px tall for single-line labels - under
+                        this app's own established 24px WCAG 2.5.8 AA
+                        touch-target floor (see the review-row Edit
+                        button's own QA FIX comment, ~line 1920, which
+                        applied the same fix pattern there). The label
+                        already makes the WHOLE row clickable (not just
+                        the tiny glyph), so the fix is vertical padding to
+                        get the row itself to 24px+, not resizing the
+                        checkbox glyph. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantDuctCleaning}
                         onChange={e=>setPricingAnswers(p=>({...p,wantDuctCleaning:e.target.checked}))}/>
                       {tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`,`Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)}
@@ -2525,7 +2558,18 @@ function App(){
                         return items, this one gets its own quantity field,
                         same stepper pattern as the sizing sub-step's own
                         vent-count control (.vent-stepper/.vent-step-btn). */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                    {/* QA FIX - automated pass measured this checkbox's
+                        native glyph at 13x13px with the whole label row
+                        only ~15-19px tall for single-line labels - under
+                        this app's own established 24px WCAG 2.5.8 AA
+                        touch-target floor (see the review-row Edit
+                        button's own QA FIX comment, ~line 1920, which
+                        applied the same fix pattern there). The label
+                        already makes the WHOLE row clickable (not just
+                        the tiny glyph), so the fix is vertical padding to
+                        get the row itself to 24px+, not resizing the
+                        checkbox glyph. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantNewSupplyRuns}
                         onChange={e=>setPricingAnswers(p=>({...p,wantNewSupplyRuns:e.target.checked,...(e.target.checked&&!pricingAnswers.newSupplyRunCount?{newSupplyRunCount:1}:{})}))}/>
                       {tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run - volume discount on 2+)`,`Agregar línea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/línea - descuento por volumen en 2+)`)}
@@ -2573,12 +2617,34 @@ function App(){
                           :<span style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)"}}>{tr('Add 2+ for a discount, 10 for the biggest deal','Agregue 2+ para un descuento, 10 para la mejor oferta')}</span>;
                       })()}
                     </div>}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                    {/* QA FIX - automated pass measured this checkbox's
+                        native glyph at 13x13px with the whole label row
+                        only ~15-19px tall for single-line labels - under
+                        this app's own established 24px WCAG 2.5.8 AA
+                        touch-target floor (see the review-row Edit
+                        button's own QA FIX comment, ~line 1920, which
+                        applied the same fix pattern there). The label
+                        already makes the WHOLE row clickable (not just
+                        the tiny glyph), so the fix is vertical padding to
+                        get the row itself to 24px+, not resizing the
+                        checkbox glyph. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantNewReturnDuct}
                         onChange={e=>setPricingAnswers(p=>({...p,wantNewReturnDuct:e.target.checked}))}/>
                       {tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`,`Agregar una línea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)}
                     </label>
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
+                    {/* QA FIX - automated pass measured this checkbox's
+                        native glyph at 13x13px with the whole label row
+                        only ~15-19px tall for single-line labels - under
+                        this app's own established 24px WCAG 2.5.8 AA
+                        touch-target floor (see the review-row Edit
+                        button's own QA FIX comment, ~line 1920, which
+                        applied the same fix pattern there). The label
+                        already makes the WHOLE row clickable (not just
+                        the tiny glyph), so the fix is vertical padding to
+                        get the row itself to 24px+, not resizing the
+                        checkbox glyph. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantReturnPlenum}
                         onChange={e=>setPricingAnswers(p=>({...p,wantReturnPlenum:e.target.checked}))}/>
                       {tr(`Add a return plenum (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard'])})`,`Agregar un plenum de retorno (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard'])})`)}
