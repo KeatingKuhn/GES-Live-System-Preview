@@ -943,6 +943,20 @@ function App(){
         ?(answers.furnace_eff==="e90"?tr("Spray foam - 90% AFUE","Espuma aislante - 90% AFUE"):tr("Fiberglass - 80% AFUE","Fibra de vidrio - 80% AFUE"))
         :(answers.furnace_eff==="e90"?tr("Spray foam","Espuma aislante"):tr("Fiberglass","Fibra de vidrio"))}:null,
       {step:"plenum",label:tr("Plenum","Plenum"),val:answers.plenum==="ductboard"?tr("New ductboard plenum","Nuevo plenum de ductboard"):answers.plenum==="metal"?tr("New sheet metal plenum","Nuevo plenum de lámina metálica"):answers.plenum==="none"?tr("Keep existing plenum","Conservar el plenum actual"):null},
+      // QA FIX - a fresh-eyes copy/IA pass caught this grid's row order
+      // not matching the wizard's own chapter order (THE BASICS -> THE
+      // ENGINE -> COMFORT, CHAPTERS in data.js): cond_tier/system_for
+      // (both "THE ENGINE," asked right after plenum) used to sit AFTER
+      // thermostat/purif (both "COMFORT," asked later) - so the final
+      // summary demoted efficiency tier and heat source, the two
+      // biggest cost/decision drivers, below a thermostat pick and a
+      // filter add-on, in an order matching neither how the customer
+      // answered nor the app's own chapter grouping. Moved up to sit
+      // right after plenum, same order as the wizard itself.
+      {step:"cond_tier",label:tr("Efficiency","Eficiencia"),val:answers.cond_tier==="fedmin"?tr("Federal Minimum - 14.3 SEER2","Mínimo Federal - 14.3 SEER2"):answers.cond_tier==="mid_ge15"?tr("Mid Efficiency - 18 SEER2","Eficiencia Media - 18 SEER2"):answers.cond_tier==="high_ge18"?tr("High Efficiency - 21 SEER2","Alta Eficiencia - 21 SEER2"):null},
+      answers.system_for?{step:"system_for",label:tr("Heat source","Fuente de calor"),
+        val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - horno únicamente"),
+        short:answers.system_for==="hp"?tr("Dual Fuel (HP + furnace)","Combustible Dual (BC + horno)"):tr("Straight Cool (furnace)","Solo Enfriamiento (horno)")}:null,
       {step:"thermostat",label:tr("Thermostat","Termostato"),
         val:answers.thermostat==="wifi"?tr("Wi-Fi smart thermostat","Termostato inteligente Wi-Fi"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating Thermostat","Termostato comunicante"):null,
         short:answers.thermostat==="wifi"?tr("Wi-Fi smart","Wi-Fi inteligente"):answers.thermostat==="basic"?tr("Basic programmable","Programable básico"):answers.thermostat==="proprietary"?tr("Communicating","Comunicante"):null},
@@ -954,10 +968,6 @@ function App(){
         // to name it, not describe it (direct feedback: the long strings
         // were wrapping the review-grid boxes awkwardly).
         short:answers.purif.map(v=>v==="aprilaire"?tr('5" Filter','Filtro 5"'):v==="uv"?tr("UV","UV"):v==="ionizer"?tr("Ionizer","Ionizador"):v==="surge"?tr("Surge","Sobrevoltaje"):v).join(" + ")}:null,
-      {step:"cond_tier",label:tr("Efficiency","Eficiencia"),val:answers.cond_tier==="fedmin"?tr("Federal Minimum - 14.3 SEER2","Mínimo Federal - 14.3 SEER2"):answers.cond_tier==="mid_ge15"?tr("Mid Efficiency - 18 SEER2","Eficiencia Media - 18 SEER2"):answers.cond_tier==="high_ge18"?tr("High Efficiency - 21 SEER2","Alta Eficiencia - 21 SEER2"):null},
-      answers.system_for?{step:"system_for",label:tr("Heat source","Fuente de calor"),
-        val:answers.system_for==="hp"?tr("Dual Fuel - heat pump + furnace","Combustible Dual - bomba de calor + horno"):tr("Straight cool - furnace only","Solo enfriamiento - horno únicamente"),
-        short:answers.system_for==="hp"?tr("Dual Fuel (HP + furnace)","Combustible Dual (BC + horno)"):tr("Straight Cool (furnace)","Solo Enfriamiento (horno)")}:null,
       // Dehu/ERV now live on one merged step (id "dehu", "Want to enhance
       // your IAQ?") instead of a Yes/No dehumidifier question plus a
       // separate "final add-ons" step - condensate pump was dropped
@@ -2509,11 +2519,22 @@ function App(){
                         the tiny glyph), so the fix is vertical padding to
                         get the row itself to 24px+, not resizing the
                         checkbox glyph. */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,padding:"5px 0",cursor:"pointer"}}>
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",padding:"5px 0",cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantLaborWarranty}
                         onChange={e=>setPricingAnswers(p=>({...p,wantLaborWarranty:e.target.checked}))}/>
                       {tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`,`Agregar garantía de mano de obra de 10 años (+$${fmtPrice(PRICING.laborWarranty10yr)})`)}
                     </label>
+                    {/* QA FIX - a fresh-eyes copy pass caught this checkbox
+                        sitting right under the "Includes a 10-year
+                        manufacturer parts warranty" disclaimer above the
+                        price breakdown, both using the identical "10-year
+                        warranty" phrase with nothing on-page distinguishing
+                        "already included, free" from "optional, $1,750" -
+                        that parts-vs-labor split only existed if a
+                        customer thought to open the FAQ's own warranty
+                        entry. Short always-visible line instead of
+                        requiring that detour. */}
+                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",margin:"0 0 10px 24px"}}>{tr('Covers technician time for a repair - the manufacturer parts warranty above is already included at no charge.','Cubre el tiempo del técnico para una reparación - la garantía de piezas del fabricante mencionada arriba ya está incluida sin costo.')}</div>
                     {/* Duct replacement - used to be its own sizing sub-step
                         ("Want duct replacement priced too?") between the
                         tonnage question and the estimate reveal. Direct
