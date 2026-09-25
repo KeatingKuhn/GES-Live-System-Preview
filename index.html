@@ -732,6 +732,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    width:100% since it sits beside two stepper buttons rather than filling
    a whole column on its own. */
 .vent-input{width:64px;flex:0 0 auto;text-align:center;font-size:16px;padding:8px 6px}
+/* QA FIX - this is a native type=number input flanked by its own custom
+   vent-step-btn +/- pair right beside it - the browser's own spin-arrow
+   UI was never suppressed, so on desktop Safari/Firefox (Chrome hides
+   spinners on a sufficiently narrow input by default, which is why this
+   went unnoticed testing there) the native up/down arrows render inside
+   this already-narrow 64px box, crowding the centered digit right next
+   to the custom buttons doing the exact same job. Suppressed on both
+   engines since the custom steppers already cover this control fully. */
+.vent-input::-webkit-outer-spin-button,.vent-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.vent-input{-moz-appearance:textfield}
 
 /* NAV */
 .nav-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--panel);position:sticky;bottom:0}
