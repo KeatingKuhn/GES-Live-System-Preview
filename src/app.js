@@ -2845,10 +2845,20 @@ function App(){
                         one garbled "FAQ‹ Adjust my answers" string instead
                         of two separate clickable things. Wrapped both in
                         their own flex row with a visible gap so they read
-                        as two distinct options. */}
-                    <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
-                      <button className="done-restart" onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
-                      <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
+                        as two distinct options.
+                        QA FIX - direct feedback: both still used
+                        .done-restart (a plain underlined text link, no
+                        border/background/padding) while Edit System/Start
+                        Over right below them in the Quick Actions row use
+                        real bordered button classes - on the same screen,
+                        two comparable actions read as an afterthought next
+                        to two that read as buttons. Reuses .quick-print-btn
+                        (same neutral chip already used for Save/Print) so
+                        all the result-screen secondary actions share one
+                        visual language. */}
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                      <button className="quick-print-btn" style={{fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 14px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
+                      <button className="quick-print-btn" style={{fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 14px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
                     </div>
                   </div>
                 );
@@ -2859,11 +2869,20 @@ function App(){
             {/* ── QUICK ACTIONS - one compact button grid instead of five
                  stacked full-width rows, so this panel stays low and the
                  diagram keeps the room ── */}
-            {pricingFlow===null&&<button className="btn-next" style={{flex:"none",margin:0,width:"100%",marginBottom:6,padding:"9px",fontSize:14}} onClick={()=>{
-              trackEvent('pricing_started');
-              if(leadUnlocked){setPricingFlow('sizing');setPricingSubStep(0);}
-              else{trackEvent('contact_form_shown');setPricingFlow('leadgate');}
-            }}>💰 {tr('Get Pricing','Ver Precios')}</button>}
+            {/* QA FIX - direct feedback: FAQ was only reachable AFTER
+                pricing (on the result screen), but a homeowner might have
+                a zoning/warranty/financing question before ever clicking
+                Get Pricing. Same FAQ button/modal, just also offered here -
+                own full-width row so it doesn't compete with the gold CTA
+                for tap-target size. */}
+            {pricingFlow===null&&<div style={{display:"flex",flexDirection:"column",gap:6,width:"100%",marginBottom:6}}>
+              <button className="btn-next" style={{flex:"none",margin:0,width:"100%",padding:"9px",fontSize:14}} onClick={()=>{
+                trackEvent('pricing_started');
+                if(leadUnlocked){setPricingFlow('sizing');setPricingSubStep(0);}
+                else{trackEvent('contact_form_shown');setPricingFlow('leadgate');}
+              }}>💰 {tr('Get Pricing','Ver Precios')}</button>
+              <button className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
+            </div>}
             {/* No Schedule Visit / phone CTA in this panel or the header -
                 both were dropped once this became an iframe embed on the
                 real site, which already has its own header with that CTA. */}
