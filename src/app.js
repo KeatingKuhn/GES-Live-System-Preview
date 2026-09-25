@@ -2220,7 +2220,16 @@ function App(){
                       the ducts UI itself rather than left rendering a
                       counter for a sequence that no longer exists. */}
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:isAtticMode?5:9}}>
-                    <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.7)",letterSpacing:".1em",fontFamily:"var(--fm)"}}>{tr('PRICING','PRECIO')}</div>
+                    {/* QA FIX - contrast audit measured this at 4.36:1
+                        against its card background, under the 4.5:1 AA
+                        floor - same shortfall class as the other
+                        rgba(215,183,64,...) eyebrow labels on this
+                        screen (AS LOW AS/ESTIMATED PRICE below), all
+                        bumped to .85 alpha for real margin (measures
+                        5.9-7.2:1 depending on which of this app's dark
+                        backgrounds it lands on) rather than just barely
+                        clearing the threshold. */}
+                    <div style={{fontSize:isAtticMode?9:10.5,color:"rgba(215,183,64,.85)",letterSpacing:".1em",fontFamily:"var(--fm)"}}>{tr('PRICING','PRECIO')}</div>
                   </div>
 
                   {/* alignItems:"flex-start" only makes sense in ROW mode
@@ -2338,7 +2347,9 @@ function App(){
                         of the reveal itself, right under the number it
                         actually applies to. */}
                     <div className="price-hero">
-                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
+                      {/* QA FIX - see the 'PRICING' eyebrow's own comment
+                          above - same contrast shortfall, same fix. */}
+                      <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('AS LOW AS','DESDE')}</div>
                       {/* PRINT QA FIX - CashCount (canvas.js) re-animates
                           from $0 over 900ms on every `value` change (each
                           digit reels independently, but still lands from
@@ -2376,7 +2387,9 @@ function App(){
                         {tr('→ Or prequalify online with Wisetack','→ O precalifique en línea con Wisetack')}
                       </a>}
                     </div>
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.7)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
+                    {/* QA FIX - see the 'PRICING' eyebrow's own comment
+                        above - same contrast shortfall, same fix. */}
+                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"rgba(215,183,64,.85)",letterSpacing:".1em",marginBottom:4,fontFamily:"var(--fm)"}}>{tr('ESTIMATED PRICE','PRECIO ESTIMADO')}</div>
                     {/* Same in-flight-animation print fix as the /mo hero
                         figure above - see its comment. */}
                     <div style={{fontFamily:"var(--fm)",fontSize:28,color:"var(--gl)",marginBottom:10}}>~$<span className="price-live"><CashCount value={est.display} format={fmtPrice}/></span><span className="price-static">{fmtPrice(est.display)}</span></div>
@@ -2449,7 +2462,11 @@ function App(){
                         tr('1 free service call for friends and family','1 visita de servicio gratis para familiares'),
                       ].map((perk,i)=>(
                         <div key={i} style={{display:"flex",gap:5,alignItems:"flex-start"}}>
-                          <span style={{color:"rgba(215,183,64,.6)",flexShrink:0}}>✓</span><span>{perk}</span>
+                          {/* QA FIX - contrast audit measured this
+                              checkmark at 3.89:1, under the 4.5:1 AA
+                              floor - bumped to .85 alpha for real margin,
+                              same fix as the pricing eyebrows above. */}
+                          <span style={{color:"rgba(215,183,64,.85)",flexShrink:0}}>✓</span><span>{perk}</span>
                         </div>
                       ))}
                     </div>

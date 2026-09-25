@@ -663,7 +663,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .opt-inner{display:flex;align-items:flex-start;gap:10px;padding:11px 13px 11px 16px;width:100%;min-height:0}
 .opt-body{flex:1;min-width:0;text-align:center}
 .opt-label{font-family:var(--ft);font-size:var(--fs-opt-label);font-weight:600;color:var(--wh);display:block;margin-bottom:2px;line-height:1.3;white-space:normal}
-.opt.sel .opt-label{color:var(--gl)}
+/* QA FIX - automated contrast audit measured this at 4.09:1 against the
+   selected card's own background - under the 4.5:1 AA floor. Same fix
+   as .opt.sel .opt-desc just below (rgba(240,214,78,.7) - see its own
+   comment for the exact ratio math), reused verbatim; the attic-mode
+   equivalent (.attic-opt.sel .attic-opt-label) shares this identical
+   unguarded var(--gl) pattern and got the same fix. */
+.opt.sel .opt-label{color:rgba(240,214,78,.7)}
 .opt-desc{font-size:var(--fs-opt-desc);color:var(--dim);line-height:1.5;display:block}
 /* .6 measured 4.67:1 against the card's settled selected background
    (rgba(240,214,78,.05) over --surf) - technically over 4.5 but with
@@ -1138,8 +1144,18 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    two card styles stay visually and behaviorally consistent. */
 .attic-opt.disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
 .attic-opt-label{font-family:var(--ft);font-size:var(--fs-attic-label);font-weight:600;color:var(--wh);line-height:1.25}
-.attic-opt.sel .attic-opt-label{color:var(--gl)}
+/* QA FIX - automated contrast audit measured this at 4.09:1 against the
+   selected card's own background - under the 4.5:1 AA floor. Same fix
+   already applied to .opt.sel .opt-desc below (rgba(240,214,78,.7) -
+   see its own comment for the exact ratio math) - reused here verbatim
+   rather than re-deriving a new value, and also applied to .opt.sel
+   .opt-label just below, which shares this exact unguarded var(--gl)
+   pattern and measures the same shortfall in closet mode. */
+.attic-opt.sel .attic-opt-label{color:rgba(240,214,78,.7)}
 .attic-opt-desc{font-size:var(--fs-attic-desc);color:var(--dim);line-height:1.4;flex:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
+/* QA FIX - this never received the parallel fix .opt.sel .opt-desc got
+   below (measured 4.36:1, under 4.5:1 AA) - same value, same reasoning. */
+.attic-opt.sel .attic-opt-desc{color:rgba(240,214,78,.7)}
 /* .attic-bar-top now sizes to content (not a fixed row) and shares space
    with Back/Info/Skip/Next, so a step whose question is long enough to
    wrap this label to 2 lines shouldn't be allowed to keep growing - the
