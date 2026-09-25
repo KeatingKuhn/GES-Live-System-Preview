@@ -2110,7 +2110,16 @@ function App(){
               );
               return pricingFlow?
                 <>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
+                  {/* QA FIX - direct feedback: trimmed this divider row's
+                      own spacing (and the leadgate block's below) in attic
+                      mode specifically - after shrinking the embedded
+                      Gravity Form itself, this row + the leadgate heading/
+                      description were the next-biggest remaining slice of
+                      the "still a slight scroll" gap on a full page load.
+                      Closet mode's narrow sidebar has its own scroll
+                      already and wasn't part of that complaint, so left
+                      unchanged there. */}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",marginBottom:isAtticMode?6:10,paddingBottom:isAtticMode?6:10,borderBottom:"1px solid rgba(215,183,64,.15)"}}>
                     <span style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-pricing-meta)",color:"rgba(255,255,255,.78)"}}>✓ {tr('Your system is built','Su sistema está construido')}</span>
                     <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)"}}>{tr('Edit selections','Editar selecciones')}</button>
                   </div>
@@ -2426,10 +2435,10 @@ function App(){
                   elsewhere on the page to find. Falls back to the old
                   "scroll down to find it" copy if embedFormUrl is unset
                   (form still placed elsewhere on the WordPress page). */}
-              {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"8px 12px":12}}>
-                <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
+              {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"6px 12px":12}}>
+                <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?4:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
                 {GATE_CONFIG.embedFormUrl?<>
-                  <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:10}}>
+                  <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:isAtticMode?6:10}}>
                     {tr('Fill out the short form below to unlock pricing - it continues right here automatically, no need to click anything else.','Complete el formulario breve a continuación para desbloquear los precios - continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
                   </div>
                   <iframe ref={leadIframeRef} src={GATE_CONFIG.embedFormUrl} title={tr('Contact form','Formulario de contacto')}
@@ -2438,13 +2447,19 @@ function App(){
                       // content height (same-origin only - the polling
                       // effect above still detects submission either way
                       // if this throws for any reason).
+                      // QA FIX - direct feedback: the WordPress side got the
+                      // embedded form's own content shrunk considerably
+                      // (hidden title, tightened field spacing) - lowered
+                      // the floor here from 260 to 180 so this no longer
+                      // pads the iframe taller than the real, now-shorter
+                      // content actually needs.
                       try{
                         const doc=leadIframeRef.current&&leadIframeRef.current.contentDocument;
                         const h=doc&&doc.body&&doc.body.scrollHeight;
-                        if(h&&leadIframeRef.current)leadIframeRef.current.style.height=Math.min(Math.max(h,260),900)+'px';
+                        if(h&&leadIframeRef.current)leadIframeRef.current.style.height=Math.min(Math.max(h,180),900)+'px';
                       }catch(e){/* cross-origin - keep the default height below */}
                     }}
-                    style={{width:"100%",height:420,border:"none",display:"block",marginBottom:10,background:"transparent",borderRadius:4}}/>
+                    style={{width:"100%",height:420,border:"none",display:"block",marginBottom:isAtticMode?6:10,background:"transparent",borderRadius:4}}/>
                 </>:
                   <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
                     {tr('Scroll down on this page to find the short form - fill it out to unlock pricing. It continues right here automatically, no need to click anything else.','Desplácese hacia abajo en esta página para encontrar el formulario breve - complételo para desbloquear los precios. Continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
