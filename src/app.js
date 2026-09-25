@@ -1039,10 +1039,15 @@ function App(){
   };
 
   const [showInfo,setShowInfo]=React.useState(false);
-  // Zoning FAQ modal - see the FAQ button's own comment (price card, price-
-  // reveal screen) for why this replaced the old always-showcased sticky
-  // callout box.
-  const [showZoningFaq,setShowZoningFaq]=React.useState(false);
+  // FAQ modal - see the FAQ button's own comment (price card, price-reveal
+  // screen) for why this replaced the old always-showcased Zoning-only
+  // sticky callout box. Per direct feedback ("add more to the FAQ besides
+  // zoning"), it's now a short accordion instead of a single topic -
+  // openFaqKey tracks which one question is expanded (only one at a time,
+  // same "one thing to read" idea HoverPanel already uses elsewhere in
+  // this app), reset to the first item every time the modal opens.
+  const [showFaq,setShowFaq]=React.useState(false);
+  const [openFaqKey,setOpenFaqKey]=React.useState('zoning');
   // QA FIX - per direct feedback, the info panel used to auto-open on the
   // first question, pushing the option cards down right as they became
   // clickable ("too jumpy every time you ask a question"). The panel now
@@ -1389,20 +1394,50 @@ function App(){
         <div style={{fontFamily:"var(--ft)",fontSize:20,marginBottom:8}}>Gold Eagle Services</div>
         <div>{tr('Your estimate isn’t ready to print yet - finish building your system to see pricing and print your results.','Su estimado aún no está listo para imprimir - termine de armar su sistema para ver el precio e imprimir sus resultados.')}</div>
       </div>}
-      {/* Zoning FAQ - replaced the old always-showcased sticky callout box
-          on the price-reveal screen (see the FAQ button's own comment) -
-          a plain opt-in overlay instead, top-level so it can sit above
-          either layout regardless of which one triggered it. */}
-      {showZoningFaq&&<div className="no-print" onClick={()=>setShowZoningFaq(false)}
+      {/* FAQ - replaced the old always-showcased Zoning-only sticky callout
+          box on the price-reveal screen (see the FAQ button's own comment)
+          - a plain opt-in overlay instead, top-level so it can sit above
+          either layout regardless of which one triggered it. Per direct
+          feedback ("add more to the FAQ besides zoning"), expanded from a
+          single topic into a short accordion (openFaqKey - one entry open
+          at a time, same "one thing to read" idea HoverPanel already uses
+          elsewhere in this app). Every entry's copy is reused from
+          wherever this app already establishes it elsewhere (the
+          manufacturer-warranty line under the price, the Wells Fargo/
+          Wisetack financing caption, the "final price confirmed at your
+          free in-home visit" disclaimer) rather than inventing new claims
+          about the business. */}
+      {showFaq&&<div className="no-print" onClick={()=>setShowFaq(false)}
         style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-        <div onClick={e=>e.stopPropagation()} style={{background:"#14110a",border:"1px solid rgba(215,183,64,.4)",borderRadius:6,padding:20,maxWidth:420,boxShadow:"0 10px 40px rgba(0,0,0,.5)"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginBottom:10}}>
-            <div style={{fontSize:16,fontWeight:600,color:"rgba(255,255,255,.92)",fontFamily:"var(--ft)"}}>{tr('Zoning','Zonificación')}</div>
-            <button aria-label={tr('Close','Cerrar')} onClick={()=>setShowZoningFaq(false)}
+        <div onClick={e=>e.stopPropagation()} style={{background:"#14110a",border:"1px solid rgba(215,183,64,.4)",borderRadius:6,padding:"16px 20px",maxWidth:460,width:"100%",maxHeight:"80vh",overflowY:"auto",boxSizing:"border-box",boxShadow:"0 10px 40px rgba(0,0,0,.5)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginBottom:4}}>
+            <div style={{fontSize:16,fontWeight:600,color:"rgba(255,255,255,.92)",fontFamily:"var(--ft)"}}>{tr('Frequently Asked Questions','Preguntas Frecuentes')}</div>
+            <button aria-label={tr('Close','Cerrar')} onClick={()=>setShowFaq(false)}
               style={{background:"none",border:"none",color:"rgba(255,255,255,.6)",fontSize:22,lineHeight:1,cursor:"pointer",padding:4}}>×</button>
           </div>
-          <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>{tr("Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.","Dividir este sistema en zonas controladas de forma independiente (arriba/abajo, o habitación por habitación). El costo varía demasiado según la distribución de la casa para un estimado en línea - visitaremos su hogar y le daremos una cotización exacta en su visita gratuita.")}</div>
-          <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:10,fontStyle:"italic"}}>{tr("Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.","¿Marcó alguno de los complementos de ductos arriba? Esos precios ya están en su estimado. Aun así confirmaremos el alcance exacto - y señalaremos cualquier otra necesidad de sus ductos - en su visita gratuita a domicilio.")}</div>
+          {[
+            {key:'zoning', q:tr('Can this system be zoned?','¿Se puede dividir este sistema en zonas?'),
+              a:tr("Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.","Dividir este sistema en zonas controladas de forma independiente (arriba/abajo, o habitación por habitación). El costo varía demasiado según la distribución de la casa para un estimado en línea - visitaremos su hogar y le daremos una cotización exacta en su visita gratuita."),
+              extra:tr("Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.","¿Marcó alguno de los complementos de ductos arriba? Esos precios ya están en su estimado. Aun así confirmaremos el alcance exacto - y señalaremos cualquier otra necesidad de sus ductos - en su visita gratuita a domicilio.")},
+            {key:'price', q:tr('Why might my final price change?','¿Por qué podría cambiar mi precio final?'),
+              a:tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")},
+            {key:'warranty', q:tr('What warranty is included?','¿Qué garantía está incluida?'),
+              a:tr("Every system includes a 10-year manufacturer parts warranty (registration required within 60 days of install) - that covers parts, not labor. The optional 10-year labor warranty on this page covers a technician's time for any warranty repair during that same period.","Cada sistema incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación) - eso cubre piezas, no mano de obra. La garantía opcional de mano de obra de 10 años en esta página cubre el tiempo de un técnico para cualquier reparación bajo garantía durante ese mismo período.")},
+            {key:'financing', q:tr('How does financing work?','¿Cómo funciona el financiamiento?'),
+              a:tr("36 months at 0% APR through Wells Fargo - ask your comfort advisor, subject to approved credit. Or prequalify online with Wisetack for other flexible plans (a separate offer with its own terms).","36 meses al 0% de interés a través de Wells Fargo - pregunte a su asesor, sujeto a aprobación de crédito. O precalifique en línea con Wisetack para otros planes flexibles (una oferta separada con sus propios términos).")},
+          ].map(item=>(
+            <div key={item.key} style={{borderTop:"1px solid rgba(215,183,64,.18)"}}>
+              <button onClick={()=>setOpenFaqKey(openFaqKey===item.key?null:item.key)} aria-expanded={openFaqKey===item.key}
+                style={{display:"flex",width:"100%",justifyContent:"space-between",alignItems:"center",gap:10,background:"none",border:"none",color:"rgba(255,255,255,.92)",fontFamily:"var(--ft)",fontSize:"var(--fs-pricing-line)",fontWeight:600,textAlign:"left",padding:"10px 0",cursor:"pointer"}}>
+                <span>{item.q}</span>
+                <span style={{color:"rgba(215,183,64,.85)",flexShrink:0,fontSize:16}}>{openFaqKey===item.key?'−':'+'}</span>
+              </button>
+              {openFaqKey===item.key&&<div style={{paddingBottom:14}}>
+                <div style={{fontSize:"var(--fs-pricing-line)",color:"var(--dim)",lineHeight:1.7}}>{item.a}</div>
+                {item.extra&&<div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",marginTop:10,fontStyle:"italic"}}>{item.extra}</div>}
+              </div>}
+            </div>
+          ))}
         </div>
       </div>}
       {/* QA FIX - the diagram's shared gradients/filters (gold, silver,
@@ -2732,8 +2767,11 @@ function App(){
                         relevant to the rare homeowner who already knows
                         what zoning is and is specifically curious (the
                         wizard itself never mentions zoning at all). Now a
-                        plain FAQ button instead - opt-in, not showcased. */}
-                    <button className="done-restart" onClick={()=>setShowZoningFaq(true)}>{tr('FAQ','Preguntas Frecuentes')}</button>
+                        plain FAQ button instead - opt-in, not showcased.
+                        Resets openFaqKey to the first entry on every open,
+                        so a previous visit's expanded question doesn't
+                        carry over looking like the "featured" one. */}
+                    <button className="done-restart" onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
                     <button className="done-restart" onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my answers','Ajustar mis respuestas')}</button>
                   </div>
                 );

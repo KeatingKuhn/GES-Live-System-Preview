@@ -8680,7 +8680,8 @@
       return `mailto:?subject=${subject}&body=${body}${cc}`;
     };
     const [showInfo, setShowInfo] = React.useState(false);
-    const [showZoningFaq, setShowZoningFaq] = React.useState(false);
+    const [showFaq, setShowFaq] = React.useState(false);
+    const [openFaqKey, setOpenFaqKey] = React.useState("zoning");
     React.useEffect(() => {
       setShowInfo(false);
     }, [stepIdx]);
@@ -8807,22 +8808,53 @@
       }
       return /* @__PURE__ */ React.createElement("button", { key: opt.v, className: "opt" + (isOn ? " sel" : "") + (isDisabled ? " disabled" : ""), onClick: click }, /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, opt.label, opt.badge && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), opt.desc && /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, opt.desc)), /* @__PURE__ */ React.createElement("div", { className: isMulti ? "opt-check" : "opt-check radio", style: isOn && !isMulti ? { borderColor: "var(--gl)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" } : {} }, isMulti && isOn ? "\u2713" : "", !isMulti && isOn ? /* @__PURE__ */ React.createElement("div", { style: { width: 8, height: 8, borderRadius: "50%", background: "var(--gh)" } }) : "")));
     };
-    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, !doneVisible && /* @__PURE__ */ React.createElement("div", { className: "print-only-fallback" }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--ft)", fontSize: 20, marginBottom: 8 } }, "Gold Eagle Services"), /* @__PURE__ */ React.createElement("div", null, tr("Your estimate isn\u2019t ready to print yet - finish building your system to see pricing and print your results.", "Su estimado a\xFAn no est\xE1 listo para imprimir - termine de armar su sistema para ver el precio e imprimir sus resultados."))), showZoningFaq && /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "site-header-spacer no-print" }), /* @__PURE__ */ React.createElement("div", { ref: topRef, className: "app-root" }, !doneVisible && /* @__PURE__ */ React.createElement("div", { className: "print-only-fallback" }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "var(--ft)", fontSize: 20, marginBottom: 8 } }, "Gold Eagle Services"), /* @__PURE__ */ React.createElement("div", null, tr("Your estimate isn\u2019t ready to print yet - finish building your system to see pricing and print your results.", "Su estimado a\xFAn no est\xE1 listo para imprimir - termine de armar su sistema para ver el precio e imprimir sus resultados."))), showFaq && /* @__PURE__ */ React.createElement(
       "div",
       {
         className: "no-print",
-        onClick: () => setShowZoningFaq(false),
+        onClick: () => setShowFaq(false),
         style: { position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }
       },
-      /* @__PURE__ */ React.createElement("div", { onClick: (e) => e.stopPropagation(), style: { background: "#14110a", border: "1px solid rgba(215,183,64,.4)", borderRadius: 6, padding: 20, maxWidth: 420, boxShadow: "0 10px 40px rgba(0,0,0,.5)" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,.92)", fontFamily: "var(--ft)" } }, tr("Zoning", "Zonificaci\xF3n")), /* @__PURE__ */ React.createElement(
+      /* @__PURE__ */ React.createElement("div", { onClick: (e) => e.stopPropagation(), style: { background: "#14110a", border: "1px solid rgba(215,183,64,.4)", borderRadius: 6, padding: "16px 20px", maxWidth: 460, width: "100%", maxHeight: "80vh", overflowY: "auto", boxSizing: "border-box", boxShadow: "0 10px 40px rgba(0,0,0,.5)" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,.92)", fontFamily: "var(--ft)" } }, tr("Frequently Asked Questions", "Preguntas Frecuentes")), /* @__PURE__ */ React.createElement(
         "button",
         {
           "aria-label": tr("Close", "Cerrar"),
-          onClick: () => setShowZoningFaq(false),
+          onClick: () => setShowFaq(false),
           style: { background: "none", border: "none", color: "rgba(255,255,255,.6)", fontSize: 22, lineHeight: 1, cursor: "pointer", padding: 4 }
         },
         "\xD7"
-      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, tr("Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.", "Dividir este sistema en zonas controladas de forma independiente (arriba/abajo, o habitaci\xF3n por habitaci\xF3n). El costo var\xEDa demasiado seg\xFAn la distribuci\xF3n de la casa para un estimado en l\xEDnea - visitaremos su hogar y le daremos una cotizaci\xF3n exacta en su visita gratuita.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 10, fontStyle: "italic" } }, tr("Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.", "\xBFMarc\xF3 alguno de los complementos de ductos arriba? Esos precios ya est\xE1n en su estimado. Aun as\xED confirmaremos el alcance exacto - y se\xF1alaremos cualquier otra necesidad de sus ductos - en su visita gratuita a domicilio.")))
+      )), [
+        {
+          key: "zoning",
+          q: tr("Can this system be zoned?", "\xBFSe puede dividir este sistema en zonas?"),
+          a: tr("Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.", "Dividir este sistema en zonas controladas de forma independiente (arriba/abajo, o habitaci\xF3n por habitaci\xF3n). El costo var\xEDa demasiado seg\xFAn la distribuci\xF3n de la casa para un estimado en l\xEDnea - visitaremos su hogar y le daremos una cotizaci\xF3n exacta en su visita gratuita."),
+          extra: tr("Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.", "\xBFMarc\xF3 alguno de los complementos de ductos arriba? Esos precios ya est\xE1n en su estimado. Aun as\xED confirmaremos el alcance exacto - y se\xF1alaremos cualquier otra necesidad de sus ductos - en su visita gratuita a domicilio.")
+        },
+        {
+          key: "price",
+          q: tr("Why might my final price change?", "\xBFPor qu\xE9 podr\xEDa cambiar mi precio final?"),
+          a: tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")
+        },
+        {
+          key: "warranty",
+          q: tr("What warranty is included?", "\xBFQu\xE9 garant\xEDa est\xE1 incluida?"),
+          a: tr("Every system includes a 10-year manufacturer parts warranty (registration required within 60 days of install) - that covers parts, not labor. The optional 10-year labor warranty on this page covers a technician's time for any warranty repair during that same period.", "Cada sistema incluye una garant\xEDa de f\xE1brica de 10 a\xF1os en piezas (requiere registro dentro de los 60 d\xEDas posteriores a la instalaci\xF3n) - eso cubre piezas, no mano de obra. La garant\xEDa opcional de mano de obra de 10 a\xF1os en esta p\xE1gina cubre el tiempo de un t\xE9cnico para cualquier reparaci\xF3n bajo garant\xEDa durante ese mismo per\xEDodo.")
+        },
+        {
+          key: "financing",
+          q: tr("How does financing work?", "\xBFC\xF3mo funciona el financiamiento?"),
+          a: tr("36 months at 0% APR through Wells Fargo - ask your comfort advisor, subject to approved credit. Or prequalify online with Wisetack for other flexible plans (a separate offer with its own terms).", "36 meses al 0% de inter\xE9s a trav\xE9s de Wells Fargo - pregunte a su asesor, sujeto a aprobaci\xF3n de cr\xE9dito. O precalifique en l\xEDnea con Wisetack para otros planes flexibles (una oferta separada con sus propios t\xE9rminos).")
+        }
+      ].map((item) => /* @__PURE__ */ React.createElement("div", { key: item.key, style: { borderTop: "1px solid rgba(215,183,64,.18)" } }, /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          onClick: () => setOpenFaqKey(openFaqKey === item.key ? null : item.key),
+          "aria-expanded": openFaqKey === item.key,
+          style: { display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", gap: 10, background: "none", border: "none", color: "rgba(255,255,255,.92)", fontFamily: "var(--ft)", fontSize: "var(--fs-pricing-line)", fontWeight: 600, textAlign: "left", padding: "10px 0", cursor: "pointer" }
+        },
+        /* @__PURE__ */ React.createElement("span", null, item.q),
+        /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.85)", flexShrink: 0, fontSize: 16 } }, openFaqKey === item.key ? "\u2212" : "+")
+      ), openFaqKey === item.key && /* @__PURE__ */ React.createElement("div", { style: { paddingBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-line)", color: "var(--dim)", lineHeight: 1.7 } }, item.a), item.extra && /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-fine)", color: "var(--mut)", marginTop: 10, fontStyle: "italic" } }, item.extra)))))
     ), /* @__PURE__ */ React.createElement("svg", { width: "0", height: "0", style: { position: "absolute" }, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Defs, null)), /* @__PURE__ */ React.createElement("div", { "aria-live": "polite", "aria-atomic": "true", className: "sr-only" }, liveMessage), resumePending && /* @__PURE__ */ React.createElement("div", { className: "fadein", style: { position: "absolute", inset: 0, zIndex: 40, background: "var(--bk)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo", style: { fontSize: "clamp(28px,6vw,44px)" } }, tr("WELCOME BACK", "BIENVENIDO DE NUEVO")), /* @__PURE__ */ React.createElement("p", { style: { fontFamily: "var(--fb)", fontSize: 15, color: "rgba(255,255,255,.6)", maxWidth: 420, lineHeight: 1.6 } }, (() => {
       const savedSteps = STEPS.filter((s) => !s.showIf || s.showIf(savedBuild.answers));
       const savedCur = savedSteps[savedBuild.stepIdx];
@@ -9221,7 +9253,10 @@
         tr("Waived consultation fees", "Consultas sin cargo"),
         tr("Free coil cleaning & drain flush", "Limpieza de serpent\xEDn y drenaje gratis"),
         tr("1 free service call for friends and family", "1 visita de servicio gratis para familiares")
-      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.85)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => setShowZoningFaq(true) }, tr("FAQ", "Preguntas Frecuentes")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
+      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.85)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: "var(--fs-pricing-meta)", color: "rgba(255,255,255,.68)", lineHeight: 1.55, marginBottom: 10 } }, tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.", "Este es un estimado basado en instalaciones t\xEDpicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo est\xE9 contemplado.")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
+        setOpenFaqKey("zoning");
+        setShowFaq(true);
+      } }, tr("FAQ", "Preguntas Frecuentes")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: () => {
         setPricingFlow("sizing");
         setPricingSubStep(0);
       } }, "\u2039 ", tr("Adjust my answers", "Ajustar mis respuestas")));
