@@ -8189,18 +8189,26 @@
       setPricingSubStep(0);
     }, [tonnageOptionsForTier, pricingAnswers.tonnageChoice]);
     const sqftGridRef = useRef2(null);
-    const [sqftGridOrphan, setSqftGridOrphan] = useState2(false);
+    const [sqftGridOrphans, setSqftGridOrphans] = useState2(() => /* @__PURE__ */ new Set());
     React.useEffect(() => {
       const el = sqftGridRef.current;
       if (!el || typeof ResizeObserver === "undefined") return;
       const measure = () => {
-        const kids = el.children;
+        const kids = Array.from(el.children);
         if (kids.length < 2) {
-          setSqftGridOrphan(false);
+          setSqftGridOrphans(/* @__PURE__ */ new Set());
           return;
         }
-        const last = kids[kids.length - 1], prev = kids[kids.length - 2];
-        setSqftGridOrphan(last.offsetTop > prev.offsetTop);
+        const rows = [];
+        for (let i = 0; i < kids.length; i++) {
+          const top = kids[i].offsetTop;
+          const row = rows.find((r) => r.top === top);
+          if (row) row.indices.push(i);
+          else rows.push({ top, indices: [i] });
+        }
+        const orphans = /* @__PURE__ */ new Set();
+        for (const row of rows) if (row.indices.length === 1) orphans.add(row.indices[0]);
+        setSqftGridOrphans(orphans);
       };
       measure();
       const ro = new ResizeObserver(measure);
@@ -8927,7 +8935,7 @@
           {
             key: o.v,
             className: "opt" + (isAtticMode ? " opt-compact" : "") + (pricingAnswers.tonnageChoice === o.v ? " sel" : ""),
-            style: i === tonnageOptions.length - 1 && sqftGridOrphan ? { gridColumn: "1 / -1" } : void 0,
+            style: sqftGridOrphans.has(i) ? { gridColumn: "1 / -1" } : void 0,
             onClick: () => setPricingAnswers((p) => ({ ...p, tonnageChoice: o.v }))
           },
           /* @__PURE__ */ React.createElement("div", { className: "opt-inner" }, /* @__PURE__ */ React.createElement("div", { className: "opt-body" }, /* @__PURE__ */ React.createElement("span", { className: "opt-label" }, tr(o.label, o.labelEs), recommended && recommended.v === o.v && /* @__PURE__ */ React.createElement("span", { className: "opt-badge" }, tr("SUGGESTED", "SUGERIDO"))), /* @__PURE__ */ React.createElement("span", { className: "opt-desc" }, isAtticMode ? tr(o.sqftLabel, o.sqftLabelEs) : tr(`Typical for ${o.sqftLabel} homes`, `T\xEDpico para casas de ${o.sqftLabelEs}`))))

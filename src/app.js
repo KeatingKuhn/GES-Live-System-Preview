@@ -336,21 +336,41 @@ function App(){
   // a blind nth-child parity rule would be right at some widths and wrong
   // at others (spot-checked 3/4/5/6-column results at 420-860px - only
   // 3 and 6 columns actually strand the last card alone, 4 and 5 don't).
-  // Measuring the real rendered layout instead of guessing at it: if the
-  // last card's own top offset differs from the second-to-last card's,
-  // it's alone on a new row and gets grid-column:1/-1 to fill it instead
-  // of leaving that gap. Re-measures on resize (ResizeObserver) and
-  // whenever the option count/layout could change the column math.
+  // Measuring the real rendered layout instead of guessing at it: group
+  // every card into rows by its own top offset, and any row that ends up
+  // with exactly one card in it gets grid-column:1/-1 to fill the row
+  // instead of leaving a dead gap beside it. Re-measures on resize
+  // (ResizeObserver) and whenever the option count/layout could change
+  // the column math.
+  // QA FIX - the original version of this only ever compared the LAST
+  // two cards' offsetTop, so it could only fix an orphan on the grid's
+  // final row. With exactly 4 tonnage options at a 2-column width this
+  // grid lands as rows of [2,1] then [1] - the SECOND row's lone card
+  // (not the last row) was left stranded with a dead gap beside it,
+  // since only the true last card (a different row entirely) ever
+  // qualified for the fix. Reproduced at 380-500px on both closet and
+  // narrow-attic layouts by an automated QA pass. Switched from a single
+  // boolean to a Set of every orphaned card's own index, built by
+  // grouping ALL children into rows first rather than just checking the
+  // last two.
   const sqftGridRef=useRef(null);
-  const [sqftGridOrphan,setSqftGridOrphan]=useState(false);
+  const [sqftGridOrphans,setSqftGridOrphans]=useState(()=>new Set());
   React.useEffect(()=>{
     const el=sqftGridRef.current;
     if(!el||typeof ResizeObserver==='undefined')return;
     const measure=()=>{
-      const kids=el.children;
-      if(kids.length<2){setSqftGridOrphan(false);return;}
-      const last=kids[kids.length-1],prev=kids[kids.length-2];
-      setSqftGridOrphan(last.offsetTop>prev.offsetTop);
+      const kids=Array.from(el.children);
+      if(kids.length<2){setSqftGridOrphans(new Set());return;}
+      const rows=[];
+      for(let i=0;i<kids.length;i++){
+        const top=kids[i].offsetTop;
+        const row=rows.find(r=>r.top===top);
+        if(row)row.indices.push(i);
+        else rows.push({top,indices:[i]});
+      }
+      const orphans=new Set();
+      for(const row of rows)if(row.indices.length===1)orphans.add(row.indices[0]);
+      setSqftGridOrphans(orphans);
     };
     measure();
     const ro=new ResizeObserver(measure);
@@ -2173,12 +2193,13 @@ function App(){
                       return <div ref={sqftGridRef} className={isAtticMode?"pricing-opts-sqft":undefined} style={{display:"grid",gridTemplateColumns:isAtticMode?`repeat(${tonnageOptions.length},1fr)`:"repeat(auto-fit,minmax(160px,1fr))",gap:6}}>
                         {tonnageOptions.map((o,i)=>(
                           <button key={o.v} className={"opt"+(isAtticMode?" opt-compact":"")+(pricingAnswers.tonnageChoice===o.v?" sel":"")}
-                            // see the sqftGridOrphan QA FIX above this
+                            // see the sqftGridOrphans QA FIX above this
                             // component's return - fills the dead gap
-                            // beside a lone last-row card instead of
-                            // leaving it stranded at its normal 1-column
-                            // width.
-                            style={i===tonnageOptions.length-1&&sqftGridOrphan?{gridColumn:"1 / -1"}:undefined}
+                            // beside ANY lone card left alone on its own
+                            // row (not just the grid's final row) instead
+                            // of leaving it stranded at its normal
+                            // 1-column width.
+                            style={sqftGridOrphans.has(i)?{gridColumn:"1 / -1"}:undefined}
                             onClick={()=>setPricingAnswers(p=>({...p,tonnageChoice:o.v}))}>
                             <div className="opt-inner"><div className="opt-body">
                               <span className="opt-label">{tr(o.label,o.labelEs)}{recommended&&recommended.v===o.v&&<span className="opt-badge">{tr('SUGGESTED','SUGERIDO')}</span>}</span>
