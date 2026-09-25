@@ -479,6 +479,13 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    digit lands on the right value with no spin and no functional change
    to the price shown. */
 @media (prefers-reduced-motion:reduce){
+  /* QA FIX - the splash screen's own staggered entrance (logo/tagline/
+     trust bullets/cards/lang toggle/footer fading+rising in) was left out
+     of this block - the one animation on the very first screen a visitor
+     sees, everywhere else in this file gets explicit reduced-motion
+     coverage. Short (.45s) and non-looping, so low-impact, but still a
+     real gap against this rule's own stated intent. */
+  .splash-rise{animation:none!important}
   .spin,.airflow,.line-pulse,.rotate-prompt-icon,.info-btn{animation:none!important}
   .rain-drop,.rain-splash,.snow-flake,.confetti-piece{display:none!important}
   .glow-pulse{animation:glowIn .22s ease-out both!important}
