@@ -1066,7 +1066,11 @@ function App(){
   // same "one thing to read" idea HoverPanel already uses elsewhere in
   // this app), reset to the first item every time the modal opens.
   const [showFaq,setShowFaq]=React.useState(false);
-  const [openFaqKey,setOpenFaqKey]=React.useState('zoning');
+  // QA FIX - direct feedback reordered the FAQ so the most broadly relevant
+  // question (why the price might change) leads and the niche zoning
+  // question - only relevant to the rare homeowner who already knows what
+  // zoning is - moved last. Default-open entry follows the new lead item.
+  const [openFaqKey,setOpenFaqKey]=React.useState('price');
   // QA FIX - per direct feedback, the info panel used to auto-open on the
   // first question, pushing the option cards down right as they became
   // clickable ("too jumpy every time you ask a question"). The panel now
@@ -1435,15 +1439,17 @@ function App(){
               style={{background:"none",border:"none",color:"rgba(255,255,255,.6)",fontSize:22,lineHeight:1,cursor:"pointer",padding:4}}>×</button>
           </div>
           {[
+            {key:'price', q:tr('Why might my final price change?','¿Por qué podría cambiar mi precio final?'),
+              a:tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")},
+            {key:'financing', q:tr('How does financing work?','¿Cómo funciona el financiamiento?'),
+              a:tr("36 months at 0% APR through Wells Fargo, subject to approved credit. Or prequalify online with Wisetack for other flexible plans (a separate offer with its own terms).","36 meses al 0% de interés a través de Wells Fargo, sujeto a aprobación de crédito. O precalifique en línea con Wisetack para otros planes flexibles (una oferta separada con sus propios términos).")},
+            {key:'warranty', q:tr('What warranty is included?','¿Qué garantía está incluida?'),
+              a:tr("Every system includes a 10-year manufacturer parts warranty (registration required within 60 days of install) - that covers parts, not labor. The optional 10-year labor warranty on this page covers a technician's time for any warranty repair during that same period.","Cada sistema incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación) - eso cubre piezas, no mano de obra. La garantía opcional de mano de obra de 10 años en esta página cubre el tiempo de un técnico para cualquier reparación bajo garantía durante ese mismo período.")},
+            {key:'maintenance', q:tr('What does the annual maintenance plan include?','¿Qué incluye el plan de mantenimiento anual?'),
+              a:tr("2 seasonal tune-ups (AC + heating), priority scheduling, 10% off repairs, waived consultation fees, free coil cleaning & drain flush, and 1 free service call for friends and family. $177 for the first system, +$100 for each additional system on the same visit.","2 afinaciones estacionales (A/C y calefacción), programación prioritaria, 10% de descuento en reparaciones, consultas sin cargo, limpieza de serpentín y drenaje gratis, y 1 visita de servicio gratis para familiares. $177 por el primer sistema, +$100 por cada sistema adicional en la misma visita.")},
             {key:'zoning', q:tr('Can this system be zoned?','¿Se puede dividir este sistema en zonas?'),
               a:tr("Splitting this system into independently-controlled zones (upstairs/downstairs, or room-by-room). Cost varies too much by home layout for an online estimate - we'll walk your home and quote it exactly at your free visit.","Dividir este sistema en zonas controladas de forma independiente (arriba/abajo, o habitación por habitación). El costo varía demasiado según la distribución de la casa para un estimado en línea - visitaremos su hogar y le daremos una cotización exacta en su visita gratuita."),
               extra:tr("Checked any of the duct add-ons above? Those prices are already in your estimate. We'll still confirm the exact scope - and flag anything else your ductwork needs - at your free in-home visit.","¿Marcó alguno de los complementos de ductos arriba? Esos precios ya están en su estimado. Aun así confirmaremos el alcance exacto - y señalaremos cualquier otra necesidad de sus ductos - en su visita gratuita a domicilio.")},
-            {key:'price', q:tr('Why might my final price change?','¿Por qué podría cambiar mi precio final?'),
-              a:tr("This is an estimate based on typical installs. Your final price is confirmed at your free in-home visit - we verify your existing equipment, take exact measurements, and make sure everything's accounted for.","Este es un estimado basado en instalaciones típicas. Su precio final se confirma en su visita gratuita a domicilio - verificamos su equipo actual, tomamos medidas exactas, y nos aseguramos de que todo esté contemplado.")},
-            {key:'warranty', q:tr('What warranty is included?','¿Qué garantía está incluida?'),
-              a:tr("Every system includes a 10-year manufacturer parts warranty (registration required within 60 days of install) - that covers parts, not labor. The optional 10-year labor warranty on this page covers a technician's time for any warranty repair during that same period.","Cada sistema incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación) - eso cubre piezas, no mano de obra. La garantía opcional de mano de obra de 10 años en esta página cubre el tiempo de un técnico para cualquier reparación bajo garantía durante ese mismo período.")},
-            {key:'financing', q:tr('How does financing work?','¿Cómo funciona el financiamiento?'),
-              a:tr("36 months at 0% APR through Wells Fargo - ask your comfort advisor, subject to approved credit. Or prequalify online with Wisetack for other flexible plans (a separate offer with its own terms).","36 meses al 0% de interés a través de Wells Fargo - pregunte a su asesor, sujeto a aprobación de crédito. O precalifique en línea con Wisetack para otros planes flexibles (una oferta separada con sus propios términos).")},
           ].map(item=>(
             <div key={item.key} style={{borderTop:"1px solid rgba(215,183,64,.18)"}}>
               <button onClick={()=>setOpenFaqKey(openFaqKey===item.key?null:item.key)} aria-expanded={openFaqKey===item.key}
@@ -2478,7 +2484,6 @@ function App(){
                           print) swap to the plain final number for print
                           only - on-screen animation is untouched. */}
                       <div style={{fontFamily:"var(--fm)",fontSize:48,fontWeight:700,color:"var(--gl)",lineHeight:1}}>~$<span className="price-live"><CashCount value={est.display} format={fmtPrice}/></span><span className="price-static">{fmtPrice(est.display)}</span></div>
-                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Includes a 10-year manufacturer parts warranty (registration required within 60 days of install).','Incluye una garantía de fábrica de 10 años en piezas (requiere registro dentro de los 60 días posteriores a la instalación).')}</div>
                     </div>
                     <div className="price-hero">
                       {/* QA FIX - see the 'PRICING' eyebrow's own comment
@@ -2496,7 +2501,11 @@ function App(){
                           Wisetack link is worded as a distinct, separate
                           "or" option instead of implying it's the source
                           of the number above it. */}
-                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR through Wells Fargo - ask your comfort advisor, subject to approved credit.','Basado en 36 meses al 0% de interés a través de Wells Fargo - pregunte a su asesor, sujeto a aprobación de crédito.')}</div>
+                      {/* QA FIX - direct feedback: dropped "ask your comfort
+                          advisor" - the Wisetack link right below already
+                          gives a self-serve path, so the Wells Fargo line
+                          doesn't need to send the reader elsewhere too. */}
+                      <div style={{fontSize:"var(--fs-pricing-meta)",color:"var(--mut)",marginTop:6}}>{tr('Based on 36 months at 0% APR through Wells Fargo, subject to approved credit.','Basado en 36 meses al 0% de interés a través de Wells Fargo, sujeto a aprobación de crédito.')}</div>
                       {wisetack&&<a href={wisetack.url} target="_blank" rel="noopener" className="price-hero-financing-link no-print"
                         onClick={()=>trackCtaOnce('financing_clicked',{lender:'wisetack',source:'price_reveal'})}>
                         {tr('→ Or prequalify online with Wisetack','→ O precalifique en línea con Wisetack')}
@@ -2546,16 +2555,21 @@ function App(){
                       {tr(`Add a 10-year labor warranty (+$${fmtPrice(PRICING.laborWarranty10yr)})`,`Agregar garantía de mano de obra de 10 años (+$${fmtPrice(PRICING.laborWarranty10yr)})`)}
                     </label>
                     {/* QA FIX - a fresh-eyes copy pass caught this checkbox
-                        sitting right under the "Includes a 10-year
-                        manufacturer parts warranty" disclaimer above the
-                        price breakdown, both using the identical "10-year
-                        warranty" phrase with nothing on-page distinguishing
-                        "already included, free" from "optional, $1,750" -
-                        that parts-vs-labor split only existed if a
-                        customer thought to open the FAQ's own warranty
-                        entry. Short always-visible line instead of
-                        requiring that detour. */}
-                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",margin:"0 0 10px 24px"}}>{tr('Covers technician time for a repair - the manufacturer parts warranty above is already included at no charge.','Cubre el tiempo del técnico para una reparación - la garantía de piezas del fabricante mencionada arriba ya está incluida sin costo.')}</div>
+                        sitting right under what used to be a "10-year
+                        manufacturer parts warranty" disclaimer on the price
+                        card, both using the identical "10-year warranty"
+                        phrase with nothing distinguishing "already included,
+                        free" from "optional, $1,750" - that parts-vs-labor
+                        split only existed if a customer thought to open the
+                        FAQ's own warranty entry. Short always-visible line
+                        instead of requiring that detour.
+                        QA FIX - direct feedback trimmed the price card's own
+                        manufacturer-warranty sentence (this is the only
+                        remaining on-page mention outside the FAQ), so this
+                        no longer says "above" - the fact stands on its
+                        own instead of pointing at text that isn't there
+                        anymore. */}
+                    <div style={{fontSize:"var(--fs-pricing-fine)",color:"var(--mut)",margin:"0 0 10px 24px"}}>{tr('Covers technician time for a repair - a 10-year manufacturer parts warranty is already included at no charge.','Cubre el tiempo del técnico para una reparación - una garantía de piezas del fabricante de 10 años ya está incluida sin costo.')}</div>
                     {/* Duct replacement - used to be its own sizing sub-step
                         ("Want duct replacement priced too?") between the
                         tonnage question and the estimate reveal. Direct
@@ -2866,10 +2880,19 @@ function App(){
                         above, and "Edit System" in the Quick Actions row
                         below is the actual full-wizard reopen (which also
                         clears pricingAnswers, unlike this button). Renamed
-                        to say exactly what it does instead. */}
-                    <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                      <button className="quick-print-btn" style={{fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 14px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
-                      <button className="quick-print-btn" style={{fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 14px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust my sq ft','Ajustar mis pies cuadrados')}</button>
+                        to say exactly what it does instead.
+                        QA FIX - direct feedback (again, after the first
+                        pass): a tight flex row with an 8px gap still read
+                        as one cluster rather than "two separate buttons" -
+                        switched to the same grid pattern as the Quick
+                        Actions row right below (repeat(auto-fit,minmax(
+                        140px,1fr)), each button full-width within its own
+                        cell) so these two are unmistakably as distinct and
+                        as substantial as Financing/Save-Print/Edit System/
+                        Start Over. */}
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8}}>
+                      <button className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setOpenFaqKey('price');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
+                      <button className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".04em",whiteSpace:"nowrap"}} onClick={()=>{setPricingFlow('sizing');setPricingSubStep(0);}}>‹ {tr('Adjust sq ft','Ajustar pies cuadrados')}</button>
                     </div>
                   </div>
                 );
@@ -2892,7 +2915,7 @@ function App(){
                 if(leadUnlocked){setPricingFlow('sizing');setPricingSubStep(0);}
                 else{trackEvent('contact_form_shown');setPricingFlow('leadgate');}
               }}>💰 {tr('Get Pricing','Ver Precios')}</button>
-              <button className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setOpenFaqKey('zoning');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
+              <button className="quick-print-btn" style={{width:"100%",fontFamily:"var(--fm)",fontSize:"var(--fs-restart)",padding:"9px 8px",cursor:"pointer",letterSpacing:".04em"}} onClick={()=>{setOpenFaqKey('price');setShowFaq(true);}}>{tr('FAQ','Preguntas Frecuentes')}</button>
             </div>}
             {/* No Schedule Visit / phone CTA in this panel or the header -
                 both were dropped once this became an iframe embed on the
