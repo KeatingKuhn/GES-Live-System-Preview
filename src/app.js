@@ -2034,7 +2034,7 @@ function App(){
                   {isAtticMode?reviewGrid(
                     <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",background:"rgba(255,255,255,.02)",border:"1px solid rgba(215,183,64,.1)",minWidth:0}}>
                       <div className="done-icon-wrap"><div className="done-icon" style={{margin:0,width:20,height:20,fontSize:10,flexShrink:0}}>✓</div></div>
-                      <div className="done-title" style={{fontSize:"var(--fs-review-val)",marginBottom:0,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{tr('Your System is Built','Su Sistema Construido')}</div>
+                      <div className="done-title" style={{fontSize:"var(--fs-review-val)",marginBottom:0,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
                     </div>
                   ):<>
                     {/* QA FIX - trimmed from marginBottom:12/42px icon/19px
@@ -2048,10 +2048,14 @@ function App(){
                             compact header above was rendered as two
                             different Spanish strings ("Su Sistema
                             Construido" there vs "Su Sistema Está
-                            Construido" here) - unified on the shorter
-                            title-style phrasing both headers actually use
-                            elsewhere (a label, not a full sentence). */}
-                        <div className="done-title" style={{fontSize:16,marginBottom:1}}>{tr('Your System is Built','Su Sistema Construido')}</div>
+                            Construido" here). A native-speaker
+                            proofreading pass flagged the shorter version
+                            (missing "está") as reading like a clipped
+                            label rather than a complete sentence -
+                            unified on this grammatically correct phrasing
+                            instead (reversing an earlier, wrong-direction
+                            fix that unified on the shorter one). */}
+                        <div className="done-title" style={{fontSize:16,marginBottom:1}}>{tr('Your System is Built','Su Sistema Está Construido')}</div>
                         <div style={{fontSize:"var(--fs-review-label-lg)",color:"var(--mut)"}}>{tr('Review your selections below','Revise sus selecciones abajo')}</div>
                       </div>
                     </div>
