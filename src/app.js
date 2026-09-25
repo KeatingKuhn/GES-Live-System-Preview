@@ -2425,7 +2425,21 @@ function App(){
                         fields (wantDucts/ventCount) and the exact same
                         calcEstimate line item as before - only where it's
                         asked changed, not the math. */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
+                    {/* QA FIX - this label (and the two other checkboxes
+                        below that also reveal a conditional "snap" panel
+                        when checked: new supply duct runs, return plenum)
+                        was missing the marginBottom:10 its siblings above/
+                        below all carry, on the assumption the reveal
+                        panel's own margin:"6px 0 10px 24px" would supply
+                        the gap instead - true only while checked. Left
+                        unchecked, nothing renders that bottom margin at
+                        all, so the label sat flush (0px gap) against
+                        whatever followed - most visible in print output
+                        where "Add a return plenum" landed directly against
+                        the closing disclaimer paragraph. Matching the
+                        sibling pattern here costs a few extra px of gap
+                        above the reveal panel once checked, which is fine. */}
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantDucts}
                         onChange={e=>setPricingAnswers(p=>({...p,wantDucts:e.target.checked,...(e.target.checked&&!pricingAnswers.ventCount?{ventCount:1}:{})}))}/>
                       {tr(`Add duct replacement (+$${fmtPrice(PRICING.duct.replacementPerStem)}/vent)`,`Agregar reemplazo de ductos (+$${fmtPrice(PRICING.duct.replacementPerStem)}/rejilla)`)}
@@ -2511,7 +2525,7 @@ function App(){
                         return items, this one gets its own quantity field,
                         same stepper pattern as the sizing sub-step's own
                         vent-count control (.vent-stepper/.vent-step-btn). */}
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantNewSupplyRuns}
                         onChange={e=>setPricingAnswers(p=>({...p,wantNewSupplyRuns:e.target.checked,...(e.target.checked&&!pricingAnswers.newSupplyRunCount?{newSupplyRunCount:1}:{})}))}/>
                       {tr(`Add new supply duct run(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/run - volume discount on 2+)`,`Agregar línea(s) de suministro nueva(s) (+$${fmtPrice(PRICING.duct.newSupplyRun)}/línea - descuento por volumen en 2+)`)}
@@ -2564,7 +2578,7 @@ function App(){
                         onChange={e=>setPricingAnswers(p=>({...p,wantNewReturnDuct:e.target.checked}))}/>
                       {tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`,`Agregar una línea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)}
                     </label>
-                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",cursor:"pointer"}}>
+                    <label style={{display:"flex",alignItems:"center",gap:8,fontSize:"var(--fs-pricing-line)",color:"var(--dim)",marginBottom:10,cursor:"pointer"}}>
                       <input type="checkbox" checked={!!pricingAnswers.wantReturnPlenum}
                         onChange={e=>setPricingAnswers(p=>({...p,wantReturnPlenum:e.target.checked}))}/>
                       {tr(`Add a return plenum (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard'])})`,`Agregar un plenum de retorno (+$${fmtPrice(PRICING.duct.returnPlenum[pricingAnswers.returnPlenumType==='metal'?'metal':'ductboard'])})`)}

@@ -8998,7 +8998,7 @@
         tr("Waived consultation fees", "Consultas sin cargo"),
         tr("Free coil cleaning & drain flush", "Limpieza de serpent\xEDn y drenaje gratis"),
         tr("1 free service call for friends/family", "1 visita de servicio gratis para familiares")
-      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.6)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ].map((perk, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 5, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "rgba(215,183,64,.6)", flexShrink: 0 } }, "\u2713"), /* @__PURE__ */ React.createElement("span", null, perk)))), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
@@ -9054,7 +9054,7 @@
           checked: !!pricingAnswers.wantDuctCleaning,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantDuctCleaning: e.target.checked }))
         }
-      ), tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`, `Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add duct cleaning (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`, `Agregar limpieza de ductos (+$${fmtPrice(PRICING.duct.cleaning[est.tonnage])})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
@@ -9113,7 +9113,7 @@
           checked: !!pricingAnswers.wantNewReturnDuct,
           onChange: (e) => setPricingAnswers((p) => ({ ...p, wantNewReturnDuct: e.target.checked }))
         }
-      ), tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`, `Agregar una l\xEDnea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
+      ), tr(`Add a new return duct run (+$${fmtPrice(PRICING.duct.newReturnDuct)})`, `Agregar una l\xEDnea de retorno nueva (+$${fmtPrice(PRICING.duct.newReturnDuct)})`)), /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8, fontSize: "var(--fs-pricing-line)", color: "var(--dim)", marginBottom: 10, cursor: "pointer" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "checkbox",
