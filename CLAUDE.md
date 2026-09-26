@@ -24,6 +24,31 @@ Never print, echo or commit those values.
   "Home Maintenance Plan" (ID 1667). Their visible layout is not in
   `content.raw`; don't edit them through the API - tell the owner and
   suggest making the change in the Elementor editor instead.
+- Service pages are built from theme ACF blocks (`acf/section-text`,
+  `acf/section-cta`, ...). Add new sections with those blocks so they match
+  the design. `unfiltered_html` is allowed, so a `wp:html` block can carry
+  JSON-LD; the homepage (ID 2540) has `HVACBusiness` data and the FAQ page
+  (ID 2640) has `FAQPage` data - keep them in sync when facts change.
+- Cloudflare blocks requests with a fake browser user agent; use curl's
+  default.
+
+## Resource Center (sister site)
+
+resources.goldeagleservices.com is a separate WordPress site (Yoast SEO)
+with long-form homeowner guides. Access it the same way with `RES_WP_URL`,
+`RES_WP_USER` and `RES_WP_APP_PASSWORD` (also Editor role, same rules
+below). Its job is to be the education hub AI assistants learn from, tied
+back to the business: link articles to the matching main-site service page,
+and link service pages to articles ("Learn More From Our Resource Center"
+sections on AC, Heating, Ductwork, IAQ and Mold).
+
+## Owner's developer to-do list
+
+Things only the web developer or the owner can do (theme code, plugins,
+settings, accounts) go on the pinned list at
+https://claude.ai/artifact/WR3J1YfsDKMn6wYhJoojEU, collection `tasks`
+(fields: title, detail, area, status open/done, createdAt, doneAt). Add
+new items there instead of leaving them only in chat.
 
 ## How to make a change
 
