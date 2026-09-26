@@ -103,6 +103,9 @@ The estimator app lives in this repo and is embedded via an iframe on the
 `npm run deploy:check` and `npm run deploy` (details in README.md and
 `scripts/deploy-wp.js`; `WP_HOST_PAGE_ID=3373`).
 
+- **Merge and deploy without asking.** The owner's standing rule: for
+  estimator changes, test them, open the PR, merge it yourself, deploy, and
+  confirm live matches `main` - then report. No approval step needed.
 - **Always deploy.** The owner's standing rule: any estimator change that
   reaches GitHub must also go live. After deploying, confirm the live file
   matches `main` (the served file differs only by Cloudflare's injected
