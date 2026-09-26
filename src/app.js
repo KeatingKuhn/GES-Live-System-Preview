@@ -1551,7 +1551,7 @@ function App(){
             silently drift out of order if a block above is ever added or
             reordered. */}
         <div className="splash-logo splash-rise" style={{animationDelay:'0s'}}>{tr('BUILD YOUR OWN SYSTEM','ARME SU PROPIO SISTEMA')}</div>
-        <p className="splash-rise" style={{animationDelay:'.06s',fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
+        <p className="splash-rise splash-intro" style={{animationDelay:'.06s',fontFamily:"var(--fb)",fontSize:"19px",color:"rgba(255,255,255,.65)",textAlign:"center",maxWidth:600,lineHeight:1.7,margin:"8px 0 4px"}}>
           {tr(<>Tell us where your indoor unit lives and we will build a <strong style={{color:"rgba(255,255,255,.8)"}}>live, real-time diagram</strong> of your complete HVAC system - every component, every connection, sized and labeled.</>,
               <>Díganos dónde vive su unidad interior y construiremos un <strong style={{color:"rgba(255,255,255,.8)"}}>diagrama en vivo y en tiempo real</strong> de su sistema HVAC completo - cada componente, cada conexión, dimensionado y etiquetado.</>)}
         </p>
@@ -1607,17 +1607,20 @@ function App(){
             </div>
           </div>
         </div>
-        {/* Small language toggle, below the two cards - only ever shown
-            here on the splash screen, not as a persistent header across
-            every wizard step. */}
-        <button className="lang-toggle-btn splash-rise" onClick={()=>setLang(l=>l==='es'?'en':'es')}
-          aria-label={tr('Switch to Spanish','Cambiar a inglés')}
-          style={{animationDelay:'.3s',fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer"}}>
-          {lang==='es'?'EN':'ES'}
-        </button>
-        <p className="splash-rise" style={{animationDelay:'.36s',fontFamily:"var(--fb)",fontSize:"14px",color:"rgba(255,255,255,.55)",textAlign:"center",maxWidth:460,lineHeight:1.6,marginTop:8}}>
-          {tr('Takes about 2 minutes. No personal info required. Your build saves automatically as you go.','Toma unos 2 minutos. No se requiere información personal. Su sistema se guarda automáticamente mientras avanza.')}
-        </p>
+        {/* Language toggle + the "takes about 2 minutes" reassurance share
+            one row under the cards (owner feedback: the start screen
+            scrolled on laptops - this line used to sit on its own row
+            below the toggle). */}
+        <div className="splash-rise splash-foot" style={{animationDelay:'.3s'}}>
+          <span className="splash-foot-note">
+            {tr('Takes about 2 minutes. No personal info required. Your build saves automatically as you go.','Toma unos 2 minutos. No se requiere información personal. Su sistema se guarda automáticamente mientras avanza.')}
+          </span>
+          <button className="lang-toggle-btn" onClick={()=>setLang(l=>l==='es'?'en':'es')}
+            aria-label={tr('Switch to Spanish','Cambiar a inglés')}
+            style={{fontFamily:"var(--fm)",fontSize:11,letterSpacing:".05em",padding:"4px 9px",background:"rgba(11,13,20,.7)",color:"rgba(255,255,255,.75)",border:"1px solid rgba(215,183,64,.35)",borderRadius:3,cursor:"pointer",flex:"0 0 auto"}}>
+            {lang==='es'?'EN':'ES'}
+          </button>
+        </div>
       </div>
 
       {/* ── ROTATE PROMPT - attic mode's diagram is wide/short (the unit

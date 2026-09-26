@@ -1002,6 +1002,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    ever this close to the edge. */
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s;overflow-y:auto}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
+.splash-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;max-width:720px}
+.splash-foot-note{font-family:var(--fb);font-size:13px;color:rgba(255,255,255,.55);text-align:center;line-height:1.5}
 /* Splash content (title + intro copy + trust bullets + both location
    cards + language toggle) is tall enough that on any viewport under
    ~800px of HEIGHT - not just short-portrait phones (740/667px tall) but
@@ -1025,7 +1027,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    justify-content wins, and a plain .splash-screen rule anywhere later
    in the file would silently re-win this override back to center. */
 @media(max-height:800px){
-  .splash-screen{justify-content:flex-start;padding:24px 16px}
+  /* safe center: centered when it fits, top-aligned (never clipped) when it doesn't */
+  .splash-screen{justify-content:flex-start;justify-content:safe center;padding:24px 16px}
 }
 /* First-load entrance - the very first thing anyone sees gets a short,
    staged rise instead of popping in fully-formed in one frame. Each direct
@@ -1043,7 +1046,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    not these children's), so the two never fight each other. */
 .splash-rise{animation:splashRise .45s cubic-bezier(.22,.61,.36,1) both}
 @keyframes splashRise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
-.splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
+.splash-logo{font-family:var(--ft);font-size:52px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
 .splash-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 /* Named transition properties (background/border-color/transform), not
    `all` - see the .info-btn comment above for why: this card is also a
@@ -1224,7 +1227,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   /* Splash: single column, stack cards vertically */
   .splash-cards{flex-direction:column;align-items:center;gap:12px}
   .splash-card{width:min(90vw,420px);padding:20px 22px}
-  .splash-logo{font-size:clamp(28px,7vw,52px)}
+  .splash-logo{font-size:clamp(26px,6vw,44px)}
 
   /* Attic layout: canvas top 55%, bar bottom 45% scrollable */
   .attic-layout{flex-direction:column}
@@ -1385,7 +1388,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      column gives every cell the phone's full ~345px to work with, same
      as before the 2-column rule was introduced. */
   .done-review-grid{grid-template-columns:1fr}
-  .splash-logo{font-size:clamp(22px,8vw,38px)}
+  .splash-logo{font-size:clamp(22px,7.5vw,34px)}
+  /* start screen fits a phone without scrolling: tighter intro + spacing */
+  .splash-screen{gap:12px;padding-top:12px;padding-bottom:12px}
+  .splash-intro{font-size:15.5px!important;line-height:1.5!important;margin:2px 0!important}
+  .splash-card-desc{font-size:13px}
   .splash-card{padding:16px 18px}
   .attic-bar-top .btn-skip{display:none}
   .step-hint{display:none}
@@ -10593,7 +10600,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     })()), /* @__PURE__ */ React.createElement("button", { className: "done-cta", style: { width: 220 }, onClick: resumeBuild }, tr("Resume My Build", "Continuar Mi Sistema")), /* @__PURE__ */ React.createElement("button", { className: "done-restart", onClick: discardSavedBuild }, tr("Start Fresh Instead", "Empezar de Nuevo"))), (loc || done) && /* @__PURE__ */ React.createElement("div", { className: "prog-chapters", style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 30 } }, chapterNames.map((name, i) => {
       const segPct = done || i < curChapter ? 100 : i > curChapter ? 0 : chapterCounts[i] ? Math.round(curChapterStepNum / chapterCounts[i] * 100) : 0;
       return /* @__PURE__ */ React.createElement("div", { key: i, className: "prog-chapter" + (segPct >= 100 ? " done" : ""), title: name }, /* @__PURE__ */ React.createElement("div", { className: "prog-chapter-fill", style: { width: segPct + "%" } }));
-    })), /* @__PURE__ */ React.createElement("div", { ref: splashRef, className: "splash-screen" + (loc || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo splash-rise", style: { animationDelay: "0s" } }, tr("BUILD YOUR OWN SYSTEM", "ARME SU PROPIO SISTEMA")), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".06s", fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, tr(
+    })), /* @__PURE__ */ React.createElement("div", { ref: splashRef, className: "splash-screen" + (loc || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "splash-logo splash-rise", style: { animationDelay: "0s" } }, tr("BUILD YOUR OWN SYSTEM", "ARME SU PROPIO SISTEMA")), /* @__PURE__ */ React.createElement("p", { className: "splash-rise splash-intro", style: { animationDelay: ".06s", fontFamily: "var(--fb)", fontSize: "19px", color: "rgba(255,255,255,.65)", textAlign: "center", maxWidth: 600, lineHeight: 1.7, margin: "8px 0 4px" } }, tr(
       /* @__PURE__ */ React.createElement(React.Fragment, null, "Tell us where your indoor unit lives and we will build a ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "live, real-time diagram"), " of your complete HVAC system - every component, every connection, sized and labeled."),
       /* @__PURE__ */ React.createElement(React.Fragment, null, "D\xEDganos d\xF3nde vive su unidad interior y construiremos un ", /* @__PURE__ */ React.createElement("strong", { style: { color: "rgba(255,255,255,.8)" } }, "diagrama en vivo y en tiempo real"), " de su sistema HVAC completo - cada componente, cada conexi\xF3n, dimensionado y etiquetado.")
     )), /* @__PURE__ */ React.createElement("div", { className: "splash-rise", style: { animationDelay: ".12s", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 18px", maxWidth: 560, margin: "6px 0" } }, [
@@ -10632,16 +10639,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         }
       },
       /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { className: "splash-card-title" }, tr("Closet Upflow", "Cl\xF3set de Flujo Ascendente")), /* @__PURE__ */ React.createElement("div", { className: "splash-card-desc" }, tr("Unit stands upright in a utility closet or hallway alcove. Air flows vertically up through the coil.", "La unidad se instala en posici\xF3n vertical en un cl\xF3set de servicio o pasillo. El aire fluye verticalmente a trav\xE9s del serpent\xEDn.")))
-    )), /* @__PURE__ */ React.createElement(
+    )), /* @__PURE__ */ React.createElement("div", { className: "splash-rise splash-foot", style: { animationDelay: ".3s" } }, /* @__PURE__ */ React.createElement("span", { className: "splash-foot-note" }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su sistema se guarda autom\xE1ticamente mientras avanza.")), /* @__PURE__ */ React.createElement(
       "button",
       {
-        className: "lang-toggle-btn splash-rise",
+        className: "lang-toggle-btn",
         onClick: () => setLang((l) => l === "es" ? "en" : "es"),
         "aria-label": tr("Switch to Spanish", "Cambiar a ingl\xE9s"),
-        style: { animationDelay: ".3s", fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer" }
+        style: { fontFamily: "var(--fm)", fontSize: 11, letterSpacing: ".05em", padding: "4px 9px", background: "rgba(11,13,20,.7)", color: "rgba(255,255,255,.75)", border: "1px solid rgba(215,183,64,.35)", borderRadius: 3, cursor: "pointer", flex: "0 0 auto" }
       },
       lang2 === "es" ? "EN" : "ES"
-    ), /* @__PURE__ */ React.createElement("p", { className: "splash-rise", style: { animationDelay: ".36s", fontFamily: "var(--fb)", fontSize: "14px", color: "rgba(255,255,255,.55)", textAlign: "center", maxWidth: 460, lineHeight: 1.6, marginTop: 8 } }, tr("Takes about 2 minutes. No personal info required. Your build saves automatically as you go.", "Toma unos 2 minutos. No se requiere informaci\xF3n personal. Su sistema se guarda autom\xE1ticamente mientras avanza."))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang: lang2 }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, stepCountText), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, stepCountText && " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
+    ))), isAtticMode && /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt no-print", role: "alert" }, /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-icon" }, "\u27F3"), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-text" }, tr("Rotate Your Phone", "Gire Su Tel\xE9fono")), /* @__PURE__ */ React.createElement("div", { className: "rotate-prompt-sub" }, tr("This system view is built for landscape - turn your phone sideways to see it clearly.", "Esta vista del sistema est\xE1 dise\xF1ada para modo horizontal - gire su tel\xE9fono de lado para verla con claridad."))), /* @__PURE__ */ React.createElement("div", { ref: atticLayoutRef, className: "attic-layout" + (!isAtticMode || done ? " out" : "") }, /* @__PURE__ */ React.createElement("div", { className: "attic-canvas-area canvas-frame" }, /* @__PURE__ */ React.createElement("div", { className: "canvas-zoom" }, /* @__PURE__ */ React.createElement(Canvas, { a: answers, stepIdx, activeSteps, lang: lang2 }))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar" }, quickEdit && /* @__PURE__ */ React.createElement("div", { className: "quickedit-banner fadein" }, /* @__PURE__ */ React.createElement("span", null, "\u270E ", tr("Editing this answer only", "Editando solo esta respuesta")), /* @__PURE__ */ React.createElement("button", { onClick: cancelQuickEdit }, "\u2039 ", tr("Cancel, back to build", "Cancelar, volver a la construcci\xF3n"))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-body" }, /* @__PURE__ */ React.createElement("div", { key: "info-" + stepIdx, className: "attic-info fadein" }, /* @__PURE__ */ React.createElement("div", { className: "step-q", style: { marginBottom: 2 } }, curQ), curHint && /* @__PURE__ */ React.createElement("div", { className: "step-hint" }, curHint), reactionText && /* @__PURE__ */ React.createElement("div", { key: reactionText, className: "reaction-line" }, "\u2713 ", reactionText)), /* @__PURE__ */ React.createElement("div", { key: "scroll-" + stepIdx, className: "attic-scroll fadein" }, opts.map((opt) => makeOpt(opt, true)))), /* @__PURE__ */ React.createElement("div", { className: "attic-bar-top" }, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label" }, cur ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-fixed" }, stepCountText), /* @__PURE__ */ React.createElement("span", { className: "attic-step-label-rest" }, stepCountText && " \xB7 ", /* @__PURE__ */ React.createElement("span", { className: "chapter-tag" }, chapterNames[curChapter]), " \xB7 " + curQ.toUpperCase())) : ""), infoText && /* @__PURE__ */ React.createElement(
       "button",
       {
         className: "info-btn",
