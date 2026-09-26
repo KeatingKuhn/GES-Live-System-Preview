@@ -50,6 +50,25 @@ a JSON copy of header menu 39 (`[[title,url,[[sub,url],...]],...]`).
 After any change to the main-site header menu, rewrite that alt text so
 the Resource Center matches.
 
+## Owner's content rules (all three sites)
+
+- Never write "24/7" or claim round-the-clock service - Gold Eagle doesn't
+  offer it.
+- No em dashes ("—") anywhere on the website, Resource Center or intranet;
+  use a plain hyphen "-" (" - " between phrases).
+- Wherever a price for a new system or equipment would go, send people to
+  Build Your System (https://goldeagleservices.com/build-your-own-system/);
+  pricing lives behind its form. No dollar figures.
+- No boilers or radiant floor heat (not a thing in Austin).
+- Multiple phone numbers are intentional ad-tracking numbers; leave them.
+
+The Air Quality Index page (4015) embeds a copy of the
+KeatingKuhn/Gold-Eagle-Services-AQI dashboard uploaded to the Media Library
+(`gold-eagle-aqi-<sha>[-n].html`). Each upload swaps em dashes for hyphens,
+adds noindex + a canonical to /air-quality-index/, makes site links open in
+the top window, and replaces the dashboard's header MENU with the live main
+menu (media 4025 alt text) - so after a main-menu change, re-upload it too.
+
 ## Owner's developer to-do list
 
 Things only the web developer or the owner can do (theme code, plugins,
