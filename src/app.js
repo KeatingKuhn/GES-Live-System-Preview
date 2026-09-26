@@ -2462,7 +2462,7 @@ function App(){
                       <span style={{fontWeight:400,color:"rgba(255,255,255,.78)"}}>✓ {tr('Your system is built','Su sistema está construido')} · </span>
                       {tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}
                     </div>
-                    <button className="link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)",flex:"0 0 auto"}}>‹ {tr('Edit selections','Editar selecciones')}</button>
+                    <button className="link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"max(12px, var(--fs-review-edit))",flex:"0 0 auto"}}>‹ {tr('Edit selections','Editar selecciones')}</button>
                   </div>
                   <div className="leadgate-desc" style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.4,marginBottom:isAtticMode?4:8}}>
                     {tr('Fill out this short form to unlock pricing - it continues here automatically.','Complete este formulario breve para ver los precios - continuará aquí automáticamente.')}

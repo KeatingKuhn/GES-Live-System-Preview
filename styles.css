@@ -855,20 +855,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .price-breakdown-dot.addons{background:rgba(255,255,255,.35)}
 
 /* ── SITE HEADER SPACER ── */
-/* Blank reserved band at the top - no text/branding (that part was
-   correctly dropped as a duplicate of the splash headline below it).
-   This tool sits in an iframe under the real site's own sticky/fixed
-   header on the live page - without this gap, that real header
-   overlaps and hides the tool's own topmost content once the page is
-   scrolled, since the iframe has no way to know the outer header is
-   there and otherwise starts filling from y=0 - adjust to match the
-   real site header's actual height if it differs. No border here on
-   purpose - a gold-tinted border-bottom used to sit right at this
-   band's seam with the real WordPress header, on every single screen
-   of the tool with no way to hide it, reading as a stray gold line
-   "inside" the site header rather than as this app's own chrome. */
-.site-header-spacer{position:absolute;top:0;left:0;right:0;height:43px;z-index:50;background:var(--bk);box-sizing:border-box}
-@media(min-width:641px){.site-header-spacer{height:42px}}
+/* This band used to reserve 42-43px at the top for the real site header,
+   which overlapped the iframe. The host page (WordPress page 3373) now
+   places the iframe BELOW its header instead, so the band is gone: with
+   it, the header's transparent box covered the season buttons and the
+   lead gate's "Edit selections" row, and the band itself wasted space the
+   lead form needs on short screens. Kept as a zero-height element so the
+   markup and print rules don't change. */
+.site-header-spacer{display:none}
 
 /* ── ADAPTIVE LAYOUT ── */
 /* overflow:clip, not the more familiar overflow:hidden - this is a fixed,
@@ -894,8 +888,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    page this widget is embedded in (an ancestor scrolling ITS descendant
    into view), not .app-root's own content - clip only governs the
    latter. */
-.app-root{position:absolute;top:43px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:clip;background:var(--bk)}
-@media(min-width:641px){.app-root{top:42px}}
+.app-root{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:clip;background:var(--bk)}
 /* Shrinks just the live diagram to fit its frame better on desktop,
    the way it looked right when tested at 75% browser zoom - wraps only
    the <Canvas> inside each canvas-frame (attic/closet wizard, done
@@ -1396,6 +1389,19 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   /* the heading row already says what to do - the extra line costs the
      last ~20px that pushed the form into a scroll on a landscape phone */
   .leadgate-desc{display:none}
+}
+
+/* Stacked layout (tablets, small laptops - e.g. an iPad in landscape at
+   1024x768, where the host page's site header leaves the tool ~660px):
+   the finished diagram sat above the embedded lead form at its full
+   stacked size and pushed Submit below the screen. While the form is
+   open, cap the diagram so the form (~360px with its heading row) always
+   fits; it returns to full size once pricing unlocks. */
+@media(max-width:1024px) and (min-height:501px){
+  .done-screen.lead-form-open .done-canvas-frame{min-height:120px;max-height:max(120px,calc(100vh - 380px))}
+  /* closet's stacked review panel is capped at 45vh (see .sidebar above) -
+     lift that while the form is up so it isn't clipped into a scroll box */
+  .done-screen.closet-mode.lead-form-open>.sidebar{max-height:none;flex:0 0 auto}
 }
 
 @media(max-height:430px){
