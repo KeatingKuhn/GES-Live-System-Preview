@@ -98,6 +98,28 @@ Restore in the page editor.
 ## The Build Your System estimator (this repo)
 
 The estimator app lives in this repo and is embedded via an iframe on the
-"Build Your System" page (ID 3373). After changing it: edit `src/`, run
-`npm run build`, commit, then `npm run deploy:check` and `npm run deploy`
-(details in README.md and `scripts/deploy-wp.js`; `WP_HOST_PAGE_ID=3373`).
+"Build Your System" page (ID 3373). After changing it: edit `src/` (or
+`styles.css`, which is edited directly), run `npm run build`, commit, then
+`npm run deploy:check` and `npm run deploy` (details in README.md and
+`scripts/deploy-wp.js`; `WP_HOST_PAGE_ID=3373`).
+
+- **Always deploy.** The owner's standing rule: any estimator change that
+  reaches GitHub must also go live. After deploying, confirm the live file
+  matches `main` (the served file differs only by Cloudflare's injected
+  `/cdn-cgi/challenge-platform` script, which the deploy check ignores).
+- Deploys upload a new Media Library file per commit
+  (`ges-live-system-preview-<hash>.html`) and repoint the page's iframe; the
+  previous file stays for rollback. The old `wp-content/uploads/index.html`
+  is only a backup now.
+- **Never use "Edit with Elementor"** on page 3373 (or any page) - it can
+  replace the page content and wipe the iframe. Edit it only through the
+  API or the block editor. Elementor removal is planned.
+- Never paste the app's raw HTML/JS into a WordPress block - content filters
+  can mangle JS (`&&`). Page-level tweaks on 3373 live in its `wp:html`
+  `<style>` block (footer hidden, header not sticky, no page scroll) and its
+  "How it works & FAQ" panel, opened by a CSS-only `:target` button and
+  backed by FAQPage JSON-LD. Keep the page one screen with no scroll.
+- The lead gate embeds Gravity Form 9 from `/build-your-system-submission-form/`
+  (`GATE_CONFIG.embedFormUrl`); the estimator restyles that form on load, so
+  replacing the host page doesn't change its look. A non-Elementor
+  replacement page (draft 3922) takes over that URL when Elementor is removed.
