@@ -1385,6 +1385,19 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    the sidebar enough room for its two sticky bars plus real content
    in between. attic-info's own .step-hint shrinks the same way, though
    attic-bar's much shorter sticky bar was never at real risk of this. */
+/* Direct feedback: on a phone turned sideways (~390px tall) the finished
+   diagram keeps its 220px min-height above the embedded contact form, which
+   left the form ~140px of room and an internal scroll. While the form is
+   open on a short screen, drop the diagram entirely - it comes straight back
+   the moment the form is submitted or "Edit selections" is tapped (the
+   lead-form-open class is only set while pricingFlow is 'leadgate'). */
+@media(max-height:500px){
+  .done-screen.lead-form-open .done-canvas-frame{display:none}
+  /* the heading row already says what to do - the extra line costs the
+     last ~20px that pushed the form into a scroll on a landscape phone */
+  .leadgate-desc{display:none}
+}
+
 @media(max-height:430px){
   .step-hint{display:none}
   .attic-canvas-area{height:30vh;min-height:120px}
