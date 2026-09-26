@@ -20,6 +20,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Build Your System | Gold Eagle Services</title>
+<!-- This file is only ever shown framed inside https://goldeagleservices.com/build-your-own-system/ .
+     Each deploy uploads it under a new Media Library URL; noindex + canonical keep those raw copies out of
+     search results and credit the WordPress page instead. -->
+<meta name="robots" content="noindex, follow"/>
+<link rel="canonical" href="https://goldeagleservices.com/build-your-own-system/"/>
 <meta name="description" content="Design your own HVAC system in real time and see a live diagram build as you go. Free, no personal info required - Gold Eagle Services, Austin TX."/>
 <meta property="og:title" content="Build Your System | Gold Eagle Services"/>
 <meta property="og:description" content="Design your own HVAC system in real time and see a live diagram build as you go. Free, no personal info required."/>
@@ -1415,6 +1420,16 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    the sidebar enough room for its two sticky bars plus real content
    in between. attic-info's own .step-hint shrinks the same way, though
    attic-bar's much shorter sticky bar was never at real risk of this. */
+/* Direct feedback: on a phone turned sideways (~390px tall) the finished
+   diagram keeps its 220px min-height above the embedded contact form, which
+   left the form ~140px of room and an internal scroll. While the form is
+   open on a short screen, drop the diagram entirely - it comes straight back
+   the moment the form is submitted or "Edit selections" is tapped (the
+   lead-form-open class is only set while pricingFlow is 'leadgate'). */
+@media(max-height:500px){
+  .done-screen.lead-form-open .done-canvas-frame{display:none}
+}
+
 @media(max-height:430px){
   .step-hint{display:none}
   .attic-canvas-area{height:30vh;min-height:120px}
