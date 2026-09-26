@@ -890,20 +890,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .price-breakdown-dot.addons{background:rgba(255,255,255,.35)}
 
 /* ── SITE HEADER SPACER ── */
-/* Blank reserved band at the top - no text/branding (that part was
-   correctly dropped as a duplicate of the splash headline below it).
-   This tool sits in an iframe under the real site's own sticky/fixed
-   header on the live page - without this gap, that real header
-   overlaps and hides the tool's own topmost content once the page is
-   scrolled, since the iframe has no way to know the outer header is
-   there and otherwise starts filling from y=0 - adjust to match the
-   real site header's actual height if it differs. No border here on
-   purpose - a gold-tinted border-bottom used to sit right at this
-   band's seam with the real WordPress header, on every single screen
-   of the tool with no way to hide it, reading as a stray gold line
-   "inside" the site header rather than as this app's own chrome. */
-.site-header-spacer{position:absolute;top:0;left:0;right:0;height:43px;z-index:50;background:var(--bk);box-sizing:border-box}
-@media(min-width:641px){.site-header-spacer{height:42px}}
+/* This band used to reserve 42-43px at the top for the real site header,
+   which overlapped the iframe. The host page (WordPress page 3373) now
+   places the iframe BELOW its header instead, so the band is gone: with
+   it, the header's transparent box covered the season buttons and the
+   lead gate's "Edit selections" row, and the band itself wasted space the
+   lead form needs on short screens. Kept as a zero-height element so the
+   markup and print rules don't change. */
+.site-header-spacer{display:none}
 
 /* ── ADAPTIVE LAYOUT ── */
 /* overflow:clip, not the more familiar overflow:hidden - this is a fixed,
@@ -929,8 +923,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    page this widget is embedded in (an ancestor scrolling ITS descendant
    into view), not .app-root's own content - clip only governs the
    latter. */
-.app-root{position:absolute;top:43px;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:clip;background:var(--bk)}
-@media(min-width:641px){.app-root{top:42px}}
+.app-root{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;overflow:clip;background:var(--bk)}
 /* Shrinks just the live diagram to fit its frame better on desktop,
    the way it looked right when tested at 75% browser zoom - wraps only
    the <Canvas> inside each canvas-frame (attic/closet wizard, done
@@ -1431,6 +1424,19 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   /* the heading row already says what to do - the extra line costs the
      last ~20px that pushed the form into a scroll on a landscape phone */
   .leadgate-desc{display:none}
+}
+
+/* Stacked layout (tablets, small laptops - e.g. an iPad in landscape at
+   1024x768, where the host page's site header leaves the tool ~660px):
+   the finished diagram sat above the embedded lead form at its full
+   stacked size and pushed Submit below the screen. While the form is
+   open, cap the diagram so the form (~360px with its heading row) always
+   fits; it returns to full size once pricing unlocks. */
+@media(max-width:1024px) and (min-height:501px){
+  .done-screen.lead-form-open .done-canvas-frame{min-height:120px;max-height:max(120px,calc(100vh - 380px))}
+  /* closet's stacked review panel is capped at 45vh (see .sidebar above) -
+     lift that while the form is up so it isn't clipped into a scroll box */
+  .done-screen.closet-mode.lead-form-open>.sidebar{max-height:none;flex:0 0 auto}
 }
 
 @media(max-height:430px){
@@ -10782,7 +10788,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       {
       }
       return /* @__PURE__ */ React.createElement("div", { key: pricingSubStep, className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "10px 14px" : 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: isAtticMode ? 5 : 9 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 9 : 10.5, color: "rgba(215,183,64,.85)", letterSpacing: ".1em", fontFamily: "var(--fm)" } }, tr("PRICING", "PRECIO"))), /* @__PURE__ */ React.createElement("div", { className: isAtticMode ? "pricing-substep-row" : void 0, style: { display: "flex", flexDirection: isAtticMode ? "row" : "column", gap: isAtticMode ? 20 : 8, alignItems: isAtticMode ? "flex-start" : "stretch" } }, left, right), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: isAtticMode ? 8 : 12 } }, /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { flex: "0 0 auto", ...isAtticMode ? { padding: "6px 16px", fontSize: 14 } : {} }, onClick: goSubBack }, "\u2039 ", tr("Back", "Atr\xE1s")), /* @__PURE__ */ React.createElement("button", { className: "btn-next" + (pricingSubStep === subSteps.length - 1 && canSubNext ? " btn-cta-glow" : ""), style: { flex: 1, ...isAtticMode ? { padding: "7px 16px", fontSize: 15 } : {} }, disabled: !canSubNext, onClick: goSubNext }, pricingSubStep === subSteps.length - 1 ? tr("Get My Estimate", "Obtener Mi Estimado") : tr("Next", "Siguiente"))));
-    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "6px 12px" : 12 } }, GATE_CONFIG.embedFormUrl ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: isAtticMode ? 2 : 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, fontFamily: "var(--ft)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 400, color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido"), " \xB7 "), tr("Almost there - just one quick step", "Ya casi termina - solo un paso r\xE1pido")), /* @__PURE__ */ React.createElement("button", { className: "link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "var(--fs-review-edit)", flex: "0 0 auto" } }, "\u2039 ", tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "leadgate-desc", style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.4, marginBottom: isAtticMode ? 4 : 8 } }, tr("Fill out this short form to unlock pricing - it continues here automatically.", "Complete este formulario breve para ver los precios - continuar\xE1 aqu\xED autom\xE1ticamente.")), /* @__PURE__ */ React.createElement(
+    })(), pricingFlow === "leadgate" && /* @__PURE__ */ React.createElement("div", { key: "leadgate", className: "fadein no-print", style: { border: "1px solid rgba(215,183,64,.2)", padding: isAtticMode ? "6px 12px" : 12 } }, GATE_CONFIG.embedFormUrl ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: isAtticMode ? 2 : 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: isAtticMode ? 13 : "var(--fs-pricing-q)", fontWeight: 600, fontFamily: "var(--ft)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 400, color: "rgba(255,255,255,.78)" } }, "\u2713 ", tr("Your system is built", "Su sistema est\xE1 construido"), " \xB7 "), tr("Almost there - just one quick step", "Ya casi termina - solo un paso r\xE1pido")), /* @__PURE__ */ React.createElement("button", { className: "link-btn-gold", onClick: () => setPricingFlow(null), style: { fontSize: "max(12px, var(--fs-review-edit))", flex: "0 0 auto" } }, "\u2039 ", tr("Edit selections", "Editar selecciones"))), /* @__PURE__ */ React.createElement("div", { className: "leadgate-desc", style: { fontSize: isAtticMode ? 10.5 : 12, color: "var(--mut)", lineHeight: 1.4, marginBottom: isAtticMode ? 4 : 8 } }, tr("Fill out this short form to unlock pricing - it continues here automatically.", "Complete este formulario breve para ver los precios - continuar\xE1 aqu\xED autom\xE1ticamente.")), /* @__PURE__ */ React.createElement(
       "iframe",
       {
         ref: leadIframeRef,
