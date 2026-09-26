@@ -2481,6 +2481,23 @@ function App(){
                       // content actually needs.
                       try{
                         const doc=leadIframeRef.current&&leadIframeRef.current.contentDocument;
+                        // Direct feedback: the form's bright white fields and
+                        // grey Submit were harsh after the dark tool. Same-origin,
+                        // so dim them to match - injected here so it applies
+                        // whichever WordPress page hosts the form, and re-applied
+                        // on every load (Gravity Forms' own validation reload too).
+                        if(doc&&doc.head&&!doc.getElementById('ges-dark-form')){
+                          const st=doc.createElement('style');st.id='ges-dark-form';
+                          st.textContent=`html,body{background:transparent!important}
+.gform_wrapper input:not([type=submit]):not([type=button]):not([type=hidden]),.gform_wrapper select,.gform_wrapper textarea{background:#26282b!important;color:#e8e4d8!important;border:1px solid rgba(215,183,64,.28)!important;border-radius:4px!important;box-shadow:none!important}
+.gform_wrapper input:focus,.gform_wrapper select:focus,.gform_wrapper textarea:focus{outline:none!important;border-color:rgba(215,183,64,.7)!important;background:#2c2e32!important}
+.gform_wrapper input::placeholder,.gform_wrapper textarea::placeholder{color:#8b877c!important}
+.gform_wrapper input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #26282b inset!important;-webkit-text-fill-color:#e8e4d8!important}
+.gform_wrapper .gfield_label,.gform_wrapper .gform-field-label,.gform_wrapper label{color:#d9d4c7!important}
+.gform_wrapper .gform_button,.gform_wrapper input[type=submit],.gform_wrapper button[type=submit]{background:#b8973a!important;color:#141414!important;border:1px solid #b8973a!important;font-weight:600!important;border-radius:4px!important}
+.gform_wrapper .gform_button:hover,.gform_wrapper input[type=submit]:hover{background:#c9a646!important}`;
+                          doc.head.appendChild(st);
+                        }
                         const h=doc&&doc.body&&doc.body.scrollHeight;
                         if(h&&leadIframeRef.current)leadIframeRef.current.style.height=Math.min(Math.max(h,180),900)+'px';
                       }catch(e){/* cross-origin - keep the default height below */}
