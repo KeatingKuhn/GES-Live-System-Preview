@@ -611,7 +611,14 @@ function App(){
 .gform_wrapper input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #26282b inset!important;-webkit-text-fill-color:#e8e4d8!important}
 .gform_wrapper .gfield_label,.gform_wrapper .gform-field-label,.gform_wrapper label{color:#d9d4c7!important}
 .gform_wrapper .gform_button,.gform_wrapper input[type=submit],.gform_wrapper button[type=submit]{background:#b8973a!important;color:#141414!important;border:1px solid #b8973a!important;font-weight:600!important;border-radius:4px!important}
-.gform_wrapper .gform_button:hover,.gform_wrapper input[type=submit]:hover{background:#c9a646!important}`;
+.gform_wrapper .gform_button:hover,.gform_wrapper input[type=submit]:hover{background:#c9a646!important}
+.gform_wrapper .gform_validation_errors{background:#2a1a1a!important;border:1px solid rgba(230,120,110,.6)!important;box-shadow:none!important;border-radius:6px!important;padding:8px 12px!important;margin:0 0 10px!important}
+.gform_wrapper .gform_validation_errors h2,.gform_wrapper .gform_validation_errors .gform_submission_error{color:#f0b0a8!important;font-size:13px!important;line-height:1.35!important;margin:0!important;padding:0!important}
+.gform_wrapper .gform_validation_errors .gform-icon{display:none!important}
+.gform_wrapper .gform_validation_errors ol,.gform_wrapper .gform_validation_errors ul{margin:4px 0 0!important;padding-left:16px!important}
+.gform_wrapper .gform_validation_errors li,.gform_wrapper .gform_validation_errors a{color:#f0b0a8!important;font-size:12.5px!important}
+.gform_wrapper .gfield_validation_message,.gform_wrapper .validation_message{background:transparent!important;border:0!important;padding:3px 0 0!important;margin:0!important;color:#f0b0a8!important;font-size:12.5px!important}
+.gform_wrapper .gfield_error input,.gform_wrapper .gfield_error select,.gform_wrapper .gfield_error textarea{border-color:rgba(230,120,110,.8)!important}`;
         doc.head.appendChild(st);
         // a validation reload (e.g. a missed required field) swaps in a new
         // unstyled page - hide it again until that one is styled too
@@ -619,6 +626,13 @@ function App(){
       }
       const h=doc&&doc.body&&doc.body.scrollHeight;
       if(h&&leadIframeRef.current)leadIframeRef.current.style.height=Math.min(Math.max(h,180),900)+'px';
+      // Owner feedback ("once you fill out the form, nothing happens"): a
+      // rejected submission (e.g. an email the form won't accept) reloads
+      // the form with an error that used to sit out of view in the small
+      // lead card - bring the card's top into view so the error is seen.
+      if(doc.querySelector('.gform_validation_errors,.gfield_error')&&leadIframeRef.current){
+        try{leadIframeRef.current.scrollIntoView({block:'start',behavior:'smooth'});}catch(e){}
+      }
       ok=true;
     }catch(e){/* cross-origin - can't style it; just show it */ok=true;}
     if(ok)setLeadFormShown(true);
@@ -1196,7 +1210,7 @@ function App(){
     thermostat_high:"At this efficiency tier, only a communicating thermostat can drive the system's full variable-speed staging and diagnostics -- a basic or Wi-Fi model can't talk to it the same way, so it's the one option here.",
     purif:"The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer charges particles and odors so your filter catches more of them. A surge protector helps guard the condenser -- a nearby lightning strike can destroy a compressor.",
     cond_tier:"The condenser is your outdoor unit. SEER2 measures cooling output per unit of electricity, so higher means lower bills. Federal Minimum meets current code at the lowest cost. Mid Efficiency is our best-value tier. High Efficiency is our top tier, with the best humidity control.",
-    system_for:"With a gas furnace, you get two options. Dual fuel pairs a heat pump with the furnace -- the heat pump handles cooling and mild-weather heating, and the furnace only fires below about 35 degrees, the most efficient combo we offer. Straight cool means the AC only cools, and the furnace handles all heating.",
+    system_for:"Both options cool your home exactly the same in summer. The difference is winter heat. With dual fuel, the outdoor unit is a heat pump: a reversing valve lets it run backward in winter, pulling heat from the outside air to warm your home, and the gas furnace only fires on the coldest days (below about 35 degrees). It's the most efficient combo we offer and usually lowers winter gas bills. With straight cool, the outdoor unit is a plain air conditioner that only cools, and the furnace does all of the heating. It costs less up front. Tap each option and watch the outdoor unit on the diagram change between HEAT PUMP and CONDENSER.",
     dehu:"Austin humidity makes your home feel warmer than the thermostat reads. A whole-home dehumidifier ties into your ductwork and runs automatically -- just an occasional filter check, no buckets to empty. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange. Add either, both, or neither.",
   };
   // Spanish overrides for the info-panel paragraphs - same scoped-
@@ -1213,7 +1227,7 @@ function App(){
     thermostat_high:"En este nivel de eficiencia, solo un termostato comunicante puede controlar la modulación por etapas y los diagnósticos completos del sistema - un termostato básico o Wi-Fi no puede comunicarse con él de la misma forma, por lo que es la única opción aquí.",
     purif:"El gabinete de filtración mejorada viene incluido de fábrica en cada instalación, capturando ya mucho más polvo, polen y alérgenos que un filtro típico de 1 pulgada. Una luz UV mantiene limpio el serpentín. Un ionizador carga las partículas y olores para que su filtro atrape más. Un protector de sobrevoltaje ayuda a proteger el condensador: un rayo cercano puede destruir un compresor.",
     cond_tier:"El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, así que más alto significa facturas más bajas. Mínimo Federal cumple con el código actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con el mejor control de humedad.",
-    system_for:"Con un horno a gas, tiene dos opciones. Combustible Dual combina una bomba de calor con el horno: la bomba de calor se encarga del enfriamiento y la calefacción en clima templado, y el horno solo se enciende por debajo de aproximadamente 35 grados, la combinación más eficiente que ofrecemos. Solo Enfriamiento significa que el A/C solo enfría, y el horno se encarga de toda la calefacción.",
+    system_for:"Ambas opciones enfrían su hogar exactamente igual en verano. La diferencia es la calefacción en invierno. Con Combustible Dual, la unidad exterior es una bomba de calor: una válvula de inversión le permite funcionar al revés en invierno, extrayendo calor del aire exterior para calentar su hogar, y el horno a gas solo se enciende en los días más fríos (por debajo de unos 35 grados). Es la combinación más eficiente que ofrecemos y suele reducir la factura de gas en invierno. Con Solo Enfriamiento, la unidad exterior es un aire acondicionado que solo enfría, y el horno hace toda la calefacción. Cuesta menos al inicio. Toque cada opción y vea cómo la unidad exterior del diagrama cambia entre BOMBA DE CALOR y CONDENSADOR.",
     dehu:"La humedad de Austin hace que su hogar se sienta más caliente de lo que marca el termostato. Un deshumidificador para toda la casa se conecta a sus ductos y funciona automáticamente - solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energía en el intercambio. Agregue cualquiera, ambos, o ninguno.",
   };
   // insulation's info text has an air-handler variant (no furnace/AFUE to

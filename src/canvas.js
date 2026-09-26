@@ -118,7 +118,7 @@ function useLerpedNumber(target,duration=2500){
 // stable, so React updates it in place and the useMemo below actually
 // skips recomputation when only unrelated wizard state changed.
 function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, lineY2, active,
-  heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl, tierKey, eaveY,
+  heatMode, isMildHp, refReversed, isSurge, condC, line1C, line2C, G, W, condenserEl, tierKey, eaveY, isHP,
   lang, vw, vh, linesetRingPath}){
   const groundY=zoneH-28;
   const padY=groundY-10;
@@ -701,7 +701,7 @@ function OutsideZone({wallX, zoneW, zoneH, condX, condY, condW, condH, lineY1, l
         every tier's cabinet height instead of just the taller ones. */}
     <text className="phase-color" x={wallX+zoneW-30} y={condY-24} textAnchor="end"
       fill={active?condC:(G+'.55)')} fontSize="13" fontFamily="monospace">
-      {active?CT('CONDENSER · ACTIVE',lang):CT('CONDENSER · STANDBY',lang)}
+      {isHP?(active?CT('HEAT PUMP · ACTIVE',lang):CT('HEAT PUMP · STANDBY',lang)):(active?CT('CONDENSER · ACTIVE',lang):CT('CONDENSER · STANDBY',lang))}
     </text>
     {/* Mirrors the indoor coil's own ABSORBING/REJECTING HEAT status
         line - the outdoor coil is always doing the opposite of whatever
@@ -896,7 +896,7 @@ function DehumidistatWall({x,y,pct=45,lang,vw,vh,scale=1}){
   // small to read; the attic layout's copy stayed default size, see its
   // own call site's comment).
   const info=partInfo('dehumidistat',lang);
-  return <g className="snap" style={{animationDelay:'.32s'}}>
+  return <g className="snap" style={{animationDelay:'.06s'}}>
     <g transform={`translate(${x} ${y}) scale(${scale})`}>
       <rect x={0} y={0} width={W} height={H} rx="4" fill="#05120a" stroke="#22c55e" strokeWidth="1.4"/>
       <rect x={0} y={0} width={W} height={6} rx="4" fill="rgba(34,197,94,.3)"/>
@@ -1271,6 +1271,8 @@ const PART_INFO={
     es:{title:'CONDENSADOR',text:"Su unidad exterior. Libera calor afuera para enfriar su hogar, o, con una bomba de calor, extrae calor del aire exterior para calentarlo."}},
   condenser_fan:{en:{title:'CONDENSER FAN',text:"Pulls outside air across the coil so it can release or collect heat, depending on the mode."},
     es:{title:'VENTILADOR DEL CONDENSADOR',text:"Jala aire exterior a través del serpentín para que pueda liberar o captar calor, según el modo."}},
+  reversing_valve:{en:{title:'REVERSING VALVE',text:"What makes a heat pump a heat pump. This valve flips the refrigerant's direction, so the same outdoor unit that cools your home in summer pulls heat from the outside air to warm it in winter. A straight-cool AC doesn't have one."},
+    es:{title:'VÁLVULA DE INVERSIÓN',text:"Lo que convierte una unidad en bomba de calor. Esta válvula invierte la dirección del refrigerante, así la misma unidad exterior que enfría su hogar en verano extrae calor del aire exterior para calentarlo en invierno. Un aire acondicionado de solo enfriamiento no la tiene."}},
   compressor:{en:{title:'COMPRESSOR',text:"Pressurizes the refrigerant - the part that does the actual work of moving heat in or out of your home."},
     es:{title:'COMPRESOR',text:"Presuriza el refrigerante - la parte que realiza el trabajo real de mover el calor dentro o fuera de su hogar."}},
   disconnect:{en:{title:'DISCONNECT BOX',text:"Lets a technician cut power to the condenser right at the unit before servicing it - a safety requirement on every install."},
@@ -1396,7 +1398,7 @@ const CANVAS_ES={
   'RETURN PLENUM':'PLENUM DE RETORNO','SUPPLY':'SUMINISTRO',
   'DUCTBOARD PLENUM':'PLENUM DUCTBOARD','METAL PLENUM':'PLENUM METÁLICO',
   'EXISTING PLENUM':'PLENUM EXISTENTE',
-  'DISC.':'DESC.','COMP.':'COMP.','SERVICE':'SERVICIO','SWITCH':'INTERRUPTOR',
+  'DISC.':'DESC.','COMP.':'COMP.','REV. VALVE':'VÁLV. INV.','HEAT PUMP · ACTIVE':'BOMBA DE CALOR · ACTIVA','HEAT PUMP · STANDBY':'BOMBA DE CALOR · EN ESPERA','SERVICE':'SERVICIO','SWITCH':'INTERRUPTOR',
   'GAS':'GAS','IONIZER':'IONIZADOR',
   'DEHU':'DESHUM','DEHUMIDISTAT':'DESHUMIDISTATO','ERV':'ERV',
   'DRAIN':'DRENAJE','LINESET':'LÍNEAS','GROUND LEVEL':'NIVEL DEL SUELO',
@@ -2384,7 +2386,7 @@ function CapFan({x,y,w,h,active,bladeColor,slatFill,slatCount,ringColor,onEditSt
 // isMildHp - both Canvas-only state) come in as explicit props instead
 // of Canvas closures, same convention as everywhere else in this file
 // that made this move.
-function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanSpeedMode,onEditStep,lang,vw,vh}){
+function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanSpeedMode,onEditStep,lang,vw,vh,isHP}){
   const isMini=tierKey==='mid_ge15';
   const isBig=tierKey==='high_ge18';
   const isFed=tierKey==='fedmin';
@@ -2806,6 +2808,28 @@ function Condenser({x,y,w,h,active,tierKey,condC,refReversed,line1C,line2C,fanSp
         </g>;
       })()}
     </>}
+    {/* Owner feedback: the Federal Minimum and High Efficiency outdoor units
+        show a reversing valve when the system is a heat pump (dual fuel or
+        air handler), the part that makes it a heat pump - a straight-cool AC
+        has none, so that choice visibly changes the diagram. Mid efficiency
+        is a heat-pump-only model, so it doesn't need the callout. */}
+    {isHP&&!isMini&&(()=>{
+      const vw2=30,vh2=11;
+      const vx=x+12, vy=y+h-46;
+      const heating=active&&refReversed;
+      const col=heating?'#e8c44a':(active?'#e07a6e':'#9aa0aa');
+      const lblW=58, lblX=vx+vw2/2-lblW/2, lblY=vy+vh2+8;
+      return <g className="snap" style={{animationDelay:'.05s'}}>
+        <rect x={vx} y={vy} width={vw2} height={vh2} rx={5.5} fill="#2b2e35" stroke={col} strokeWidth="1.6"/>
+        <line x1={vx+vw2/2} y1={vy} x2={vx+vw2/2} y2={vy-7} stroke={col} strokeWidth="2" strokeLinecap="round"/>
+        {[7,15,23].map(dx=><line key={dx} x1={vx+dx} y1={vy+vh2} x2={vx+dx} y2={vy+vh2+5} stroke={col} strokeWidth="2" strokeLinecap="round"/>)}
+        <rect x={lblX} y={lblY} width={lblW} height={13} rx={3} fill="rgba(20,21,25,.88)"/>
+        <text x={vx+vw2/2} y={lblY+9.5} textAnchor="middle" fill={col} fontSize="8.5" fontWeight="700" fontFamily="monospace">{CT('REV. VALVE',lang)}</text>
+        <HoverInfo x={lblX-2} y={vy-9} w={lblW+4} h={lblY+15-(vy-9)} rx={3}
+          vw={vw} vh={vh} title={partInfo('reversing_valve',lang).title} text={partInfo('reversing_valve',lang).text}
+          onClick={onEditStep?()=>onEditStep('cond_tier'):undefined} highlight/>
+      </g>;
+    })()}
   </g>;
 }
 
@@ -3229,7 +3253,7 @@ function DehuErvBoxes({dehuBX,ervBX,BY,roofY,ervRoofY,ervW,dehuW,hasDehu,hasERV,
     // own roofline run passes overhead and needs its own clearance
     // below it.
     const ry=isDehu?roofY:(ervRoofY!=null?ervRoofY:roofY);
-    return <g key={type} className={snap?"snap":undefined} style={snap?{animationDelay:(0.32+i*0.05)+'s'}:undefined}>
+    return <g key={type} className={snap?"snap":undefined} style={snap?{animationDelay:(0.04+i*0.04)+'s'}:undefined}>
       {isDehu
         ?<>
           {hangKit(r1X,ry,"#22c55e")}
@@ -3866,6 +3890,9 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
   const isSpray=a.insulation==='spray';
   const isComm=a.cond_tier==='high_ge18';
   const isDualFuel=hasFurnace&&(a.system_for==='hp');
+  // Heat pump outdoor unit: air handler systems, dual fuel, and mid efficiency
+  // (always a heat pump - see systemTypeKey in data.js).
+  const isHPSystem=!hasFurnace||a.system_for==='hp'||a.cond_tier==='mid_ge15';
   // "Mild 52F" mode isn't unique to dual-fuel systems - a heat-pump-only
   // system (!hasFurnace) also previews a 52F HEAT PUMP state before its
   // 28F AUX HEAT state, same two-temperature split as dual-fuel's HEAT
@@ -5710,12 +5737,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={RL_WALL_Y} lineY2={RL_WALL_Y+9}
             active={condenserActive} tierKey={a.cond_tier} eaveY={EAVE_Y}
-            heatMode={heatMode} isMildHp={isMildHp}
+            heatMode={heatMode} isMildHp={isMildHp} isHP={isHPSystem}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
             linesetRingPath={linesetRingPath}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
-              active={condenserActive} tierKey={a.cond_tier}
+              active={condenserActive} tierKey={a.cond_tier} isHP={isHPSystem}
               condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
               fanSpeedMode={!heatMode?'cool':(isMildHp?'hp':'off')} onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}/>}
           {hasCond&&<EditZone stepId="cond_tier" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
@@ -6065,7 +6092,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             // themselves.
             const scoopW=pipeW*1.9, scoopH=11;
             const scoopD=`M${supTgtX-pipeW/2} ${SUP_PLEN_Y-scoopH} L${supTgtX-scoopW/2} ${SUP_PLEN_Y} L${supTgtX+scoopW/2} ${SUP_PLEN_Y} L${supTgtX+pipeW/2} ${SUP_PLEN_Y-scoopH} Z`;
-            return <g className="snap" style={{animationDelay:'0.4s'}}>
+            return <g className="snap" style={{animationDelay:'0.08s'}}>
               <path d={retD} fill="none" stroke={RC+'.16)'} strokeWidth={pipeW+6} strokeLinejoin="round" strokeLinecap="round"/>
               <path d={retD} fill="none" stroke={RC+'.4)'} strokeWidth={pipeW} strokeLinejoin="round" strokeLinecap="round"/>
               <path d={retD} fill="none" stroke={RC+'.8)'} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="3.5 2.2"/>
@@ -7506,12 +7533,12 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
             condX={COND_X} condY={COND_Y} condW={COND_W} condH={COND_H}
             lineY1={LS_Y1} lineY2={LS_Y2}
             active={condenserActive} tierKey={a.cond_tier} eaveY={ROOF_EAVE_Y}
-            heatMode={heatMode} isMildHp={isMildHp}
+            heatMode={heatMode} isMildHp={isMildHp} isHP={isHPSystem}
             refReversed={refReversed} isSurge={isSurge} condC={condC}
             line1C={line1C} line2C={line2C} G={G} W={W} lang={lang} vw={SVG_VW} vh={SVG_VH}
             linesetRingPath={linesetRingPath}
             condenserEl={<Condenser x={COND_X} y={COND_Y} w={COND_W} h={COND_H}
-              active={condenserActive} tierKey={a.cond_tier}
+              active={condenserActive} tierKey={a.cond_tier} isHP={isHPSystem}
               condC={condC} refReversed={refReversed} line1C={line1C} line2C={line2C}
               fanSpeedMode={!heatMode?'cool':(isMildHp?'hp':'off')} onEditStep={onEditStep} lang={lang} vw={SVG_VW} vh={SVG_VH}/>}/>}
           {hasCond&&<EditZone stepId="cond_tier" onEditStep={onEditStep} svgScale={SVG_SCALE} vw={SVG_VW} vh={SVG_VH}
@@ -7862,7 +7889,7 @@ export function Canvas({a, stepIdx, activeSteps, onEditStep, lang}){
                 <line x1={x-9} y1={stubY+3} x2={x+9} y2={stubY+3} stroke={color+'.4)'} strokeWidth="1" strokeDasharray="1.5 1.5"/>
               </>
             );
-            return <g className="snap" style={{animationDelay:'0.4s'}}>
+            return <g className="snap" style={{animationDelay:'0.08s'}}>
               <path d={retD} fill="none" stroke={RC+'.16)'} strokeWidth={pipeW+6} strokeLinecap="round"/>
               <path d={retD} fill="none" stroke={RC+'.4)'} strokeWidth={pipeW} strokeLinecap="round"/>
               <path d={retD} fill="none" stroke={RC+'.8)'} strokeWidth="1.4" strokeDasharray="3.5 2.2"/>

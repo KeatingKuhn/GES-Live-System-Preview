@@ -1744,9 +1744,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     },
     {
       id: "system_for",
-      q: "Dual fuel heat pump, or straight cool?",
+      q: "Should your outdoor unit heat too? Dual fuel or straight cool",
       chapter: 1,
-      hint: "Heat pump does more; AC only cools.",
+      hint: "Both cool exactly the same in summer. The difference is who heats in winter.",
       optional: false,
       // Mid efficiency only comes as dual fuel - nothing to actually choose,
       // so skip the step entirely instead of showing a single-card question.
@@ -1855,8 +1855,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       // and was pure dead code.
       case "system_for":
         return [
-          { v: "hp", label: "Dual Fuel (Heat pump + furnace)", desc: "Heat pump handles most of the year, down to ~35\xB0F. Furnace covers the rest." },
-          { v: "sc", label: "Straight Cool", desc: "AC cools only - furnace handles all heating. Simpler, lower upfront cost." }
+          { v: "hp", label: "Dual Fuel (Heat pump + furnace)", desc: "Your outdoor unit is a heat pump: it cools in summer and also heats most of the winter. The gas furnace only takes over on the coldest days (below about 35\xB0F). On the diagram, the outdoor unit becomes HEAT PUMP and shows its reversing valve." },
+          { v: "sc", label: "Straight Cool (AC + furnace)", desc: "Your outdoor unit is an air conditioner: it only cools. The gas furnace does all of the heating. The simplest setup, with a lower upfront cost." }
         ];
       case "cond_tier": {
         return [
@@ -1881,7 +1881,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     insulation: { q: "\xBFFibra de vidrio o espuma aislante?", hint: "Se trata del espacio de \xE1tico de su casa, sin importar d\xF3nde est\xE9 su equipo - tambi\xE9n afecta la eficiencia del horno. \xBFNo est\xE1 seguro, o no tiene \xE1tico? Lo resolveremos en su visita gratuita a domicilio." },
     plenum: { q: "\xBFNecesita un plenum de suministro nuevo?", hint: "Env\xEDa aire acondicionado a sus ductos." },
     cond_tier: { q: "Elija su nivel de eficiencia.", hint: "Mayor eficiencia, facturas mensuales m\xE1s bajas." },
-    system_for: { q: "\xBFBomba de calor de combustible dual, o solo enfriamiento?", hint: "La bomba de calor hace m\xE1s; el A/C solo enfr\xEDa." },
+    system_for: { q: "\xBFSu unidad exterior tambi\xE9n debe calentar? Combustible dual o solo enfriamiento", hint: "Ambas enfr\xEDan igual en verano. La diferencia es qui\xE9n calienta en invierno." },
     thermostat: { q: "\xBFQu\xE9 termostato?", hint: "Los modelos Wi-Fi pueden ahorrar 10\u201315% en su factura." },
     purif: { q: "\xBFAlg\xFAn complemento de purificaci\xF3n o protecci\xF3n?", hint: "La filtraci\xF3n viene incluida; agregue m\xE1s aqu\xED." },
     dehu: { q: "\xBFQuiere mejorar la calidad del aire interior?", hint: "Deshumidificador para toda la casa, sistema ERV de aire fresco, o ambos." }
@@ -1925,8 +1925,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       surge: { label: "Protector de Sobrevoltaje", desc: "Ayuda a proteger el compresor de picos de voltaje y rayos cercanos." }
     },
     system_for: {
-      hp: { label: "Combustible Dual (Bomba de calor + horno)", desc: "La bomba de calor cubre la mayor parte del a\xF1o, hasta ~35\xB0F. El horno se encarga del resto." },
-      sc: { label: "Solo Enfriamiento", desc: "El A/C solo enfr\xEDa - el horno se encarga de toda la calefacci\xF3n. M\xE1s simple, menor costo inicial." }
+      hp: { label: "Combustible Dual (Bomba de calor + horno)", desc: "Su unidad exterior es una bomba de calor: enfr\xEDa en verano y tambi\xE9n calienta la mayor parte del invierno. El horno a gas solo entra en los d\xEDas m\xE1s fr\xEDos (menos de unos 35\xB0F). En el diagrama, la unidad exterior pasa a BOMBA DE CALOR y muestra su v\xE1lvula de inversi\xF3n." },
+      sc: { label: "Solo Enfriamiento (A/C + horno)", desc: "Su unidad exterior es un aire acondicionado: solo enfr\xEDa. El horno a gas hace toda la calefacci\xF3n. La opci\xF3n m\xE1s simple, con menor costo inicial." }
     },
     cond_tier: {
       fedmin: { label: "M\xEDnimo Federal - 14.3 SEER2", desc: "Cumple con el c\xF3digo energ\xE9tico federal de 2023." },
@@ -2293,6 +2293,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     condenserEl,
     tierKey,
     eaveY,
+    isHP,
     lang: lang2,
     vw,
     vh,
@@ -3058,7 +3059,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         fontSize: "13",
         fontFamily: "monospace"
       },
-      active ? CT("CONDENSER \xB7 ACTIVE", lang2) : CT("CONDENSER \xB7 STANDBY", lang2)
+      isHP ? active ? CT("HEAT PUMP \xB7 ACTIVE", lang2) : CT("HEAT PUMP \xB7 STANDBY", lang2) : active ? CT("CONDENSER \xB7 ACTIVE", lang2) : CT("CONDENSER \xB7 STANDBY", lang2)
     ), active && /* @__PURE__ */ React.createElement(
       "text",
       {
@@ -3233,7 +3234,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   function DehumidistatWall({ x, y, pct = 45, lang: lang2, vw, vh, scale = 1 }) {
     const W2 = 60, H = 30;
     const info = partInfo("dehumidistat", lang2);
-    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".32s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y}) scale(${scale})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 * 0.32, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "15" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { className: "phase-color", x: W2 * 0.68, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace", fontWeight: "700" }, pct, "%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, CT("DEHUMIDISTAT", lang2))), /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".06s" } }, /* @__PURE__ */ React.createElement("g", { transform: `translate(${x} ${y}) scale(${scale})` }, /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: H, rx: "4", fill: "#05120a", stroke: "#22c55e", strokeWidth: "1.4" }), /* @__PURE__ */ React.createElement("rect", { x: 0, y: 0, width: W2, height: 6, rx: "4", fill: "rgba(34,197,94,.3)" }), /* @__PURE__ */ React.createElement("text", { x: W2 * 0.32, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "15" }, "\u{1F4A7}"), /* @__PURE__ */ React.createElement("text", { className: "phase-color", x: W2 * 0.68, y: H / 2 + 5, textAnchor: "middle", fill: "#22c55e", fontSize: "13", fontFamily: "monospace", fontWeight: "700" }, pct, "%"), /* @__PURE__ */ React.createElement("text", { x: W2 / 2, y: H + 9, textAnchor: "middle", fill: "rgba(34,197,94,.6)", fontSize: "6.2", fontFamily: "monospace" }, CT("DEHUMIDISTAT", lang2))), /* @__PURE__ */ React.createElement(
       HoverInfo,
       {
         x: x - 2,
@@ -3466,6 +3467,10 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       en: { title: "CONDENSER FAN", text: "Pulls outside air across the coil so it can release or collect heat, depending on the mode." },
       es: { title: "VENTILADOR DEL CONDENSADOR", text: "Jala aire exterior a trav\xE9s del serpent\xEDn para que pueda liberar o captar calor, seg\xFAn el modo." }
     },
+    reversing_valve: {
+      en: { title: "REVERSING VALVE", text: "What makes a heat pump a heat pump. This valve flips the refrigerant's direction, so the same outdoor unit that cools your home in summer pulls heat from the outside air to warm it in winter. A straight-cool AC doesn't have one." },
+      es: { title: "V\xC1LVULA DE INVERSI\xD3N", text: "Lo que convierte una unidad en bomba de calor. Esta v\xE1lvula invierte la direcci\xF3n del refrigerante, as\xED la misma unidad exterior que enfr\xEDa su hogar en verano extrae calor del aire exterior para calentarlo en invierno. Un aire acondicionado de solo enfriamiento no la tiene." }
+    },
     compressor: {
       en: { title: "COMPRESSOR", text: "Pressurizes the refrigerant - the part that does the actual work of moving heat in or out of your home." },
       es: { title: "COMPRESOR", text: "Presuriza el refrigerante - la parte que realiza el trabajo real de mover el calor dentro o fuera de su hogar." }
@@ -3648,6 +3653,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     "EXISTING PLENUM": "PLENUM EXISTENTE",
     "DISC.": "DESC.",
     "COMP.": "COMP.",
+    "REV. VALVE": "V\xC1LV. INV.",
+    "HEAT PUMP \xB7 ACTIVE": "BOMBA DE CALOR \xB7 ACTIVA",
+    "HEAT PUMP \xB7 STANDBY": "BOMBA DE CALOR \xB7 EN ESPERA",
     "SERVICE": "SERVICIO",
     "SWITCH": "INTERRUPTOR",
     "GAS": "GAS",
@@ -4485,7 +4493,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       }
     ));
   }
-  function Condenser({ x, y, w, h, active, tierKey, condC, refReversed, line1C, line2C, fanSpeedMode, onEditStep, lang: lang2, vw, vh }) {
+  function Condenser({ x, y, w, h, active, tierKey, condC, refReversed, line1C, line2C, fanSpeedMode, onEditStep, lang: lang2, vw, vh, isHP }) {
     const isMini = tierKey === "mid_ge15";
     const isBig = tierKey === "high_ge18";
     const isFed = tierKey === "fedmin";
@@ -5233,7 +5241,29 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           highlight: true
         }
       ));
-    })()));
+    })()), isHP && !isMini && (() => {
+      const vw2 = 30, vh2 = 11;
+      const vx = x + 12, vy = y + h - 46;
+      const heating = active && refReversed;
+      const col = heating ? "#e8c44a" : active ? "#e07a6e" : "#9aa0aa";
+      const lblW = 58, lblX = vx + vw2 / 2 - lblW / 2, lblY = vy + vh2 + 8;
+      return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".05s" } }, /* @__PURE__ */ React.createElement("rect", { x: vx, y: vy, width: vw2, height: vh2, rx: 5.5, fill: "#2b2e35", stroke: col, strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("line", { x1: vx + vw2 / 2, y1: vy, x2: vx + vw2 / 2, y2: vy - 7, stroke: col, strokeWidth: "2", strokeLinecap: "round" }), [7, 15, 23].map((dx) => /* @__PURE__ */ React.createElement("line", { key: dx, x1: vx + dx, y1: vy + vh2, x2: vx + dx, y2: vy + vh2 + 5, stroke: col, strokeWidth: "2", strokeLinecap: "round" })), /* @__PURE__ */ React.createElement("rect", { x: lblX, y: lblY, width: lblW, height: 13, rx: 3, fill: "rgba(20,21,25,.88)" }), /* @__PURE__ */ React.createElement("text", { x: vx + vw2 / 2, y: lblY + 9.5, textAnchor: "middle", fill: col, fontSize: "8.5", fontWeight: "700", fontFamily: "monospace" }, CT("REV. VALVE", lang2)), /* @__PURE__ */ React.createElement(
+        HoverInfo,
+        {
+          x: lblX - 2,
+          y: vy - 9,
+          w: lblW + 4,
+          h: lblY + 15 - (vy - 9),
+          rx: 3,
+          vw,
+          vh,
+          title: partInfo("reversing_valve", lang2).title,
+          text: partInfo("reversing_valve", lang2).text,
+          onClick: onEditStep ? () => onEditStep("cond_tier") : void 0,
+          highlight: true
+        }
+      ));
+    })());
   }
   function AuxHeatKit({ x, y, w, h, auxHeat, segCount, lang: lang2 }) {
     segCount = segCount || 4;
@@ -5494,7 +5524,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       const pipe1X = BX + Math.round(boxW * 0.28), pipe2X = BX + Math.round(boxW * 0.68);
       const r1X = isDehu ? BX + boxW * 0.28 : BX + boxW * 0.08, r2X = isDehu ? BX + boxW * 0.72 : BX + boxW * 0.92;
       const ry = isDehu ? roofY : ervRoofY != null ? ervRoofY : roofY;
-      return /* @__PURE__ */ React.createElement("g", { key: type, className: snap ? "snap" : void 0, style: snap ? { animationDelay: 0.32 + i * 0.05 + "s" } : void 0 }, isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, hangKit(r1X, ry, "#22c55e"), hangKit(r2X, ry, "#22c55e")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: B + ".3)", stroke: B + ".5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 5, y: ry - 4, width: "11", height: 5, rx: "1", fill: B + ".35)", stroke: B + ".55)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: pipe1X, y: ry - 6, textAnchor: "middle", fill: B + ".6)", fontSize: "12", fontFamily: "monospace" }, CT("IN", lang2)), /* @__PURE__ */ React.createElement("rect", { x: pipe2X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: "rgba(249,115,22,.3)", stroke: "rgba(249,115,22,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (pipe2X - 4) + " " + (ry - 2) + " L" + pipe2X + " " + (ry - 9) + " L" + (pipe2X + 4) + " " + (ry - 2), fill: "rgba(249,115,22,.4)" }), /* @__PURE__ */ React.createElement("text", { x: pipe2X, y: ry - 11, textAnchor: "middle", fill: "rgba(249,115,22,.6)", fontSize: "12", fontFamily: "monospace" }, CT("OUT", lang2)), hangKit(r1X, ry, G + ".55)"), hangKit(r2X, ry, G + ".55)")), /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("g", { key: type, className: snap ? "snap" : void 0, style: snap ? { animationDelay: 0.04 + i * 0.04 + "s" } : void 0 }, isDehu ? /* @__PURE__ */ React.createElement(React.Fragment, null, hangKit(r1X, ry, "#22c55e"), hangKit(r2X, ry, "#22c55e")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: B + ".3)", stroke: B + ".5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("rect", { x: pipe1X - 5, y: ry - 4, width: "11", height: 5, rx: "1", fill: B + ".35)", stroke: B + ".55)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("text", { x: pipe1X, y: ry - 6, textAnchor: "middle", fill: B + ".6)", fontSize: "12", fontFamily: "monospace" }, CT("IN", lang2)), /* @__PURE__ */ React.createElement("rect", { x: pipe2X - 2, y: ry, width: 5, height: Math.max(0, BY - ry), rx: "1", fill: "rgba(249,115,22,.3)", stroke: "rgba(249,115,22,.5)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M" + (pipe2X - 4) + " " + (ry - 2) + " L" + pipe2X + " " + (ry - 9) + " L" + (pipe2X + 4) + " " + (ry - 2), fill: "rgba(249,115,22,.4)" }), /* @__PURE__ */ React.createElement("text", { x: pipe2X, y: ry - 11, textAnchor: "middle", fill: "rgba(249,115,22,.6)", fontSize: "12", fontFamily: "monospace" }, CT("OUT", lang2)), hangKit(r1X, ry, G + ".55)"), hangKit(r2X, ry, G + ".55)")), /* @__PURE__ */ React.createElement(
         "rect",
         {
           x: BX,
@@ -6129,6 +6159,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
     const isSpray = a.insulation === "spray";
     const isComm = a.cond_tier === "high_ge18";
     const isDualFuel = hasFurnace && a.system_for === "hp";
+    const isHPSystem = !hasFurnace || a.system_for === "hp" || a.cond_tier === "mid_ge15";
     const isMildHp = (isDualFuel || !hasFurnace) && heatSubMode === "hp";
     const outsideFill = !heatMode ? OUTSIDE_SUNNY : isMildHp ? OUTSIDE_OVERCAST : OUTSIDE_COLD;
     const intFill = (k) => !heatMode ? INT_COOL[k] : isMildHp ? INT_BASE[k] : INT_WARM[k];
@@ -7339,6 +7370,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           eaveY: EAVE_Y,
           heatMode,
           isMildHp,
+          isHP: isHPSystem,
           refReversed,
           isSurge,
           condC,
@@ -7359,6 +7391,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               h: COND_H,
               active: condenserActive,
               tierKey: a.cond_tier,
+              isHP: isHPSystem,
               condC,
               refReversed,
               line1C,
@@ -7611,7 +7644,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const dampX = Math.max(dehuBX + BW + 15, supTgtX - 30);
         const scoopW = pipeW * 1.9, scoopH = 11;
         const scoopD = `M${supTgtX - pipeW / 2} ${SUP_PLEN_Y - scoopH} L${supTgtX - scoopW / 2} ${SUP_PLEN_Y} L${supTgtX + scoopW / 2} ${SUP_PLEN_Y} L${supTgtX + pipeW / 2} ${SUP_PLEN_Y - scoopH} Z`;
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".16)", strokeWidth: pipeW + 6, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".4)", strokeWidth: pipeW, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".8)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.08s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".16)", strokeWidth: pipeW + 6, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".4)", strokeWidth: pipeW, strokeLinejoin: "round", strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".8)", strokeWidth: "1.4", strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: "3.5 2.2" }), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: Math.min(dehuBX, retTgtX) - 2,
@@ -9323,6 +9356,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
           eaveY: ROOF_EAVE_Y,
           heatMode,
           isMildHp,
+          isHP: isHPSystem,
           refReversed,
           isSurge,
           condC,
@@ -9343,6 +9377,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
               h: COND_H,
               active: condenserActive,
               tierKey: a.cond_tier,
+              isHP: isHPSystem,
               condC,
               refReversed,
               line1C,
@@ -9672,7 +9707,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         const supD = `M${supX} ${DEHU_ERV_BY + DEHU_ERV_BH} L${supX} ${stubY}`;
         const pipeW = 11;
         const cap = (x, color) => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("rect", { x: x - 6, y: stubY - 3, width: "12", height: "6", rx: "1.5", fill: color + ".3)", stroke: color + ".6)", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("line", { x1: x - 9, y1: stubY + 3, x2: x + 9, y2: stubY + 3, stroke: color + ".4)", strokeWidth: "1", strokeDasharray: "1.5 1.5" }));
-        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.4s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".16)", strokeWidth: pipeW + 6, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".4)", strokeWidth: pipeW, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".8)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(retX, RC), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".16)", strokeWidth: pipeW + 6, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".3)", strokeWidth: pipeW, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".7)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(supX, G), /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: "0.08s" } }, /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".16)", strokeWidth: pipeW + 6, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".4)", strokeWidth: pipeW, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: retD, fill: "none", stroke: RC + ".8)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(retX, RC), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".16)", strokeWidth: pipeW + 6, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".3)", strokeWidth: pipeW, strokeLinecap: "round" }), /* @__PURE__ */ React.createElement("path", { d: supD, fill: "none", stroke: G + ".7)", strokeWidth: "1.4", strokeDasharray: "3.5 2.2" }), cap(supX, G), /* @__PURE__ */ React.createElement(
           HoverInfo,
           {
             x: retX - 9,
@@ -10096,7 +10131,14 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
 .gform_wrapper input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #26282b inset!important;-webkit-text-fill-color:#e8e4d8!important}
 .gform_wrapper .gfield_label,.gform_wrapper .gform-field-label,.gform_wrapper label{color:#d9d4c7!important}
 .gform_wrapper .gform_button,.gform_wrapper input[type=submit],.gform_wrapper button[type=submit]{background:#b8973a!important;color:#141414!important;border:1px solid #b8973a!important;font-weight:600!important;border-radius:4px!important}
-.gform_wrapper .gform_button:hover,.gform_wrapper input[type=submit]:hover{background:#c9a646!important}`;
+.gform_wrapper .gform_button:hover,.gform_wrapper input[type=submit]:hover{background:#c9a646!important}
+.gform_wrapper .gform_validation_errors{background:#2a1a1a!important;border:1px solid rgba(230,120,110,.6)!important;box-shadow:none!important;border-radius:6px!important;padding:8px 12px!important;margin:0 0 10px!important}
+.gform_wrapper .gform_validation_errors h2,.gform_wrapper .gform_validation_errors .gform_submission_error{color:#f0b0a8!important;font-size:13px!important;line-height:1.35!important;margin:0!important;padding:0!important}
+.gform_wrapper .gform_validation_errors .gform-icon{display:none!important}
+.gform_wrapper .gform_validation_errors ol,.gform_wrapper .gform_validation_errors ul{margin:4px 0 0!important;padding-left:16px!important}
+.gform_wrapper .gform_validation_errors li,.gform_wrapper .gform_validation_errors a{color:#f0b0a8!important;font-size:12.5px!important}
+.gform_wrapper .gfield_validation_message,.gform_wrapper .validation_message{background:transparent!important;border:0!important;padding:3px 0 0!important;margin:0!important;color:#f0b0a8!important;font-size:12.5px!important}
+.gform_wrapper .gfield_error input,.gform_wrapper .gfield_error select,.gform_wrapper .gfield_error textarea{border-color:rgba(230,120,110,.8)!important}`;
           doc.head.appendChild(st);
           try {
             doc.defaultView.addEventListener("pagehide", () => setLeadFormShown(false));
@@ -10105,6 +10147,12 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
         }
         const h = doc && doc.body && doc.body.scrollHeight;
         if (h && leadIframeRef.current) leadIframeRef.current.style.height = Math.min(Math.max(h, 180), 900) + "px";
+        if (doc.querySelector(".gform_validation_errors,.gfield_error") && leadIframeRef.current) {
+          try {
+            leadIframeRef.current.scrollIntoView({ block: "start", behavior: "smooth" });
+          } catch (e) {
+          }
+        }
         ok = true;
       } catch (e) {
         ok = true;
@@ -10493,7 +10541,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       thermostat_high: "At this efficiency tier, only a communicating thermostat can drive the system's full variable-speed staging and diagnostics -- a basic or Wi-Fi model can't talk to it the same way, so it's the one option here.",
       purif: "The enhanced filtration cabinet ships standard on every install, already catching far more dust, pollen, and allergens than a typical 1 inch filter. A UV light keeps the coil clean. An ionizer charges particles and odors so your filter catches more of them. A surge protector helps guard the condenser -- a nearby lightning strike can destroy a compressor.",
       cond_tier: "The condenser is your outdoor unit. SEER2 measures cooling output per unit of electricity, so higher means lower bills. Federal Minimum meets current code at the lowest cost. Mid Efficiency is our best-value tier. High Efficiency is our top tier, with the best humidity control.",
-      system_for: "With a gas furnace, you get two options. Dual fuel pairs a heat pump with the furnace -- the heat pump handles cooling and mild-weather heating, and the furnace only fires below about 35 degrees, the most efficient combo we offer. Straight cool means the AC only cools, and the furnace handles all heating.",
+      system_for: "Both options cool your home exactly the same in summer. The difference is winter heat. With dual fuel, the outdoor unit is a heat pump: a reversing valve lets it run backward in winter, pulling heat from the outside air to warm your home, and the gas furnace only fires on the coldest days (below about 35 degrees). It's the most efficient combo we offer and usually lowers winter gas bills. With straight cool, the outdoor unit is a plain air conditioner that only cools, and the furnace does all of the heating. It costs less up front. Tap each option and watch the outdoor unit on the diagram change between HEAT PUMP and CONDENSER.",
       dehu: "Austin humidity makes your home feel warmer than the thermostat reads. A whole-home dehumidifier ties into your ductwork and runs automatically -- just an occasional filter check, no buckets to empty. An ERV brings in fresh filtered outdoor air while venting stale air out, recovering most of the energy in the exchange. Add either, both, or neither."
     };
     const INFO_TEXT_ES = {
@@ -10506,7 +10554,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
       thermostat_high: "En este nivel de eficiencia, solo un termostato comunicante puede controlar la modulaci\xF3n por etapas y los diagn\xF3sticos completos del sistema - un termostato b\xE1sico o Wi-Fi no puede comunicarse con \xE9l de la misma forma, por lo que es la \xFAnica opci\xF3n aqu\xED.",
       purif: "El gabinete de filtraci\xF3n mejorada viene incluido de f\xE1brica en cada instalaci\xF3n, capturando ya mucho m\xE1s polvo, polen y al\xE9rgenos que un filtro t\xEDpico de 1 pulgada. Una luz UV mantiene limpio el serpent\xEDn. Un ionizador carga las part\xEDculas y olores para que su filtro atrape m\xE1s. Un protector de sobrevoltaje ayuda a proteger el condensador: un rayo cercano puede destruir un compresor.",
       cond_tier: "El condensador es su unidad exterior. El SEER2 mide la salida de enfriamiento por unidad de electricidad, as\xED que m\xE1s alto significa facturas m\xE1s bajas. M\xEDnimo Federal cumple con el c\xF3digo actual al menor costo. Eficiencia Media es nuestro nivel de mejor valor. Alta Eficiencia es nuestro nivel superior, con el mejor control de humedad.",
-      system_for: "Con un horno a gas, tiene dos opciones. Combustible Dual combina una bomba de calor con el horno: la bomba de calor se encarga del enfriamiento y la calefacci\xF3n en clima templado, y el horno solo se enciende por debajo de aproximadamente 35 grados, la combinaci\xF3n m\xE1s eficiente que ofrecemos. Solo Enfriamiento significa que el A/C solo enfr\xEDa, y el horno se encarga de toda la calefacci\xF3n.",
+      system_for: "Ambas opciones enfr\xEDan su hogar exactamente igual en verano. La diferencia es la calefacci\xF3n en invierno. Con Combustible Dual, la unidad exterior es una bomba de calor: una v\xE1lvula de inversi\xF3n le permite funcionar al rev\xE9s en invierno, extrayendo calor del aire exterior para calentar su hogar, y el horno a gas solo se enciende en los d\xEDas m\xE1s fr\xEDos (por debajo de unos 35 grados). Es la combinaci\xF3n m\xE1s eficiente que ofrecemos y suele reducir la factura de gas en invierno. Con Solo Enfriamiento, la unidad exterior es un aire acondicionado que solo enfr\xEDa, y el horno hace toda la calefacci\xF3n. Cuesta menos al inicio. Toque cada opci\xF3n y vea c\xF3mo la unidad exterior del diagrama cambia entre BOMBA DE CALOR y CONDENSADOR.",
       dehu: "La humedad de Austin hace que su hogar se sienta m\xE1s caliente de lo que marca el termostato. Un deshumidificador para toda la casa se conecta a sus ductos y funciona autom\xE1ticamente - solo requiere revisar el filtro ocasionalmente, sin cubetas que vaciar. Un ERV introduce aire fresco filtrado del exterior mientras expulsa el aire viciado, recuperando la mayor parte de la energ\xEDa en el intercambio. Agregue cualquiera, ambos, o ninguno."
     };
     const infoTextId = cur && cur.id === "insulation" && answers.indoor_type !== "furnace" ? "insulation_ah" : cur && cur.id === "thermostat" && answers.cond_tier === "high_ge18" ? "thermostat_high" : cur && cur.id;
