@@ -1393,6 +1393,9 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    lead-form-open class is only set while pricingFlow is 'leadgate'). */
 @media(max-height:500px){
   .done-screen.lead-form-open .done-canvas-frame{display:none}
+  /* the heading row already says what to do - the extra line costs the
+     last ~20px that pushed the form into a scroll on a landscape phone */
+  .leadgate-desc{display:none}
 }
 
 @media(max-height:430px){

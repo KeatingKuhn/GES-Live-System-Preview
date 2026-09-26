@@ -2464,7 +2464,7 @@ function App(){
                     </div>
                     <button className="link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)",flex:"0 0 auto"}}>‹ {tr('Edit selections','Editar selecciones')}</button>
                   </div>
-                  <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.4,marginBottom:isAtticMode?4:8}}>
+                  <div className="leadgate-desc" style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.4,marginBottom:isAtticMode?4:8}}>
                     {tr('Fill out this short form to unlock pricing - it continues here automatically.','Complete este formulario breve para ver los precios - continuará aquí automáticamente.')}
                   </div>
                   <iframe ref={leadIframeRef} src={GATE_CONFIG.embedFormUrl} title={tr('Contact form','Formulario de contacto')}
