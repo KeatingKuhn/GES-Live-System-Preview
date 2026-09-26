@@ -967,6 +967,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    ever this close to the edge. */
 .splash-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:20;background:var(--bk);transition:opacity .5s,transform .5s;overflow-y:auto}
 .splash-screen.out{opacity:0;pointer-events:none;transform:scale(.97)}
+.splash-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;max-width:720px}
+.splash-foot-note{font-family:var(--fb);font-size:13px;color:rgba(255,255,255,.55);text-align:center;line-height:1.5}
 /* Splash content (title + intro copy + trust bullets + both location
    cards + language toggle) is tall enough that on any viewport under
    ~800px of HEIGHT - not just short-portrait phones (740/667px tall) but
@@ -990,7 +992,8 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    justify-content wins, and a plain .splash-screen rule anywhere later
    in the file would silently re-win this override back to center. */
 @media(max-height:800px){
-  .splash-screen{justify-content:flex-start;padding:24px 16px}
+  /* safe center: centered when it fits, top-aligned (never clipped) when it doesn't */
+  .splash-screen{justify-content:flex-start;justify-content:safe center;padding:24px 16px}
 }
 /* First-load entrance - the very first thing anyone sees gets a short,
    staged rise instead of popping in fully-formed in one frame. Each direct
@@ -1008,7 +1011,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
    not these children's), so the two never fight each other. */
 .splash-rise{animation:splashRise .45s cubic-bezier(.22,.61,.36,1) both}
 @keyframes splashRise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
-.splash-logo{font-family:var(--ft);font-size:64px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
+.splash-logo{font-family:var(--ft);font-size:52px;font-weight:700;background:var(--gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em;text-align:center}
 .splash-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 /* Named transition properties (background/border-color/transform), not
    `all` - see the .info-btn comment above for why: this card is also a
@@ -1189,7 +1192,7 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   /* Splash: single column, stack cards vertically */
   .splash-cards{flex-direction:column;align-items:center;gap:12px}
   .splash-card{width:min(90vw,420px);padding:20px 22px}
-  .splash-logo{font-size:clamp(28px,7vw,52px)}
+  .splash-logo{font-size:clamp(26px,6vw,44px)}
 
   /* Attic layout: canvas top 55%, bar bottom 45% scrollable */
   .attic-layout{flex-direction:column}
@@ -1350,7 +1353,11 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
      column gives every cell the phone's full ~345px to work with, same
      as before the 2-column rule was introduced. */
   .done-review-grid{grid-template-columns:1fr}
-  .splash-logo{font-size:clamp(22px,8vw,38px)}
+  .splash-logo{font-size:clamp(22px,7.5vw,34px)}
+  /* start screen fits a phone without scrolling: tighter intro + spacing */
+  .splash-screen{gap:12px;padding-top:12px;padding-bottom:12px}
+  .splash-intro{font-size:15.5px!important;line-height:1.5!important;margin:2px 0!important}
+  .splash-card-desc{font-size:13px}
   .splash-card{padding:16px 18px}
   .attic-bar-top .btn-skip{display:none}
   .step-hint{display:none}
