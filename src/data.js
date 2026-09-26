@@ -35,8 +35,8 @@ export const STEPS=[
     hint:'Feeds conditioned air to your ductwork.', optional:false},
   {id:'cond_tier',   q:'Pick your efficiency tier.', chapter:1,
     hint:'Higher efficiency, lower monthly bills.', optional:false},
-  {id:'system_for',  q:'Dual fuel heat pump, or straight cool?', chapter:1,
-    hint:'Heat pump does more; AC only cools.', optional:false,
+  {id:'system_for',  q:'Should your outdoor unit heat too? Dual fuel or straight cool', chapter:1,
+    hint:'Both cool exactly the same in summer. The difference is who heats in winter.', optional:false,
     // Mid efficiency only comes as dual fuel - nothing to actually choose,
     // so skip the step entirely instead of showing a single-card question.
     showIf:a=>a.indoor_type==='furnace'&&a.cond_tier!=='mid_ge15'},
@@ -125,8 +125,8 @@ export function getOpts(stepId, answers){
     // mid_ge15. A conditional single-option branch used to sit here anyway
     // and was pure dead code.
     case 'system_for':return[
-      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Heat pump handles most of the year, down to ~35°F. Furnace covers the rest.'},
-      {v:'sc', label:'Straight Cool',        desc:'AC cools only - furnace handles all heating. Simpler, lower upfront cost.'},
+      {v:'hp', label:'Dual Fuel (Heat pump + furnace)', desc:'Your outdoor unit is a heat pump: it cools in summer and also heats most of the winter. The gas furnace only takes over on the coldest days (below about 35°F). On the diagram, the outdoor unit becomes HEAT PUMP and shows its reversing valve.'},
+      {v:'sc', label:'Straight Cool (AC + furnace)', desc:'Your outdoor unit is an air conditioner: it only cools. The gas furnace does all of the heating. The simplest setup, with a lower upfront cost.'},
     ];
     case 'cond_tier':{
       // QA FIX - "14 SEER2" was off: the 2023 DOE South-region minimum this
@@ -177,7 +177,7 @@ export const STEPS_ES={
   insulation: {q:'¿Fibra de vidrio o espuma aislante?',    hint:'Se trata del espacio de ático de su casa, sin importar dónde esté su equipo - también afecta la eficiencia del horno. ¿No está seguro, o no tiene ático? Lo resolveremos en su visita gratuita a domicilio.'},
   plenum:     {q:'¿Necesita un plenum de suministro nuevo?', hint:'Envía aire acondicionado a sus ductos.'},
   cond_tier:  {q:'Elija su nivel de eficiencia.',          hint:'Mayor eficiencia, facturas mensuales más bajas.'},
-  system_for: {q:'¿Bomba de calor de combustible dual, o solo enfriamiento?', hint:'La bomba de calor hace más; el A/C solo enfría.'},
+  system_for: {q:'¿Su unidad exterior también debe calentar? Combustible dual o solo enfriamiento', hint:'Ambas enfrían igual en verano. La diferencia es quién calienta en invierno.'},
   thermostat: {q:'¿Qué termostato?',                       hint:'Los modelos Wi-Fi pueden ahorrar 10–15% en su factura.'},
   purif:      {q:'¿Algún complemento de purificación o protección?', hint:'La filtración viene incluida; agregue más aquí.'},
   dehu:       {q:'¿Quiere mejorar la calidad del aire interior?', hint:'Deshumidificador para toda la casa, sistema ERV de aire fresco, o ambos.'},
@@ -217,8 +217,8 @@ export const OPTS_ES={
     surge:  {label:'Protector de Sobrevoltaje',  desc:'Ayuda a proteger el compresor de picos de voltaje y rayos cercanos.'},
   },
   system_for:{
-    hp:{label:'Combustible Dual (Bomba de calor + horno)', desc:'La bomba de calor cubre la mayor parte del año, hasta ~35°F. El horno se encarga del resto.'},
-    sc:{label:'Solo Enfriamiento',                          desc:'El A/C solo enfría - el horno se encarga de toda la calefacción. Más simple, menor costo inicial.'},
+    hp:{label:'Combustible Dual (Bomba de calor + horno)', desc:'Su unidad exterior es una bomba de calor: enfría en verano y también calienta la mayor parte del invierno. El horno a gas solo entra en los días más fríos (menos de unos 35°F). En el diagrama, la unidad exterior pasa a BOMBA DE CALOR y muestra su válvula de inversión.'},
+    sc:{label:'Solo Enfriamiento (A/C + horno)',            desc:'Su unidad exterior es un aire acondicionado: solo enfría. El horno a gas hace toda la calefacción. La opción más simple, con menor costo inicial.'},
   },
   cond_tier:{
     fedmin:   {label:'Mínimo Federal - 14.3 SEER2',  desc:'Cumple con el código energético federal de 2023.'},
