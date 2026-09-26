@@ -583,6 +583,55 @@ function App(){
   //    window.location/window.parent.location checks earlier, which
   //    only ever look at their own level and one level up.
   const leadIframeRef=useRef(null);
+  // Direct feedback: the embedded form flashed bright white for about a
+  // second before the dark styling below kicked in. It now stays invisible
+  // (a quiet "Loading the form..." line shows instead) until the dark
+  // styles are injected, then fades in - and the styling is applied as
+  // soon as the form's markup exists, not only after every image and
+  // script on that page finishes loading (the iframe's onLoad).
+  const [leadFormShown,setLeadFormShown]=useState(false);
+  const styleLeadForm=()=>{
+    let ok=false;
+    try{
+      const doc=leadIframeRef.current&&leadIframeRef.current.contentDocument;
+      // wait for the real form page (not the iframe's initial about:blank)
+      // and for the form markup itself to exist before styling/revealing
+      if(!doc||!doc.head||!doc.body||doc.location.href==='about:blank'||!doc.querySelector('.gform_wrapper,form'))return false;
+      // Direct feedback: the form's bright white fields and
+      // grey Submit were harsh after the dark tool. Same-origin,
+      // so dim them to match - injected here so it applies
+      // whichever WordPress page hosts the form, and re-applied
+      // on every load (Gravity Forms' own validation reload too).
+      if(doc&&doc.head&&!doc.getElementById('ges-dark-form')){
+        const st=doc.createElement('style');st.id='ges-dark-form';
+        st.textContent=`html,body{background:transparent!important}
+.gform_wrapper input:not([type=submit]):not([type=button]):not([type=hidden]),.gform_wrapper select,.gform_wrapper textarea{background:#26282b!important;color:#e8e4d8!important;border:1px solid rgba(215,183,64,.28)!important;border-radius:4px!important;box-shadow:none!important}
+.gform_wrapper input:focus,.gform_wrapper select:focus,.gform_wrapper textarea:focus{outline:none!important;border-color:rgba(215,183,64,.7)!important;background:#2c2e32!important}
+.gform_wrapper input::placeholder,.gform_wrapper textarea::placeholder{color:#8b877c!important}
+.gform_wrapper input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #26282b inset!important;-webkit-text-fill-color:#e8e4d8!important}
+.gform_wrapper .gfield_label,.gform_wrapper .gform-field-label,.gform_wrapper label{color:#d9d4c7!important}
+.gform_wrapper .gform_button,.gform_wrapper input[type=submit],.gform_wrapper button[type=submit]{background:#b8973a!important;color:#141414!important;border:1px solid #b8973a!important;font-weight:600!important;border-radius:4px!important}
+.gform_wrapper .gform_button:hover,.gform_wrapper input[type=submit]:hover{background:#c9a646!important}`;
+        doc.head.appendChild(st);
+        // a validation reload (e.g. a missed required field) swaps in a new
+        // unstyled page - hide it again until that one is styled too
+        try{doc.defaultView.addEventListener('pagehide',()=>setLeadFormShown(false));}catch(e){}
+      }
+      const h=doc&&doc.body&&doc.body.scrollHeight;
+      if(h&&leadIframeRef.current)leadIframeRef.current.style.height=Math.min(Math.max(h,180),900)+'px';
+      ok=true;
+    }catch(e){/* cross-origin - can't style it; just show it */ok=true;}
+    if(ok)setLeadFormShown(true);
+    return ok;
+  };
+  React.useEffect(()=>{
+    if(pricingFlow!=='leadgate'||!GATE_CONFIG.embedFormUrl){setLeadFormShown(false);return;}
+    setLeadFormShown(false);
+    const t=setInterval(()=>{if(styleLeadForm())clearInterval(t);},60);
+    // never leave the form invisible: reveal after 4s whatever happens
+    const fb=setTimeout(()=>{clearInterval(t);setLeadFormShown(true);},4000);
+    return()=>{clearInterval(t);clearTimeout(fb);};
+  },[pricingFlow]);
   React.useEffect(()=>{
     if(!GATE_CONFIG.gravityFormId||!GATE_CONFIG.embedFormUrl||leadUnlocked||pricingFlow!=='leadgate')return;
     const check=()=>{
@@ -1401,6 +1450,13 @@ function App(){
           toggle, which lives down on the splash screen now (see below). */}
       <div className="site-header-spacer no-print"/>
     <div ref={topRef} className="app-root">
+      {/* Direct feedback: "make sure the gravity form loads before someone
+          gets to that page". Same invisible warm-up as the one on the done
+          screen (see its comment there), started as soon as a build begins
+          so the form's page assets are already cached by the last step. */}
+      {GATE_CONFIG.gravityFormId&&GATE_CONFIG.embedFormUrl&&!leadUnlocked&&answers.location&&!doneVisible&&
+        <iframe src={GATE_CONFIG.embedFormUrl} aria-hidden="true" tabIndex="-1"
+          style={{position:"absolute",left:-9999,top:0,width:1,height:1,overflow:"hidden",opacity:0,pointerEvents:"none",border:"none"}}/>}
       {/* QA FIX - automated pass: printing (Ctrl+P) from the splash
           screen or anywhere mid-wizard produced a completely blank
           page - the @media print block unconditionally hides
@@ -2470,42 +2526,12 @@ function App(){
                   <div className="leadgate-desc" style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.4,marginBottom:isAtticMode?4:8}}>
                     {tr('Fill out this short form to unlock pricing - it continues here automatically.','Complete este formulario breve para ver los precios - continuará aquí automáticamente.')}
                   </div>
+                  <div style={{position:"relative"}}>
                   <iframe ref={leadIframeRef} src={GATE_CONFIG.embedFormUrl} title={tr('Contact form','Formulario de contacto')}
-                    onLoad={()=>{
-                      // Best-effort auto-resize to the embedded form's own
-                      // content height (same-origin only - the polling
-                      // effect above still detects submission either way
-                      // if this throws for any reason).
-                      // QA FIX - direct feedback: the WordPress side got the
-                      // embedded form's own content shrunk considerably
-                      // (hidden title, tightened field spacing) - lowered
-                      // the floor here from 260 to 180 so this no longer
-                      // pads the iframe taller than the real, now-shorter
-                      // content actually needs.
-                      try{
-                        const doc=leadIframeRef.current&&leadIframeRef.current.contentDocument;
-                        // Direct feedback: the form's bright white fields and
-                        // grey Submit were harsh after the dark tool. Same-origin,
-                        // so dim them to match - injected here so it applies
-                        // whichever WordPress page hosts the form, and re-applied
-                        // on every load (Gravity Forms' own validation reload too).
-                        if(doc&&doc.head&&!doc.getElementById('ges-dark-form')){
-                          const st=doc.createElement('style');st.id='ges-dark-form';
-                          st.textContent=`html,body{background:transparent!important}
-.gform_wrapper input:not([type=submit]):not([type=button]):not([type=hidden]),.gform_wrapper select,.gform_wrapper textarea{background:#26282b!important;color:#e8e4d8!important;border:1px solid rgba(215,183,64,.28)!important;border-radius:4px!important;box-shadow:none!important}
-.gform_wrapper input:focus,.gform_wrapper select:focus,.gform_wrapper textarea:focus{outline:none!important;border-color:rgba(215,183,64,.7)!important;background:#2c2e32!important}
-.gform_wrapper input::placeholder,.gform_wrapper textarea::placeholder{color:#8b877c!important}
-.gform_wrapper input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #26282b inset!important;-webkit-text-fill-color:#e8e4d8!important}
-.gform_wrapper .gfield_label,.gform_wrapper .gform-field-label,.gform_wrapper label{color:#d9d4c7!important}
-.gform_wrapper .gform_button,.gform_wrapper input[type=submit],.gform_wrapper button[type=submit]{background:#b8973a!important;color:#141414!important;border:1px solid #b8973a!important;font-weight:600!important;border-radius:4px!important}
-.gform_wrapper .gform_button:hover,.gform_wrapper input[type=submit]:hover{background:#c9a646!important}`;
-                          doc.head.appendChild(st);
-                        }
-                        const h=doc&&doc.body&&doc.body.scrollHeight;
-                        if(h&&leadIframeRef.current)leadIframeRef.current.style.height=Math.min(Math.max(h,180),900)+'px';
-                      }catch(e){/* cross-origin - keep the default height below */}
-                    }}
-                    style={{width:"100%",height:420,border:"none",display:"block",background:"transparent",borderRadius:4}}/>
+                    onLoad={()=>{styleLeadForm();}}
+                    style={{width:"100%",height:420,border:"none",display:"block",background:"transparent",borderRadius:4,opacity:leadFormShown?1:0,transition:"opacity .25s ease"}}/>
+                  {!leadFormShown&&<div className="leadgate-loading" aria-hidden="true">{tr('Loading the form…','Cargando el formulario…')}</div>}
+                  </div>
                 </>:<>
                   <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?4:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
                   <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>

@@ -1639,3 +1639,6 @@ body::after{content:'';position:absolute;inset:0;background:repeating-linear-gra
   .price-live{display:none!important}
   .price-static{display:inline!important}
 }
+
+/* shown in the lead card while the embedded form loads invisibly (see styleLeadForm in app.js) */
+.leadgate-loading{position:absolute;left:0;right:0;top:40px;text-align:center;font-family:var(--fm);font-size:12px;letter-spacing:.12em;color:rgba(215,183,64,.7);pointer-events:none}
