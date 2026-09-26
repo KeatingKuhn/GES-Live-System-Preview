@@ -3554,14 +3554,13 @@
       const vx = x + 12, vy = y + h - 46;
       const heating = active && refReversed;
       const col = heating ? "#e8c44a" : active ? "#e07a6e" : "#9aa0aa";
-      const lblW = 58, lblX = vx + vw2 / 2 - lblW / 2, lblY = vy + vh2 + 8;
-      return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".05s" } }, /* @__PURE__ */ React.createElement("rect", { x: vx, y: vy, width: vw2, height: vh2, rx: 5.5, fill: "#2b2e35", stroke: col, strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("line", { x1: vx + vw2 / 2, y1: vy, x2: vx + vw2 / 2, y2: vy - 7, stroke: col, strokeWidth: "2", strokeLinecap: "round" }), [7, 15, 23].map((dx) => /* @__PURE__ */ React.createElement("line", { key: dx, x1: vx + dx, y1: vy + vh2, x2: vx + dx, y2: vy + vh2 + 5, stroke: col, strokeWidth: "2", strokeLinecap: "round" })), /* @__PURE__ */ React.createElement("rect", { x: lblX, y: lblY, width: lblW, height: 13, rx: 3, fill: "rgba(20,21,25,.88)" }), /* @__PURE__ */ React.createElement("text", { x: vx + vw2 / 2, y: lblY + 9.5, textAnchor: "middle", fill: col, fontSize: "8.5", fontWeight: "700", fontFamily: "monospace" }, CT("REV. VALVE", lang2)), /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("g", { className: "snap", style: { animationDelay: ".05s" } }, /* @__PURE__ */ React.createElement("rect", { x: vx, y: vy, width: vw2, height: vh2, rx: 5.5, fill: "#2b2e35", stroke: col, strokeWidth: "1.6" }), /* @__PURE__ */ React.createElement("line", { x1: vx + vw2 / 2, y1: vy, x2: vx + vw2 / 2, y2: vy - 7, stroke: col, strokeWidth: "2", strokeLinecap: "round" }), [7, 15, 23].map((dx) => /* @__PURE__ */ React.createElement("line", { key: dx, x1: vx + dx, y1: vy + vh2, x2: vx + dx, y2: vy + vh2 + 5, stroke: col, strokeWidth: "2", strokeLinecap: "round" })), /* @__PURE__ */ React.createElement(
         HoverInfo,
         {
-          x: lblX - 2,
-          y: vy - 9,
-          w: lblW + 4,
-          h: lblY + 15 - (vy - 9),
+          x: vx - 6,
+          y: vy - 10,
+          w: vw2 + 12,
+          h: vh2 + 20,
           rx: 3,
           vw,
           vh,
