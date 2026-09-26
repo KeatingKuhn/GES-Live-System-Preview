@@ -2116,6 +2116,13 @@ function App(){
               );
               return pricingFlow?
                 <>
+                  {/* Hidden while the embedded contact form is open - direct
+                      feedback: this row, the leadgate heading/description and
+                      the Back button below the form stacked up enough height
+                      to push the form into a scroll. The leadgate block now
+                      carries "system is built" + Edit selections in its own
+                      single header row instead (see pricingFlow==='leadgate'). */}
+                  {!(pricingFlow==='leadgate'&&GATE_CONFIG.embedFormUrl)&&<>
                   {/* QA FIX - direct feedback: trimmed this divider row's
                       own spacing (and the leadgate block's below) in attic
                       mode specifically - after shrinking the embedded
@@ -2129,6 +2136,7 @@ function App(){
                     <span style={{fontSize:isAtticMode?"var(--fs-review-label)":"var(--fs-pricing-meta)",color:"rgba(255,255,255,.78)"}}>✓ {tr('Your system is built','Su sistema está construido')}</span>
                     <button className="no-print link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)"}}>{tr('Edit selections','Editar selecciones')}</button>
                   </div>
+                  </>}
                   {/* Hidden on-screen (see .print-only-grid in styles.css) -
                       exists purely so a printout taken while pricing is
                       engaged still has the full spec on it, not just the
@@ -2442,10 +2450,22 @@ function App(){
                   "scroll down to find it" copy if embedFormUrl is unset
                   (form still placed elsewhere on the WordPress page). */}
               {pricingFlow==='leadgate'&&<div key="leadgate" className="fadein no-print" style={{border:"1px solid rgba(215,183,64,.2)",padding:isAtticMode?"6px 12px":12}}>
-                <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?4:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
                 {GATE_CONFIG.embedFormUrl?<>
-                  <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:isAtticMode?6:10}}>
-                    {tr('Fill out the short form below to unlock pricing - it continues right here automatically, no need to click anything else.','Complete el formulario breve a continuación para desbloquear los precios - continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
+                  {/* Direct feedback: the "system is built" row, Edit
+                      selections, this heading/description and a Back button
+                      under the form stacked into a scroll. Collapsed into one
+                      header row (Back and Edit selections did the same thing -
+                      setPricingFlow(null) - so they're one link now) plus a
+                      single short description line, so the form fits. */}
+                  <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginBottom:isAtticMode?2:4}}>
+                    <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,fontFamily:"var(--ft)"}}>
+                      <span style={{fontWeight:400,color:"rgba(255,255,255,.78)"}}>✓ {tr('Your system is built','Su sistema está construido')} · </span>
+                      {tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}
+                    </div>
+                    <button className="link-btn-gold" onClick={()=>setPricingFlow(null)} style={{fontSize:"var(--fs-review-edit)",flex:"0 0 auto"}}>‹ {tr('Edit selections','Editar selecciones')}</button>
+                  </div>
+                  <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.4,marginBottom:isAtticMode?4:8}}>
+                    {tr('Fill out this short form to unlock pricing - it continues here automatically.','Complete este formulario breve para ver los precios - continuará aquí automáticamente.')}
                   </div>
                   <iframe ref={leadIframeRef} src={GATE_CONFIG.embedFormUrl} title={tr('Contact form','Formulario de contacto')}
                     onLoad={()=>{
@@ -2465,14 +2485,15 @@ function App(){
                         if(h&&leadIframeRef.current)leadIframeRef.current.style.height=Math.min(Math.max(h,180),900)+'px';
                       }catch(e){/* cross-origin - keep the default height below */}
                     }}
-                    style={{width:"100%",height:420,border:"none",display:"block",marginBottom:isAtticMode?6:10,background:"transparent",borderRadius:4}}/>
-                </>:
+                    style={{width:"100%",height:420,border:"none",display:"block",background:"transparent",borderRadius:4}}/>
+                </>:<>
+                  <div style={{fontSize:isAtticMode?13:"var(--fs-pricing-q)",fontWeight:600,marginBottom:isAtticMode?4:6,fontFamily:"var(--ft)"}}>{tr('Almost there - just one quick step','Ya casi termina - solo un paso rápido')}</div>
                   <div style={{fontSize:isAtticMode?10.5:12,color:"var(--mut)",lineHeight:1.5,marginBottom:12}}>
                     {tr('Scroll down on this page to find the short form - fill it out to unlock pricing. It continues right here automatically, no need to click anything else.','Desplácese hacia abajo en esta página para encontrar el formulario breve - complételo para desbloquear los precios. Continuará aquí automáticamente, sin necesidad de hacer clic en nada más.')}
                   </div>
-                }
-                <button className="btn-back" style={{padding:isAtticMode?"6px 16px":"8px 16px",fontSize:isAtticMode?14:"var(--fs-pricing-fine)"}}
-                  onClick={()=>setPricingFlow(null)}>‹ {tr('Back','Atrás')}</button>
+                  <button className="btn-back" style={{padding:isAtticMode?"6px 16px":"8px 16px",fontSize:isAtticMode?14:"var(--fs-pricing-fine)"}}
+                    onClick={()=>setPricingFlow(null)}>‹ {tr('Back','Atrás')}</button>
+                </>}
               </div>}
 
               {/* Wrapped in its own key'd+fadein div for the same reason as
