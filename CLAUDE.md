@@ -24,33 +24,72 @@ Never print, echo or commit those values.
   "Home Maintenance Plan" (ID 1667). Their visible layout is not in
   `content.raw`; don't edit them through the API - tell the owner and
   suggest making the change in the Elementor editor instead.
+- Service pages are built from theme ACF blocks (`acf/section-text`,
+  `acf/section-cta`, ...). Add new sections with those blocks so they match
+  the design. `unfiltered_html` is allowed, so a `wp:html` block can carry
+  JSON-LD; the homepage (ID 2540) has `HVACBusiness` data and the FAQ page
+  (ID 2640) has `FAQPage` data - keep them in sync when facts change.
+- Cloudflare blocks requests with a fake browser user agent; use curl's
+  default.
+
+## Resource Center (sister site)
+
+resources.goldeagleservices.com is a separate WordPress site (Yoast SEO)
+with long-form homeowner guides. Access it the same way with `RES_WP_URL`,
+`RES_WP_USER` and `RES_WP_APP_PASSWORD` (also Editor role, same rules
+below). Its job is to be the education hub AI assistants learn from, tied
+back to the business: link articles to the matching main-site service page,
+and link service pages to articles ("Learn More From Our Resource Center"
+sections on AC, Heating, Ductwork, IAQ and Mold).
+
+## Owner's developer to-do list
+
+Things only the web developer or the owner can do (theme code, plugins,
+settings, accounts) go on the pinned list at
+https://claude.ai/artifact/WR3J1YfsDKMn6wYhJoojEU, collection `tasks`
+(fields: title, detail, area, status open/done, createdAt, doneAt). Add
+new items there instead of leaving them only in chat.
 
 ## How to make a change
 
-The owner's top priority is that the site never breaks. These rules are
-mandatory - no exceptions, even for "tiny" edits:
+The owner trusts Claude to handle routine work end-to-end and wants to
+spend as little effort as possible. Don't ask for approval on each step:
+do the work, then report. What stays non-negotiable is that the site
+never breaks and every change can be undone.
 
-1. **New pages and posts are always created with `"status": "draft"`.**
-   Give the owner the preview link. Publish only when they explicitly say
-   to publish that specific item.
-2. **Edits to existing pages need an explicit "yes" every time.** Before
-   saving, show the owner the exact before and after text in plain
-   language, then wait. A general "go ahead" earlier in the conversation
-   does not cover a new change.
-3. **Back up before every edit.** Save the page's current `content.raw` to
-   a file in the scratchpad before POSTing a change, so it can be put
-   back even if WordPress revisions fail.
-4. **Verify after every edit.** Re-fetch the page via the API and load its
-   public URL. If it doesn't return HTTP 200, or the change isn't there,
-   or other content is missing, immediately restore the backup and tell
-   the owner what happened. Mention that a caching plugin may delay what
-   visitors see.
-5. **One page at a time.** A change touching several pages needs the owner
-   to approve the full list of pages first.
-6. **Never:** delete pages, posts or media; change menus, site settings,
-   users, plugins or themes; edit the two Elementor pages listed above.
-   If the owner asks for one of these, explain it's outside what this
-   setup does safely and suggest they do it in WP Admin.
+**Just do it, then report** (no approval needed):
+- Edits that carry out what the owner asked for, even loosely ("clean up
+  X", "fix typos on the service pages"), across as many pages as needed.
+- Removing leftovers, broken shortcodes, stray text, typos and outdated
+  references.
+- Unpublishing a post or page (set `"status": "draft"`) when it's clearly
+  part of the requested cleanup. That hides it but keeps it, so it can be
+  republished any time.
+
+When finished, give one short summary: what changed, on which pages
+(with links), and anything left undone and why.
+
+**Ask first** (one short question, with a recommendation):
+- Wording that changes meaning rather than fixing it: prices, promises,
+  warranties, legal text beyond removing obvious junk, new marketing copy.
+- Anything ambiguous, where a wrong guess would need undoing.
+
+**New pages and posts** are created as drafts; send the preview link and
+publish when the owner says so.
+
+**Always, for every edit (the safety net - costs the owner nothing):**
+1. Back up the page's current `content.raw` to a file in the scratchpad
+   before saving.
+2. After saving, re-fetch it via the API and load the public URL. If it
+   doesn't return HTTP 200, the change isn't there, or other content went
+   missing, restore the backup immediately and say what happened.
+3. Mention that the site's cache (Cloudflare / host) can delay what
+   visitors see by up to about 10 minutes.
+
+**Never:** permanently delete pages, posts or media; change menus, site
+settings, users, plugins or themes; edit the two Elementor pages listed
+above through the API. If a task needs one of these, say so and give the
+owner the exact click-path in WP Admin, or say who can do it.
 
 To undo a change later, WordPress keeps revisions
 (`/wp/v2/pages/<id>/revisions`); the owner can also use Revisions →
