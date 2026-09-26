@@ -42,6 +42,14 @@ back to the business: link articles to the matching main-site service page,
 and link service pages to articles ("Learn More From Our Resource Center"
 sections on AC, Heating, Ductwork, IAQ and Mold).
 
+The Resource Center shows the main site's header above its own, via one
+line in its WPCode → Header & Footer → Body box loading
+`goldeagleservices.com/wp-content/uploads/ges-topbar-v2.js`. That script
+reads the menu live (JSONP) from main-site media item 4025's `alt_text`,
+a JSON copy of header menu 39 (`[[title,url,[[sub,url],...]],...]`).
+After any change to the main-site header menu, rewrite that alt text so
+the Resource Center matches.
+
 ## Owner's developer to-do list
 
 Things only the web developer or the owner can do (theme code, plugins,
